@@ -1,0 +1,830 @@
+openapi: 3.0.3
+
+info:
+  title: Gestión de choferes y su documentación — Módulo 3
+  version: "1.0"
+  description: |
+    Contrato HTTP para el padrón de transportistas, el registro de choferes, su documentación y el
+    panel de vencimientos.
+
+    **Autorización**: todos los endpoints exigen sesión activa y el permiso `choferes.gestionar`,
+    que otorgan los roles *Tráfico* y *Administrador del sistema* (FR-027). Es el primer módulo cuyo
+    acceso no es exclusivo del administrador.
+
+    - Sin sesión → `401` con `sesion_expirada`.
+    - Con sesión pero sin el permiso → `403` con `sin_permiso`.
+
+    **El estado de un documento nunca se recibe, sólo se devuelve.** Ningún cuerpo de petición de
+    este contrato acepta un campo de estado: el sistema lo calcula a partir de la fecha de
+    vencimiento y de los días de aviso de su tipo (FR-017, FR-018, SC-004).
+
+servers:
+  - url: /api
+
+paths:
+
+  # ── Transportistas ──────────────────────────────────────────────────────────────────────────────
+
+  /transportistas:
+    get:
+      summary: Lista transportistas
+      description: |
+        Una lista vacía es una respuesta legítima: es el estado de toda instalación nueva, y la
+        pantalla lo informa con un mensaje explícito (FR-023).
+      parameters:
+        - { name: texto, in: query, schema: { type: string }, description: Fragmento de nombre o CUIT }
+        - name: soloActivos
+          in: query
+          schema: { type: boolean, default: false }
+          description: '`true` devuelve sólo los activos — lo que consume el selector del formulario de chofer (FR-008)'
+      responses:
+        "200":
+          description: Transportistas que cumplen los filtros
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Transportista' }
+
+    post:
+      summary: Registra un transportista
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransportistaRequest' }
+      responses:
+        "201":
+          description: Transportista registrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transportista' }
+        "400":
+          description: 'Códigos posibles: `datos_invalidos`, `cuit_duplicado`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /transportistas/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+
+    get:
+      summary: Detalle de un transportista
+      responses:
+        "200":
+          description: Datos del transportista
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transportista' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    put:
+      summary: Modifica un transportista
+      description: Conservar el propio CUIT no genera conflicto (FR-003).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransportistaRequest' }
+      responses:
+        "200":
+          description: Transportista actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transportista' }
+        "400":
+          description: 'Códigos posibles: `datos_invalidos`, `cuit_duplicado`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    delete:
+      summary: Da de baja lógica un transportista
+      description: |
+        Se rechaza si tiene al menos un chofer **activo** asociado, informando cuántos son (FR-010).
+        La baja procede si todos sus choferes están inactivos o si no tiene ninguno.
+
+        G&T Logística S.A. no recibe trato especial: se le aplica la misma regla.
+      responses:
+        "204":
+          description: Transportista dado de baja
+        "400":
+          description: 'Tiene choferes activos (`transportista_con_choferes`). El mensaje dice cuántos.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ── Choferes ────────────────────────────────────────────────────────────────────────────────────
+
+  /choferes:
+    get:
+      summary: Lista choferes con el estado de su documentación
+      description: |
+        Los cinco filtros se combinan con "y" (FR-022). `apellido` y `dni` buscan coincidencia
+        parcial sin distinguir mayúsculas; `transportistaId`, `estado` y `estadoDocumentacion` son
+        selección exacta.
+
+        **Sin `estado`, devuelve sólo los choferes activos** (FR-022). Los inactivos se consultan
+        pidiendo `estado=inactivo` explícitamente; no hay forma de traer los dos a la vez, y es
+        deliberado: el listado responde por la operación del día.
+
+        `estadoDocumentacion` filtra sobre un valor **calculado**, no almacenado: se resuelve en la
+        base (research §2) sobre el documento vigente de cada tipo (research §8).
+
+        **Respuesta paginada** de a 20 filas, ordenada por apellido, nombre e id (FR-030). Los
+        filtros se aplican sobre todo el padrón antes de paginar, y `total` cuenta las coincidencias
+        completas, no las de la página.
+      parameters:
+        - { name: apellido, in: query, schema: { type: string } }
+        - { name: dni, in: query, schema: { type: string } }
+        - { name: transportistaId, in: query, schema: { type: integer } }
+        - name: estado
+          in: query
+          schema: { type: string, enum: [activo, inactivo] }
+          description: 'Omitido = sólo activos (FR-022)'
+        - { name: estadoDocumentacion, in: query, schema: { $ref: '#/components/schemas/EstadoDocumentacionChofer' } }
+        - name: pagina
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+          description: 'Página pedida, base 1. Una página fuera de rango devuelve `items` vacío con el `total` real'
+      responses:
+        "200":
+          description: Página de choferes que cumplen los filtros
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ChoferesPagina' }
+
+    post:
+      summary: Registra un chofer
+      description: |
+        Si el DNI ya existe en el padrón de personas, **se reutiliza esa persona** en vez de
+        duplicarla (caso límite de la spec, research §6). Si esa persona ya es chofer, se rechaza.
+
+        El transportista es obligatorio y tiene que estar activo (FR-008). El chofer tiene que ser
+        mayor de 18 años a la fecha del alta (FR-011).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChoferRequest' }
+      responses:
+        "201":
+          description: Chofer registrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ChoferDetalle' }
+        "400":
+          description: |
+            Códigos posibles: `datos_invalidos`, `dni_duplicado` (la persona ya es chofer),
+            `cuil_duplicado`, `transportista_inexistente`, `menor_de_edad`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /choferes/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+
+    get:
+      summary: Ficha de un chofer con toda su documentación
+      responses:
+        "200":
+          description: Datos personales, transportista y documentos con su estado (FR-024)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ChoferDetalle' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    put:
+      summary: Modifica un chofer o lo reasigna de transportista
+      description: |
+        Los datos personales se guardan en su `Persona` del padrón del Módulo 2, que es la misma fila
+        que ve aquel módulo (FR-006).
+
+        Reasignar el transportista **no toca la documentación ya cargada** (FR-009, SC-009).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChoferRequest' }
+      responses:
+        "200":
+          description: Chofer actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ChoferDetalle' }
+        "400":
+          description: |
+            Códigos posibles: `datos_invalidos`, `dni_duplicado`, `cuil_duplicado`,
+            `transportista_inexistente`, `menor_de_edad`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    delete:
+      summary: Da de baja lógica un chofer
+      description: |
+        No borra: lo deja inactivo (FR-005). Su persona queda en el padrón del Módulo 2 y su
+        documentación se conserva.
+
+        A partir de la baja, el chofer **deja de aparecer** en el listado sin filtros y en el panel
+        de vencimientos; se consulta pidiendo `estado=inactivo` (FR-021, FR-022).
+
+        Sus documentos y sus archivos adjuntos quedan intactos (FR-005a) y vuelven completos si
+        más adelante se lo reactiva con `POST /choferes/{id}/reactivacion` (FR-005b).
+      responses:
+        "204":
+          description: Chofer dado de baja
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /choferes/{id}/reactivacion:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      summary: Reactiva un chofer dado de baja
+      description: |
+        Vuelve a poner el chofer en `Activo` (FR-005b). Desde ese momento aparece en el listado por
+        defecto y, si su documentación lo amerita, vuelve a alertar en el panel de vencimientos sin
+        que nadie recargue nada: el estado se calcula al consultarlo.
+
+        Su documentación nunca se tocó durante la baja (FR-005a), así que vuelve completa.
+
+        La pantalla pide confirmación explícita antes de llamar a este endpoint.
+      responses:
+        "204":
+          description: Chofer reactivado
+        "400":
+          description: 'El chofer ya está activo, o su transportista está inactivo (`datos_invalidos`, `transportista_inexistente`)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ── Documentación de un chofer ──────────────────────────────────────────────────────────────────
+
+  /choferes/{id}/documentacion:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      summary: Carga un documento del chofer, con archivo adjunto opcional
+      description: |
+        Va como `multipart/form-data` porque puede traer el archivo escaneado. El archivo es
+        **opcional**: un documento sin adjunto es válido, pero el sistema lo distingue de uno
+        respaldado (FR-015, caso límite).
+
+        **No se recibe el estado**: lo calcula el sistema (FR-018).
+
+        Un chofer puede tener varios documentos del mismo tipo: el anterior queda como historial
+        (FR-020) y deja de contar para el estado del chofer y para las alertas, porque el vigente
+        pasa a ser el de vencimiento más lejano (FR-020a). No hay que dar de baja ni editar el
+        documento viejo.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [documentacionTipoId, numero, fechaEmision, fechaVencimiento]
+              properties:
+                documentacionTipoId:
+                  type: integer
+                  description: Tiene que ser un tipo activo del catálogo
+                numero: { type: string, maxLength: 50 }
+                fechaEmision: { type: string, format: date }
+                fechaVencimiento:
+                  type: string
+                  format: date
+                  description: Posterior a la fecha de emisión (FR-016)
+                archivo:
+                  type: string
+                  format: binary
+                  description: |
+                    Opcional. **PDF, JPG o PNG, hasta 10 MB** (FR-015a). El tipo se valida por la
+                    firma del archivo, no por su extensión: renombrar un ejecutable a `.pdf` no
+                    alcanza. Si no cumple, se rechaza con `archivo_no_admitido` y **no se guarda el
+                    documento** (research §3).
+      responses:
+        "201":
+          description: Documento cargado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Documentacion' }
+        "400":
+          description: |
+            Códigos posibles: `datos_invalidos`, `vencimiento_anterior_a_emision`,
+            `tipo_inexistente`, `archivo_no_admitido`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404":
+          description: El chofer no existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "413":
+          description: |
+            El archivo supera los 10 MB y el servidor cortó la petición antes de leerla
+            (`archivo_no_admitido`). La pantalla lo trata igual que al `400`: mismo mensaje, mismo
+            campo marcado.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "500":
+          description: |
+            El archivo es válido pero no se pudo guardar (`archivo_no_guardado`). **El documento no
+            se creó**: la operación es todo o nada, y la pantalla conserva lo tipeado para reintentar
+            (FR-015e, research §10).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /documentacion/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+
+    put:
+      summary: Corrige un documento ya cargado
+      description: |
+        Permite arreglar un documento mal cargado —tipo equivocado, número o fechas mal tipeados— con
+        **las mismas validaciones que el alta** (FR-015b). Va como `multipart/form-data` porque puede
+        traer un archivo de reemplazo.
+
+        Sobre el archivo:
+
+        - Si no viene `archivo`, el adjunto actual **se conserva**.
+        - Si viene, reemplaza al anterior, que se borra una vez confirmado el cambio (research §10).
+        - Si el archivo nuevo no llega a guardarse, el documento **no queda modificado** y conserva
+          el que ya tenía (FR-015e).
+
+        Corregir una fecha de vencimiento puede cambiar cuál es el documento vigente de su tipo y,
+        con eso, el estado del chofer: se recalcula solo, no hay nada que actualizar (FR-020a).
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [documentacionTipoId, numero, fechaEmision, fechaVencimiento]
+              properties:
+                documentacionTipoId: { type: integer }
+                numero: { type: string, maxLength: 50 }
+                fechaEmision: { type: string, format: date }
+                fechaVencimiento: { type: string, format: date }
+                archivo:
+                  type: string
+                  format: binary
+                  description: 'Opcional. Si viene, reemplaza al adjunto actual. Mismas restricciones que el alta (FR-015a)'
+      responses:
+        "200":
+          description: Documento corregido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Documentacion' }
+        "400":
+          description: |
+            Códigos posibles: `datos_invalidos`, `vencimiento_anterior_a_emision`,
+            `tipo_inexistente`, `archivo_no_admitido`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "500":
+          description: 'El archivo no se pudo guardar (`archivo_no_guardado`). El documento quedó sin cambios (FR-015e)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    delete:
+      summary: Elimina un documento
+      description: |
+        **Borrado definitivo**, no baja lógica (FR-015c, FR-015d): la fila y su archivo adjunto
+        desaparecen y no se pueden recuperar. El documento es la única entidad de este módulo que se
+        borra de verdad; el resto usa baja lógica.
+
+        La pantalla pide una confirmación explícita antes de llamar a este endpoint, advirtiendo que
+        no se puede deshacer (FR-015c, SC-008).
+
+        Si el documento eliminado era el vigente de su tipo, el más reciente de los que quedan pasa a
+        serlo y el estado del chofer se recalcula solo (FR-020a).
+      responses:
+        "204":
+          description: Documento eliminado
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /documentacion/{id}/archivo:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Descarga el archivo adjunto de un documento
+      description: |
+        **Exige sesión y el permiso del módulo**, igual que el resto. Es deliberado: un psicofísico o
+        una licencia son datos personales sensibles, así que conocer la ruta no alcanza para verlos
+        (research §3).
+      responses:
+        "200":
+          description: El archivo, con su tipo de contenido y su nombre original
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "404":
+          description: El documento no existe o no tiene archivo adjunto (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ── Panel de vencimientos ───────────────────────────────────────────────────────────────────────
+
+  /vencimientos:
+    get:
+      summary: Choferes activos con documentación próxima a vencer o vencida
+      description: |
+        Devuelve sólo los choferes **activos** con al menos un documento `proximaAvencer` o
+        `vencida`, con el detalle de qué documento y cuántos días faltan o pasaron (FR-021).
+
+        Dos exclusiones deliberadas, las dos de FR-021:
+
+        - **Los choferes inactivos no aparecen**, cualquiera sea el estado de su documentación: ya no
+          salen a la ruta, así que nadie va a renovar esos papeles.
+        - **Los documentos históricos no alertan**: sólo se evalúa el vigente de cada tipo, el de
+          vencimiento más lejano (FR-020a). Cargar una renovación saca la alerta sin que nadie borre
+          ni edite el documento anterior (SC-010).
+
+        Una lista vacía significa que no hay vencimientos pendientes, y la pantalla lo dice
+        explícitamente (US5 esc. 4).
+      responses:
+        "200":
+          description: Alertas vigentes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AlertaVencimiento' }
+
+  # ── Catálogo de tipos de documentación ──────────────────────────────────────────────────────────
+
+  /tipos-documentacion:
+    get:
+      summary: Lista los tipos de documentación
+      parameters:
+        - name: soloActivos
+          in: query
+          schema: { type: boolean, default: false }
+          description: '`true` devuelve sólo los activos — lo que se ofrece al cargar un documento'
+      responses:
+        "200":
+          description: 'Catálogo. Puede venir vacío: arranca así y no se precarga'
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/TipoDocumentacion' }
+
+    post:
+      summary: Crea un tipo de documentación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TipoDocumentacionRequest' }
+      responses:
+        "201":
+          description: Tipo creado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TipoDocumentacion' }
+        "400":
+          description: 'Códigos posibles: `datos_invalidos`, `tipo_duplicado`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /tipos-documentacion/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+
+    put:
+      summary: Modifica un tipo de documentación
+      description: |
+        Cambiar los días de aviso **recalcula** el estado de los documentos de ese tipo la próxima
+        vez que se consultan, sin actualizar ninguna fila (US6 esc. 4, research §2).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TipoDocumentacionRequest' }
+      responses:
+        "200":
+          description: Tipo actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TipoDocumentacion' }
+        "400":
+          description: 'Códigos posibles: `datos_invalidos`, `tipo_duplicado`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    delete:
+      summary: Da de baja lógica un tipo de documentación
+      description: Se rechaza si tiene documentos asociados, informando cuántos son (FR-014).
+      responses:
+        "204":
+          description: Tipo dado de baja
+        "400":
+          description: 'Tiene documentos asociados (`tipo_con_documentos`). El mensaje dice cuántos.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+components:
+  schemas:
+
+    TipoPersona:
+      type: string
+      enum: [fisica, juridica]
+      description: Personería del transportista. Aplica sólo al transportista, no al chofer.
+
+    DocumentacionEstado:
+      type: string
+      enum: [vigente, proximaAvencer, vencida]
+      description: |
+        Calculado por el sistema a partir de la fecha de vencimiento y de los días de aviso de su
+        tipo. **Nunca se recibe en una petición** (FR-018).
+
+    EstadoDocumentacionChofer:
+      type: string
+      enum: [enRegla, proximaAvencer, vencida, sinDocumentacion]
+      description: |
+        Los cuatro valores que fija FR-029. Es el **peor** estado entre los documentos vigentes de
+        cada tipo —el de vencimiento más lejano de cada uno (FR-020a)—, con precedencia
+        `vencida` > `proximaAvencer` > `enRegla`.
+
+        `sinDocumentacion` es una cuarta situación, distinta de `enRegla`: un chofer sin documentos
+        no está en regla por ausencia de papeles (FR-028).
+
+        **No hay un quinto valor.** Ningún tipo del catálogo es obligatorio (FR-029a): el estado
+        informa sobre los documentos cargados y no sobre los que podrían faltar, y el archivo adjunto
+        no lo altera. Un chofer con un solo documento al día devuelve `enRegla`.
+
+        El valor se llama `enRegla` y no `vigente` a propósito: `vigente` describe un documento,
+        `enRegla` describe a una persona. Ver `DocumentacionEstado`.
+
+    Transportista:
+      type: object
+      required: [id, nombre, cuit, tipo, telefono, email, activo]
+      properties:
+        id: { type: integer }
+        nombre: { type: string, maxLength: 200 }
+        cuit: { type: string, description: Sólo dígitos, normalizado }
+        tipo: { $ref: '#/components/schemas/TipoPersona' }
+        telefono: { type: string, maxLength: 30 }
+        email: { type: string, format: email }
+        activo: { type: boolean }
+        choferesActivos:
+          type: integer
+          description: Cuántos choferes activos dependen de él. Es lo que impide su baja (FR-010)
+
+    TransportistaRequest:
+      type: object
+      required: [nombre, cuit, tipo, telefono, email]
+      properties:
+        nombre: { type: string, maxLength: 200 }
+        cuit:
+          type: string
+          description: Se acepta con guiones o puntos; se normaliza a sólo dígitos antes de validar (FR-025)
+        tipo: { $ref: '#/components/schemas/TipoPersona' }
+        telefono: { type: string, maxLength: 30 }
+        email: { type: string, format: email }
+
+    ChoferListado:
+      description: Fila del listado. Son exactamente las columnas que exige FR-022.
+      type: object
+      required: [id, apellido, nombre, dni, transportista, activo, estadoDocumentacion]
+      properties:
+        id: { type: integer }
+        apellido: { type: string }
+        nombre: { type: string }
+        dni: { type: string }
+        transportista: { $ref: '#/components/schemas/TransportistaResumen' }
+        activo: { type: boolean }
+        estadoDocumentacion: { $ref: '#/components/schemas/EstadoDocumentacionChofer' }
+
+    ChoferesPagina:
+      description: |
+        Página del listado (FR-030). Esta forma —`items` + `total` + `pagina` + `tamanioPagina`— es
+        la primera paginación del sistema y queda como precedente para los módulos siguientes
+        (research §9).
+      type: object
+      required: [items, total, pagina, tamanioPagina]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ChoferListado' }
+        total:
+          type: integer
+          description: Coincidencias totales con los filtros aplicados, no las de esta página
+        pagina: { type: integer, minimum: 1 }
+        tamanioPagina: { type: integer, example: 20 }
+
+    TransportistaResumen:
+      type: object
+      required: [id, nombre]
+      properties:
+        id: { type: integer }
+        nombre: { type: string }
+
+    ChoferDetalle:
+      allOf:
+        - $ref: '#/components/schemas/ChoferListado'
+        - type: object
+          required: [cuil, fechaNacimiento, telefono, email, documentos]
+          properties:
+            cuil: { type: string }
+            fechaNacimiento: { type: string, format: date }
+            telefono: { type: string }
+            email: { type: string, format: email }
+            personaId:
+              type: integer
+              description: La persona del padrón del Módulo 2 de la que toma sus datos (FR-006)
+            documentos:
+              type: array
+              description: |
+                Todos los documentos del chofer, vigentes e históricos (FR-024). Puede venir vacío, y
+                es un caso válido (FR-028). Ordenados por tipo y, dentro de cada tipo, por
+                vencimiento descendente: el vigente primero y sus renovaciones anteriores debajo.
+              items: { $ref: '#/components/schemas/Documentacion' }
+
+    ChoferRequest:
+      description: |
+        Los datos personales van a la `Persona` del padrón; el CUIL y el transportista, a la fila de
+        chofer. No hay campo de estado de documentación por ningún lado.
+      type: object
+      required: [nombre, apellido, dni, cuil, fechaNacimiento, telefono, email, transportistaId]
+      properties:
+        nombre: { type: string, maxLength: 100 }
+        apellido: { type: string, maxLength: 100 }
+        dni: { type: string, description: Se normaliza a sólo dígitos (FR-025) }
+        cuil: { type: string, description: 11 dígitos con verificador válido (FR-007) }
+        fechaNacimiento:
+          type: string
+          format: date
+          description: Tiene que implicar 18 años o más a la fecha del alta (FR-011)
+        telefono: { type: string, maxLength: 30 }
+        email: { type: string, format: email }
+        transportistaId:
+          type: integer
+          description: Obligatorio y tiene que estar activo (FR-008)
+
+    Documentacion:
+      type: object
+      required: [id, tipo, numero, fechaEmision, fechaVencimiento, estado, esVigenteDelTipo, tieneArchivo]
+      properties:
+        id: { type: integer }
+        tipo: { $ref: '#/components/schemas/TipoDocumentacionResumen' }
+        numero: { type: string }
+        fechaEmision: { type: string, format: date }
+        fechaVencimiento: { type: string, format: date }
+        estado: { $ref: '#/components/schemas/DocumentacionEstado' }
+        esVigenteDelTipo:
+          type: boolean
+          description: |
+            `true` si es el documento que manda para su tipo —el de vencimiento más lejano—.
+            `false` = quedó como historial al cargarse una renovación: se muestra en la ficha, no
+            define el estado del chofer y no alerta (FR-020a).
+        diasHastaVencimiento:
+          type: integer
+          description: Negativo si ya venció. Es lo que el panel muestra como "vence en" o "venció hace"
+        tieneArchivo:
+          type: boolean
+          description: |
+            `false` = documento sin respaldo, que el sistema distingue de uno con archivo (caso
+            límite). Es un dato **del documento**: no altera `estadoDocumentacion` del chofer, que
+            tiene exactamente los cuatro valores de FR-029.
+        archivoNombre:
+          type: string
+          nullable: true
+          description: Nombre original, sólo para mostrar
+
+    TipoDocumentacionResumen:
+      type: object
+      required: [id, nombre]
+      properties:
+        id: { type: integer }
+        nombre: { type: string }
+
+    TipoDocumentacion:
+      type: object
+      required: [id, nombre, diasAvisoVencimiento, activo]
+      properties:
+        id: { type: integer }
+        nombre: { type: string, maxLength: 100 }
+        diasAvisoVencimiento: { type: integer, minimum: 0 }
+        activo: { type: boolean }
+        documentosAsociados:
+          type: integer
+          description: Cuántos documentos lo usan. Es lo que impide su baja (FR-014)
+
+    TipoDocumentacionRequest:
+      type: object
+      required: [nombre, diasAvisoVencimiento]
+      properties:
+        nombre: { type: string, maxLength: 100 }
+        diasAvisoVencimiento:
+          type: integer
+          minimum: 0
+          description: Cero significa sin período de aviso intermedio (FR-013, caso límite)
+
+    AlertaVencimiento:
+      type: object
+      required: [choferId, apellido, nombre, documento]
+      properties:
+        choferId: { type: integer }
+        apellido: { type: string }
+        nombre: { type: string }
+        transportista: { $ref: '#/components/schemas/TransportistaResumen' }
+        documento: { $ref: '#/components/schemas/Documentacion' }
+
+    Error:
+      description: |
+        Mismo cuerpo de error que fijaron los Módulos 1 y 2. El frontend decide con `codigo` y
+        muestra `mensaje` tal cual.
+      type: object
+      required: [codigo, mensaje]
+      properties:
+        codigo:
+          type: string
+          enum:
+            - datos_invalidos
+            - cuit_duplicado
+            - cuil_duplicado
+            - dni_duplicado
+            - transportista_inexistente
+            - transportista_con_choferes
+            - menor_de_edad
+            - vencimiento_anterior_a_emision
+            - tipo_duplicado
+            - tipo_inexistente
+            - tipo_con_documentos
+            - archivo_no_admitido
+            - archivo_no_guardado
+            - no_encontrado
+            - sesion_expirada
+            - sin_permiso
+            - error_inesperado
+        mensaje:
+          type: string
+          description: Texto en español rioplatense, sin detalles técnicos
+        campo:
+          type: string
+          nullable: true
+          description: Campo del formulario que la pantalla tiene que marcar, cuando aplica

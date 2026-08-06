@@ -1,0 +1,29 @@
+# Secretos y configuración local 
+.env
+.env.*
+!.env.template
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+packages/
+TestResults/
+*.trx
+
+# Node
+node_modules/
+dist/
+build/
+coverage/
+*.log
+npm-debug.log*
+
+# Editores y sistema operativo
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp

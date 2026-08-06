@@ -1,0 +1,289 @@
+openapi: 3.0.3
+
+info:
+  title: API de autenticación — Sistema Integral de Gestión (G&T Logística)
+  version: "1.0.0"
+  description: |
+    Contrato HTTP del Módulo 1. Cubre inicio de sesión, consulta de la sesión vigente y cierre de
+    sesión, más el comportamiento de autorización que aplica a todo endpoint protegido del sistema.
+
+    La sesión se transporta en una cookie `HttpOnly` + `Secure` + `SameSite=Strict` emitida por el
+    servidor. El cliente nunca la lee ni la manipula: alcanza con enviar las peticiones con las
+    credenciales del navegador incluidas.
+
+    Todos los mensajes viajan en español rioplatense y son los que se muestran tal cual al usuario.
+
+servers:
+  - url: /api
+    description: Backend de GT
+
+tags:
+  - name: Autenticación
+    description: Ingreso, sesión y cierre de sesión
+
+paths:
+
+  /auth/login:
+    post:
+      tags: [Autenticación]
+      summary: Iniciar sesión
+      description: |
+        Valida las credenciales y, si son correctas y la cuenta está `activa`, abre la sesión
+        (emite la cookie) y actualiza `ultimoAcceso`.
+
+        La respuesta nunca distingue entre username inexistente y contraseña incorrecta (FR-003).
+        Una cuenta `inactiva` o `bloqueada` sólo recibe el mensaje de cuenta no habilitada si la
+        contraseña era correcta; si no lo era, recibe el mensaje genérico (FR-004).
+      operationId: iniciarSesion
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredencialesRequest'
+      responses:
+        '200':
+          description: Sesión iniciada. La cookie de sesión viaja en `Set-Cookie`.
+          headers:
+            Set-Cookie:
+              description: Cookie de sesión, no persistente (muere al cerrar el navegador).
+              schema:
+                type: string
+              example: gt.sesion=<valor>; path=/; httponly; secure; samesite=strict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SesionResponse'
+        '400':
+          description: Falta el username o la contraseña.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                codigo: datos_incompletos
+                mensaje: Completá el nombre de usuario y la contraseña.
+        '401':
+          description: |
+            Credenciales no válidas. Cubre username inexistente, contraseña incorrecta y contraseña
+            temporal vencida — siempre con el mismo cuerpo, para no revelar qué cuentas existen.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                codigo: credenciales_invalidas
+                mensaje: El usuario o la contraseña no son correctos.
+        '403':
+          description: La contraseña era correcta pero la cuenta no está habilitada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                codigo: cuenta_no_habilitada
+                mensaje: Tu cuenta no está habilitada. Contactá al responsable de sistemas.
+        '429':
+          description: |
+            Demasiados intentos fallidos contra esta cuenta desde este origen (FR-021). El límite se
+            cuenta por la combinación de origen y cuenta: los intentos sobre otras cuentas desde el
+            mismo origen no se ven afectados.
+          headers:
+            Retry-After:
+              description: Segundos que faltan para poder reintentar.
+              schema:
+                type: integer
+              example: 60
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                codigo: demasiados_intentos
+                mensaje: Hubo demasiados intentos fallidos. Esperá un minuto y volvé a intentar.
+
+  /auth/sesion:
+    get:
+      tags: [Autenticación]
+      summary: Consultar la sesión vigente
+      description: |
+        Devuelve el usuario autenticado, sus roles y las opciones de menú que tiene autorizadas.
+        El frontend la llama al arrancar para saber si hay sesión y qué menú dibujar.
+
+        Los roles y el menú se recalculan en cada llamada: si al usuario le cambiaron los roles o
+        la cuenta dejó de estar `activa`, se refleja acá (FR-006, FR-009).
+      operationId: obtenerSesion
+      responses:
+        '200':
+          description: Hay sesión vigente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SesionResponse'
+        '401':
+          description: No hay sesión, venció por inactividad, o la cuenta dejó de estar activa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                codigo: sesion_expirada
+                mensaje: Tu sesión expiró. Ingresá de nuevo.
+
+  /auth/logout:
+    post:
+      tags: [Autenticación]
+      summary: Cerrar sesión
+      description: |
+        Invalida la sesión de inmediato y borra la cookie. La respuesta lleva cabeceras que impiden
+        que el navegador sirva pantallas protegidas desde su caché al usar el botón "atrás"
+        (FR-013).
+
+        Es idempotente: llamarla sin sesión abierta responde igual.
+      operationId: cerrarSesion
+      responses:
+        '204':
+          description: Sesión cerrada.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              example: no-store, no-cache, must-revalidate
+            Set-Cookie:
+              description: Cookie de sesión vencida, para que el navegador la descarte.
+              schema:
+                type: string
+
+components:
+
+  securitySchemes:
+    cookieSesion:
+      type: apiKey
+      in: cookie
+      name: gt.sesion
+      description: Cookie de sesión emitida por `/auth/login`.
+
+  schemas:
+
+    CredencialesRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: |
+            El servidor lo normaliza antes de buscar: recorta espacios al costado y compara sin
+            distinguir mayúsculas (FR-012).
+          example: "  Admin "
+        password:
+          type: string
+          format: password
+          minLength: 1
+          description: Viaja únicamente en el cuerpo, nunca en la URL ni en un log (FR-018).
+
+    SesionResponse:
+      type: object
+      required: [username, roles, opcionesMenu]
+      properties:
+        username:
+          type: string
+          description: Username tal como fue dado de alta, para mostrarlo en la pantalla de inicio.
+          example: admin
+        roles:
+          type: array
+          description: Roles vigentes del usuario, para mostrar en la pantalla de inicio.
+          items:
+            $ref: '#/components/schemas/Rol'
+        opcionesMenu:
+          type: array
+          description: |
+            Opciones de menú ya implementadas que los roles del usuario autorizan (FR-020). El
+            servidor es la única fuente de verdad; el frontend dibuja lo que recibe.
+
+            Puede venir vacía: un usuario cuyos roles todavía no habilitan nada implementado igual
+            inicia sesión y llega a la pantalla de inicio.
+          items:
+            $ref: '#/components/schemas/OpcionMenu'
+      example:
+        username: admin
+        roles:
+          - codigo: administrador_sistema
+            nombre: Administrador del sistema
+        opcionesMenu:
+          - codigo: usuarios
+            etiqueta: Gestión de usuarios
+            ruta: /usuarios
+
+    Rol:
+      type: object
+      required: [codigo, nombre]
+      properties:
+        codigo:
+          type: string
+          example: administrador_sistema
+        nombre:
+          type: string
+          example: Administrador del sistema
+
+    OpcionMenu:
+      type: object
+      required: [codigo, etiqueta, ruta]
+      properties:
+        codigo:
+          type: string
+          example: usuarios
+        etiqueta:
+          type: string
+          description: Texto visible del menú, en español.
+          example: Gestión de usuarios
+        ruta:
+          type: string
+          description: Ruta del frontend a la que lleva la opción.
+          example: /usuarios
+
+    ErrorResponse:
+      type: object
+      required: [codigo, mensaje]
+      properties:
+        codigo:
+          type: string
+          description: Identificador estable del error, para que el frontend decida qué hacer.
+          enum:
+            - datos_incompletos
+            - credenciales_invalidas
+            - cuenta_no_habilitada
+            - demasiados_intentos
+            - sesion_expirada
+            - sin_permiso
+        mensaje:
+          type: string
+          description: |
+            Texto en español rioplatense que se muestra tal cual al usuario. Nunca expone detalles
+            técnicos ni indica cuál de los dos datos de acceso falló (FR-015, FR-003).
+
+security:
+  - cookieSesion: []
+
+x-comportamiento-endpoints-protegidos:
+  descripcion: |
+    Aplica a todo endpoint del sistema fuera de `/auth/login`, que es el único público (FR-007).
+    Estas respuestas son parte del contrato aunque los endpoints en sí pertenezcan a otros módulos.
+
+    La verificación siempre ocurre en el servidor, sin importar si la opción estaba visible u
+    oculta en el menú del cliente (FR-008).
+  respuestas:
+    '401':
+      cuando: No hay sesión, venció por inactividad, o la cuenta dejó de estar activa (FR-009).
+      cuerpo:
+        codigo: sesion_expirada
+        mensaje: Tu sesión expiró. Ingresá de nuevo.
+    '403':
+      cuando: |
+        Hay sesión válida pero los roles vigentes del usuario no otorgan el permiso que exige la
+        operación. Se evalúa con los roles del momento, no con los que tenía al ingresar (FR-006).
+      cuerpo:
+        codigo: sin_permiso
+        mensaje: No tenés permiso para acceder a esta funcionalidad.

@@ -1,0 +1,572 @@
+openapi: 3.0.3
+
+info:
+  title: Gestión de usuarios y roles — Módulo 2
+  version: "1.0"
+  description: |
+    Contrato HTTP entre el frontend y el backend para el ABM de usuarios, la asignación de roles, la
+    consulta de permisos y el padrón de personas.
+
+    **Autorización**: todos los endpoints de este contrato exigen sesión activa y el permiso
+    `usuarios.gestionar`, que sólo otorga el rol *Administrador del sistema* (FR-007). El padrón de
+    personas comparte esa misma restricción: no tiene un permiso propio.
+
+    **Una sola excepción**: `POST /mi-cuenta/contrasena` exige sesión activa pero **ningún permiso**,
+    porque cualquier usuario tiene que poder cambiar su propia contraseña (FR-029).
+
+    - Sin sesión → `401` con `sesion_expirada`.
+    - Con sesión pero sin el permiso → `403` con `sin_permiso`.
+
+    Ambos comportamientos ya los provee el Módulo 1 y no se redefinen acá.
+
+    **La contraseña nunca aparece.** Ni el hash ni la contraseña temporal se devuelven en ninguna
+    respuesta de este contrato, en ninguna circunstancia (FR-004, FR-009, FR-013, SC-004).
+
+    **Un solo correo.** La única operación que dispara un envío de email es el restablecimiento de
+    contraseña; el alta no notifica nada (FR-021).
+
+servers:
+  - url: /api
+
+paths:
+
+  # ── Usuarios ────────────────────────────────────────────────────────────────────────────────────
+
+  /usuarios:
+    get:
+      summary: Lista usuarios, con filtros combinables
+      description: |
+        Los cuatro filtros se combinan con "y": el resultado cumple todas las condiciones enviadas
+        (FR-011). `username` y `email` buscan coincidencia parcial en cualquier parte del texto y sin
+        distinguir mayúsculas; `rol` y `estado` son coincidencia exacta.
+
+        Un resultado vacío es una respuesta legítima (`200` con lista vacía), no un error: la
+        pantalla muestra el mensaje de "sin resultados" (FR-012).
+      parameters:
+        - { name: username, in: query, schema: { type: string }, description: Fragmento del username }
+        - { name: email, in: query, schema: { type: string }, description: Fragmento del email }
+        - { name: rol, in: query, schema: { $ref: '#/components/schemas/CodigoRol' } }
+        - { name: estado, in: query, schema: { $ref: '#/components/schemas/EstadoUsuario' } }
+      responses:
+        "200":
+          description: Usuarios que cumplen los filtros
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/UsuarioListado' }
+
+    post:
+      summary: Crea un usuario
+      description: |
+        No envía ningún correo: el responsable de sistemas comunica las credenciales por su cuenta
+        (FR-021, clarificación del 2026-08-05).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CrearUsuarioRequest' }
+      responses:
+        "201":
+          description: Usuario creado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UsuarioDetalle' }
+        "400":
+          description: |
+            Datos inválidos o regla de negocio incumplida. Códigos posibles: `datos_invalidos`,
+            `username_duplicado`, `email_duplicado`, `sin_roles`, `persona_ya_vinculada`,
+            `persona_inexistente`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /usuarios/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+
+    get:
+      summary: Detalle de un usuario
+      responses:
+        "200":
+          description: Datos completos, incluida la persona asociada si tiene una (FR-013)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UsuarioDetalle' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    put:
+      summary: Modifica los datos de un usuario
+      description: |
+        No incluye contraseña: para cambiarla está el restablecimiento (FR-014). Conservar el propio
+        username o email no genera conflicto (FR-015).
+
+        Si el estado pasa a `inactivo` o `bloqueado`, esa cuenta deja de poder autenticarse desde ese
+        momento, aunque tenga una sesión abierta (FR-016).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ModificarUsuarioRequest' }
+      responses:
+        "200":
+          description: Usuario actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UsuarioDetalle' }
+        "400":
+          description: |
+            Códigos posibles: `datos_invalidos`, `username_duplicado`, `email_duplicado`,
+            `persona_ya_vinculada`, `persona_inexistente`, `ultimo_administrador`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    delete:
+      summary: Da de baja lógica un usuario
+      description: |
+        No borra: deja la cuenta en `inactivo` y el registro sigue visible en el listado (FR-006).
+        La confirmación explícita ocurre en la pantalla, antes de llamar acá (FR-017).
+      responses:
+        "204":
+          description: Usuario dado de baja
+        "400":
+          description: |
+            Dejaría al sistema sin ningún usuario activo con el rol *Administrador del sistema*
+            (`ultimo_administrador`, FR-019).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /usuarios/{id}/roles:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    put:
+      summary: Reemplaza los roles de un usuario
+      description: |
+        Los roles quedan **exactamente** como se envían: se agregan los que faltan y se quitan los que
+        no vienen en la lista (FR-018). Una lista vacía se rechaza (FR-001).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [roles]
+              properties:
+                roles:
+                  type: array
+                  items: { $ref: '#/components/schemas/CodigoRol' }
+      responses:
+        "200":
+          description: Roles actualizados
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UsuarioDetalle' }
+        "400":
+          description: |
+            Códigos posibles: `sin_roles`, `ultimo_administrador`, `datos_invalidos`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /usuarios/{id}/restablecer-password:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      summary: Restablece la contraseña y la envía por email
+      description: |
+        Genera una contraseña temporal, la guarda hasheada, marca el momento de generación —vence a
+        las 24 horas, según el Módulo 1— y la envía al email del usuario. **La contraseña no viaja en
+        esta respuesta ni en ninguna otra** (FR-009, SC-004).
+
+        No lleva cuerpo de petición: el responsable de sistemas no elige la contraseña ni la ve.
+
+        **Corta las sesiones abiertas de ese usuario** (FR-032): la contraseña anterior dejó de ser
+        válida, así que ninguna sesión sostenida por ella sobrevive.
+
+        Si el envío falla, el restablecimiento **igual queda registrado** y la respuesta lo informa
+        con `enviado: false` (FR-021). Es un `200`, no un error: la operación se hizo.
+      responses:
+        "200":
+          description: Restablecimiento registrado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [enviado, mensaje]
+                properties:
+                  enviado:
+                    type: boolean
+                    description: '`false` si el correo no pudo entregarse (FR-021)'
+                  mensaje:
+                    type: string
+                    description: Texto en español, listo para mostrar tal cual
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ── Mi cuenta ───────────────────────────────────────────────────────────────────────────────────
+
+  /mi-cuenta/contrasena:
+    post:
+      summary: Cambia la contraseña del usuario de la sesión
+      description: |
+        **El único endpoint de este contrato sin política de permiso**: exige sesión activa y nada
+        más, porque cualquier usuario tiene que poder cambiar su propia contraseña, tenga el rol que
+        tenga (FR-029).
+
+        El usuario afectado sale siempre de la sesión, nunca de la petición: **no hay forma de
+        indicar un usuario distinto**, así que este endpoint no sirve para cambiarle la contraseña a
+        otro.
+
+        Si la contraseña anterior era temporal, la nueva queda como definitiva y deja de vencer a las
+        24 horas (FR-031).
+
+        La sesión en curso sigue abierta: el servidor vuelve a emitir la cookie como parte de esta
+        respuesta. Las otras sesiones que ese usuario tuviera abiertas se cortan (FR-032).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [passwordActual, passwordNueva]
+              properties:
+                passwordActual:
+                  type: string
+                  description: Se verifica contra la almacenada; si no coincide, no se cambia nada
+                passwordNueva:
+                  type: string
+                  minLength: 8
+                  description: Mismo mínimo que en el alta (FR-004, FR-030)
+      responses:
+        "204":
+          description: Contraseña cambiada
+        "400":
+          description: |
+            La contraseña nueva no cumple el mínimo de 8 caracteres (`datos_invalidos`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "403":
+          description: |
+            La contraseña actual no es correcta (`password_actual_incorrecta`). No se cambió nada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ── Roles y permisos (sólo lectura) ─────────────────────────────────────────────────────────────
+
+  /roles:
+    get:
+      summary: Lista los cuatro roles del sistema con sus permisos
+      description: |
+        Sólo lectura: este módulo no crea, edita ni elimina roles ni permisos (FR-010). Los permisos
+        vienen agrupados por módulo de negocio.
+
+        Un rol puede venir con la lista de permisos vacía: es lo esperado mientras los módulos que
+        los otorgan no estén implementados.
+      responses:
+        "200":
+          description: Catálogo de roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/RolConPermisos' }
+
+  # ── Personas ────────────────────────────────────────────────────────────────────────────────────
+
+  /personas:
+    get:
+      summary: Lista las personas del padrón
+      description: |
+        `texto` busca coincidencia parcial y sin distinguir mayúsculas sobre nombre, apellido y DNI.
+        El padrón puede venir vacío: es el estado inicial del sistema, y la pantalla lo informa
+        explícitamente (FR-024, FR-025).
+      parameters:
+        - { name: texto, in: query, schema: { type: string } }
+        - name: soloActivas
+          in: query
+          schema: { type: boolean, default: false }
+          description: '`true` devuelve sólo las personas activas — lo que usa el selector del formulario de usuario (FR-023)'
+      responses:
+        "200":
+          description: Personas que cumplen los filtros
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Persona' }
+
+    post:
+      summary: Registra una persona
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PersonaRequest' }
+      responses:
+        "201":
+          description: Persona registrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Persona' }
+        "400":
+          description: 'Códigos posibles: `datos_invalidos`, `dni_duplicado`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /personas/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+
+    get:
+      summary: Detalle de una persona
+      responses:
+        "200":
+          description: Datos de la persona
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Persona' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    put:
+      summary: Modifica una persona
+      description: El cambio se refleja en el usuario que la tenga asociada.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PersonaRequest' }
+      responses:
+        "200":
+          description: Persona actualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Persona' }
+        "400":
+          description: 'Códigos posibles: `datos_invalidos`, `dni_duplicado`.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    delete:
+      summary: Da de baja lógica una persona
+      description: |
+        No borra: deja `activa: false` y la persona deja de ofrecerse para asociar (FR-022).
+        Se rechaza si está vinculada a un usuario, cualquiera sea el estado de esa cuenta (FR-028).
+      responses:
+        "204":
+          description: Persona dada de baja
+        "400":
+          description: |
+            Está vinculada a un usuario (`persona_vinculada`). El mensaje identifica a qué usuario.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+components:
+  schemas:
+
+    CodigoRol:
+      type: string
+      enum: [trafico, administracion, gerencia, administrador_sistema]
+
+    EstadoUsuario:
+      type: string
+      enum: [activo, inactivo, bloqueado]
+
+    TipoPersona:
+      type: string
+      enum: [chofer, empleado]
+
+    UsuarioListado:
+      description: Fila del listado. Son exactamente las columnas que exige FR-011.
+      type: object
+      required: [id, username, email, estado, roles, fechaAlta, ultimoAcceso]
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        email: { type: string }
+        estado: { $ref: '#/components/schemas/EstadoUsuario' }
+        roles:
+          type: array
+          items: { $ref: '#/components/schemas/Rol' }
+        fechaAlta: { type: string, format: date-time }
+        ultimoAcceso:
+          type: string
+          format: date-time
+          nullable: true
+          description: '`null` si nunca ingresó'
+
+    UsuarioDetalle:
+      allOf:
+        - $ref: '#/components/schemas/UsuarioListado'
+        - type: object
+          properties:
+            persona:
+              allOf: [{ $ref: '#/components/schemas/Persona' }]
+              nullable: true
+              description: '`null` cuando el usuario no tiene persona asociada — caso válido y habitual'
+
+    CrearUsuarioRequest:
+      type: object
+      required: [username, email, password, estado, roles]
+      properties:
+        username: { type: string, maxLength: 50 }
+        email: { type: string, format: email, maxLength: 254 }
+        password:
+          type: string
+          minLength: 8
+          description: Contraseña inicial. Se hashea antes de guardarse y nunca se devuelve (FR-004)
+        estado: { $ref: '#/components/schemas/EstadoUsuario' }
+        roles:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/CodigoRol' }
+          description: Al menos uno (FR-001)
+        personaId:
+          type: integer
+          nullable: true
+          description: Opcional. Debe existir, estar activa y no estar vinculada a otro usuario
+
+    ModificarUsuarioRequest:
+      description: Sin campo de contraseña, a propósito (FR-014).
+      type: object
+      required: [username, email, estado]
+      properties:
+        username: { type: string, maxLength: 50 }
+        email: { type: string, format: email, maxLength: 254 }
+        estado: { $ref: '#/components/schemas/EstadoUsuario' }
+        personaId:
+          type: integer
+          nullable: true
+          description: '`null` desasocia la persona y la libera para otro usuario'
+
+    Rol:
+      type: object
+      required: [codigo, nombre]
+      properties:
+        codigo: { $ref: '#/components/schemas/CodigoRol' }
+        nombre: { type: string, description: 'Nombre visible en español, p. ej. "Administrador del sistema"' }
+
+    RolConPermisos:
+      allOf:
+        - $ref: '#/components/schemas/Rol'
+        - type: object
+          required: [permisosPorModulo]
+          properties:
+            permisosPorModulo:
+              type: array
+              items:
+                type: object
+                required: [modulo, permisos]
+                properties:
+                  modulo: { type: string }
+                  permisos:
+                    type: array
+                    items:
+                      type: object
+                      required: [codigo, descripcion]
+                      properties:
+                        codigo: { type: string }
+                        descripcion: { type: string }
+
+    Persona:
+      type: object
+      required: [id, nombre, apellido, dni, tipo, telefono, email, fechaNacimiento, activa]
+      properties:
+        id: { type: integer }
+        nombre: { type: string, maxLength: 100 }
+        apellido: { type: string, maxLength: 100 }
+        dni: { type: string, maxLength: 15 }
+        tipo: { $ref: '#/components/schemas/TipoPersona' }
+        telefono: { type: string, maxLength: 30 }
+        email: { type: string, format: email, maxLength: 254 }
+        fechaNacimiento: { type: string, format: date }
+        activa: { type: boolean }
+
+    PersonaRequest:
+      description: Los siete datos de FR-026. No se piden otros.
+      type: object
+      required: [nombre, apellido, dni, tipo, telefono, email, fechaNacimiento]
+      properties:
+        nombre: { type: string, maxLength: 100 }
+        apellido: { type: string, maxLength: 100 }
+        dni: { type: string, maxLength: 15 }
+        tipo: { $ref: '#/components/schemas/TipoPersona' }
+        telefono: { type: string, maxLength: 30 }
+        email: { type: string, format: email, maxLength: 254 }
+        fechaNacimiento: { type: string, format: date }
+
+    Error:
+      description: |
+        Mismo cuerpo de error que fijó el Módulo 1. El frontend decide con `codigo` y muestra
+        `mensaje` tal cual, sin reescribirlo.
+      type: object
+      required: [codigo, mensaje]
+      properties:
+        codigo:
+          type: string
+          enum:
+            - datos_invalidos
+            - username_duplicado
+            - email_duplicado
+            - sin_roles
+            - persona_ya_vinculada
+            - persona_inexistente
+            - ultimo_administrador
+            - dni_duplicado
+            - persona_vinculada
+            - password_actual_incorrecta
+            - no_encontrado
+            - sesion_expirada
+            - sin_permiso
+            - error_inesperado
+        mensaje:
+          type: string
+          description: Texto en español rioplatense, sin detalles técnicos
+        campo:
+          type: string
+          nullable: true
+          description: |
+            Cuando el error corresponde a un campo puntual del formulario, lo identifica para que la
+            pantalla pueda marcarlo en rojo en el lugar correcto (FR de validación en pantalla).

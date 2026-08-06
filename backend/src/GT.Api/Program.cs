@@ -1,0 +1,213 @@
+using GT.Api.Autenticacion;
+using GT.Api.Autorizacion;
+using GT.Api.Usuarios;
+using GT.Api.Usuarios.Personas;
+using GT.Application.Autenticacion;
+using GT.Application.Usuarios;
+using GT.Application.Usuarios.Personas;
+using GT.Domain.Usuarios;
+using GT.Infrastructure.Correo;
+using GT.Infrastructure.DatosIniciales;
+using GT.Infrastructure.Persistencia;
+using GT.Infrastructure.Seguridad;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Json;
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// ── Persistencia ────────────────────────────────────────────────────────────────────────────────
+builder.Services.AddDbContext<GtDbContext>(opciones =>
+    opciones.UseSqlServer(builder.Configuration.GetConnectionString("Gt")));
+
+builder.Services.AddScoped<IHasheadorPassword, HasheadorPassword>();
+builder.Services.AddScoped<IRepositorioUsuarios, RepositorioUsuarios>();
+builder.Services.AddScoped<IVerificadorPassword, VerificadorPassword>();
+builder.Services.AddScoped<AutenticarUsuario>();
+
+// ── Módulo 2: gestión de usuarios, roles y padrón de personas ──────────────────────────────────
+builder.Services.AddScoped<IRepositorioPersonas, RepositorioPersonas>();
+builder.Services.AddScoped<IRepositorioGestionUsuarios, RepositorioGestionUsuarios>();
+builder.Services.AddScoped<IRepositorioConsultaUsuarios, RepositorioGestionUsuarios>();
+builder.Services.AddScoped<IHasheadorPasswordApp, HasheadorPasswordApp>();
+builder.Services.AddScoped<IRepositorioEscrituraUsuarios, RepositorioGestionUsuarios>();
+builder.Services.AddSingleton<IGeneradorPasswordTemporal, GeneradorPasswordTemporal>();
+builder.Services.AddScoped<ConsultarPersonas>();
+builder.Services.AddScoped<CrearPersona>();
+builder.Services.AddScoped<ModificarPersona>();
+builder.Services.AddScoped<DarDeBajaPersona>();
+builder.Services.AddScoped<CrearUsuario>();
+builder.Services.AddScoped<ConsultarUsuarios>();
+builder.Services.AddScoped<ModificarUsuario>();
+builder.Services.AddScoped<RestablecerPassword>();
+builder.Services.AddScoped<CambiarPasswordPropia>();
+builder.Services.AddScoped<IRepositorioRoles, RepositorioRoles>();
+builder.Services.AddScoped<AsignarRoles>();
+builder.Services.AddScoped<DarDeBajaUsuario>();
+builder.Services.AddScoped<ConsultarRoles>();
+
+// ── Correo saliente (FR-009, research §1) ──────────────────────────────────────────────────────
+// Con `Correo:Host` configurado se manda por SMTP; sin él, el envío se registra en el log y todo lo
+// demás funciona igual. Eso es lo que permite recorrer el quickstart completo con `compose up`, sin
+// un servidor de correo real.
+var opcionesCorreo = builder.Configuration
+    .GetSection(OpcionesCorreo.Seccion)
+    .Get<OpcionesCorreo>() ?? new OpcionesCorreo();
+
+builder.Services.AddSingleton(opcionesCorreo);
+
+if (opcionesCorreo.HaySmtpConfigurado)
+{
+    builder.Services.AddScoped<IEnviadorCorreo, EnviadorCorreoSmtp>();
+}
+else
+{
+    builder.Services.AddScoped<IEnviadorCorreo, EnviadorCorreoRegistrado>();
+}
+
+// FR-021: el contador es singleton porque tiene que sobrevivir entre peticiones; ahí vive la
+// memoria de los intentos fallidos por origen y cuenta.
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<IContadorIntentosFallidos, ContadorIntentosFallidosEnMemoria>();
+builder.Services.AddScoped<SembradorInicial>();
+builder.Services.AddScoped<RevalidadorSesion>();
+builder.Services.AddSingleton(TimeProvider.System);
+
+// ── Sesión por cookie (FR-010, FR-013, FR-022, FR-023) ─────────────────────────────────────────
+// Cookie en vez de token autocontenido: es lo que permite recalcular permisos en cada operación,
+// cortar la sesión cuando la cuenta deja de estar activa y cerrarla de verdad (research §1).
+builder.Services
+    .AddAuthentication(ClaimsSesion.EsquemaCookie)
+    .AddCookie(ClaimsSesion.EsquemaCookie, opciones =>
+    {
+        opciones.Cookie.Name = ClaimsSesion.EsquemaCookie;
+
+        // FR-023: fuera del alcance de los scripts de la página, sólo por conexión cifrada, y sin
+        // acompañar peticiones originadas en otros sitios.
+        opciones.Cookie.HttpOnly = true;
+        opciones.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        opciones.Cookie.SameSite = SameSiteMode.Strict;
+
+        // FR-022: cookie de sesión, sin vencimiento propio. Muere al cerrar el navegador.
+        opciones.Cookie.MaxAge = null;
+
+        // FR-010: 8 horas de inactividad, renovadas con cada operación, sin tope absoluto por
+        // encima. El plazo se lee de configuración para poder bajarlo en desarrollo y verificar el
+        // vencimiento sin esperar 8 horas (quickstart).
+        opciones.ExpireTimeSpan = TimeSpan.FromMinutes(
+            builder.Configuration.GetValue("Sesion:MinutosDeInactividad", 480));
+        opciones.SlidingExpiration = true;
+
+        // Este backend sirve una API: ante falta de sesión o de permiso responde con el contrato de
+        // errores, nunca con una redirección a una pantalla de login del servidor (FR-015).
+        opciones.Events.OnRedirectToLogin = contexto =>
+            ResponderError(contexto.Response, StatusCodes.Status401Unauthorized,
+                ErrorResponse.SesionExpirada());
+
+        opciones.Events.OnRedirectToAccessDenied = contexto =>
+            ResponderError(contexto.Response, StatusCodes.Status403Forbidden,
+                ErrorResponse.SinPermiso());
+
+        // FR-006 y FR-009: ver RevalidadorSesion.
+        opciones.Events.OnValidatePrincipal = async contexto =>
+        {
+            var revalidador = contexto.HttpContext.RequestServices
+                .GetRequiredService<RevalidadorSesion>();
+
+            await revalidador.RevalidarAsync(contexto);
+        };
+    });
+
+// FR-008: la autorización se evalúa en el servidor por permiso, no por rol, y sin importar si la
+// opción estaba visible u oculta en el menú del cliente.
+builder.Services.AddSingleton<IAuthorizationHandler, PermisoHandler>();
+builder.Services.AddAuthorization(opciones =>
+    opciones.AgregarPoliticasDePermisos(
+        CodigosPermiso.UsuariosGestionar,
+        CodigosPermiso.ChoferesGestionar));
+
+builder.Services.Configure<JsonOptions>(opciones =>
+    opciones.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
+
+var app = builder.Build();
+
+// ── FR-024: ninguna credencial se acepta por una conexión sin cifrar ───────────────────────────
+// En desarrollo la app corre detrás del proxy de Vite sobre localhost, que los navegadores tratan
+// como origen seguro; fuera de desarrollo se fuerza HTTPS y se declara HSTS.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
+}
+
+// ── FR-015 y FR-018: errores sin detalles técnicos y sin rastro de la contraseña ───────────────
+app.UseExceptionHandler(rama => rama.Run(async contexto =>
+{
+    contexto.Response.StatusCode = StatusCodes.Status500InternalServerError;
+    contexto.Response.ContentType = "application/json";
+
+    await contexto.Response.WriteAsJsonAsync(new ErrorResponse(
+        "error_inesperado",
+        "Ocurrió un problema inesperado. Volvé a intentar en unos minutos."));
+}));
+
+// FR-013: ninguna respuesta de la API se guarda en la caché del navegador, para que el botón
+// "atrás" no pueda recuperar datos de una sesión ya cerrada.
+app.Use(async (contexto, siguiente) =>
+{
+    contexto.Response.OnStarting(() =>
+    {
+        contexto.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate";
+        contexto.Response.Headers.Pragma = "no-cache";
+
+        return Task.CompletedTask;
+    });
+
+    await siguiente();
+});
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapGet("/api/salud", () => Results.Ok(new { estado = "ok" }));
+
+app.MapearAutenticacion();
+app.MapearUsuarios();
+app.MapearRoles();
+app.MapearMiCuenta();
+app.MapearPersonas();
+
+await AplicarMigracionesYSembrarAsync(app);
+
+app.Run();
+
+return;
+
+static Task ResponderError(HttpResponse respuesta, int codigoHttp, ErrorResponse cuerpo)
+{
+    respuesta.StatusCode = codigoHttp;
+    respuesta.ContentType = "application/json";
+
+    return respuesta.WriteAsJsonAsync(cuerpo);
+}
+
+// ── Migraciones y datos iniciales (FR-019) ─────────────────────────────────────────────────────
+static async Task AplicarMigracionesYSembrarAsync(WebApplication app)
+{
+    using var alcance = app.Services.CreateScope();
+
+    var contexto = alcance.ServiceProvider.GetRequiredService<GtDbContext>();
+    await contexto.Database.MigrateAsync();
+
+    var sembrador = alcance.ServiceProvider.GetRequiredService<SembradorInicial>();
+
+    // La variable sólo hace falta mientras el usuario `admin` no exista; el sembrador decide si es
+    // obligatoria y detiene el arranque con un mensaje explícito si falta (research §6).
+    var passwordInicial = app.Configuration[SembradorInicial.VariablePasswordInicial];
+
+    await sembrador.SembrarAsync(passwordInicial);
+}
+
+/// <summary>Expuesto para que los tests de integración puedan levantar la aplicación.</summary>
+public partial class Program;

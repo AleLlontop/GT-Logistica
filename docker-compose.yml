@@ -1,0 +1,71 @@
+# Sistema Integral de Gestión — G&T Logística
+#
+# Un único archivo para los dos entornos: Podman en desarrollo local y Docker nativo en CI.
+# Por eso usa sólo sintaxis estándar de Compose, sin extensiones propias de ninguno de los dos.
+#
+# Antes de levantar por primera vez: copiá `.env.template` a `.env` y completá los valores.
+
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${GT_SQL_PASSWORD:?Falta GT_SQL_PASSWORD. Copiá .env.template a .env y completala.}
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - datos-sqlserver:/var/opt/mssql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Gt: Server=sqlserver,1433;Database=GtLogistica;User Id=sa;Password=${GT_SQL_PASSWORD};TrustServerCertificate=True;Encrypt=True
+      # Obligatoria sólo mientras el usuario `admin` no exista (FR-019).
+      GT_ADMIN_PASSWORD_INICIAL: ${GT_ADMIN_PASSWORD_INICIAL:-}
+      # Correo saliente (Módulo 2). Todas opcionales: sin `Correo__Host` el sistema
+      # registra el envío en el log en vez de enviarlo.
+      Correo__Host: ${GT_CORREO_HOST:-}
+      Correo__Puerto: ${GT_CORREO_PUERTO:-587}
+      Correo__Usuario: ${GT_CORREO_USUARIO:-}
+      Correo__Password: ${GT_CORREO_PASSWORD:-}
+      Correo__Remitente: ${GT_CORREO_REMITENTE:-sistema@gtlogistica.com.ar}
+      # Carpeta donde se guardan los escaneos de la documentación de los choferes
+      # (Módulo 3). Queda fuera de la raíz web y fuera del repositorio: los archivos
+      # se sirven sólo por un endpoint que exige sesión y permiso.
+      GT_ARCHIVOS_RUTA: ${GT_ARCHIVOS_RUTA:-/var/gt/archivos}
+    ports:
+      - "8080:8080"
+    volumes:
+      - archivos-documentacion:/var/gt/archivos
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      GT_API_URL: http://backend:8080
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  datos-sqlserver:
+  archivos-documentacion:

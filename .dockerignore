@@ -1,0 +1,26 @@
+.git/
+.gitignore
+.dockerignore
+
+# Secretos: nunca deben entrar a una imagen
+.env
+.env.*
+
+# Artefactos de compilación
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/build/
+**/coverage/
+**/TestResults/
+
+# Documentación y herramientas de especificación
+specs/
+.specify/
+.claude/
+*.md
+
+**/*.log
+.vscode/
+.idea/
