@@ -9,9 +9,10 @@ liquidaciones y flota.
 |---|---|---|
 | [1. Autenticación de usuarios](specs/001-autenticacion-usuarios/) | Implementado | Ingreso con cookie de sesión, permisos revalidados por petición, límite de intentos fallidos y menú calculado en el servidor. Quedan pendientes las dos tareas de validación manual del quickstart (T059 y T061) |
 | [2. Gestión de usuarios y roles](specs/002-gestion-usuarios-roles/) | Implementado | ABM de usuarios, asignación de roles, restablecimiento de contraseña y padrón de personas |
-| [3. Gestión de choferes y su documentación](specs/003-gestion-choferes/) | En construcción | Base del módulo, padrón de transportistas (US1) y alta de choferes (US2). Faltan documentación (US3), consulta y ficha (US4), panel de vencimientos (US5), catálogo de tipos (US6) y las bajas (US7) |
+| [3. Gestión de choferes y su documentación](specs/003-gestion-choferes/) | Implementado | Las siete historias: padrón de transportistas, registro de choferes, documentación con escaneos, listado con filtros y paginación, panel de vencimientos, catálogo de tipos y bajas. Quedan las dos tareas que sólo se pueden hacer operando la aplicación (T123 y T126) |
 
-El detalle tarea por tarea está en el `tasks.md` de cada carpeta de `specs/`.
+El estado completo está en [specs/README.md](specs/README.md), y el detalle tarea por tarea en el
+`tasks.md` de cada carpeta de `specs/`.
 
 ## Levantar el sistema
 
