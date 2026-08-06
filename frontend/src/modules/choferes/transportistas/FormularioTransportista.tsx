@@ -1,27 +1,64 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
-import { crearTransportista, type TransportistaRequest } from './servicioTransportistas'
+import {
+  crearTransportista,
+  modificarTransportista,
+  obtenerTransportista,
+  type TransportistaRequest,
+} from './servicioTransportistas'
 import { CodigosError } from '../servicios/api'
 
+/** Alta y edición de un transportista (User Story 1, y la edición de la User Story 7). */
 export function FormularioTransportista() {
+  const { id } = useParams()
   const navegar = useNavigate()
-  
+  const editando = id !== undefined
+  const transportistaId = Number(id)
+
   const [nombre, setNombre] = useState('')
   const [cuit, setCuit] = useState('')
   const [tipo, setTipo] = useState<'fisica' | 'juridica' | ''>('')
   const [telefono, setTelefono] = useState('')
   const [email, setEmail] = useState('')
-  
+
+  const [cargando, setCargando] = useState(editando)
   const [guardando, setGuardando] = useState(false)
   const [errorGlobal, setErrorGlobal] = useState<string | null>(null)
   const [erroresDeCampo, setErroresDeCampo] = useState<Record<string, string>>({})
 
+  useEffect(() => {
+    if (!editando) return
+
+    let vigente = true
+
+    obtenerTransportista(transportistaId)
+      .then((transportista) => {
+        if (!vigente) return
+
+        setNombre(transportista.nombre)
+        setCuit(transportista.cuit)
+        setTipo(transportista.tipo)
+        setTelefono(transportista.telefono)
+        setEmail(transportista.email)
+      })
+      .catch(() => {
+        if (vigente) setErrorGlobal('No pudimos traer los datos del transportista.')
+      })
+      .finally(() => {
+        if (vigente) setCargando(false)
+      })
+
+    return () => {
+      vigente = false
+    }
+  }, [editando, transportistaId])
+
   async function guardar(evento: React.FormEvent) {
     evento.preventDefault()
-    
+
     if (tipo === '') {
-      setErroresDeCampo({ tipo: 'Requerido.' })
+      setErroresDeCampo({ tipo: 'Elegí el tipo de persona.' })
       return
     }
 
@@ -38,7 +75,12 @@ export function FormularioTransportista() {
     }
 
     try {
-      await crearTransportista(peticion)
+      if (editando) {
+        await modificarTransportista(transportistaId, peticion)
+      } else {
+        await crearTransportista(peticion)
+      }
+
       navegar('/transportistas')
     } catch (fallo) {
       if (fallo instanceof ErrorHttp) {
@@ -65,9 +107,20 @@ export function FormularioTransportista() {
     return `campo ${erroresDeCampo[campo] ? 'con-error' : ''}`
   }
 
+  const titulo = editando ? 'Editar transportista' : 'Nuevo transportista'
+
+  if (cargando) {
+    return (
+      <main>
+        <h1>{titulo}</h1>
+        <p role="status">Cargando…</p>
+      </main>
+    )
+  }
+
   return (
     <main>
-      <h1>Nuevo transportista</h1>
+      <h1>{titulo}</h1>
 
       <form onSubmit={guardar} noValidate>
         {errorGlobal && <p role="alert">{errorGlobal}</p>}
@@ -146,7 +199,7 @@ export function FormularioTransportista() {
 
         <div className="acciones">
           <button type="submit" disabled={guardando}>
-            Guardar transportista
+            {editando ? 'Guardar cambios' : 'Guardar transportista'}
           </button>
           <button type="button" onClick={() => navegar('/transportistas')} disabled={guardando}>
             Cancelar

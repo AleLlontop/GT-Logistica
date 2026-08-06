@@ -15,6 +15,9 @@ import { ListadoPersonas } from './modules/usuarios/personas/paginas/ListadoPers
 import { ListadoTransportistas } from './modules/choferes/transportistas/ListadoTransportistas'
 import { FormularioTransportista } from './modules/choferes/transportistas/FormularioTransportista'
 import { FormularioChofer } from './modules/choferes/paginas/FormularioChofer'
+import { ListadoChoferes } from './modules/choferes/paginas/ListadoChoferes'
+import { FichaChofer } from './modules/choferes/paginas/FichaChofer'
+import { PanelVencimientos } from './modules/choferes/paginas/PanelVencimientos'
 import { TiposDocumentacion } from './modules/choferes/documentacion/TiposDocumentacion'
 import { cerrarSesion, obtenerSesion, type Sesion } from './modules/autenticacion/servicios/sesion'
 
@@ -212,8 +215,25 @@ export default function App() {
           }
         />
 
-        {/* Rutas del Módulo 3. Las pantallas que todavía no existen quedan anunciadas como en
-            construcción en vez de dar un 404: el menú del servidor ya ofrece sus entradas. */}
+        {/* Rutas del Módulo 3. `/choferes/vencimientos` y `/choferes/nuevo` van antes que
+            `/choferes/:id` para que no las tome como si fueran un identificador. */}
+        <Route
+          path="/choferes"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <ListadoChoferes />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
         <Route
           path="/choferes/vencimientos"
           element={
@@ -224,7 +244,7 @@ export default function App() {
                   opcionesMenu={sesion.opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
-                  <p role="status">En construcción: Panel de vencimientos</p>
+                  <PanelVencimientos />
                 </Layout>
               )}
             </RutaProtegida>
@@ -249,7 +269,7 @@ export default function App() {
         />
 
         <Route
-          path="/choferes/*"
+          path="/choferes/:id"
           element={
             <RutaProtegida sesion={sesion}>
               {sesion !== null && (
@@ -258,7 +278,24 @@ export default function App() {
                   opcionesMenu={sesion.opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
-                  <p role="status">En construcción: Choferes</p>
+                  <FichaChofer />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/choferes/:id/editar"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <FormularioChofer />
                 </Layout>
               )}
             </RutaProtegida>
@@ -284,6 +321,23 @@ export default function App() {
 
         <Route
           path="/transportistas/nuevo"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <FormularioTransportista />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/transportistas/:id/editar"
           element={
             <RutaProtegida sesion={sesion}>
               {sesion !== null && (

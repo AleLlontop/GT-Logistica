@@ -30,6 +30,7 @@ export const CodigosError = {
 /** Restricciones del archivo adjunto, tal como las fija FR-015a. */
 export const Adjunto = {
   tiposAceptados: ['application/pdf', 'image/jpeg', 'image/png'],
+  tamanioMaximoEnBytes: 10 * 1024 * 1024,
   /** Lo que muestra el formulario antes de que alguien elija un archivo. */
   descripcion: 'PDF, JPG o PNG, hasta 10 MB',
 } as const

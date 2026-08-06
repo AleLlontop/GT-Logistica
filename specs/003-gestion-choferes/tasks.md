@@ -169,29 +169,29 @@ estado.
 
 ### Almacén de archivos
 
-- [ ] T056 [P] [US3] Implementar `ValidadorArchivo` en `backend/src/GT.Infrastructure/Archivos/ValidadorArchivo.cs`, que acepta sólo PDF, JPG y PNG de hasta 10 MB validando **la firma del archivo**, no la extensión (FR-015a)
-- [ ] T057 [US3] Implementar `AlmacenDeArchivos` en `backend/src/GT.Infrastructure/Archivos/AlmacenDeArchivos.cs`, que guarda con nombre generado por el sistema bajo `GT_ARCHIVOS_RUTA`, recupera y borra, sin aceptar nunca el nombre cargado por el usuario como ruta
-- [ ] T058 [P] [US3] Tests unitarios de `ValidadorArchivo` en `backend/tests/GT.UnitTests/Choferes/ValidadorArchivoTests.cs`, incluido un archivo con extensión `.pdf` que no es un PDF
+- [X] T056 [P] [US3] Implementar `ValidadorArchivo` en `backend/src/GT.Infrastructure/Archivos/ValidadorArchivo.cs`, que acepta sólo PDF, JPG y PNG de hasta 10 MB validando **la firma del archivo**, no la extensión (FR-015a)
+- [X] T057 [US3] Implementar `AlmacenDeArchivos` en `backend/src/GT.Infrastructure/Archivos/AlmacenDeArchivos.cs`, que guarda con nombre generado por el sistema bajo `GT_ARCHIVOS_RUTA`, recupera y borra, sin aceptar nunca el nombre cargado por el usuario como ruta
+- [X] T058 [P] [US3] Tests unitarios de `ValidadorArchivo` en `backend/tests/GT.UnitTests/Choferes/ValidadorArchivoTests.cs`, incluido un archivo con extensión `.pdf` que no es un PDF
 
 ### Tests de la historia
 
-- [ ] T059 [P] [US3] Test de integración del cálculo de estado sobre documentos cargados en `backend/tests/GT.IntegrationTests/Choferes/DocumentacionEstadoTests.cs`
-- [ ] T060 [P] [US3] Test de integración del rechazo de vencimiento anterior a la emisión y de tipo inactivo en `backend/tests/GT.IntegrationTests/Choferes/DocumentacionValidacionesTests.cs`
-- [ ] T061 [P] [US3] Test de integración de **atomicidad** en `backend/tests/GT.IntegrationTests/Choferes/DocumentacionAtomicidadTests.cs`: con el almacén sustituido por uno que falla, la carga no crea el documento, y la corrección con archivo de reemplazo deja el documento y su adjunto anterior intactos (FR-015e, research §10)
-- [ ] T062 [P] [US3] Test de integración de eliminación en `backend/tests/GT.IntegrationTests/Choferes/EliminarDocumentoTests.cs`: la fila y el archivo desaparecen, y al eliminar el vigente de un tipo el anterior vuelve a mandar
-- [ ] T063 [P] [US3] Test de integración que verifica que la descarga del archivo sin sesión responde `401` y sin el permiso responde `403`, en `backend/tests/GT.IntegrationTests/Choferes/DescargaArchivoTests.cs` (FR-024, SC-011)
+- [X] T059 [P] [US3] Test de integración del cálculo de estado sobre documentos cargados en `backend/tests/GT.IntegrationTests/Choferes/DocumentacionEstadoTests.cs`
+- [X] T060 [P] [US3] Test de integración del rechazo de vencimiento anterior a la emisión y de tipo inactivo en `backend/tests/GT.IntegrationTests/Choferes/DocumentacionValidacionesTests.cs`
+- [X] T061 [P] [US3] Test de integración de **atomicidad** en `backend/tests/GT.IntegrationTests/Choferes/DocumentacionAtomicidadTests.cs`: con el almacén sustituido por uno que falla, la carga no crea el documento, y la corrección con archivo de reemplazo deja el documento y su adjunto anterior intactos (FR-015e, research §10)
+- [X] T062 [P] [US3] Test de integración de eliminación en `backend/tests/GT.IntegrationTests/Choferes/EliminarDocumentoTests.cs`: la fila y el archivo desaparecen, y al eliminar el vigente de un tipo el anterior vuelve a mandar
+- [X] T063 [P] [US3] Test de integración que verifica que la descarga del archivo sin sesión responde `401` y sin el permiso responde `403`, en `backend/tests/GT.IntegrationTests/Choferes/DescargaArchivoTests.cs` (FR-024, SC-011)
 
 ### Implementación
 
-- [ ] T064 [US3] Implementar `CargarDocumento` en `backend/src/GT.Application/Choferes/Documentacion/CargarDocumento.cs`, coordinando archivo y fila en el orden de research §10 y compensando el archivo si la transacción falla
-- [ ] T065 [US3] Implementar `CorregirDocumento` en `backend/src/GT.Application/Choferes/Documentacion/CorregirDocumento.cs`, con las validaciones del alta, conservando el adjunto si no viene uno nuevo y borrando el viejo recién después de confirmar
-- [ ] T066 [US3] Implementar `EliminarDocumento` en `backend/src/GT.Application/Choferes/Documentacion/EliminarDocumento.cs`, con borrado físico de la fila y después del archivo
-- [ ] T067 [US3] Exponer `POST /choferes/{id}/documentacion`, `PUT /documentacion/{id}`, `DELETE /documentacion/{id}` y `GET /documentacion/{id}/archivo` en `backend/src/GT.Api/Choferes/DocumentacionEndpoints.cs`, con los códigos `archivo_no_admitido` y `archivo_no_guardado`
-- [ ] T068 [P] [US3] Crear el servicio de documentación en `frontend/src/modules/choferes/documentacion/servicioDocumentacion.ts`
-- [ ] T069 [US3] Crear el formulario de carga y corrección en `frontend/src/modules/choferes/documentacion/FormularioDocumento.tsx`, **sin ningún campo de estado**, informando los formatos y el tamaño admitidos antes de subir
-- [ ] T070 [US3] Conservar lo tipeado y mostrar el mensaje de `archivo_no_guardado` cuando la carga falla, en `frontend/src/modules/choferes/documentacion/FormularioDocumento.tsx`
-- [ ] T071 [US3] Agregar la confirmación de eliminación, con el texto que advierte que no se puede deshacer, reutilizando el diálogo del Módulo 2, en `frontend/src/modules/choferes/documentacion/EliminarDocumento.tsx`
-- [ ] T072 [P] [US3] Test de frontend que verifica que el formulario no expone ningún control de estado en `frontend/src/modules/choferes/documentacion/FormularioDocumento.test.tsx` (FR-018, SC-004)
+- [X] T064 [US3] Implementar `CargarDocumento` en `backend/src/GT.Application/Choferes/Documentacion/CargarDocumento.cs`, coordinando archivo y fila en el orden de research §10 y compensando el archivo si la transacción falla
+- [X] T065 [US3] Implementar `CorregirDocumento` en `backend/src/GT.Application/Choferes/Documentacion/CorregirDocumento.cs`, con las validaciones del alta, conservando el adjunto si no viene uno nuevo y borrando el viejo recién después de confirmar
+- [X] T066 [US3] Implementar `EliminarDocumento` en `backend/src/GT.Application/Choferes/Documentacion/EliminarDocumento.cs`, con borrado físico de la fila y después del archivo
+- [X] T067 [US3] Exponer `POST /choferes/{id}/documentacion`, `PUT /documentacion/{id}`, `DELETE /documentacion/{id}` y `GET /documentacion/{id}/archivo` en `backend/src/GT.Api/Choferes/DocumentacionEndpoints.cs`, con los códigos `archivo_no_admitido` y `archivo_no_guardado`
+- [X] T068 [P] [US3] Crear el servicio de documentación en `frontend/src/modules/choferes/documentacion/servicioDocumentacion.ts`
+- [X] T069 [US3] Crear el formulario de carga y corrección en `frontend/src/modules/choferes/documentacion/FormularioDocumento.tsx`, **sin ningún campo de estado**, informando los formatos y el tamaño admitidos antes de subir
+- [X] T070 [US3] Conservar lo tipeado y mostrar el mensaje de `archivo_no_guardado` cuando la carga falla, en `frontend/src/modules/choferes/documentacion/FormularioDocumento.tsx`
+- [X] T071 [US3] Agregar la confirmación de eliminación, con el texto que advierte que no se puede deshacer, reutilizando el diálogo del Módulo 2, en `frontend/src/modules/choferes/documentacion/EliminarDocumento.tsx`
+- [X] T072 [P] [US3] Test de frontend que verifica que el formulario no expone ningún control de estado en `frontend/src/modules/choferes/documentacion/FormularioDocumento.test.tsx` (FR-018, SC-004)
 
 **Checkpoint**: la documentación se carga, se corrige y se elimina, con el estado calculado por el sistema
 
@@ -209,22 +209,22 @@ aplicar combinaciones de filtros y ver que el listado y la ficha muestran exacta
 
 ### Tests de la historia
 
-- [ ] T073 [P] [US4] Test de integración del **documento vigente de cada tipo** en `backend/tests/GT.IntegrationTests/Choferes/DocumentoVigenteTests.cs`: manda el de vencimiento más lejano, y con la misma fecha manda el de `Id` mayor (research §8)
-- [ ] T074 [P] [US4] Test de integración del filtro por estado de documentación en `backend/tests/GT.IntegrationTests/Choferes/FiltroEstadoDocumentacionTests.cs`, verificando que se resuelve en la base
-- [ ] T075 [P] [US4] Test de integración de **paginación** en `backend/tests/GT.IntegrationTests/Choferes/PaginacionChoferesTests.cs`: 25 choferes dan 20 + 5 con `total` en 25, ninguna fila aparece en dos páginas y el orden se repite entre consultas iguales
-- [ ] T076 [P] [US4] Test de integración del filtro por defecto en `backend/tests/GT.IntegrationTests/Choferes/ListadoPorDefectoTests.cs`: sin `estado`, sólo devuelve activos
+- [X] T073 [P] [US4] Test de integración del **documento vigente de cada tipo** en `backend/tests/GT.IntegrationTests/Choferes/DocumentoVigenteTests.cs`: manda el de vencimiento más lejano, y con la misma fecha manda el de `Id` mayor (research §8)
+- [X] T074 [P] [US4] Test de integración del filtro por estado de documentación en `backend/tests/GT.IntegrationTests/Choferes/FiltroEstadoDocumentacionTests.cs`, verificando que se resuelve en la base
+- [X] T075 [P] [US4] Test de integración de **paginación** en `backend/tests/GT.IntegrationTests/Choferes/PaginacionChoferesTests.cs`: 25 choferes dan 20 + 5 con `total` en 25, ninguna fila aparece en dos páginas y el orden se repite entre consultas iguales
+- [X] T076 [P] [US4] Test de integración del filtro por defecto en `backend/tests/GT.IntegrationTests/Choferes/ListadoPorDefectoTests.cs`: sin `estado`, sólo devuelve activos
 
 ### Implementación
 
-- [ ] T077 [P] [US4] Crear `PaginaDe` en `backend/src/GT.Application/Choferes/PaginaDe.cs` con `items`, `total`, `pagina` y `tamanioPagina`
-- [ ] T078 [US4] Implementar `ConsultarChoferes` en `backend/src/GT.Application/Choferes/ConsultarChoferes.cs`: filtros combinados, activos por defecto, estado calculado y documento vigente por tipo resueltos en SQL, orden `Apellido, Nombre, Id` y página de 20
-- [ ] T079 [US4] Implementar `ConsultarFichaChofer` en `backend/src/GT.Application/Choferes/ConsultarFichaChofer.cs`, devolviendo todos los documentos agrupados por tipo con el vigente primero y la marca de reemplazado
-- [ ] T080 [US4] Exponer `GET /choferes` y `GET /choferes/{id}` en `backend/src/GT.Api/Choferes/ChoferesEndpoints.cs`
-- [ ] T081 [US4] Crear el listado en `frontend/src/modules/choferes/paginas/ListadoChoferes.tsx`, con las cinco columnas, los cinco filtros y el filtro de estado con `Activo` visible de entrada
-- [ ] T082 [US4] Crear el control de paginación en `frontend/src/modules/choferes/componentes/Paginacion.tsx`, mostrando el total y volviendo a la página 1 al cambiar cualquier filtro
-- [ ] T083 [US4] Crear la ficha del chofer en `frontend/src/modules/choferes/paginas/FichaChofer.tsx`, con sus datos, su transportista y sus documentos, marcando los reemplazados y los que no tienen archivo
-- [ ] T084 [US4] Agregar los mensajes explícitos de listado vacío y de sin resultados en `frontend/src/modules/choferes/paginas/ListadoChoferes.tsx`
-- [ ] T085 [P] [US4] Test de frontend de los estados vacíos y del filtro por defecto en `frontend/src/modules/choferes/paginas/ListadoChoferes.test.tsx`
+- [X] T077 [P] [US4] Crear `PaginaDe` en `backend/src/GT.Application/Choferes/PaginaDe.cs` con `items`, `total`, `pagina` y `tamanioPagina`
+- [X] T078 [US4] Implementar `ConsultarChoferes` en `backend/src/GT.Application/Choferes/ConsultarChoferes.cs`: filtros combinados, activos por defecto, estado calculado y documento vigente por tipo resueltos en SQL, orden `Apellido, Nombre, Id` y página de 20
+- [X] T079 [US4] Implementar `ConsultarFichaChofer` en `backend/src/GT.Application/Choferes/ConsultarFichaChofer.cs`, devolviendo todos los documentos agrupados por tipo con el vigente primero y la marca de reemplazado
+- [X] T080 [US4] Exponer `GET /choferes` y `GET /choferes/{id}` en `backend/src/GT.Api/Choferes/ChoferesEndpoints.cs`
+- [X] T081 [US4] Crear el listado en `frontend/src/modules/choferes/paginas/ListadoChoferes.tsx`, con las cinco columnas, los cinco filtros y el filtro de estado con `Activo` visible de entrada
+- [X] T082 [US4] Crear el control de paginación en `frontend/src/modules/choferes/componentes/Paginacion.tsx`, mostrando el total y volviendo a la página 1 al cambiar cualquier filtro
+- [X] T083 [US4] Crear la ficha del chofer en `frontend/src/modules/choferes/paginas/FichaChofer.tsx`, con sus datos, su transportista y sus documentos, marcando los reemplazados y los que no tienen archivo
+- [X] T084 [US4] Agregar los mensajes explícitos de listado vacío y de sin resultados en `frontend/src/modules/choferes/paginas/ListadoChoferes.tsx`
+- [X] T085 [P] [US4] Test de frontend de los estados vacíos y del filtro por defecto en `frontend/src/modules/choferes/paginas/ListadoChoferes.test.tsx`
 
 **Checkpoint**: se puede responder quién tiene la documentación al día y quién no
 
@@ -241,16 +241,16 @@ tipo, y ver que sólo los primeros aparecen en el panel.
 
 ### Tests de la historia
 
-- [ ] T086 [P] [US5] Test de integración del panel en `backend/tests/GT.IntegrationTests/Choferes/VencimientosTests.cs`: entran sólo los documentos vigentes de cada tipo, y un chofer inactivo no aparece aunque tenga todo vencido
-- [ ] T087 [P] [US5] Test de integración de que cargar una renovación saca la alerta sin tocar el documento anterior, en `backend/tests/GT.IntegrationTests/Choferes/RenovacionSacaAlertaTests.cs` (SC-010)
+- [X] T086 [P] [US5] Test de integración del panel en `backend/tests/GT.IntegrationTests/Choferes/VencimientosTests.cs`: entran sólo los documentos vigentes de cada tipo, y un chofer inactivo no aparece aunque tenga todo vencido
+- [X] T087 [P] [US5] Test de integración de que cargar una renovación saca la alerta sin tocar el documento anterior, en `backend/tests/GT.IntegrationTests/Choferes/RenovacionSacaAlertaTests.cs` (SC-010)
 
 ### Implementación
 
-- [ ] T088 [US5] Implementar `ConsultarVencimientos` en `backend/src/GT.Application/Choferes/Documentacion/ConsultarVencimientos.cs`, filtrando choferes activos y documentos vigentes de cada tipo, con los días que faltan o pasaron
-- [ ] T089 [US5] Exponer `GET /vencimientos` en `backend/src/GT.Api/Choferes/DocumentacionEndpoints.cs`
-- [ ] T090 [US5] Crear el panel en `frontend/src/modules/choferes/paginas/PanelVencimientos.tsx`, ordenado por urgencia y con enlace a la ficha de cada chofer
-- [ ] T091 [US5] Agregar el mensaje explícito de que no hay vencimientos pendientes en `frontend/src/modules/choferes/paginas/PanelVencimientos.tsx`
-- [ ] T092 [P] [US5] Test de frontend del panel sin alertas en `frontend/src/modules/choferes/paginas/PanelVencimientos.test.tsx`
+- [X] T088 [US5] Implementar `ConsultarVencimientos` en `backend/src/GT.Application/Choferes/Documentacion/ConsultarVencimientos.cs`, filtrando choferes activos y documentos vigentes de cada tipo, con los días que faltan o pasaron
+- [X] T089 [US5] Exponer `GET /vencimientos` en `backend/src/GT.Api/Choferes/DocumentacionEndpoints.cs`
+- [X] T090 [US5] Crear el panel en `frontend/src/modules/choferes/paginas/PanelVencimientos.tsx`, ordenado por urgencia y con enlace a la ficha de cada chofer
+- [X] T091 [US5] Agregar el mensaje explícito de que no hay vencimientos pendientes en `frontend/src/modules/choferes/paginas/PanelVencimientos.tsx`
+- [X] T092 [P] [US5] Test de frontend del panel sin alertas en `frontend/src/modules/choferes/paginas/PanelVencimientos.test.tsx`
 
 **Checkpoint**: los vencimientos se ven solos, sin que nadie ejecute nada
 
@@ -268,18 +268,18 @@ ver que sale `Próxima a vencer`, cambiar el tipo a 10 días y ver que pasa a `A
 
 ### Tests de la historia
 
-- [ ] T093 [P] [US6] Test de integración de nombre duplicado y de días de aviso negativos en `backend/tests/GT.IntegrationTests/Choferes/TiposDocumentacionTests.cs`
-- [ ] T094 [P] [US6] Test de integración del rechazo de baja de un tipo con documentos asociados, con la cantidad en el mensaje, en `backend/tests/GT.IntegrationTests/Choferes/BajaTipoDocumentacionTests.cs`
-- [ ] T095 [P] [US6] Test de integración de que cambiar los días de aviso recalcula el estado de los documentos existentes sin actualizar ninguna fila, en `backend/tests/GT.IntegrationTests/Choferes/RecalculoPorDiasAvisoTests.cs`
+- [X] T093 [P] [US6] Test de integración de nombre duplicado y de días de aviso negativos en `backend/tests/GT.IntegrationTests/Choferes/TiposDocumentacionTests.cs`
+- [X] T094 [P] [US6] Test de integración del rechazo de baja de un tipo con documentos asociados, con la cantidad en el mensaje, en `backend/tests/GT.IntegrationTests/Choferes/BajaTipoDocumentacionTests.cs`
+- [X] T095 [P] [US6] Test de integración de que cambiar los días de aviso recalcula el estado de los documentos existentes sin actualizar ninguna fila, en `backend/tests/GT.IntegrationTests/Choferes/RecalculoPorDiasAvisoTests.cs`
 
 ### Implementación
 
-- [ ] T096 [P] [US6] Implementar `GestionTiposDocumentacion` en `backend/src/GT.Application/Choferes/Documentacion/GestionTiposDocumentacion.cs` con alta, consulta, modificación y baja lógica, y el rechazo de baja con documentos asociados
-- [ ] T097 [US6] Implementar el repositorio de tipos en `backend/src/GT.Infrastructure/Persistencia/RepositorioTiposDocumentacion.cs`
-- [ ] T098 [US6] Exponer `GET`, `POST`, `PUT` y `DELETE` de `/tipos-documentacion` en `backend/src/GT.Api/Choferes/TiposDocumentacionEndpoints.cs`
-- [ ] T099 [P] [US6] Crear el servicio de tipos en `frontend/src/modules/choferes/documentacion/servicioTipos.ts`
-- [ ] T100 [US6] Crear el listado y el formulario de tipos en `frontend/src/modules/choferes/documentacion/TiposDocumentacion.tsx`, mostrando cuántos documentos usa cada uno
-- [ ] T101 [US6] Agregar la confirmación de baja de tipo y el mensaje de catálogo vacío en `frontend/src/modules/choferes/documentacion/TiposDocumentacion.tsx`
+- [X] T096 [P] [US6] Implementar `GestionTiposDocumentacion` en `backend/src/GT.Application/Choferes/Documentacion/GestionTiposDocumentacion.cs` con alta, consulta, modificación y baja lógica, y el rechazo de baja con documentos asociados
+- [X] T097 [US6] Implementar el repositorio de tipos en `backend/src/GT.Infrastructure/Persistencia/RepositorioTiposDocumentacion.cs`
+- [X] T098 [US6] Exponer `GET`, `POST`, `PUT` y `DELETE` de `/tipos-documentacion` en `backend/src/GT.Api/Choferes/TiposDocumentacionEndpoints.cs`
+- [X] T099 [P] [US6] Crear el servicio de tipos en `frontend/src/modules/choferes/documentacion/servicioTipos.ts`
+- [X] T100 [US6] Crear el listado y el formulario de tipos en `frontend/src/modules/choferes/documentacion/TiposDocumentacion.tsx`, mostrando cuántos documentos usa cada uno
+- [X] T101 [US6] Agregar la confirmación de baja de tipo y el mensaje de catálogo vacío en `frontend/src/modules/choferes/documentacion/TiposDocumentacion.tsx`
 
 **Checkpoint**: el catálogo se administra y la ventana de aviso de cada tipo se puede ajustar
 
@@ -298,27 +298,27 @@ documentación intacta.
 
 ### Tests de la historia
 
-- [ ] T102 [P] [US7] Test de integración de reasignación de transportista que conserva la documentación en `backend/tests/GT.IntegrationTests/Choferes/ReasignarChoferTests.cs` (SC-009)
-- [ ] T103 [P] [US7] Test de integración de unicidad en modificación, que excluye al propio registro, en `backend/tests/GT.IntegrationTests/Choferes/ModificacionUnicidadTests.cs`
-- [ ] T104 [P] [US7] Test de integración del rechazo de baja de transportista con choferes activos, y de la baja que procede cuando todos están inactivos, en `backend/tests/GT.IntegrationTests/Choferes/BajaTransportistaTests.cs`
-- [ ] T105 [P] [US7] Test de integración de que el chofer dado de baja sale del listado por defecto y del panel de vencimientos, en `backend/tests/GT.IntegrationTests/Choferes/BajaChoferTests.cs`
+- [X] T102 [P] [US7] Test de integración de reasignación de transportista que conserva la documentación en `backend/tests/GT.IntegrationTests/Choferes/ReasignarChoferTests.cs` (SC-009)
+- [X] T103 [P] [US7] Test de integración de unicidad en modificación, que excluye al propio registro, en `backend/tests/GT.IntegrationTests/Choferes/ModificacionUnicidadTests.cs`
+- [X] T104 [P] [US7] Test de integración del rechazo de baja de transportista con choferes activos, y de la baja que procede cuando todos están inactivos, en `backend/tests/GT.IntegrationTests/Choferes/BajaTransportistaTests.cs`
+- [X] T105 [P] [US7] Test de integración de que el chofer dado de baja sale del listado por defecto y del panel de vencimientos, en `backend/tests/GT.IntegrationTests/Choferes/BajaChoferTests.cs`
 
 ### Implementación
 
-- [ ] T106 [P] [US7] Implementar `ModificarChofer` en `backend/src/GT.Application/Choferes/ModificarChofer.cs`, actualizando la persona del padrón y permitiendo la reasignación de transportista
-- [ ] T107 [P] [US7] Implementar `DarDeBajaChofer` en `backend/src/GT.Application/Choferes/DarDeBajaChofer.cs` con baja lógica
-- [ ] T108 [P] [US7] Implementar `ModificarTransportista` en `backend/src/GT.Application/Choferes/Transportistas/ModificarTransportista.cs`
-- [ ] T109 [US7] Implementar `DarDeBajaTransportista` en `backend/src/GT.Application/Choferes/Transportistas/DarDeBajaTransportista.cs`, rechazando si tiene choferes activos e informando cuántos
-- [ ] T110 [US7] Exponer `PUT /choferes/{id}` y `DELETE /choferes/{id}` en `backend/src/GT.Api/Choferes/ChoferesEndpoints.cs`
-- [ ] T111 [US7] Exponer `PUT /transportistas/{id}` y `DELETE /transportistas/{id}` en `backend/src/GT.Api/Choferes/TransportistasEndpoints.cs`
-- [ ] T112 [US7] Habilitar la edición y la reasignación desde `frontend/src/modules/choferes/paginas/FormularioChofer.tsx`
-- [ ] T113 [US7] Agregar las confirmaciones de baja de chofer y de transportista, con sus textos, reutilizando el diálogo del Módulo 2, en `frontend/src/modules/choferes/componentes/ConfirmacionBaja.tsx`
-- [ ] T114 [US7] Habilitar la edición de transportistas desde `frontend/src/modules/choferes/transportistas/FormularioTransportista.tsx`
-- [ ] T115 [P] [US7] Test de frontend de que cancelar una confirmación no dispara ninguna llamada en `frontend/src/modules/choferes/componentes/ConfirmacionBaja.test.tsx` (SC-008)
+- [X] T106 [P] [US7] Implementar `ModificarChofer` en `backend/src/GT.Application/Choferes/ModificarChofer.cs`, actualizando la persona del padrón y permitiendo la reasignación de transportista
+- [X] T107 [P] [US7] Implementar `DarDeBajaChofer` en `backend/src/GT.Application/Choferes/DarDeBajaChofer.cs` con baja lógica
+- [X] T108 [P] [US7] Implementar `ModificarTransportista` en `backend/src/GT.Application/Choferes/Transportistas/ModificarTransportista.cs`
+- [X] T109 [US7] Implementar `DarDeBajaTransportista` en `backend/src/GT.Application/Choferes/Transportistas/DarDeBajaTransportista.cs`, rechazando si tiene choferes activos e informando cuántos
+- [X] T110 [US7] Exponer `PUT /choferes/{id}` y `DELETE /choferes/{id}` en `backend/src/GT.Api/Choferes/ChoferesEndpoints.cs`
+- [X] T111 [US7] Exponer `PUT /transportistas/{id}` y `DELETE /transportistas/{id}` en `backend/src/GT.Api/Choferes/TransportistasEndpoints.cs`
+- [X] T112 [US7] Habilitar la edición y la reasignación desde `frontend/src/modules/choferes/paginas/FormularioChofer.tsx`
+- [X] T113 [US7] Agregar las confirmaciones de baja de chofer y de transportista, con sus textos, reutilizando el diálogo del Módulo 2, en `frontend/src/modules/choferes/componentes/ConfirmacionBaja.tsx`
+- [X] T114 [US7] Habilitar la edición de transportistas desde `frontend/src/modules/choferes/transportistas/FormularioTransportista.tsx`
+- [X] T115 [P] [US7] Test de frontend de que cancelar una confirmación no dispara ninguna llamada en `frontend/src/modules/choferes/componentes/ConfirmacionBaja.test.tsx` (SC-008)
 
-- [ ] T116 [US7] Implementar `ReactivarChofer` en `backend/src/GT.Application/Choferes/ReactivarChofer.cs`, que vuelve `Activo` a `true` y rechaza si el chofer ya está activo o si su transportista quedó inactivo (FR-005b)
-- [ ] T117 [US7] Exponer `POST /choferes/{id}/reactivacion` en `backend/src/GT.Api/Choferes/ChoferesEndpoints.cs`
-- [ ] T118 [US7] Mostrar *Reactivar* en lugar de *Dar de baja* cuando el chofer está inactivo, con su confirmación, en `frontend/src/modules/choferes/paginas/FichaChofer.tsx`
+- [X] T116 [US7] Implementar `ReactivarChofer` en `backend/src/GT.Application/Choferes/ReactivarChofer.cs`, que vuelve `Activo` a `true` y rechaza si el chofer ya está activo o si su transportista quedó inactivo (FR-005b)
+- [X] T117 [US7] Exponer `POST /choferes/{id}/reactivacion` en `backend/src/GT.Api/Choferes/ChoferesEndpoints.cs`
+- [X] T118 [US7] Mostrar *Reactivar* en lugar de *Dar de baja* cuando el chofer está inactivo, con su confirmación, en `frontend/src/modules/choferes/paginas/FichaChofer.tsx`
 
 **Checkpoint**: las siete historias funcionan
 
@@ -326,13 +326,13 @@ documentación intacta.
 
 ## Phase 10: Polish & Cross-Cutting Concerns
 
-- [ ] T119 [P] Verificar que el estado de documentación nunca se comunique sólo por color y que los documentos reemplazados lleven la palabra además del gris, en `frontend/src/modules/choferes/`
-- [ ] T120 [P] Anunciar con `role="status"` el resultado de la carga de archivo y el cambio de página, en `frontend/src/modules/choferes/`
-- [ ] T121 [P] Revisar que los textos de `backend/src/GT.Application/Choferes/Mensajes.cs` y los de `frontend/src/modules/choferes/` estén en español rioplatense y coincidan con `contracts/README.md`
-- [ ] T122 Revisar que ningún endpoint del módulo quede sin el permiso `choferes.gestionar`, incluida la descarga de archivos, en `backend/src/GT.Api/Choferes/`
+- [X] T119 [P] Verificar que el estado de documentación nunca se comunique sólo por color y que los documentos reemplazados lleven la palabra además del gris, en `frontend/src/modules/choferes/`
+- [X] T120 [P] Anunciar con `role="status"` el resultado de la carga de archivo y el cambio de página, en `frontend/src/modules/choferes/`
+- [X] T121 [P] Revisar que los textos de `backend/src/GT.Application/Choferes/Mensajes.cs` y los de `frontend/src/modules/choferes/` estén en español rioplatense y coincidan con `contracts/README.md`
+- [X] T122 Revisar que ningún endpoint del módulo quede sin el permiso `choferes.gestionar`, incluida la descarga de archivos, en `backend/src/GT.Api/Choferes/`
 - [ ] T123 Correr el recorrido completo de `specs/003-gestion-choferes/quickstart.md` con las dos cuentas (`admin` y un usuario de Tráfico)
-- [ ] T124 Correr `dotnet test` en `backend/` y `npm test` en `frontend/`, y dejar ambos en verde
-- [ ] T125 [P] Actualizar `specs/README.md` con el estado del Módulo 3
+- [X] T124 Correr `dotnet test` en `backend/` y `npm test` en `frontend/`, y dejar ambos en verde
+- [X] T125 [P] Actualizar `specs/README.md` con el estado del Módulo 3
 - [ ] T126 Puesta en marcha: cargar **G&T Logística S.A.** como transportista con sus datos reales desde la pantalla de transportistas, y dejar el paso anotado en `specs/003-gestion-choferes/quickstart.md` como parte del alta del módulo (FR-004). No se siembra por migración: se carga como cualquier otro transportista
 
 ---

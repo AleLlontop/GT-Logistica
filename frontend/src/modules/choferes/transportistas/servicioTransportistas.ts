@@ -1,4 +1,4 @@
-import { enviar, obtener } from '../servicios/api'
+import { actualizar, eliminar, enviar, obtener } from '../servicios/api'
 
 export interface Transportista {
   id: number
@@ -34,6 +34,19 @@ export function listarTransportistas(texto?: string, soloActivos: boolean = fals
   return obtener<Transportista[]>(`/api/transportistas${query ? `?${query}` : ''}`)
 }
 
+export function obtenerTransportista(id: number) {
+  return obtener<Transportista>(`/api/transportistas/${id}`)
+}
+
 export function crearTransportista(peticion: TransportistaRequest) {
   return enviar<Transportista>('/api/transportistas', peticion)
+}
+
+export function modificarTransportista(id: number, peticion: TransportistaRequest) {
+  return actualizar<Transportista>(`/api/transportistas/${id}`, peticion)
+}
+
+/** Baja lógica. Se rechaza si tiene choferes activos, informando cuántos (FR-010). */
+export function darDeBajaTransportista(id: number) {
+  return eliminar(`/api/transportistas/${id}`)
 }

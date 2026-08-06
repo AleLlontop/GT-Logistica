@@ -1,0 +1,294 @@
+import { useEffect, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
+import { ErrorHttp } from '../../../compartido/clienteHttp'
+import { Adjunto } from '../servicios/api'
+import type { Documento } from '../servicios/servicioChoferes'
+import { cargarDocumento, corregirDocumento } from './servicioDocumentacion'
+import { listarTipos, type TipoDocumentacion } from './servicioTipos'
+
+const MENSAJE_SIN_TIPOS_ACTIVOS =
+  'No hay tipos de documentación activos. Cargá uno desde la pantalla Tipos de documentación.'
+
+interface Props {
+  choferId: number
+  /** Cuando viene, el formulario corrige ese documento en vez de cargar uno nuevo (FR-015b). */
+  documento?: Documento
+  /** Documentos que el chofer ya tiene, para avisar si esta carga es una renovación. */
+  documentosDelChofer: Documento[]
+  onGuardado: () => void
+  onCancelar: () => void
+}
+
+/**
+ * Carga y corrección de un documento (User Story 3).
+ *
+ * **No hay campo de estado, a propósito** (FR-018, SC-004): lo calcula el sistema a partir de la
+ * fecha de vencimiento y de los días de aviso de su tipo. El formulario tampoco lo muestra como
+ * valor previsto, para no dar a entender que se puede elegir.
+ *
+ * Si el archivo no llega a guardarse, el documento **no se crea ni se modifica** y el formulario
+ * conserva todo lo tipeado para reintentar sin volver a completarlo (FR-015e).
+ */
+export function FormularioDocumento({
+  choferId,
+  documento,
+  documentosDelChofer,
+  onGuardado,
+  onCancelar,
+}: Props) {
+  const corrigiendo = documento !== undefined
+
+  const [tipos, setTipos] = useState<TipoDocumentacion[] | null>(null)
+  const [tipoId, setTipoId] = useState<number | ''>(documento?.tipo.id ?? '')
+  const [numero, setNumero] = useState(documento?.numero ?? '')
+  const [fechaEmision, setFechaEmision] = useState(documento?.fechaEmision ?? '')
+  const [fechaVencimiento, setFechaVencimiento] = useState(documento?.fechaVencimiento ?? '')
+  const [archivo, setArchivo] = useState<File | null>(null)
+
+  const [errores, setErrores] = useState<Record<string, string>>({})
+  const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
+  const [guardando, setGuardando] = useState(false)
+
+  useEffect(() => {
+    let vigente = true
+
+    listarTipos(true)
+      .then((lista) => {
+        if (!vigente) return
+
+        setTipos(lista)
+        if (documento === undefined && lista.length > 0) {
+          setTipoId((previo) => (previo === '' ? lista[0].id : previo))
+        }
+      })
+      .catch(() => {
+        if (vigente) {
+          setTipos([])
+          setErrorGeneral('No pudimos traer el catálogo de tipos. Volvé a intentar en unos minutos.')
+        }
+      })
+
+    return () => {
+      vigente = false
+    }
+  }, [documento])
+
+  function validar() {
+    const encontrados: Record<string, string> = {}
+
+    if (tipoId === '') encontrados.documentacionTipoId = 'Elegí un tipo de documentación.'
+    if (!numero.trim()) encontrados.numero = 'Completá el número.'
+    if (!fechaEmision) encontrados.fechaEmision = 'Completá la fecha de emisión.'
+    if (!fechaVencimiento) {
+      encontrados.fechaVencimiento = 'Completá la fecha de vencimiento.'
+    } else if (fechaEmision && fechaVencimiento <= fechaEmision) {
+      encontrados.fechaVencimiento = 'La fecha de vencimiento tiene que ser posterior a la de emisión.'
+    }
+
+    if (archivo !== null && archivo.size > Adjunto.tamanioMaximoEnBytes) {
+      encontrados.archivo = `El archivo tiene que ser un ${Adjunto.descripcion}.`
+    }
+
+    return encontrados
+  }
+
+  async function guardar(evento: FormEvent) {
+    evento.preventDefault()
+
+    const encontrados = validar()
+    setErrores(encontrados)
+    setErrorGeneral(null)
+
+    if (Object.keys(encontrados).length > 0) {
+      return
+    }
+
+    setGuardando(true)
+
+    const peticion = {
+      documentacionTipoId: Number(tipoId),
+      numero: numero.trim(),
+      fechaEmision,
+      fechaVencimiento,
+    }
+
+    try {
+      if (corrigiendo) {
+        await corregirDocumento(documento.id, peticion, archivo)
+      } else {
+        await cargarDocumento(choferId, peticion, archivo)
+      }
+
+      onGuardado()
+    } catch (fallo) {
+      // Nada se limpia acá: si el archivo no se guardó, el documento no se creó y lo tipeado tiene
+      // que seguir en pantalla para poder reintentar (FR-015e).
+      if (fallo instanceof ErrorHttp) {
+        if (fallo.detalle.campo !== undefined) {
+          setErrores({ [fallo.detalle.campo]: fallo.detalle.mensaje })
+        } else {
+          setErrorGeneral(fallo.detalle.mensaje)
+        }
+      } else {
+        setErrorGeneral('Ocurrió un problema inesperado. Volvé a intentar en unos minutos.')
+      }
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  if (tipos === null) {
+    return <p role="status">Cargando tipos de documentación…</p>
+  }
+
+  // Sin tipos activos no se puede cargar nada, y se dice por qué con el enlace que lo resuelve.
+  if (tipos.length === 0) {
+    return (
+      <div>
+        <p role="alert">{MENSAJE_SIN_TIPOS_ACTIVOS}</p>
+        <Link to="/tipos-documentacion">Ir a Tipos de documentación</Link>
+      </div>
+    )
+  }
+
+  // Si ya tiene uno de ese tipo, esta carga es una renovación. Se avisa y nada más: no se impide ni
+  // se pide confirmar (FR-020a).
+  const esRenovacion =
+    !corrigiendo &&
+    tipoId !== '' &&
+    documentosDelChofer.some((otro) => otro.tipo.id === Number(tipoId))
+
+  const cambioElVencimiento =
+    corrigiendo && fechaVencimiento !== '' && fechaVencimiento !== documento.fechaVencimiento
+
+  return (
+    <form onSubmit={guardar} noValidate>
+      <h2>{corrigiendo ? 'Corregir documento' : 'Cargar documento'}</h2>
+
+      {errorGeneral !== null && <p role="alert">{errorGeneral}</p>}
+
+      <div className="campo">
+        <label htmlFor="documentacionTipoId">Tipo de documentación</label>
+        <select
+          id="documentacionTipoId"
+          value={tipoId}
+          onChange={(evento) => setTipoId(Number(evento.target.value))}
+          required
+          aria-invalid={errores.documentacionTipoId !== undefined}
+        >
+          {tipos.map((tipo) => (
+            <option key={tipo.id} value={tipo.id}>
+              {tipo.nombre}
+            </option>
+          ))}
+        </select>
+        {errores.documentacionTipoId !== undefined && (
+          <p className="campo__error" role="alert">
+            {errores.documentacionTipoId}
+          </p>
+        )}
+      </div>
+
+      {esRenovacion && (
+        <p role="status">
+          Este chofer ya tiene un documento de ese tipo. El anterior va a quedar como historial y
+          este pasa a ser el vigente.
+        </p>
+      )}
+
+      <div className="campo">
+        <label htmlFor="numero">Número</label>
+        <input
+          id="numero"
+          type="text"
+          maxLength={50}
+          value={numero}
+          onChange={(evento) => setNumero(evento.target.value)}
+          required
+          aria-invalid={errores.numero !== undefined}
+        />
+        {errores.numero !== undefined && (
+          <p className="campo__error" role="alert">
+            {errores.numero}
+          </p>
+        )}
+      </div>
+
+      <div className="campo">
+        <label htmlFor="fechaEmision">Fecha de emisión</label>
+        <input
+          id="fechaEmision"
+          type="date"
+          value={fechaEmision}
+          onChange={(evento) => setFechaEmision(evento.target.value)}
+          required
+          aria-invalid={errores.fechaEmision !== undefined}
+        />
+        {errores.fechaEmision !== undefined && (
+          <p className="campo__error" role="alert">
+            {errores.fechaEmision}
+          </p>
+        )}
+      </div>
+
+      <div className="campo">
+        <label htmlFor="fechaVencimiento">Fecha de vencimiento</label>
+        <input
+          id="fechaVencimiento"
+          type="date"
+          value={fechaVencimiento}
+          onChange={(evento) => setFechaVencimiento(evento.target.value)}
+          required
+          aria-invalid={errores.fechaVencimiento !== undefined}
+        />
+        {errores.fechaVencimiento !== undefined && (
+          <p className="campo__error" role="alert">
+            {errores.fechaVencimiento}
+          </p>
+        )}
+      </div>
+
+      {cambioElVencimiento && (
+        <p role="status">
+          Cambiar la fecha de vencimiento puede cambiar cuál es el documento vigente de ese tipo y el
+          estado del chofer.
+        </p>
+      )}
+
+      <div className="campo">
+        <label htmlFor="archivo">Archivo adjunto (opcional)</label>
+        <input
+          id="archivo"
+          type="file"
+          accept={Adjunto.tiposAceptados.join(',')}
+          onChange={(evento) => setArchivo(evento.target.files?.[0] ?? null)}
+          aria-describedby="ayuda-archivo"
+          aria-invalid={errores.archivo !== undefined}
+        />
+        {/* Se informa antes de elegir nada, no después de que la subida falle (FR-015a). */}
+        <small id="ayuda-archivo">{Adjunto.descripcion}</small>
+
+        {corrigiendo && documento.tieneArchivo && (
+          <p>
+            Adjunto actual: {documento.archivoNombre}. Si no elegís uno nuevo, se conserva.
+          </p>
+        )}
+
+        {errores.archivo !== undefined && (
+          <p className="campo__error" role="alert">
+            {errores.archivo}
+          </p>
+        )}
+      </div>
+
+      <div className="acciones">
+        <button type="submit" disabled={guardando}>
+          {guardando ? 'Guardando…' : corrigiendo ? 'Guardar cambios' : 'Cargar documento'}
+        </button>
+        <button type="button" onClick={onCancelar} disabled={guardando}>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  )
+}

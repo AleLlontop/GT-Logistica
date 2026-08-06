@@ -1,7 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
-import { crearChofer, type ChoferDetalle } from '../servicios/servicioChoferes'
+import {
+  crearChofer,
+  modificarChofer,
+  obtenerChofer,
+  type ChoferDetalle,
+} from '../servicios/servicioChoferes'
 import { listarTransportistas, type Transportista } from '../transportistas/servicioTransportistas'
 
 /** Errores de formato por campo. */
@@ -45,23 +50,64 @@ const VACIO = {
 }
 
 /**
- * Alta de un chofer (User Story 2).
+ * Alta y edición de un chofer (User Story 2, y la reasignación de la User Story 7).
  *
  * El aviso de reutilización de persona lo da el backend **al guardar**, no una búsqueda previa: el
  * padrón de personas es del Módulo 2 y su endpoint exige `usuarios.gestionar`, que un usuario de
  * Tráfico no tiene (FR-027). Consultarlo desde acá funcionaría para el administrador y fallaría en
  * silencio justo para el rol que usa esta pantalla todos los días.
+ *
+ * Editar permite además **reasignar el transportista**, que no toca la documentación ya cargada
+ * (FR-009, SC-009).
  */
 export function FormularioChofer() {
+  const { id } = useParams()
+  const navegar = useNavigate()
+  const editando = id !== undefined
+  const choferId = Number(id)
+
   const [datos, setDatos] = useState(VACIO)
   const [transportistaId, setTransportistaId] = useState<number | ''>('')
 
   const [transportistas, setTransportistas] = useState<Transportista[] | null>(null)
+  const [cargandoChofer, setCargandoChofer] = useState(editando)
 
   const [errores, setErrores] = useState<ErroresDeCampo>({})
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [registrado, setRegistrado] = useState<ChoferDetalle | null>(null)
+
+  useEffect(() => {
+    if (!editando) return
+
+    let vigente = true
+
+    obtenerChofer(choferId)
+      .then((chofer) => {
+        if (!vigente) return
+
+        setDatos({
+          nombre: chofer.nombre,
+          apellido: chofer.apellido,
+          dni: chofer.dni,
+          cuil: chofer.cuil,
+          fechaNacimiento: chofer.fechaNacimiento,
+          telefono: chofer.telefono,
+          email: chofer.email,
+        })
+        setTransportistaId(chofer.transportista.id)
+      })
+      .catch(() => {
+        if (vigente) setErrorGeneral('No pudimos traer los datos del chofer.')
+      })
+      .finally(() => {
+        if (vigente) setCargandoChofer(false)
+      })
+
+    return () => {
+      vigente = false
+    }
+  }, [editando, choferId])
 
   useEffect(() => {
     let vigente = true
@@ -71,8 +117,10 @@ export function FormularioChofer() {
         if (!vigente) return
 
         setTransportistas(resultado)
-        if (resultado.length > 0) {
-          setTransportistaId(resultado[0].id)
+
+        // Al editar, el transportista lo fija la carga del chofer: no se pisa con el primero.
+        if (!editando && resultado.length > 0) {
+          setTransportistaId((previo) => (previo === '' ? resultado[0].id : previo))
         }
       })
       .catch(() => {
@@ -85,7 +133,7 @@ export function FormularioChofer() {
     return () => {
       vigente = false
     }
-  }, [])
+  }, [editando])
 
   function actualizar<C extends keyof typeof VACIO>(campo: C, valor: string) {
     setDatos((previos) => ({ ...previos, [campo]: valor }))
@@ -127,17 +175,25 @@ export function FormularioChofer() {
 
     setEnviando(true)
 
+    const peticion = {
+      nombre: datos.nombre.trim(),
+      apellido: datos.apellido.trim(),
+      dni: datos.dni.trim(),
+      cuil: datos.cuil.trim(),
+      fechaNacimiento: datos.fechaNacimiento,
+      telefono: datos.telefono.trim(),
+      email: datos.email.trim(),
+      transportistaId: Number(transportistaId),
+    }
+
     try {
-      const creado = await crearChofer({
-        nombre: datos.nombre.trim(),
-        apellido: datos.apellido.trim(),
-        dni: datos.dni.trim(),
-        cuil: datos.cuil.trim(),
-        fechaNacimiento: datos.fechaNacimiento,
-        telefono: datos.telefono.trim(),
-        email: datos.email.trim(),
-        transportistaId: Number(transportistaId),
-      })
+      if (editando) {
+        await modificarChofer(choferId, peticion)
+        navegar(`/choferes/${choferId}`, { replace: true })
+        return
+      }
+
+      const creado = await crearChofer(peticion)
 
       setRegistrado(creado)
       setDatos(VACIO)
@@ -158,11 +214,13 @@ export function FormularioChofer() {
     }
   }
 
-  if (transportistas === null) {
+  const titulo = editando ? 'Editar chofer' : 'Nuevo chofer'
+
+  if (transportistas === null || cargandoChofer) {
     return (
       <main>
-        <h1>Nuevo chofer</h1>
-        <p role="status">Cargando transportistas…</p>
+        <h1>{titulo}</h1>
+        <p role="status">Cargando…</p>
       </main>
     )
   }
@@ -172,7 +230,7 @@ export function FormularioChofer() {
   if (transportistas.length === 0) {
     return (
       <main>
-        <h1>Nuevo chofer</h1>
+        <h1>{titulo}</h1>
         <p role="alert">{MENSAJE_SIN_TRANSPORTISTAS_ACTIVOS}</p>
         <Link to="/transportistas/nuevo">Registrar un transportista</Link>
       </main>
@@ -181,7 +239,7 @@ export function FormularioChofer() {
 
   return (
     <main>
-      <h1>Nuevo chofer</h1>
+      <h1>{titulo}</h1>
 
       {registrado !== null && (
         <div role="status">
@@ -366,7 +424,7 @@ export function FormularioChofer() {
         </div>
 
         <button type="submit" disabled={enviando}>
-          {enviando ? 'Guardando…' : 'Guardar chofer'}
+          {enviando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Guardar chofer'}
         </button>
       </form>
     </main>
