@@ -15,6 +15,7 @@ import { ListadoPersonas } from './modules/usuarios/personas/paginas/ListadoPers
 import { ListadoTransportistas } from './modules/choferes/transportistas/ListadoTransportistas'
 import { FormularioTransportista } from './modules/choferes/transportistas/FormularioTransportista'
 import { FormularioChofer } from './modules/choferes/paginas/FormularioChofer'
+import { TiposDocumentacion } from './modules/choferes/documentacion/TiposDocumentacion'
 import { cerrarSesion, obtenerSesion, type Sesion } from './modules/autenticacion/servicios/sesion'
 
 export default function App() {
@@ -299,7 +300,7 @@ export default function App() {
         />
 
         <Route
-          path="/tipos-documentacion/*"
+          path="/tipos-documentacion"
           element={
             <RutaProtegida sesion={sesion}>
               {sesion !== null && (
@@ -308,7 +309,7 @@ export default function App() {
                   opcionesMenu={sesion.opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
-                  <p role="status">En construcción: Tipos de documentación</p>
+                  <TiposDocumentacion />
                 </Layout>
               )}
             </RutaProtegida>

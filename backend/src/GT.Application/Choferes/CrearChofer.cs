@@ -51,7 +51,7 @@ public class CrearChofer(
             return new ResultadoChofer(ErrorChofer.TransportistaInexistente, Campo: "transportistaId");
         }
 
-        if (await choferes.ExistePorCuilAsync(cuil, cancelacion))
+        if (await choferes.ExistePorCuilAsync(cuil, cancelacion: cancelacion))
         {
             return new ResultadoChofer(ErrorChofer.CuilDuplicado, Campo: "cuil");
         }

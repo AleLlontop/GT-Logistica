@@ -1,5 +1,9 @@
-using GT.Application.Choferes.Transportistas;
 using GT.Domain.Choferes;
+
+// El módulo tiene una carpeta `Documentacion/` y el dominio una entidad `Documentacion`. Dentro de
+// este espacio de nombres gana la carpeta, así que el tipo se nombra por alias en vez de escribirlo
+// entero en cada firma.
+using DocumentoDeChofer = GT.Domain.Choferes.Documentacion;
 
 namespace GT.Application.Choferes;
 
@@ -11,7 +15,10 @@ public enum ErrorChofer
     DniDuplicado,
     CuilDuplicado,
     TransportistaInexistente,
-    MenorDeEdad
+    MenorDeEdad,
+
+    /// <summary>Se pidió reactivar un chofer que ya estaba activo (FR-005b).</summary>
+    YaEstaActivo,
 }
 
 /// <param name="ReutilizoPersona">
@@ -56,7 +63,36 @@ public record DocumentoDto(
     bool EsVigenteDelTipo,
     int DiasHastaVencimiento,
     bool TieneArchivo,
-    string? ArchivoNombre);
+    string? ArchivoNombre)
+{
+    /// <param name="esVigenteDelTipo">
+    /// Si es el documento que manda para su tipo. Lo decide quien tiene a la vista los demás
+    /// documentos del chofer, no el documento solo (FR-020a).
+    /// </param>
+    public static DocumentoDto Desde(DocumentoDeChofer documento, bool esVigenteDelTipo, DateOnly hoy)
+    {
+        var tipo = documento.Tipo
+            ?? throw new InvalidOperationException(
+                $"El documento {documento.Id} llegó sin su tipo cargado, y sin los días de aviso no " +
+                "se puede calcular su estado.");
+
+        return new DocumentoDto(
+            documento.Id,
+            new TipoDocumentacionResumen(tipo.Id, tipo.Nombre),
+            documento.Numero,
+            documento.FechaEmision.ToString("yyyy-MM-dd"),
+            documento.FechaVencimiento.ToString("yyyy-MM-dd"),
+            NombresDeEstado.DelDocumento(
+                CalculadorEstadoDocumento.Calcular(
+                    documento.FechaVencimiento,
+                    tipo.DiasAvisoVencimiento,
+                    hoy)),
+            esVigenteDelTipo,
+            CalculadorEstadoDocumento.DiasHastaVencimiento(documento.FechaVencimiento, hoy),
+            documento.TieneArchivo,
+            documento.ArchivoNombre);
+    }
+}
 
 public record ChoferDetalle(
     int Id,
@@ -107,7 +143,7 @@ public record ChoferDetalle(
             .OrderBy(documento => documento.Tipo?.Nombre)
             .ThenByDescending(documento => documento.FechaVencimiento)
             .ThenByDescending(documento => documento.Id)
-            .Select(documento => DesdeDocumento(documento, vigentes.Contains(documento.Id), hoy))
+            .Select(documento => DocumentoDto.Desde(documento, vigentes.Contains(documento.Id), hoy))
             .ToList();
 
         return new ChoferDetalle(
@@ -126,28 +162,6 @@ public record ChoferDetalle(
             documentos);
     }
 
-    private static DocumentoDto DesdeDocumento(Documentacion documento, bool esVigente, DateOnly hoy)
-    {
-        var tipo = documento.Tipo
-            ?? throw new InvalidOperationException(
-                $"El documento {documento.Id} llegó sin su tipo cargado.");
-
-        return new DocumentoDto(
-            documento.Id,
-            new TipoDocumentacionResumen(tipo.Id, tipo.Nombre),
-            documento.Numero,
-            documento.FechaEmision.ToString("yyyy-MM-dd"),
-            documento.FechaVencimiento.ToString("yyyy-MM-dd"),
-            NombresDeEstado.DelDocumento(
-                CalculadorEstadoDocumento.Calcular(
-                    documento.FechaVencimiento,
-                    tipo.DiasAvisoVencimiento,
-                    hoy)),
-            esVigente,
-            CalculadorEstadoDocumento.DiasHastaVencimiento(documento.FechaVencimiento, hoy),
-            documento.TieneArchivo,
-            documento.ArchivoNombre);
-    }
 }
 
 /// <summary>

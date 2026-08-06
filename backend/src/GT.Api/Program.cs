@@ -5,16 +5,19 @@ using GT.Api.Usuarios.Personas;
 using GT.Api.Choferes;
 using GT.Application.Autenticacion;
 using GT.Application.Choferes;
+using GT.Application.Choferes.Documentacion;
 using GT.Application.Choferes.Transportistas;
 using GT.Application.Usuarios;
 using GT.Application.Usuarios.Personas;
 using GT.Domain.Usuarios;
+using GT.Infrastructure.Archivos;
 using GT.Infrastructure.Correo;
 using GT.Infrastructure.DatosIniciales;
 using GT.Infrastructure.Persistencia;
 using GT.Infrastructure.Seguridad;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 
@@ -57,6 +60,36 @@ builder.Services.AddScoped<ConsultarTransportistas>();
 builder.Services.AddScoped<ConsultarTransportistaPorId>();
 builder.Services.AddScoped<CrearTransportista>();
 builder.Services.AddScoped<CrearChofer>();
+builder.Services.AddScoped<ConsultarChoferes>();
+builder.Services.AddScoped<ConsultarFichaChofer>();
+builder.Services.AddScoped<ModificarChofer>();
+builder.Services.AddScoped<DarDeBajaChofer>();
+builder.Services.AddScoped<ReactivarChofer>();
+builder.Services.AddScoped<ModificarTransportista>();
+builder.Services.AddScoped<DarDeBajaTransportista>();
+builder.Services.AddScoped<IRepositorioTiposDocumentacion, RepositorioTiposDocumentacion>();
+builder.Services.AddScoped<GestionTiposDocumentacion>();
+builder.Services.AddScoped<IRepositorioDocumentacion, RepositorioDocumentacion>();
+builder.Services.AddScoped<CargarDocumento>();
+builder.Services.AddScoped<CorregirDocumento>();
+builder.Services.AddScoped<EliminarDocumento>();
+builder.Services.AddScoped<DescargarArchivoDocumento>();
+builder.Services.AddScoped<ConsultarVencimientos>();
+
+// Los escaneos van a un volumen, no a la base (research §3). La ruta llega por variable de entorno
+// para que el contenedor y una corrida local puedan apuntar a lugares distintos sin tocar el código.
+builder.Services.AddSingleton<IValidadorDeArchivo, ValidadorDeArchivoPorFirma>();
+builder.Services.AddSingleton<IAlmacenDeArchivos>(servicios => new AlmacenDeArchivos(
+    builder.Configuration["GT_ARCHIVOS_RUTA"]
+        ?? Path.Combine(builder.Environment.ContentRootPath, "archivos"),
+    servicios.GetRequiredService<ILogger<AlmacenDeArchivos>>()));
+
+// El adjunto se corta en 10 MB (FR-015a). Rechazarlo acá evita leer en memoria un cuerpo enorme
+// antes de descartarlo; el margen extra cubre los otros campos del formulario.
+builder.Services.Configure<FormOptions>(opciones =>
+{
+    opciones.MultipartBodyLengthLimit = ValidadorArchivo.TamanioMaximoEnBytes + 64 * 1024;
+});
 
 // ── Correo saliente (FR-009, research §1) ──────────────────────────────────────────────────────
 // Con `Correo:Host` configurado se manda por SMTP; sin él, el envío se registra en el log y todo lo
@@ -190,6 +223,8 @@ app.MapearMiCuenta();
 app.MapearPersonas();
 app.MapearTransportistas();
 app.MapearChoferes();
+app.MapearTiposDocumentacion();
+app.MapearDocumentacion();
 
 await AplicarMigracionesYSembrarAsync(app);
 

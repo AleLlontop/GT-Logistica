@@ -19,11 +19,39 @@ public interface IRepositorioChoferes
     /// </param>
     Task CrearAsync(Chofer chofer, Persona? personaNueva, CancellationToken cancelacion = default);
 
-    Task<bool> ExistePorCuilAsync(string cuil, CancellationToken cancelacion = default);
+    /// <param name="idAExcluir">
+    /// Al modificar, el propio registro no cuenta como duplicado: conservar el propio CUIL tiene que
+    /// poder guardarse (FR-007).
+    /// </param>
+    Task<bool> ExistePorCuilAsync(
+        string cuil,
+        int? idAExcluir = null,
+        CancellationToken cancelacion = default);
 
     Task<bool> ExistePorPersonaAsync(int personaId, CancellationToken cancelacion = default);
 
+    /// <summary>
+    /// El chofer con su persona, <b>seguido por el contexto</b> para poder modificarlo. Distinto de
+    /// <see cref="ObtenerPorIdConRelacionesAsync"/>, que trae todo para leer y no para escribir.
+    /// </summary>
+    Task<Chofer?> ObtenerParaModificarAsync(int id, CancellationToken cancelacion = default);
+
+    Task GuardarCambiosAsync(CancellationToken cancelacion = default);
+
     Task<Chofer?> ObtenerPorIdConRelacionesAsync(int id, CancellationToken cancelacion = default);
+
+    /// <summary>
+    /// Página del listado con los filtros aplicados sobre todo el padrón antes de paginar (FR-030).
+    ///
+    /// El estado de la documentación y la elección del documento vigente de cada tipo se resuelven
+    /// en SQL, no en memoria: es la única forma de poder filtrar por estado sin recorrer el padrón
+    /// entero (research §2 y §8).
+    /// </summary>
+    /// <param name="hoy">Día en curso en Argentina, contra el que se calculan los estados (FR-017a).</param>
+    Task<PaginaDe<ChoferListado>> ConsultarAsync(
+        FiltrosDeChoferes filtros,
+        DateOnly hoy,
+        CancellationToken cancelacion = default);
 }
 
 /// <summary>

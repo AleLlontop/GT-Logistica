@@ -25,6 +25,8 @@ public static class TransportistasEndpoints
         grupo.MapGet("/", ListarAsync);
         grupo.MapGet("/{id:int}", ObtenerAsync);
         grupo.MapPost("/", CrearAsync);
+        grupo.MapPut("/{id:int}", ModificarAsync);
+        grupo.MapDelete("/{id:int}", DarDeBajaAsync);
     }
 
     /// <param name="soloActivos">
@@ -64,6 +66,41 @@ public static class TransportistasEndpoints
 
         return resultado.Exitoso
             ? Results.Created($"/api/transportistas/{resultado.Transportista!.Id}", resultado.Transportista)
+            : Results.BadRequest(TraducirError(resultado));
+    }
+
+    private static async Task<IResult> ModificarAsync(
+        int id,
+        TransportistaRequest peticion,
+        ModificarTransportista modificar,
+        CancellationToken cancelacion)
+    {
+        var resultado = await modificar.EjecutarAsync(id, peticion, cancelacion);
+
+        if (resultado.Exitoso)
+        {
+            return Results.Ok(resultado.Transportista);
+        }
+
+        return resultado.Error is ErrorTransportista.NoEncontrado
+            ? NoEncontrado()
+            : Results.BadRequest(TraducirError(resultado));
+    }
+
+    private static async Task<IResult> DarDeBajaAsync(
+        int id,
+        DarDeBajaTransportista darDeBaja,
+        CancellationToken cancelacion)
+    {
+        var resultado = await darDeBaja.EjecutarAsync(id, cancelacion);
+
+        if (resultado.Exitoso)
+        {
+            return Results.NoContent();
+        }
+
+        return resultado.Error is ErrorTransportista.NoEncontrado
+            ? NoEncontrado()
             : Results.BadRequest(TraducirError(resultado));
     }
 
