@@ -85,14 +85,14 @@ Aplicación web con backend y frontend separados, tal como fija la constitución
 - [X] T028 Agregar la navegación inversa hacia `Chofer` en `backend/src/GT.Domain/Personas/Persona.cs`, sin tocar ninguna columna existente
 - [X] T029 Extender la validación de baja de persona para que también rechace si la persona tiene un chofer asociado, en `backend/src/GT.Application/Usuarios/Personas/` (único cambio de comportamiento del Módulo 2, research §7)
 - [X] T030 Registrar el grupo de endpoints del módulo bajo `/api` exigiendo el permiso `choferes.gestionar` en `backend/src/GT.Api/Program.cs`
-- [ ] T031 Agregar las entradas *Choferes*, *Transportistas* y *Tipos de documentación*, atadas a `choferes.gestionar`, en `backend/src/GT.Application/Autenticacion/CatalogoOpcionesMenu.cs`
+- [X] T031 Agregar las entradas *Choferes*, *Transportistas* y *Tipos de documentación*, atadas a `choferes.gestionar`, en `backend/src/GT.Application/Autenticacion/CatalogoOpcionesMenu.cs`
 
 ### Base compartida del módulo
 
 - [X] T032 Crear `backend/src/GT.Application/Choferes/Mensajes.cs` con los textos en español rioplatense y los códigos de error del contrato (`contracts/README.md`)
 - [X] T033 Crear `backend/src/GT.Application/Choferes/Dtos.cs` con los DTO comunes del módulo según `contracts/choferes-api.yaml`
-- [ ] T034 Registrar las rutas del módulo en `frontend/src/App.tsx`
-- [ ] T035 [P] Crear el cliente HTTP del módulo en `frontend/src/modules/choferes/servicios/api.ts`, reutilizando `frontend/src/compartido/clienteHttp.ts`
+- [X] T034 Registrar las rutas del módulo en `frontend/src/App.tsx`
+- [X] T035 [P] Crear el cliente HTTP del módulo en `frontend/src/modules/choferes/servicios/api.ts`, reutilizando `frontend/src/compartido/clienteHttp.ts`
 
 **Checkpoint**: base lista — las historias pueden empezar
 
@@ -108,19 +108,19 @@ cargar G&T Logística S.A. y un terciarizado, y verlos en el listado.
 
 ### Tests de la historia
 
-- [ ] T036 [P] [US1] Test de integración de unicidad de CUIT y de formato con dígito verificador en `backend/tests/GT.IntegrationTests/Choferes/TransportistasTests.cs`
-- [ ] T037 [P] [US1] Test de integración de normalización de CUIT antes de validar unicidad en `backend/tests/GT.IntegrationTests/Choferes/TransportistasNormalizacionTests.cs`
+- [X] T036 [P] [US1] Test de integración de unicidad de CUIT y de formato con dígito verificador en `backend/tests/GT.IntegrationTests/Choferes/TransportistasTests.cs`
+- [X] T037 [P] [US1] Test de integración de normalización de CUIT antes de validar unicidad en `backend/tests/GT.IntegrationTests/Choferes/TransportistasNormalizacionTests.cs`
 
 ### Implementación
 
-- [ ] T038 [P] [US1] Implementar `CrearTransportista` en `backend/src/GT.Application/Choferes/Transportistas/CrearTransportista.cs` con validación de CUIT único, formato y tipo de persona obligatorio
-- [ ] T039 [P] [US1] Implementar `ConsultarTransportistas` en `backend/src/GT.Application/Choferes/Transportistas/ConsultarTransportistas.cs` con búsqueda por nombre o CUIT y filtro `soloActivos`
-- [ ] T040 [US1] Implementar el repositorio de transportistas en `backend/src/GT.Infrastructure/Persistencia/RepositorioTransportistas.cs`
-- [ ] T041 [US1] Exponer `GET /transportistas`, `POST /transportistas` y `GET /transportistas/{id}` en `backend/src/GT.Api/Choferes/TransportistasEndpoints.cs`
-- [ ] T042 [P] [US1] Crear el servicio de transportistas en `frontend/src/modules/choferes/transportistas/servicioTransportistas.ts`
-- [ ] T043 [US1] Crear la pantalla de listado en `frontend/src/modules/choferes/transportistas/ListadoTransportistas.tsx`, con búsqueda, columna de choferes activos y mensaje explícito de padrón vacío
-- [ ] T044 [US1] Crear el formulario de alta en `frontend/src/modules/choferes/transportistas/FormularioTransportista.tsx`, con validación de CUIT y tipo de persona obligatorio
-- [ ] T045 [P] [US1] Test de frontend del estado vacío y del error de CUIT duplicado en `frontend/src/modules/choferes/transportistas/ListadoTransportistas.test.tsx`
+- [X] T038 [P] [US1] Implementar `CrearTransportista` en `backend/src/GT.Application/Choferes/Transportistas/CrearTransportista.cs` con validación de CUIT único, formato y tipo de persona obligatorio
+- [X] T039 [P] [US1] Implementar `ConsultarTransportistas` en `backend/src/GT.Application/Choferes/Transportistas/ConsultarTransportistas.cs` con búsqueda por nombre o CUIT y filtro `soloActivos`
+- [X] T040 [US1] Implementar el repositorio de transportistas en `backend/src/GT.Infrastructure/Persistencia/RepositorioTransportistas.cs`
+- [X] T041 [US1] Exponer `GET /transportistas`, `POST /transportistas` y `GET /transportistas/{id}` en `backend/src/GT.Api/Choferes/TransportistasEndpoints.cs`
+- [X] T042 [P] [US1] Crear el servicio de transportistas en `frontend/src/modules/choferes/transportistas/servicioTransportistas.ts`
+- [X] T043 [US1] Crear la pantalla de listado en `frontend/src/modules/choferes/transportistas/ListadoTransportistas.tsx`, con búsqueda, columna de choferes activos y mensaje explícito de padrón vacío
+- [X] T044 [US1] Crear el formulario de alta en `frontend/src/modules/choferes/transportistas/FormularioTransportista.tsx`, con validación de CUIT y tipo de persona obligatorio
+- [X] T045 [P] [US1] Test de frontend del estado vacío y del error de CUIT duplicado en `frontend/src/modules/choferes/transportistas/ListadoTransportistas.test.tsx`
 
 **Checkpoint**: el padrón de transportistas funciona de punta a punta
 
@@ -138,19 +138,19 @@ datos válidos y verlo en el listado, activo y con su transportista.
 
 ### Tests de la historia
 
-- [ ] T046 [P] [US2] Test de integración de reutilización de persona por DNI existente, y de rechazo cuando esa persona ya es chofer, en `backend/tests/GT.IntegrationTests/Choferes/CrearChoferTests.cs`
-- [ ] T047 [P] [US2] Test de integración de CUIL duplicado y de rechazo por menor de edad en `backend/tests/GT.IntegrationTests/Choferes/CrearChoferValidacionesTests.cs`
-- [ ] T048 [P] [US2] Test de integración que verifica el rechazo del alta sin transportista o con transportista inactivo en `backend/tests/GT.IntegrationTests/Choferes/CrearChoferTransportistaTests.cs`
+- [X] T046 [P] [US2] Test de integración de reutilización de persona por DNI existente, y de rechazo cuando esa persona ya es chofer, en `backend/tests/GT.IntegrationTests/Choferes/CrearChoferTests.cs`
+- [X] T047 [P] [US2] Test de integración de CUIL duplicado y de rechazo por menor de edad en `backend/tests/GT.IntegrationTests/Choferes/CrearChoferValidacionesTests.cs`
+- [X] T048 [P] [US2] Test de integración que verifica el rechazo del alta sin transportista o con transportista inactivo en `backend/tests/GT.IntegrationTests/Choferes/CrearChoferTransportistaTests.cs`
 
 ### Implementación
 
-- [ ] T049 [US2] Implementar `CrearChofer` en `backend/src/GT.Application/Choferes/CrearChofer.cs`: normalizar DNI, buscar la persona en el padrón, reutilizarla o crearla, y crear la fila de chofer
-- [ ] T050 [US2] Implementar el repositorio de choferes en `backend/src/GT.Infrastructure/Persistencia/RepositorioChoferes.cs`
-- [ ] T051 [US2] Exponer `POST /choferes` en `backend/src/GT.Api/Choferes/ChoferesEndpoints.cs`, devolviendo el detalle del chofer creado
-- [ ] T052 [P] [US2] Crear el servicio de choferes en `frontend/src/modules/choferes/servicios/servicioChoferes.ts`
-- [ ] T053 [US2] Crear el formulario de chofer en `frontend/src/modules/choferes/paginas/FormularioChofer.tsx`, con selector de transportistas activos
-- [ ] T054 [US2] Agregar al formulario el aviso de reutilización de persona y el bloqueo con enlace cuando no hay transportistas activos, en `frontend/src/modules/choferes/paginas/FormularioChofer.tsx`
-- [ ] T055 [P] [US2] Test de frontend del bloqueo sin transportistas activos en `frontend/src/modules/choferes/paginas/FormularioChofer.test.tsx`
+- [X] T049 [US2] Implementar `CrearChofer` en `backend/src/GT.Application/Choferes/CrearChofer.cs`: normalizar DNI, buscar la persona en el padrón, reutilizarla o crearla, y crear la fila de chofer
+- [X] T050 [US2] Implementar el repositorio de choferes en `backend/src/GT.Infrastructure/Persistencia/RepositorioChoferes.cs`
+- [X] T051 [US2] Exponer `POST /choferes` en `backend/src/GT.Api/Choferes/ChoferesEndpoints.cs`, devolviendo el detalle del chofer creado
+- [X] T052 [P] [US2] Crear el servicio de choferes en `frontend/src/modules/choferes/servicios/servicioChoferes.ts`
+- [X] T053 [US2] Crear el formulario de chofer en `frontend/src/modules/choferes/paginas/FormularioChofer.tsx`, con selector de transportistas activos
+- [X] T054 [US2] Agregar al formulario el aviso de reutilización de persona y el bloqueo con enlace cuando no hay transportistas activos, en `frontend/src/modules/choferes/paginas/FormularioChofer.tsx`
+- [X] T055 [P] [US2] Test de frontend del bloqueo sin transportistas activos en `frontend/src/modules/choferes/paginas/FormularioChofer.test.tsx`
 
 **Checkpoint**: se pueden registrar choferes sin duplicar el padrón de personas
 
@@ -444,3 +444,23 @@ encuentran en US4, que necesita las dos ramas. US5 y US7 se reparten al final.
 - Conviene commitear por tarea o por grupo lógico
 - Los 30 ítems abiertos de `checklists/documentacion.md` son deuda de spec y no bloquean estas
   tareas; si alguno se resuelve, puede agregar tareas acá
+
+### Decisiones tomadas al cerrar US1 y US2
+
+Tres cosas que el contrato no resolvía sola y quedaron fijadas al implementar. Las próximas
+historias se apoyan en ellas:
+
+1. **El aviso de reutilización de persona lo da el backend al guardar, no una búsqueda previa.**
+   `contracts/README.md` pide el aviso en el formulario de chofer, pero el padrón de personas es del
+   Módulo 2 y su endpoint exige `usuarios.gestionar`, que un usuario de Tráfico no tiene (FR-027):
+   consultarlo desde esta pantalla funcionaría para el administrador y fallaría en silencio justo
+   para el rol que la usa. La respuesta del alta trae `reutilizoPersona`, y con eso la pantalla elige
+   entre los dos textos de confirmación que el contrato ya fijaba. Es la única propiedad que se
+   agrega a `ChoferDetalle` por encima del contrato, y es aditiva.
+2. **`ChoferDetalle` ya devuelve `documentos`**, como exige el contrato, con el estado calculado y la
+   marca `esVigenteDelTipo`. Se resuelve en `Dtos.cs` con `CalculadorEstadoChofer.VigentesDeCadaTipo`
+   y `CalculadorEstadoDocumento`. T079 (ficha del chofer) reutiliza ese mapeo en vez de rehacerlo.
+3. **Los parámetros booleanos de query van como `bool?` con `?? false`**, igual que el padrón de
+   personas del Módulo 2. Declarados como `bool` a secas, pedir el listado sin el parámetro —que es
+   lo que hace la pantalla al entrar— falla al enlazar. Vale para `soloActivos` de transportistas y
+   para el `soloActivos` de `/tipos-documentacion` que llega con T098.

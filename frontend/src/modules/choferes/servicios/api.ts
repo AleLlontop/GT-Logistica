@@ -1,4 +1,5 @@
 import { ErrorHttp, peticion } from '../../../compartido/clienteHttp'
+import type { CodigoError } from '../../../compartido/tipos'
 
 /**
  * Acceso HTTP del módulo de choferes.
@@ -25,8 +26,6 @@ export const CodigosError = {
   archivoNoGuardado: 'archivo_no_guardado',
   noEncontrado: 'no_encontrado',
 } as const
-
-export type CodigoError = (typeof CodigosError)[keyof typeof CodigosError]
 
 /** Restricciones del archivo adjunto, tal como las fija FR-015a. */
 export const Adjunto = {

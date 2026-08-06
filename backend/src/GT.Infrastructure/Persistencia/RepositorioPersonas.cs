@@ -41,6 +41,9 @@ public class RepositorioPersonas(GtDbContext contexto) : IRepositorioPersonas
     public Task<Persona?> ObtenerPorIdAsync(int id, CancellationToken cancelacion = default) =>
         contexto.Personas.FirstOrDefaultAsync(persona => persona.Id == id, cancelacion);
 
+    public Task<Persona?> ObtenerPorDniAsync(string dni, CancellationToken cancelacion = default) =>
+        contexto.Personas.FirstOrDefaultAsync(persona => persona.Dni == dni, cancelacion);
+
     public Task<bool> EstaDisponibleAsync(int id, CancellationToken cancelacion = default) =>
         contexto.Personas.AnyAsync(persona => persona.Id == id && persona.Activa, cancelacion);
 

@@ -50,9 +50,15 @@ public class AutorizacionTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
         var usuario = await CrearUsuarioDeTraficoAsync();
         var cliente = await app.CrearClienteAutenticadoAsync(usuario.Username, PasswordDeTrafico);
 
-        // El menú de este usuario viene vacío: el rol Tráfico todavía no habilita nada.
+        // El menú de este usuario trae exactamente las tres entradas del Módulo 3, que es el primer
+        // módulo abierto a un rol que no es el administrador (FR-027). Ninguna del Módulo 2.
         var sesion = await cliente.GetFromJsonAsync<SesionDeRespuesta>("/api/auth/sesion");
-        Assert.Empty(sesion!.OpcionesMenu);
+
+        Assert.Equal(
+            ["choferes", "transportistas", "tipos-documentacion"],
+            sesion!.OpcionesMenu.Select(opcion => opcion.Codigo));
+
+        Assert.DoesNotContain(sesion.OpcionesMenu, opcion => opcion.Codigo is "usuarios" or "personas");
 
         // Y pedir la URL igual, salteando el menú, tampoco alcanza.
         var respuesta = await cliente.GetAsync("/api/personas");

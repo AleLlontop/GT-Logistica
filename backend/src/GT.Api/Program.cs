@@ -2,7 +2,10 @@ using GT.Api.Autenticacion;
 using GT.Api.Autorizacion;
 using GT.Api.Usuarios;
 using GT.Api.Usuarios.Personas;
+using GT.Api.Choferes;
 using GT.Application.Autenticacion;
+using GT.Application.Choferes;
+using GT.Application.Choferes.Transportistas;
 using GT.Application.Usuarios;
 using GT.Application.Usuarios.Personas;
 using GT.Domain.Usuarios;
@@ -46,6 +49,14 @@ builder.Services.AddScoped<IRepositorioRoles, RepositorioRoles>();
 builder.Services.AddScoped<AsignarRoles>();
 builder.Services.AddScoped<DarDeBajaUsuario>();
 builder.Services.AddScoped<ConsultarRoles>();
+
+// ── Módulo 3: gestión de choferes ──────────────────────────────────────────────────────────────
+builder.Services.AddScoped<IRepositorioChoferes, RepositorioChoferes>();
+builder.Services.AddScoped<IRepositorioTransportistas, RepositorioTransportistas>();
+builder.Services.AddScoped<ConsultarTransportistas>();
+builder.Services.AddScoped<ConsultarTransportistaPorId>();
+builder.Services.AddScoped<CrearTransportista>();
+builder.Services.AddScoped<CrearChofer>();
 
 // ── Correo saliente (FR-009, research §1) ──────────────────────────────────────────────────────
 // Con `Correo:Host` configurado se manda por SMTP; sin él, el envío se registra en el log y todo lo
@@ -177,6 +188,8 @@ app.MapearUsuarios();
 app.MapearRoles();
 app.MapearMiCuenta();
 app.MapearPersonas();
+app.MapearTransportistas();
+app.MapearChoferes();
 
 await AplicarMigracionesYSembrarAsync(app);
 

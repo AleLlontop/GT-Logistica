@@ -23,6 +23,7 @@ public interface IRepositorioPersonas
         CancellationToken cancelacion = default);
 
     Task<Persona?> ObtenerPorIdAsync(int id, CancellationToken cancelacion = default);
+    Task<Persona?> ObtenerPorDniAsync(string dni, CancellationToken cancelacion = default);
 
     /// <summary>Existe y está activa: las dos condiciones que FR-023 exige para poder asociarla.</summary>
     Task<bool> EstaDisponibleAsync(int id, CancellationToken cancelacion = default);

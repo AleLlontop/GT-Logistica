@@ -12,6 +12,9 @@ import { ListadoUsuarios } from './modules/usuarios/paginas/ListadoUsuarios'
 import { PanelRoles } from './modules/usuarios/paginas/PanelRoles'
 import { FormularioPersona } from './modules/usuarios/personas/paginas/FormularioPersona'
 import { ListadoPersonas } from './modules/usuarios/personas/paginas/ListadoPersonas'
+import { ListadoTransportistas } from './modules/choferes/transportistas/ListadoTransportistas'
+import { FormularioTransportista } from './modules/choferes/transportistas/FormularioTransportista'
+import { FormularioChofer } from './modules/choferes/paginas/FormularioChofer'
 import { cerrarSesion, obtenerSesion, type Sesion } from './modules/autenticacion/servicios/sesion'
 
 export default function App() {
@@ -202,6 +205,110 @@ export default function App() {
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioPersona />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        {/* Rutas del Módulo 3. Las pantallas que todavía no existen quedan anunciadas como en
+            construcción en vez de dar un 404: el menú del servidor ya ofrece sus entradas. */}
+        <Route
+          path="/choferes/vencimientos"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <p role="status">En construcción: Panel de vencimientos</p>
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/choferes/nuevo"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <FormularioChofer />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/choferes/*"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <p role="status">En construcción: Choferes</p>
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/transportistas"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <ListadoTransportistas />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/transportistas/nuevo"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <FormularioTransportista />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/tipos-documentacion/*"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <p role="status">En construcción: Tipos de documentación</p>
                 </Layout>
               )}
             </RutaProtegida>

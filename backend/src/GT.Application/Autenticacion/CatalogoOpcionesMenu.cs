@@ -24,8 +24,15 @@ public static class CatalogoOpcionesMenu
         (CodigosPermiso.UsuariosGestionar,
             new OpcionMenuDto("personas", "Personas", "/personas")),
 
-        // Las entradas del Módulo 3 —Choferes, Transportistas y Tipos de documentación— se agregan
-        // acá cuando sus pantallas existan, no antes: el menú no anuncia lo que todavía no está.
+        // Módulo 3. Las tres entradas van atadas al mismo permiso `choferes.gestionar`, que otorgan
+        // Tráfico y Administrador del sistema: es el primer módulo cuyo acceso no es exclusivo del
+        // administrador (FR-027, contracts/README.md).
+        (CodigosPermiso.ChoferesGestionar,
+            new OpcionMenuDto("choferes", "Choferes", "/choferes")),
+        (CodigosPermiso.ChoferesGestionar,
+            new OpcionMenuDto("transportistas", "Transportistas", "/transportistas")),
+        (CodigosPermiso.ChoferesGestionar,
+            new OpcionMenuDto("tipos-documentacion", "Tipos de documentación", "/tipos-documentacion")),
     ];
 
     /// <summary>

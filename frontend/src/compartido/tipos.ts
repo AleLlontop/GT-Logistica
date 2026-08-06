@@ -38,6 +38,18 @@ export type CodigoError =
   | 'persona_vinculada'
   | 'password_actual_incorrecta'
   | 'no_encontrado'
+  // Módulo 3
+  | 'cuit_duplicado'
+  | 'cuil_duplicado'
+  | 'transportista_inexistente'
+  | 'transportista_con_choferes'
+  | 'menor_de_edad'
+  | 'vencimiento_anterior_a_emision'
+  | 'tipo_duplicado'
+  | 'tipo_inexistente'
+  | 'tipo_con_documentos'
+  | 'archivo_no_admitido'
+  | 'archivo_no_guardado'
 
 /** Estados posibles de una cuenta (FR-005). */
 export type EstadoUsuario = 'activo' | 'inactivo' | 'bloqueado'

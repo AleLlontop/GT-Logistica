@@ -3,8 +3,15 @@
 Aplicación web para que G&T Logística administre su flujo organizacional: viajes, facturación,
 liquidaciones y flota.
 
-**Estado**: Módulo 1 (autenticación de usuarios) implementado. El Módulo 2 (gestión de usuarios y
-roles) está especificado y todavía no construido.
+## Estado de los módulos
+
+| Módulo | Estado | Qué hay hoy |
+|---|---|---|
+| [1. Autenticación de usuarios](specs/001-autenticacion-usuarios/) | Implementado | Ingreso con cookie de sesión, permisos revalidados por petición, límite de intentos fallidos y menú calculado en el servidor. Quedan pendientes las dos tareas de validación manual del quickstart (T059 y T061) |
+| [2. Gestión de usuarios y roles](specs/002-gestion-usuarios-roles/) | Implementado | ABM de usuarios, asignación de roles, restablecimiento de contraseña y padrón de personas |
+| [3. Gestión de choferes y su documentación](specs/003-gestion-choferes/) | En construcción | Base del módulo, padrón de transportistas (US1) y alta de choferes (US2). Faltan documentación (US3), consulta y ficha (US4), panel de vencimientos (US5), catálogo de tipos (US6) y las bajas (US7) |
+
+El detalle tarea por tarea está en el `tasks.md` de cada carpeta de `specs/`.
 
 ## Levantar el sistema
 
@@ -24,8 +31,7 @@ crea el catálogo de roles y permisos junto con el usuario `admin`.
 | `GT_SQL_PASSWORD` | Contraseña de `sa` en el SQL Server de desarrollo |
 
 Si falta `GT_ADMIN_PASSWORD_INICIAL` justo cuando hacía falta crear el administrador, el backend se
-detiene con un mensaje explicando qué falta. Es el comportamiento buscado: preferimos que no arranque
-antes que quedarnos con una contraseña por defecto que nadie cambia.
+detiene con un mensaje explicando qué falta. 
 
 De ahí en más alcanza con `podman compose up -d`.
 
@@ -52,7 +58,10 @@ backend/
 └── tests/
 
 frontend/src/
-├── modules/autenticacion/  Un directorio por módulo de negocio, no por tipo de archivo
+├── modules/                Un directorio por módulo de negocio, no por tipo de archivo
+│   ├── autenticacion/      Ingreso y sesión
+│   ├── usuarios/           Usuarios, roles y padrón de personas
+│   └── choferes/           Choferes, transportistas y documentación
 └── compartido/             Layout, menú y cliente HTTP
 
 specs/                      Una carpeta por módulo: spec, plan y tareas
