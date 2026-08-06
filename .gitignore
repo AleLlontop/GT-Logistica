@@ -27,3 +27,8 @@ npm-debug.log*
 Thumbs.db
 *.tmp
 *.swp
+
+# Adjuntos de la documentación de choferes (Módulo 3).
+# El volumen vive fuera del repositorio a propósito: un psicofísico o una licencia son datos
+# personales sensibles y no se versionan (FR-024, research §3).
+archivos/

@@ -24,6 +24,13 @@ public class AplicacionDePrueba : WebApplicationFactory<Program>, IAsyncLifetime
 
     private readonly string _nombreBase = $"GtLogistica_Test_{Guid.NewGuid():N}";
 
+    /// <summary>
+    /// Volumen de adjuntos propio de la corrida, en el directorio temporal del sistema. Fuera del
+    /// repositorio a propósito: los escaneos no se versionan (FR-024, research §3).
+    /// </summary>
+    private readonly string _rutaDeArchivos =
+        Path.Combine(Path.GetTempPath(), $"GtLogistica_Archivos_{Guid.NewGuid():N}");
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Development evita la redirección forzada a HTTPS y HSTS, que no aportan nada al servidor
@@ -33,6 +40,7 @@ public class AplicacionDePrueba : WebApplicationFactory<Program>, IAsyncLifetime
 
         builder.UseSetting("ConnectionStrings:Gt", ConfiguracionEntorno.CadenaDeConexion(_nombreBase));
         builder.UseSetting(SembradorInicial.VariablePasswordInicial, PasswordAdministrador);
+        builder.UseSetting("GT_ARCHIVOS_RUTA", _rutaDeArchivos);
     }
 
     /// <summary>
@@ -100,7 +108,24 @@ public class AplicacionDePrueba : WebApplicationFactory<Program>, IAsyncLifetime
     public new async Task DisposeAsync()
     {
         await BorrarBaseAsync();
+        BorrarArchivos();
         await base.DisposeAsync();
+    }
+
+    private void BorrarArchivos()
+    {
+        try
+        {
+            if (Directory.Exists(_rutaDeArchivos))
+            {
+                Directory.Delete(_rutaDeArchivos, recursive: true);
+            }
+        }
+        catch
+        {
+            // Si la limpieza falla queda un directorio temporal huérfano. Es molesto, pero no debe
+            // hacer fallar la corrida ni tapar el resultado real de los tests.
+        }
     }
 
     private async Task BorrarBaseAsync()
