@@ -37,6 +37,7 @@ Cada línea nació en una feature pero rige para todo el sistema. Antes de resol
 - [003] Los repositorios traducen las violaciones de índice único a excepciones de la capa de aplicación; las consultas previas cierran la ventana normal y el índice cierra la carrera
 - [003] Las expresiones que EF Core tiene que traducir van escritas en el árbol, no extraídas a un método propio: extraerlas rompe la traducción y la consulta pasa a evaluarse en memoria
 - [003] Las fechas se formatean con `date-fns` desde `compartido/fechas`, nunca con `new Date(iso).toLocaleDateString()`: eso interpreta un `yyyy-MM-dd` como medianoche UTC y en UTC−3 muestra el día anterior
+- [002] Todo instante sale del API con la `Z` que lo declara UTC, por una conversión declarada una sola vez en `GtDbContext.ConfigureConventions`: las columnas `datetime2` no guardan zona, EF Core devuelve el `DateTime` sin `Kind` y sin eso el JSON viaja sin zona horaria y el frontend lo lee como local. Un instante sin zona es un instante mal informado, aunque el número sea correcto
 - [003] Un listado nunca oculta filas en silencio: si filtra por estado, el control muestra cuál
 - [003] Los estados nunca se comunican sólo por color, y un elemento atenuado lleva además la palabra que lo explica
 
