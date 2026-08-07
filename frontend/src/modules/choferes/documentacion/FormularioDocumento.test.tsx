@@ -182,8 +182,10 @@ describe('FormularioDocumento', () => {
       </MemoryRouter>,
     )
 
+    // El aviso no puede prometer que el nuevo pasa a ser el vigente: manda el de vencimiento más
+    // lejano, así que cargar uno que vence antes lo deja como historial (FR-020a).
     expect(
-      await screen.findByText(/El anterior va a quedar como historial y este pasa a ser el vigente/),
+      await screen.findByText(/cuenta el de vencimiento más lejano, y los demás quedan como historial/),
     ).toBeInTheDocument()
   })
 })

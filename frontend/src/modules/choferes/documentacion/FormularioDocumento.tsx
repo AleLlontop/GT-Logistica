@@ -191,8 +191,8 @@ export function FormularioDocumento({
 
       {esRenovacion && (
         <p role="status">
-          Este chofer ya tiene un documento de ese tipo. El anterior va a quedar como historial y
-          este pasa a ser el vigente.
+          Este chofer ya tiene un documento de ese tipo. De todos ellos cuenta el de vencimiento más
+          lejano, y los demás quedan como historial.
         </p>
       )}
 
