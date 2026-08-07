@@ -9,15 +9,10 @@ liquidaciones y flota.
 |---|---|---|
 | [1. Autenticación de usuarios](specs/001-autenticacion-usuarios/) | Implementado | Ingreso con cookie de sesión, permisos revalidados por petición, límite de intentos fallidos y menú calculado en el servidor |
 | [2. Gestión de usuarios y roles](specs/002-gestion-usuarios-roles/) | Implementado | ABM de usuarios, asignación de roles, restablecimiento de contraseña y padrón de personas |
-| [3. Gestión de choferes y su documentación](specs/003-gestion-choferes/) | Implementado | Las siete historias: padrón de transportistas, registro de choferes, documentación con escaneos, listado con filtros y paginación, panel de vencimientos, catálogo de tipos y bajas |
+| [3. Gestión de choferes y su documentación](specs/003-gestion-choferes/) | Implementado y validado | Las siete historias: padrón de transportistas, registro de choferes, documentación con escaneos, listado con filtros y paginación, panel de vencimientos, catálogo de tipos y bajas. Su quickstart se recorrió completo con las dos cuentas |
 
-Ningún módulo tiene código pendiente. Lo que queda son **validaciones manuales**, que hay que hacer
-operando la aplicación y ningún test reemplaza:
-
-| Módulo | Qué falta |
-|---|---|
-| 1 | El recorrido de accesibilidad con teclado y la corrida completa de su quickstart |
-| 3 | Los pasos 8 a 16 de su quickstart |
+Ningún módulo tiene código pendiente. Lo único abierto son las dos **validaciones manuales** del
+Módulo 1: el recorrido de accesibilidad con teclado y la corrida completa de su quickstart.
 
 > Los identificadores de tarea (`T059`, `T123`, …) **se numeran desde uno en cada módulo**, así que
 > el mismo ID significa cosas distintas en cada `tasks.md`. Cuando haga falta nombrar uno, va con su

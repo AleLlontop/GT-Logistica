@@ -330,7 +330,7 @@ documentación intacta.
 - [X] T120 [P] Anunciar con `role="status"` el resultado de la carga de archivo y el cambio de página, en `frontend/src/modules/choferes/`
 - [X] T121 [P] Revisar que los textos de `backend/src/GT.Application/Choferes/Mensajes.cs` y los de `frontend/src/modules/choferes/` estén en español rioplatense y coincidan con `contracts/README.md`
 - [X] T122 Revisar que ningún endpoint del módulo quede sin el permiso `choferes.gestionar`, incluida la descarga de archivos, en `backend/src/GT.Api/Choferes/`
-- [ ] T123 Correr el recorrido completo de `specs/003-gestion-choferes/quickstart.md` con las dos cuentas (`admin` y un usuario de Tráfico)
+- [X] T123 Correr el recorrido completo de `specs/003-gestion-choferes/quickstart.md` con las dos cuentas (`admin` y un usuario de Tráfico)
 - [X] T124 Correr `dotnet test` en `backend/` y `npm test` en `frontend/`, y dejar ambos en verde
 - [X] T125 [P] Actualizar `specs/README.md` con el estado del Módulo 3
 
