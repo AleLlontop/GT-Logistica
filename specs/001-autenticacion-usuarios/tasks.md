@@ -213,9 +213,9 @@ autenticarse de nuevo.
 **Purpose**: cierre y validación de extremo a extremo.
 
 - [X] T058 [P] Verificar por inspección que la contraseña no aparece en ningún log del backend ni en ninguna URL, revisando `backend/src/GT.Api/Program.cs` y la configuración de registro (FR-018, SC-006)
-- [ ] T059 [P] Hacer el recorrido de accesibilidad de la sección correspondiente de `specs/001-autenticacion-usuarios/quickstart.md` —ingreso, error, reintento y cierre de sesión sin tocar el mouse— y corregir en `frontend/src/modules/autenticacion/` lo que falle (FR-025, SC-008)
+- [X] T059 [P] Hacer el recorrido de accesibilidad de la sección correspondiente de `specs/001-autenticacion-usuarios/quickstart.md` —ingreso, error, reintento y cierre de sesión sin tocar el mouse— y corregir en `frontend/src/modules/autenticacion/` lo que falle (FR-025, SC-008)
 - [X] T060 [P] Documentar en `README.md` de la raíz cómo levantar el sistema por primera vez, incluyendo la variable `GT_ADMIN_PASSWORD_INICIAL` y su carácter obligatorio sólo en la instalación inicial
-- [ ] T061 Ejecutar la validación completa de [quickstart.md](./quickstart.md) historia por historia y anotar el resultado de cada criterio de éxito (SC-001 a SC-008)
+- [X] T061 Ejecutar la validación completa de [quickstart.md](./quickstart.md) historia por historia y anotar el resultado de cada criterio de éxito (SC-001 a SC-008)
 - [X] T062 Correr `dotnet test` sobre `backend/GT.sln` y `npm test` sobre `frontend/package.json`, y dejar ambas suites en verde
 - [X] T063 Revisar el cumplimiento de los cinco principios de `.specify/memory/constitution.md` antes de dar el módulo por terminado, prestando atención al Principio III: ningún endpoint, campo ni pantalla que no esté en la spec
 

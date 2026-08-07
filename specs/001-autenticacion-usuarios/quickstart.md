@@ -17,7 +17,7 @@ La contraseña del administrador inicial **no está en el repositorio** (Princip
 hay que definirla:
 
 ```bash
-cp .env.ejemplo .env          # y editá GT_ADMIN_PASSWORD_INICIAL
+cp .env.template .env         # y editá GT_ADMIN_PASSWORD_INICIAL
 podman compose up -d          # SQL Server + backend + frontend
 ```
 
@@ -54,8 +54,11 @@ corriendo.
 1. Abrí `http://localhost:5173`. Te lleva a la pantalla de ingreso.
 2. Ingresá con `admin` y la contraseña que pusiste en `.env`.
 3. **Esperado**: llegás a la pantalla de inicio, que muestra el usuario `admin`, el rol
-   *Administrador del sistema* y el botón de cerrar sesión. El menú tiene una sola opción:
-   *Gestión de usuarios*.
+   *Administrador del sistema* y el botón de cerrar sesión. El menú lista las opciones que los
+   permisos de la cuenta habilitan, y sólo de módulos ya construidos: con el Módulo 3 terminado son
+   *Gestión de usuarios*, *Personas*, *Choferes*, *Transportistas* y *Tipos de documentación*. Cada
+   módulo nuevo suma la suya en `CatalogoOpcionesMenu`, así que la lista crece — lo que se valida es
+   que estén las de los módulos existentes, no un número fijo.
 4. Cerrá sesión y volvé a ingresar escribiendo `  ADMIN  ` (con mayúsculas y espacios).
    **Esperado**: entrás igual (FR-012).
 

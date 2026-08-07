@@ -9,18 +9,14 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 
 | Módulo | Estado | Tareas |
 |---|---|---|
-| [001 — Autenticación de usuarios](001-autenticacion-usuarios/) | Implementado | 61 / 63 |
+| [001 — Autenticación de usuarios](001-autenticacion-usuarios/) | Implementado y validado | 63 / 63 |
 | [002 — Gestión de usuarios y roles](002-gestion-usuarios-roles/) | Implementado | 92 / 92 |
 | [003 — Gestión de choferes y su documentación](003-gestion-choferes/) | Implementado y validado | 125 / 125 |
 
 ## Qué queda abierto
 
-**Módulo 1.** Dos validaciones manuales, ambas en
-[`001-autenticacion-usuarios/tasks.md`](001-autenticacion-usuarios/tasks.md):
-
-- **`[001] T059`** — recorrer ingreso, error, reintento y cierre de sesión **sin tocar el mouse**, y
-  corregir lo que falle.
-- **`[001] T061`** — la corrida completa de su quickstart, anotando cada criterio de éxito.
+**Módulo 1.** Nada. El recorrido de teclado y la corrida completa del quickstart se hicieron, y las
+cinco historias quedaron verificadas operando la aplicación.
 
 **Módulo 3.** Nada. El recorrido completo de su quickstart se hizo con las dos cuentas, `admin` y un
 usuario de Tráfico, y las siete historias quedaron verificadas operando la aplicación.
