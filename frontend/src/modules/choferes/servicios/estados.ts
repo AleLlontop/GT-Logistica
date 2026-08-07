@@ -35,8 +35,5 @@ export function textoDelPlazo(diasHastaVencimiento: number) {
     : `Venció hace ${-diasHastaVencimiento} día${diasHastaVencimiento === -1 ? '' : 's'}`
 }
 
-/** `2026-08-06` → `06/08/2026`, que es como se lee una fecha acá. */
-export function formatearFecha(fecha: string) {
-  const [anio, mes, dia] = fecha.split('-')
-  return `${dia}/${mes}/${anio}`
-}
+// El formateo de fechas es del sistema entero, no de este módulo: vive en `compartido/fechas`.
+export { formatearFecha } from '../../../compartido/fechas'
