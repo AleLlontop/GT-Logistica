@@ -333,7 +333,6 @@ documentación intacta.
 - [ ] T123 Correr el recorrido completo de `specs/003-gestion-choferes/quickstart.md` con las dos cuentas (`admin` y un usuario de Tráfico)
 - [X] T124 Correr `dotnet test` en `backend/` y `npm test` en `frontend/`, y dejar ambos en verde
 - [X] T125 [P] Actualizar `specs/README.md` con el estado del Módulo 3
-- [ ] T126 Puesta en marcha: cargar **G&T Logística S.A.** como transportista con sus datos reales desde la pantalla de transportistas, y dejar el paso anotado en `specs/003-gestion-choferes/quickstart.md` como parte del alta del módulo (FR-004). No se siembra por migración: se carga como cualquier otro transportista
 
 ---
 

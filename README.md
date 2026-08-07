@@ -17,7 +17,7 @@ operando la aplicación y ningún test reemplaza:
 | Módulo | Qué falta |
 |---|---|
 | 1 | El recorrido de accesibilidad con teclado y la corrida completa de su quickstart |
-| 3 | Los pasos 8 a 16 de su quickstart, y cargar G&T Logística S.A. con sus datos reales |
+| 3 | Los pasos 8 a 16 de su quickstart |
 
 > Los identificadores de tarea (`T059`, `T123`, …) **se numeran desde uno en cada módulo**, así que
 > el mismo ID significa cosas distintas en cada `tasks.md`. Cuando haga falta nombrar uno, va con su

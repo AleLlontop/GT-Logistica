@@ -11,7 +11,7 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 |---|---|---|
 | [001 — Autenticación de usuarios](001-autenticacion-usuarios/) | Implementado | 61 / 63 |
 | [002 — Gestión de usuarios y roles](002-gestion-usuarios-roles/) | Implementado | 92 / 92 |
-| [003 — Gestión de choferes y su documentación](003-gestion-choferes/) | Implementado, con validación manual pendiente | 121 / 126 |
+| [003 — Gestión de choferes y su documentación](003-gestion-choferes/) | Implementado, con validación manual pendiente | 124 / 125 |
 
 ## Qué queda abierto
 
@@ -22,16 +22,13 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
   corregir lo que falle.
 - **`[001] T061`** — la corrida completa de su quickstart, anotando cada criterio de éxito.
 
-**Módulo 3.** Las siete historias funcionan de punta a punta y los tests están en verde. Queda lo
-que sólo se puede hacer operando la aplicación, en
-[`003-gestion-choferes/tasks.md`](003-gestion-choferes/tasks.md):
+**Módulo 3.** Las siete historias funcionan de punta a punta y los tests están en verde. Queda una
+sola tarea, en [`003-gestion-choferes/tasks.md`](003-gestion-choferes/tasks.md):
 
 - **`[003] T123`** — recorrer `003-gestion-choferes/quickstart.md` con las dos cuentas, `admin` y un
   usuario de Tráfico. Es la verificación que pide el Principio IV y no la reemplaza ningún test.
   **Los pasos 1 a 7 ya se recorrieron** —menú, padrones vacíos, transportistas con sus cuatro
   rechazos, alta de chofer, reutilización de persona y catálogo de tipos—; faltan del 8 al 16.
-- **`[003] T126`** — cargar **G&T Logística S.A.** como transportista con sus datos reales, desde la
-  pantalla. No se siembra por migración a propósito: se carga como cualquier otro (FR-004).
 
 Además, `003-gestion-choferes/checklists/documentacion.md` tiene 25 ítems abiertos. Son deuda de
 spec —preguntas que la especificación no responde— y no bloquean la implementación; si alguno se
