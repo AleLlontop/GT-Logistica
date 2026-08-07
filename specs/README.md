@@ -31,8 +31,7 @@ que sólo se puede hacer operando la aplicación, en
   **Los pasos 1 a 7 ya se recorrieron** —menú, padrones vacíos, transportistas con sus cuatro
   rechazos, alta de chofer, reutilización de persona y catálogo de tipos—; faltan del 8 al 16.
 - **`[003] T126`** — cargar **G&T Logística S.A.** como transportista con sus datos reales, desde la
-  pantalla. No se siembra por migración a propósito: se carga como cualquier otro (FR-004). Hoy está
-  cargada con un CUIT de prueba (`30-71000000-6`), que hay que reemplazar por el real.
+  pantalla. No se siembra por migración a propósito: se carga como cualquier otro (FR-004).
 
 Además, `003-gestion-choferes/checklists/documentacion.md` tiene 25 ítems abiertos. Son deuda de
 spec —preguntas que la especificación no responde— y no bloquean la implementación; si alguno se
