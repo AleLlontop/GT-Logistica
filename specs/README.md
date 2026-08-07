@@ -10,13 +10,16 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 | Módulo | Estado | Tareas |
 |---|---|---|
 | [001 — Autenticación de usuarios](001-autenticacion-usuarios/) | Implementado y validado | 63 / 63 |
-| [002 — Gestión de usuarios y roles](002-gestion-usuarios-roles/) | Implementado | 92 / 92 |
+| [002 — Gestión de usuarios y roles](002-gestion-usuarios-roles/) | Implementado y validado | 92 / 92 |
 | [003 — Gestión de choferes y su documentación](003-gestion-choferes/) | Implementado y validado | 125 / 125 |
 
 ## Qué queda abierto
 
 **Módulo 1.** Nada. El recorrido de teclado y la corrida completa del quickstart se hicieron, y las
 cinco historias quedaron verificadas operando la aplicación.
+
+**Módulo 2.** Nada. Los doce pasos de su quickstart se recorrieron de nuevo, después de que el
+Módulo 3 destapara un defecto que era suyo. Apareció uno más, el de las horas, y quedó arreglado.
 
 **Módulo 3.** Nada. El recorrido completo de su quickstart se hizo con las dos cuentas, `admin` y un
 usuario de Tráfico, y las siete historias quedaron verificadas operando la aplicación.
@@ -25,10 +28,11 @@ Además, `003-gestion-choferes/checklists/documentacion.md` tiene 25 ítems abie
 spec —preguntas que la especificación no responde— y no bloquean la implementación; si alguno se
 resuelve, puede agregar tareas.
 
-## Lo que el recorrido del Módulo 3 encontró
+## Lo que encontraron los recorridos
 
 Vale anotarlo porque justifica seguir haciendo la validación manual aunque los tests estén en verde.
-Tres defectos que ningún test veía:
+
+**El Módulo 3**, tres defectos que ningún test veía:
 
 - **El prefijo `/api` repetido** en los 19 servicios del frontend. Ninguna pantalla del módulo
   funcionaba. Los tests de pantalla mockean los servicios y los de backend no pasan por el cliente
@@ -37,6 +41,15 @@ Tres defectos que ningún test veía:
   Módulo 2 y afectaba a todo el padrón.
 - **El aviso de renovación prometía** que el documento que se está cargando pasa a ser el vigente,
   cuando manda el de vencimiento más lejano.
+
+**El Módulo 2**, uno solo, y es el mismo error que el anterior un escalón más abajo:
+
+- **Las horas corridas tres**, o sea UTC−3: el último acceso decía 17:07 cuando eran las 14:07. Las
+  columnas `datetime2` no guardan zona horaria, EF Core devolvía el `DateTime` con `Kind` sin
+  especificar y el JSON salía sin la `Z`, así que el frontend leía como local una hora que era UTC.
+  En `fechaAlta`, que se muestra sin hora, un alta cargada después de las 21 aparecía directamente al
+  día siguiente. Sirve como aviso: que el padrón mostrara bien el día no significaba que los
+  instantes estuvieran bien.
 
 ## Lo que cada módulo dejó como precedente
 
