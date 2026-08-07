@@ -3,6 +3,10 @@
 Una carpeta por módulo. Cada uno pasa por spec → clarificación → plan → tareas → implementación, y
 su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 
+> **Los identificadores de tarea se numeran desde uno en cada módulo.** `T059` es una cosa en
+> `001-autenticacion-usuarios/tasks.md` y otra distinta en `003-gestion-choferes/tasks.md`. Nunca
+> los nombres sueltos: van con su carpeta, como `[001] T059`.
+
 | Módulo | Estado | Tareas |
 |---|---|---|
 | [001 — Autenticación de usuarios](001-autenticacion-usuarios/) | Implementado | 61 / 63 |
@@ -11,16 +15,24 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 
 ## Qué queda abierto
 
-**Módulo 1.** Dos tareas de validación manual: el recorrido de accesibilidad con teclado (T059) y la
-corrida completa del quickstart anotando cada criterio de éxito (T061).
+**Módulo 1.** Dos validaciones manuales, ambas en
+[`001-autenticacion-usuarios/tasks.md`](001-autenticacion-usuarios/tasks.md):
+
+- **`[001] T059`** — recorrer ingreso, error, reintento y cierre de sesión **sin tocar el mouse**, y
+  corregir lo que falle.
+- **`[001] T061`** — la corrida completa de su quickstart, anotando cada criterio de éxito.
 
 **Módulo 3.** Las siete historias funcionan de punta a punta y los tests están en verde. Queda lo
-que sólo se puede hacer operando la aplicación:
+que sólo se puede hacer operando la aplicación, en
+[`003-gestion-choferes/tasks.md`](003-gestion-choferes/tasks.md):
 
-- **T123** — recorrer `003-gestion-choferes/quickstart.md` con las dos cuentas, `admin` y un usuario
-  de Tráfico. Es la verificación que pide el Principio IV y no la reemplaza ningún test.
-- **T126** — cargar **G&T Logística S.A.** como transportista con sus datos reales, desde la
-  pantalla. No se siembra por migración a propósito: se carga como cualquier otro (FR-004).
+- **`[003] T123`** — recorrer `003-gestion-choferes/quickstart.md` con las dos cuentas, `admin` y un
+  usuario de Tráfico. Es la verificación que pide el Principio IV y no la reemplaza ningún test.
+  **Los pasos 1 a 7 ya se recorrieron** —menú, padrones vacíos, transportistas con sus cuatro
+  rechazos, alta de chofer, reutilización de persona y catálogo de tipos—; faltan del 8 al 16.
+- **`[003] T126`** — cargar **G&T Logística S.A.** como transportista con sus datos reales, desde la
+  pantalla. No se siembra por migración a propósito: se carga como cualquier otro (FR-004). Hoy está
+  cargada con un CUIT de prueba (`30-71000000-6`), que hay que reemplazar por el real.
 
 Además, `003-gestion-choferes/checklists/documentacion.md` tiene 25 ítems abiertos. Son deuda de
 spec —preguntas que la especificación no responde— y no bloquean la implementación; si alguno se

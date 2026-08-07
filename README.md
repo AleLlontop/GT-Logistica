@@ -7,9 +7,21 @@ liquidaciones y flota.
 
 | Módulo | Estado | Qué hay hoy |
 |---|---|---|
-| [1. Autenticación de usuarios](specs/001-autenticacion-usuarios/) | Implementado | Ingreso con cookie de sesión, permisos revalidados por petición, límite de intentos fallidos y menú calculado en el servidor. Quedan pendientes las dos tareas de validación manual del quickstart (T059 y T061) |
+| [1. Autenticación de usuarios](specs/001-autenticacion-usuarios/) | Implementado | Ingreso con cookie de sesión, permisos revalidados por petición, límite de intentos fallidos y menú calculado en el servidor |
 | [2. Gestión de usuarios y roles](specs/002-gestion-usuarios-roles/) | Implementado | ABM de usuarios, asignación de roles, restablecimiento de contraseña y padrón de personas |
-| [3. Gestión de choferes y su documentación](specs/003-gestion-choferes/) | Implementado | Las siete historias: padrón de transportistas, registro de choferes, documentación con escaneos, listado con filtros y paginación, panel de vencimientos, catálogo de tipos y bajas. Quedan las dos tareas que sólo se pueden hacer operando la aplicación (T123 y T126) |
+| [3. Gestión de choferes y su documentación](specs/003-gestion-choferes/) | Implementado | Las siete historias: padrón de transportistas, registro de choferes, documentación con escaneos, listado con filtros y paginación, panel de vencimientos, catálogo de tipos y bajas |
+
+Ningún módulo tiene código pendiente. Lo que queda son **validaciones manuales**, que hay que hacer
+operando la aplicación y ningún test reemplaza:
+
+| Módulo | Qué falta |
+|---|---|
+| 1 | El recorrido de accesibilidad con teclado y la corrida completa de su quickstart |
+| 3 | Los pasos 8 a 16 de su quickstart, y cargar G&T Logística S.A. con sus datos reales |
+
+> Los identificadores de tarea (`T059`, `T123`, …) **se numeran desde uno en cada módulo**, así que
+> el mismo ID significa cosas distintas en cada `tasks.md`. Cuando haga falta nombrar uno, va con su
+> carpeta: `[001] T059`.
 
 El estado completo está en [specs/README.md](specs/README.md), y el detalle tarea por tarea en el
 `tasks.md` de cada carpeta de `specs/`.
