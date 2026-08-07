@@ -16,17 +16,17 @@ export interface TipoDocumentacionRequest {
 
 export function listarTipos(soloActivos: boolean = false) {
   const query = soloActivos ? '?soloActivos=true' : ''
-  return obtener<TipoDocumentacion[]>(`/api/tipos-documentacion${query}`)
+  return obtener<TipoDocumentacion[]>(`/tipos-documentacion${query}`)
 }
 
 export function crearTipo(peticion: TipoDocumentacionRequest) {
-  return enviar<TipoDocumentacion>('/api/tipos-documentacion', peticion)
+  return enviar<TipoDocumentacion>('/tipos-documentacion', peticion)
 }
 
 export function modificarTipo(id: number, peticion: TipoDocumentacionRequest) {
-  return actualizar<TipoDocumentacion>(`/api/tipos-documentacion/${id}`, peticion)
+  return actualizar<TipoDocumentacion>(`/tipos-documentacion/${id}`, peticion)
 }
 
 export function darDeBajaTipo(id: number) {
-  return eliminar(`/api/tipos-documentacion/${id}`)
+  return eliminar(`/tipos-documentacion/${id}`)
 }

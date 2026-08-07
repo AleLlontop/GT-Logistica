@@ -53,7 +53,7 @@ Leen `GT_SQL_PASSWORD` del `.env`.
 backend/
 ├── src/
 │   ├── GT.Api/             Endpoints, autenticación por cookie, autorización por permiso
-│   ├── GT.Application/     Casos de uso y mensajes en español rioplatense
+│   ├── GT.Application/     Casos de uso y mensajes 
 │   ├── GT.Domain/          Entidades y reglas puras
 │   └── GT.Infrastructure/  EF Core, hasheo, datos iniciales
 └── tests/

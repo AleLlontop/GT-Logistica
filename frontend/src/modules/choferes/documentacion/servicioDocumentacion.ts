@@ -21,7 +21,7 @@ export function cargarDocumento(
   archivo: File | null,
 ) {
   return enviarConArchivo<Documento>(
-    `/api/choferes/${choferId}/documentacion`,
+    `/choferes/${choferId}/documentacion`,
     { ...peticion },
     archivo,
   )
@@ -37,7 +37,7 @@ export function corregirDocumento(
   archivo: File | null,
 ) {
   return enviarConArchivo<Documento>(
-    `/api/documentacion/${documentoId}`,
+    `/documentacion/${documentoId}`,
     { ...peticion },
     archivo,
     'PUT',
@@ -46,5 +46,5 @@ export function corregirDocumento(
 
 /** Borrado definitivo: se lleva la fila y su archivo, y no se puede deshacer (FR-015c, FR-015d). */
 export function eliminarDocumento(documentoId: number) {
-  return eliminar(`/api/documentacion/${documentoId}`)
+  return eliminar(`/documentacion/${documentoId}`)
 }

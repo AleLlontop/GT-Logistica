@@ -31,22 +31,22 @@ export function listarTransportistas(texto?: string, soloActivos: boolean = fals
   }
 
   const query = parametros.toString()
-  return obtener<Transportista[]>(`/api/transportistas${query ? `?${query}` : ''}`)
+  return obtener<Transportista[]>(`/transportistas${query ? `?${query}` : ''}`)
 }
 
 export function obtenerTransportista(id: number) {
-  return obtener<Transportista>(`/api/transportistas/${id}`)
+  return obtener<Transportista>(`/transportistas/${id}`)
 }
 
 export function crearTransportista(peticion: TransportistaRequest) {
-  return enviar<Transportista>('/api/transportistas', peticion)
+  return enviar<Transportista>('/transportistas', peticion)
 }
 
 export function modificarTransportista(id: number, peticion: TransportistaRequest) {
-  return actualizar<Transportista>(`/api/transportistas/${id}`, peticion)
+  return actualizar<Transportista>(`/transportistas/${id}`, peticion)
 }
 
 /** Baja lógica. Se rechaza si tiene choferes activos, informando cuántos (FR-010). */
 export function darDeBajaTransportista(id: number) {
-  return eliminar(`/api/transportistas/${id}`)
+  return eliminar(`/transportistas/${id}`)
 }

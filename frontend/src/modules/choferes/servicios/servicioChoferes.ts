@@ -102,7 +102,7 @@ export const FILTROS_CHOFERES_INICIALES: FiltrosChoferes = {
 }
 
 export function crearChofer(peticion: ChoferPeticion) {
-  return enviar<ChoferDetalle>('/api/choferes', peticion)
+  return enviar<ChoferDetalle>('/choferes', peticion)
 }
 
 export function listarChoferes(filtros: FiltrosChoferes, pagina: number) {
@@ -119,24 +119,24 @@ export function listarChoferes(filtros: FiltrosChoferes, pagina: number) {
   }
   parametros.append('pagina', String(pagina))
 
-  return obtener<PaginaDe<ChoferListado>>(`/api/choferes?${parametros.toString()}`)
+  return obtener<PaginaDe<ChoferListado>>(`/choferes?${parametros.toString()}`)
 }
 
 export function obtenerChofer(id: number) {
-  return obtener<ChoferDetalle>(`/api/choferes/${id}`)
+  return obtener<ChoferDetalle>(`/choferes/${id}`)
 }
 
 export function modificarChofer(id: number, peticion: ChoferPeticion) {
-  return actualizar<ChoferDetalle>(`/api/choferes/${id}`, peticion)
+  return actualizar<ChoferDetalle>(`/choferes/${id}`, peticion)
 }
 
 /** Baja lógica: el chofer queda inactivo y su documentación se conserva (FR-005, FR-005a). */
 export function darDeBajaChofer(id: number) {
-  return eliminar(`/api/choferes/${id}`)
+  return eliminar(`/choferes/${id}`)
 }
 
 export function reactivarChofer(id: number) {
-  return enviar<void>(`/api/choferes/${id}/reactivacion`, {})
+  return enviar<void>(`/choferes/${id}/reactivacion`, {})
 }
 
 /** Alerta del panel de vencimientos (FR-021). */
@@ -149,5 +149,5 @@ export interface AlertaVencimiento {
 }
 
 export function listarVencimientos() {
-  return obtener<AlertaVencimiento[]>('/api/vencimientos')
+  return obtener<AlertaVencimiento[]>('/vencimientos')
 }

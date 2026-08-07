@@ -86,6 +86,9 @@ export function enviarConArchivo<T>(
  *
  * Es un endpoint del backend, no una dirección del volumen: los escaneos nunca se sirven como
  * contenido estático, así que conocer la ruta no alcanza para verlos sin sesión (FR-024).
+ *
+ * **Es la única ruta del módulo que lleva `/api` escrito.** Va directo a un `href` del navegador y
+ * no pasa por `peticion`, que es quien antepone el prefijo al resto.
  */
 export function rutaDelArchivo(documentoId: number) {
   return `/api/documentacion/${documentoId}/archivo`
