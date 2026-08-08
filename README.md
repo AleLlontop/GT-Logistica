@@ -9,10 +9,8 @@ liquidaciones y flota.
 |---|---|---|
 | [1. Autenticación de usuarios](specs/001-autenticacion-usuarios/) | Implementado | Ingreso con cookie de sesión, permisos revalidados por petición, límite de intentos fallidos y menú calculado en el servidor |
 | [2. Gestión de usuarios y roles](specs/002-gestion-usuarios-roles/) | Implementado | ABM de usuarios, asignación de roles, restablecimiento de contraseña y padrón de personas |
-| [3. Gestión de choferes y su documentación](specs/003-gestion-choferes/) | Implementado y validado | Las siete historias: padrón de transportistas, registro de choferes, documentación con escaneos, listado con filtros y paginación, panel de vencimientos, catálogo de tipos y bajas. Su quickstart se recorrió completo con las dos cuentas |
+| [3. Gestión de choferes y su documentación](specs/003-gestion-choferes/) | Implementado | CRUDS de transportistas, choferes, documentación , listado con filtros y paginación, panel de vencimientos, catálogo de tipos y bajas.|
 
-Ningún módulo tiene código pendiente. Lo único abierto son las dos **validaciones manuales** del
-Módulo 1: el recorrido de accesibilidad con teclado y la corrida completa de su quickstart.
 
 > Los identificadores de tarea (`T059`, `T123`, …) **se numeran desde uno en cada módulo**, así que
 > el mismo ID significa cosas distintas en cada `tasks.md`. Cuando haga falta nombrar uno, va con su
@@ -23,7 +21,7 @@ El estado completo está en [specs/README.md](specs/README.md), y el detalle tar
 
 ## Levantar el sistema
 
-La primera vez hay que definir dos contraseñas. **No están en el repositorio y nunca deben estarlo.**
+La primera vez hay que definir dos contraseñas.
 
 ```bash
 cp .env.template .env    # y completá las dos variables
@@ -87,6 +85,4 @@ Dos decisiones del Módulo 1 que conviene conocer antes de tocar el código:
   petición, así que quitarle un rol a alguien con la sesión abierta surte efecto en su operación
   siguiente. Con un token autocontenido eso exigiría una lista de revocación. El razonamiento
   completo está en `specs/001-autenticacion-usuarios/research.md` §1.
-- **El límite de intentos fallidos cuenta por origen *y* cuenta.** Contando sólo por origen, cinco
-  errores de tipeo de personas distintas dejarían fuera a toda la oficina, porque todos salen por la
-  misma conexión.
+
