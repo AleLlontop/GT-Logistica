@@ -38,7 +38,12 @@
 - FR-029 no tiene escenario de aceptación de forma deliberada: describe una falla del almacén de
   archivos que no se puede provocar desde la pantalla; su verificación queda delegada a un test
   automatizado, tal como se resolvió en el Módulo 3.
-- Punto de atención para `/speckit-plan`: FR-017 modifica una entidad del Módulo 3 (el catálogo
-  `DocumentacionTipo` gana el campo de ámbito y su pantalla pasa a pedirlo). Es el único cambio que
-  este módulo introduce fuera de su propio alcance y requiere migración de los tipos ya cargados
-  (FR-017c).
+- La relación `Transportista 1 — * Vehiculo` se incorporó después del primer cierre: el
+  transportista es obligatorio en el alta (FR-008a), se puede reasignar (FR-008c), suma una columna y
+  un cuarto filtro al listado (FR-030) y aparece en la ficha (FR-038).
+- Puntos de atención para `/speckit-plan`: este módulo toca el Módulo 3 en dos lugares, y son sus
+  únicos cambios fuera del propio alcance.
+  1. FR-017 extiende `DocumentacionTipo` con el campo de ámbito y su pantalla pasa a pedirlo;
+     requiere migración de los tipos ya cargados (FR-017c).
+  2. FR-008d amplía la regla de baja de `Transportista`, que hoy sólo cuenta choferes activos, para
+     contar también vehículos activos.

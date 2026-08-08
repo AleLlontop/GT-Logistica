@@ -29,6 +29,12 @@
 - Q: ¿Qué valores exactos toma el estado operativo del vehículo? → A: Exactamente dos: `disponible` y
   `fuera de servicio`. No hay estado intermedio: una unidad parada por reparación se marca
   `fuera de servicio`, igual que una inhabilitada por documentación.
+- Q: Faltaba la relación `Transportista 1 — * Vehiculo`. ¿Cómo entra en este módulo? → A: Todo
+  vehículo pertenece obligatoriamente a un transportista activo, que se elige al registrarlo y se
+  puede reasignar después. Se reutiliza el `Transportista` del Módulo 3 —incluida G&T Logística S.A.
+  como transportista propio—, sin crear un padrón paralelo ni un ABM nuevo. El transportista se
+  muestra en el listado y en la ficha, y suma un cuarto filtro al listado de flota. La baja de un
+  transportista, que hoy sólo mira sus choferes activos, pasa a mirar también sus vehículos activos.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -65,33 +71,43 @@ disponibles para elegir al registrar un vehículo.
 ### User Story 2 - Registrar un vehículo en el padrón de flota (Priority: P1)
 
 El responsable de Tráfico registra una unidad con su patente, marca, modelo y tipo de vehículo, y
-queda incorporada al padrón de flota con su estado operativo.
+elige obligatoriamente el transportista dueño de esa unidad: G&T Logística S.A. si es un vehículo
+propio, o el transportista terciarizado correspondiente. La unidad queda incorporada al padrón de
+flota con su estado operativo.
 
 **Why this priority**: Es el objetivo central del módulo. Sin el padrón de vehículos no hay a qué
-asociarle documentación ni sobre qué informar disponibilidad.
+asociarle documentación ni sobre qué informar disponibilidad, y sin el transportista no se puede
+distinguir la flota propia de la contratada.
 
-**Independent Test**: Se puede verificar de forma independiente con al menos un tipo de vehículo
-cargado, completando el formulario con una patente nueva y datos válidos, guardando, y comprobando
-que la unidad aparece en el listado con su tipo y su estado; repitiendo la misma patente escrita con
-espacios y en minúsculas, y comprobando que el sistema la rechaza como duplicada.
+**Independent Test**: Se puede verificar de forma independiente con al menos un tipo de vehículo y un
+transportista activo, completando el formulario con una patente nueva y datos válidos, guardando, y
+comprobando que la unidad aparece en el listado con su tipo, su transportista y su estado;
+repitiendo la misma patente escrita con espacios y en minúsculas, y comprobando que el sistema la
+rechaza como duplicada.
 
 **Acceptance Scenarios**:
 
-1. **Given** al menos un tipo de vehículo activo y una patente que no existe en la flota, **When** el
-   responsable de Tráfico completa marca, modelo y tipo y guarda, **Then** el vehículo queda
-   registrado, activo y visible en el listado con su tipo y su estado operativo.
+1. **Given** al menos un tipo de vehículo activo, al menos un transportista activo y una patente que
+   no existe en la flota, **When** el responsable de Tráfico completa marca, modelo, tipo y
+   transportista y guarda, **Then** el vehículo queda registrado, activo y visible en el listado con
+   su tipo, su transportista y su estado operativo.
 2. **Given** el vehículo `AB123CD` ya registrado, **When** se intenta registrar `ab 123 cd` o
    `AB-123-CD`, **Then** el sistema informa que esa patente ya está registrada y no crea ningún
    vehículo.
 3. **Given** el formulario sin tipo de vehículo elegido, **When** se intenta guardar, **Then** el
    sistema informa que el tipo es obligatorio y no crea ningún vehículo.
-4. **Given** el formulario con la patente vacía o con un formato que no corresponde a una patente
+4. **Given** el formulario sin transportista elegido, **When** se intenta guardar, **Then** el
+   sistema informa que el transportista es obligatorio y no crea ningún vehículo.
+5. **Given** el formulario con la patente vacía o con un formato que no corresponde a una patente
    argentina, **When** se intenta guardar, **Then** el sistema marca ese campo con el motivo puntual
    y no envía el formulario.
-5. **Given** el catálogo de tipos de vehículo sin ninguno activo, **When** el responsable de Tráfico
+6. **Given** el catálogo de tipos de vehículo sin ninguno activo, **When** el responsable de Tráfico
    abre el formulario de vehículo, **Then** el sistema le informa que primero debe cargar un tipo de
    vehículo y no le permite completar el alta.
-6. **Given** un vehículo recién registrado sin ningún documento cargado, **When** se lo ve en el
+7. **Given** el padrón de transportistas sin ninguno activo, **When** el responsable de Tráfico abre
+   el formulario de vehículo, **Then** el sistema le informa que primero debe registrar un
+   transportista y no le permite completar el alta.
+8. **Given** un vehículo recién registrado sin ningún documento cargado, **When** se lo ve en el
    listado, **Then** figura con estado general de documentación `sin documentación` y no puede
    quedar en estado operativo `disponible`.
 
@@ -152,44 +168,47 @@ respectivamente, sin que nadie haya elegido el estado y sin que el campo de esta
 
 ### User Story 4 - Consultar la flota y el estado de su documentación (Priority: P1)
 
-El responsable de Tráfico consulta el listado de la flota filtrando por tipo de vehículo, estado del
-vehículo y estado de documentación, y abre la ficha de cualquier unidad para ver sus datos y la lista
-completa de sus documentos con el estado de cada uno.
+El responsable de Tráfico consulta el listado de la flota filtrando por transportista, tipo de
+vehículo, estado del vehículo y estado de documentación, y abre la ficha de cualquier unidad para ver
+sus datos y la lista completa de sus documentos con el estado de cada uno.
 
 **Why this priority**: Es la operación que más se repite: antes de asignar un viaje hay que saber qué
 unidad está en condiciones de salir. Sin consulta, el registro de datos no sirve para decidir.
 
 **Independent Test**: Se puede verificar de forma independiente cargando vehículos de distintos tipos
-con documentación en los tres estados, aplicando combinaciones de filtros y comprobando que el
-listado y la ficha muestran exactamente lo esperado.
+y transportistas con documentación en los tres estados, aplicando combinaciones de filtros y
+comprobando que el listado y la ficha muestran exactamente lo esperado.
 
 **Acceptance Scenarios**:
 
 1. **Given** una flota registrada, **When** el responsable de Tráfico abre el listado, **Then** ve
-   para cada unidad la patente, la marca, el modelo, el tipo de vehículo, el estado operativo y un
-   indicador del estado general de su documentación.
-2. **Given** el listado de flota, **When** se aplican filtros combinados por tipo de vehículo, estado
-   del vehículo y estado de documentación, **Then** el listado muestra únicamente los vehículos que
-   cumplen todas las condiciones a la vez.
-3. **Given** el listado de flota, **When** el responsable de Tráfico filtra por "disponible",
+   para cada unidad la patente, la marca, el modelo, el tipo de vehículo, el transportista al que
+   pertenece, el estado operativo y un indicador del estado general de su documentación.
+2. **Given** el listado de flota, **When** se aplican filtros combinados por transportista, tipo de
+   vehículo, estado del vehículo y estado de documentación, **Then** el listado muestra únicamente
+   los vehículos que cumplen todas las condiciones a la vez.
+3. **Given** una flota con unidades propias y de terceros, **When** el responsable de Tráfico filtra
+   por un transportista terciarizado, **Then** ve únicamente las unidades de ese transportista, y
+   filtrando por G&T Logística S.A. ve únicamente la flota propia.
+4. **Given** el listado de flota, **When** el responsable de Tráfico filtra por "disponible",
    **Then** ningún vehículo con documentación vencida ni sin documentación aparece en el resultado.
-4. **Given** un vehículo del listado, **When** el responsable de Tráfico lo selecciona, **Then** ve
-   su ficha completa con patente, marca, modelo, tipo, estado operativo y todos sus documentos con
-   tipo, número, fecha de emisión, fecha de vencimiento y estado.
-5. **Given** un documento con archivo adjunto, **When** el responsable de Tráfico lo abre desde la
+5. **Given** un vehículo del listado, **When** el responsable de Tráfico lo selecciona, **Then** ve
+   su ficha completa con patente, marca, modelo, tipo, transportista, estado operativo y todos sus
+   documentos con tipo, número, fecha de emisión, fecha de vencimiento y estado.
+6. **Given** un documento con archivo adjunto, **When** el responsable de Tráfico lo abre desde la
    ficha, **Then** accede al archivo cargado.
-6. **Given** un filtro que no coincide con ningún vehículo, **When** se aplica, **Then** el sistema
+7. **Given** un filtro que no coincide con ningún vehículo, **When** se aplica, **Then** el sistema
    muestra un mensaje explícito de "sin resultados" en vez de una tabla vacía sin explicación.
-7. **Given** un vehículo con la VTV en regla y el seguro vencido, **When** se lo ve en el listado,
+8. **Given** un vehículo con la VTV en regla y el seguro vencido, **When** se lo ve en el listado,
    **Then** su estado general de documentación es `vencida`, porque se muestra el peor estado entre
    sus documentos vigentes de cada tipo.
-8. **Given** más de 20 vehículos que cumplen los filtros aplicados, **When** el responsable de
+9. **Given** más de 20 vehículos que cumplen los filtros aplicados, **When** el responsable de
    Tráfico consulta el listado, **Then** ve la primera página con 20 filas, el total de coincidencias
    y la forma de avanzar a las páginas siguientes.
-9. **Given** el listado con un filtro de estado aplicado, **When** el responsable de Tráfico lo mira,
+10. **Given** el listado con un filtro de estado aplicado, **When** el responsable de Tráfico lo mira,
    **Then** el control de filtro muestra explícitamente qué estado está filtrando, de modo que
    ninguna fila quede oculta en silencio.
-10. **Given** un vehículo guardado como `disponible` cuyo seguro venció ayer, **When** el responsable
+11. **Given** un vehículo guardado como `disponible` cuyo seguro venció ayer, **When** el responsable
     de Tráfico abre el listado, **Then** la unidad figura como `fuera de servicio` sin que nadie haya
     editado nada, y vuelve a figurar como `disponible` apenas se carga la renovación.
 
@@ -226,18 +245,20 @@ panel de vencimientos.
 
 ---
 
-### User Story 6 - Modificar y dar de baja vehículos (Priority: P3)
+### User Story 6 - Modificar, reasignar y dar de baja vehículos (Priority: P3)
 
-El responsable de Tráfico corrige los datos de un vehículo cuando cambian, cambia su estado operativo
-y lo da de baja lógicamente cuando la unidad deja de formar parte de la flota.
+El responsable de Tráfico corrige los datos de un vehículo cuando cambian, cambia su estado
+operativo, lo reasigna a otro transportista cuando la unidad cambia de dueño —por ejemplo, un
+vehículo terciarizado que pasa a ser propio de G&T Logística— y lo da de baja lógicamente cuando deja
+de formar parte de la flota.
 
 **Why this priority**: Es necesario para mantener el padrón fiel a la realidad, pero es menos
 frecuente que el alta y la consulta, y su ausencia no impide operar el resto del módulo.
 
 **Independent Test**: Se puede verificar de forma independiente editando la marca y el modelo de un
-vehículo, cambiando su estado operativo, dándolo de baja y comprobando que deja de figurar en el
-listado sin filtros pero reaparece al filtrar por estado inactivo, con su registro y su documentación
-intactos.
+vehículo, reasignándolo a otro transportista, cambiando su estado operativo, dándolo de baja y
+comprobando que deja de figurar en el listado sin filtros pero reaparece al filtrar por estado
+inactivo, con su registro y su documentación intactos.
 
 **Acceptance Scenarios**:
 
@@ -246,15 +267,23 @@ intactos.
 2. **Given** una patente que ya pertenece a otro vehículo, **When** se intenta guardar como nuevo
    valor, **Then** el sistema informa el conflicto y no guarda; conservar la propia patente del
    vehículo no genera ningún conflicto.
-3. **Given** un vehículo registrado, **When** el responsable de Tráfico pide darlo de baja, **Then**
+3. **Given** un vehículo asignado a un transportista terciarizado, **When** el responsable de Tráfico
+   lo reasigna a G&T Logística S.A. y guarda, **Then** el cambio queda registrado, la unidad pasa a
+   figurar en la flota propia y su documentación cargada se conserva sin cambios.
+4. **Given** el formulario de edición, **When** el responsable de Tráfico intenta dejar el vehículo
+   sin transportista o asignarlo a uno inactivo, **Then** el sistema lo rechaza y no guarda.
+5. **Given** un vehículo registrado, **When** el responsable de Tráfico pide darlo de baja, **Then**
    el sistema pide una confirmación explícita, y al confirmar el vehículo queda inactivo, desaparece
    del listado sin filtros, vuelve a verse al filtrar por estado inactivo y su registro no se borra.
-4. **Given** el pedido de confirmación de baja, **When** el responsable de Tráfico cancela, **Then**
+6. **Given** el pedido de confirmación de baja, **When** el responsable de Tráfico cancela, **Then**
    nada cambia.
-5. **Given** un vehículo con al menos un documento `vencida`, **When** se intenta dejarlo en estado
+7. **Given** un vehículo con al menos un documento `vencida`, **When** se intenta dejarlo en estado
    operativo `disponible`, **Then** el sistema lo impide e informa qué documentación se lo impide.
-6. **Given** un vehículo dado de baja, **When** se consulta su ficha filtrando por estado inactivo,
+8. **Given** un vehículo dado de baja, **When** se consulta su ficha filtrando por estado inactivo,
    **Then** su documentación y sus archivos adjuntos siguen intactos.
+9. **Given** un transportista con al menos un vehículo activo asociado, **When** se intenta darlo de
+   baja desde el Módulo 3, **Then** el sistema lo rechaza e informa cuántos vehículos activos
+   dependen de él, además de sus choferes activos.
 
 ---
 
@@ -293,6 +322,17 @@ intactos.
 - Falla el almacenamiento del archivo adjunto a mitad de la carga: no queda un documento a medias ni
   un archivo huérfano; la operación completa no se aplica y el operador puede reintentar sin volver a
   tipear (cubierto en User Story 3).
+- Vehículo terciarizado que pasa a ser propio de G&T Logística: se resuelve reasignándolo a G&T
+  Logística S.A. desde su edición, sin volver a cargarlo ni perder su documentación (cubierto en
+  User Story 6).
+- Se intenta dar de baja un transportista que sólo tiene vehículos ya inactivos: la baja procede,
+  porque la restricción alcanza únicamente a los vehículos activos, igual que con los choferes
+  (cubierto en User Story 6).
+- Se intenta dar de baja un transportista sin choferes activos pero con vehículos activos: se
+  rechaza, aunque la regla original del Módulo 3 sólo miraba choferes (cubierto en User Story 6).
+- El transportista de un vehículo se da de baja mientras la unidad sigue activa: no puede ocurrir,
+  porque la baja se rechaza antes (FR-008d); un vehículo nunca queda apuntando a un transportista
+  inactivo.
 
 ## Requirements *(mandatory)*
 
@@ -301,8 +341,8 @@ intactos.
 #### Padrón de vehículos
 
 - **FR-001**: El sistema DEBE permitir registrar, consultar, modificar y dar de baja lógica
-  vehículos, con patente, marca, modelo, tipo de vehículo y estado operativo; NO DEBE borrarlos
-  físicamente.
+  vehículos, con patente, marca, modelo, tipo de vehículo, transportista y estado operativo; NO DEBE
+  borrarlos físicamente.
 - **FR-002**: El sistema DEBE exigir que la patente de un vehículo sea única en toda la flota,
   garantizada con una restricción de unicidad en la base de datos; en una modificación, la
   comparación DEBE excluir al propio vehículo.
@@ -320,6 +360,22 @@ intactos.
   cancelar esa confirmación NO DEBE modificar nada.
 - **FR-008**: La baja de un vehículo NO DEBE alterar su documentación: sus documentos y sus archivos
   adjuntos se conservan intactos y siguen visibles en su ficha.
+
+#### Pertenencia a un transportista
+
+- **FR-008a**: El sistema DEBE exigir que todo vehículo pertenezca a exactamente un transportista
+  activo, y DEBE impedir el alta o la modificación de un vehículo sin transportista asignado o con
+  uno inactivo.
+- **FR-008b**: El transportista de un vehículo DEBE ser el mismo `Transportista` del Módulo 3,
+  incluida G&T Logística S.A. como transportista propio. Este módulo NO DEBE crear un padrón paralelo
+  de transportistas ni un ABM propio: los consume tal como los administra el Módulo 3.
+- **FR-008c**: El sistema DEBE permitir reasignar un vehículo a otro transportista activo sin afectar
+  su documentación ya cargada ni su estado operativo.
+- **FR-008d**: La regla de baja de un transportista del Módulo 3 DEBE extenderse para contemplar
+  también su flota: el sistema DEBE rechazar la baja de un transportista que tenga al menos un
+  vehículo activo asociado, informando cuántos son junto con sus choferes activos. La baja DEBE
+  proceder cuando todos sus choferes y todos sus vehículos están inactivos, o cuando no tiene
+  ninguno.
 
 #### Catálogo de tipos de vehículo
 
@@ -417,11 +473,11 @@ intactos.
 
 #### Listado, ficha y alertas
 
-- **FR-030**: El listado de flota DEBE mostrar patente, marca, modelo, tipo de vehículo, estado
-  operativo y estado general de documentación —calculado sobre los documentos más recientes de cada
-  tipo según FR-024—, y DEBE permitir filtrar por tipo de vehículo, estado del vehículo y estado de
-  documentación en cualquier combinación. Los tres filtros DEBEN ser una selección exacta entre las
-  opciones ya cargadas en el sistema.
+- **FR-030**: El listado de flota DEBE mostrar patente, marca, modelo, tipo de vehículo,
+  transportista, estado operativo y estado general de documentación —calculado sobre los documentos
+  más recientes de cada tipo según FR-024—, y DEBE permitir filtrar por transportista, tipo de
+  vehículo, estado del vehículo y estado de documentación en cualquier combinación. Los cuatro
+  filtros DEBEN ser una selección exacta entre las opciones ya cargadas en el sistema.
 - **FR-031**: Sin filtros aplicados, el listado DEBE mostrar únicamente los vehículos activos; los
   dados de baja DEBEN aparecer al elegir ese estado en el filtro.
 - **FR-032**: El listado de flota DEBE paginarse del lado del servidor, con 20 filas por página. Los
@@ -444,8 +500,9 @@ intactos.
   cuando un listado no tiene filas, en vez de una tabla vacía sin explicación.
 - **FR-037**: Cuando el listado esté filtrando por un estado, el control DEBE mostrar explícitamente
   cuál: ninguna fila DEBE quedar oculta sin que la pantalla lo diga.
-- **FR-038**: La ficha de un vehículo DEBE mostrar patente, marca, modelo, tipo, estado operativo y
-  todos sus documentos con tipo, número, fecha de emisión, fecha de vencimiento y estado, y DEBE
+- **FR-038**: La ficha de un vehículo DEBE mostrar patente, marca, modelo, tipo, transportista,
+  estado operativo y todos sus documentos con tipo, número, fecha de emisión, fecha de vencimiento y
+  estado, y DEBE
   permitir abrir el archivo adjunto de cada documento que lo tenga. El acceso al archivo DEBE quedar
   restringido a los mismos roles habilitados para el módulo (FR-039).
 - **FR-039**: El sistema DEBE restringir el acceso a este módulo a usuarios autenticados con el rol
@@ -454,10 +511,15 @@ intactos.
 
 ### Key Entities *(include if feature involves data)*
 
-- **Vehiculo**: unidad de la flota de G&T Logística. Incluye patente (única y normalizada), marca,
-  modelo, tipo de vehículo, estado operativo y estado activo/inactivo. Es la entidad principal del
-  módulo: se registra, consulta, modifica y da de baja lógicamente desde aquí, y concentra la
-  documentación obligatoria de la unidad.
+- **Vehiculo**: unidad de la flota. Incluye patente (única y normalizada), marca, modelo, tipo de
+  vehículo, transportista al que pertenece, estado operativo y estado activo/inactivo. Es la entidad
+  principal del módulo: se registra, consulta, modifica y da de baja lógicamente desde aquí, y
+  concentra la documentación obligatoria de la unidad.
+- **Transportista**: empresa o persona dueña de los vehículos, sea G&T Logística S.A. con su flota
+  propia o un tercero contratado. Es la misma entidad que administra el Módulo 3, con su nombre o
+  razón social, CUIT, teléfono, email y tipo de persona; este módulo la consume para asignar cada
+  vehículo y no la administra. Un transportista agrupa muchos vehículos; cada vehículo pertenece a
+  uno solo.
 - **TipoVehiculo**: categoría de unidad con la que trabaja la empresa (tractor, semirremolque,
   chasis, utilitario, entre otros). Incluye nombre único. Se administra desde este módulo; un tipo
   agrupa muchos vehículos y cada vehículo pertenece a uno solo.
@@ -486,6 +548,9 @@ intactos.
 
 ### Relationships
 
+- **Transportista 1 — * Vehiculo**: todo vehículo pertenece obligatoriamente a un transportista; un
+  transportista puede tener muchos vehículos o ninguno. Es lo que distingue la flota propia de la
+  contratada.
 - **Vehiculo * — 1 TipoVehiculo**: todo vehículo pertenece obligatoriamente a un tipo; un tipo puede
   tener muchos vehículos o ninguno.
 - **Vehiculo 1 — * Documentacion**: un vehículo puede tener muchos documentos o ninguno; todo
@@ -504,6 +569,13 @@ intactos.
   exacta, y ninguno crea un vehículo.
 - **SC-003**: El 100% de los vehículos registrados tiene exactamente un tipo de vehículo asignado; el
   sistema rechaza todo intento de dejar una unidad sin tipo.
+- **SC-003a**: El 100% de los vehículos registrados tiene exactamente un transportista activo
+  asignado; el sistema rechaza todo intento de dejar una unidad sin transportista.
+- **SC-003b**: Filtrando la flota por un transportista, el responsable de Tráfico obtiene todas sus
+  unidades y ninguna ajena, de modo que puede separar la flota propia de la contratada en un solo
+  paso.
+- **SC-003c**: El 100% de los vehículos reasignados de transportista conserva íntegra su
+  documentación previamente cargada.
 - **SC-004**: El 100% de los documentos cargados muestra un estado calculado por el sistema, y ningún
   usuario puede modificarlo manualmente desde ninguna pantalla.
 - **SC-005**: El 100% de los documentos que entran en la ventana de aviso de su tipo aparece en el
@@ -513,8 +585,9 @@ intactos.
   vencimientos.
 - **SC-007**: El responsable de Tráfico puede identificar todos los vehículos con documentación
   vencida o próxima a vencer en menos de 3 pasos desde el ingreso al módulo.
-- **SC-008**: El 100% de los intentos de dar de baja un tipo de vehículo en uso es rechazado con el
-  detalle de cuántos vehículos dependen de él, y ningún registro se borra físicamente.
+- **SC-008**: El 100% de los intentos de dar de baja un tipo de vehículo en uso, o un transportista
+  con vehículos activos, es rechazado con el detalle de cuántos registros dependen de él, y ningún
+  registro se borra físicamente.
 - **SC-009**: El 100% de las bajas de vehículo y de las eliminaciones de documento requiere una
   confirmación explícita previa, y ninguna operación cancelada produce cambios en los datos.
 - **SC-010**: El 100% de los vehículos que renuevan un documento deja de figurar en el panel de
@@ -533,10 +606,19 @@ intactos.
 - El mecanismo de carga y resguardo de archivos adjuntos definido en el Módulo 3 se reutiliza tal
   cual: mismos formatos aceptados (PDF, JPG, PNG), mismo límite de 10 MB, mismo acceso restringido
   por endpoint autorizado.
-- Este módulo modifica una entidad del Módulo 3: el catálogo `DocumentacionTipo` gana el campo de
-  ámbito (chofer / vehículo) y su pantalla de mantenimiento pasa a pedirlo (FR-017). Los tipos ya
-  cargados quedan con ámbito chofer, así que ningún documento existente cambia de comportamiento
-  (ver Clarificaciones, sesión 2026-08-08).
+- Este módulo modifica dos cosas del Módulo 3, y son sus únicos cambios fuera del propio alcance (ver
+  Clarificaciones, sesión 2026-08-08):
+  1. El catálogo `DocumentacionTipo` gana el campo de ámbito (chofer / vehículo) y su pantalla de
+     mantenimiento pasa a pedirlo (FR-017). Los tipos ya cargados quedan con ámbito chofer, así que
+     ningún documento existente cambia de comportamiento.
+  2. La regla de baja de `Transportista` pasa a contar también los vehículos activos, no sólo los
+     choferes activos (FR-008d).
+- El padrón de transportistas y su ABM provienen del Módulo 3, incluida G&T Logística S.A. cargada
+  como un transportista más. Este módulo sólo los consume para asignar vehículos: no agrega pantallas
+  de transportista ni les cambia los datos.
+- Se asume que al empezar este módulo ya hay transportistas cargados por el Módulo 3. Si el padrón
+  estuviera vacío, el alta de vehículos queda bloqueada con un mensaje explícito hasta que se cargue
+  al menos uno (User Story 2, escenario 7).
 - El cálculo del estado de un documento y del estado general por entidad replica el ya definido en el
   Módulo 3 para choferes, incluidas la ventana de aviso por tipo, la regla del documento más reciente
   por tipo y los cuatro valores del estado general.
@@ -547,7 +629,8 @@ intactos.
 - El listado de flota se filtra por tipo, estado del vehículo y estado de documentación, tal como
   indica RF3. La búsqueda por patente, marca o modelo NO forma parte de esta versión; queda anotada
   como candidata para una spec futura.
-- La asignación de vehículos a viajes y a choferes, el control de kilometraje, el mantenimiento
+- La única asignación que incluye este módulo es la del vehículo a su transportista dueño (FR-008a a
+  FR-008d). La asignación de vehículos a viajes y a choferes, el control de kilometraje, el mantenimiento
   preventivo, las órdenes de taller, el consumo de combustible, el seguimiento GPS, las
   notificaciones por email o push de vencimientos, la validación de la documentación contra
   organismos externos (CNRT, VTV, aseguradoras) y la auditoría de cambios sobre la flota quedan fuera
