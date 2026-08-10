@@ -4,7 +4,7 @@ Sync Impact Report
 Version change: 1.0.0 → 2.0.0
 Modified principles: ninguno (los 5 principios core quedan sin cambios)
 Removed sections:
-  - Stack Tecnológico y Contenedores → relocada a /CLAUDE.md (memoria técnica de sesiones), ya no
+  - Stack Tecnológico y Contenedores → relocada a /AGENTS.md (memoria técnica de sesiones), ya no
     vive en la constitución. Se clasifica como MAJOR porque elimina contenido de gobernanza que
     antes era autoritativo desde este documento.
 Added sections: ninguna

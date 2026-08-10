@@ -1,4 +1,8 @@
-# CLAUDE.md
+# AGENTS.md
+
+Instrucciones del proyecto para cualquier asistente de IA. Cada quien trabaja con la herramienta que
+prefiera: el archivo que su IA lee por convención —`CLAUDE.md`, `.github/copilot-instructions.md`—
+es local, no se versiona, y sólo apunta acá.
 
 ## Qué es esto
 Sistema Integral de Gestión: app web para que G&T Logística administre su flujo organizacional (viajes, facturación, liquidaciones, flota).
@@ -22,7 +26,7 @@ cd frontend && npm test     # tests de frontend
 - Backend por capa (`GT.Api` / `Application` / `Domain` / `Infrastructure`); cada módulo tiene carpeta espejo en `GT.Application`
 - Cero alcance fantasma: nada que no esté en la spec; ante dos soluciones, la más simple
 - Sin claves ni secretos en el código; solo variables de entorno / config externa
-- Al ejecutar `/speckit.plan`, SIEMPRE incluye en `plan.md`, como último paso de la fase final, un paso de mantenimiento: “Actualizar `CLAUDE.md` con las decisiones de diseño y convenciones nuevas de esta feature, una línea por decisión, con referencia a la spec (p. ej. ‘[003] ...’). No incluyas entradas por incluir, asegúrate siempre de que es información transversal y relevante para el proyecto que pueden aprovechar futuras features.”
+- Al ejecutar `/speckit.plan`, SIEMPRE incluye en `plan.md`, como último paso de la fase final, un paso de mantenimiento: “Actualizar `AGENTS.md` con las decisiones de diseño y convenciones nuevas de esta feature, una línea por decisión, con referencia a la spec (p. ej. ‘[003] ...’). No incluyas entradas por incluir, asegúrate siempre de que es información transversal y relevante para el proyecto que pueden aprovechar futuras features.”
 
 ## Decisiones transversales ya tomadas
 Cada línea nació en una feature pero rige para todo el sistema. Antes de resolver algo parecido, mirar acá.

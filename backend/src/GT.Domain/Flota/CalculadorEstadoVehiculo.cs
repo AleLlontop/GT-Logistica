@@ -28,7 +28,7 @@ namespace GT.Domain.Flota;
 ///
 /// <b>Esta misma regla se traduce a SQL</b> en la consulta del listado, para poder filtrar por estado
 /// sin traer las filas a memoria. Las dos escrituras van cubiertas por un test que las compara sobre
-/// el mismo dato (convención [003] de <c>CLAUDE.md</c>).
+/// el mismo dato (convención [003] de <c>AGENTS.md</c>).
 /// </summary>
 public static class CalculadorEstadoVehiculo
 {

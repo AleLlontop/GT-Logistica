@@ -28,6 +28,26 @@ Thumbs.db
 *.tmp
 *.swp
 
+# Andamiaje de Spec Kit propio de cada IA.
+# Cada quien corre `specify init --here --ai <su ia>` y se genera el suyo. Lo común de Spec Kit
+# —constitución, plantillas, scripts, extensión git— y las `specs/` sí se versionan: son del
+# producto, no de la herramienta.
+.claude/
+.github/prompts/
+.cursor/
+.gemini/
+.windsurf/
+.specify/init-options.json
+.specify/integration.json
+.specify/integrations/*.manifest.json
+!.specify/integrations/speckit.manifest.json
+
+# Instrucciones del proyecto: el contenido vive en AGENTS.md, que sí se versiona.
+# Estos archivos son el puntero local que lee cada herramienta; una línea, `@AGENTS.md`.
+CLAUDE.md
+.github/copilot-instructions.md
+GEMINI.md
+
 # Adjuntos de la documentación de choferes (Módulo 3).
 # El volumen vive fuera del repositorio a propósito: un psicofísico o una licencia son datos
 # personales sensibles y no se versionan (FR-024, research §3).

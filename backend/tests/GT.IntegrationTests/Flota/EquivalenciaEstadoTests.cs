@@ -12,7 +12,7 @@ namespace GT.IntegrationTests.Flota;
 /// C# (<see cref="CalculadorEstadoVehiculo"/>) y la consulta en SQL (<c>RepositorioVehiculos</c>).
 ///
 /// Este test las compara sobre el mismo dato, que es lo que evita que se separen sin que nadie se
-/// entere. Es la convención [003] de <c>CLAUDE.md</c> —"cuando una regla derivada se ejecuta en dos
+/// entere. Es la convención [003] de <c>AGENTS.md</c> —"cuando una regla derivada se ejecuta en dos
 /// lados, va un test que compara las dos"— y el riesgo que research §13 declara.
 /// </summary>
 public class EquivalenciaEstadoTests(AplicacionDePrueba app) : IClassFixture<AplicacionDePrueba>

@@ -4,7 +4,7 @@ namespace GT.IntegrationTests.Infraestructura;
 /// Lee la configuración que los tests necesitan para hablar con el SQL Server del compose.
 ///
 /// `dotnet test` no carga el archivo `.env`, así que se lee a mano desde la raíz del repositorio.
-/// De este modo el flujo documentado en CLAUDE.md —`podman compose up -d` y después `dotnet test`—
+/// De este modo el flujo documentado en AGENTS.md —`podman compose up -d` y después `dotnet test`—
 /// funciona sin ningún paso extra.
 /// </summary>
 public static class ConfiguracionEntorno

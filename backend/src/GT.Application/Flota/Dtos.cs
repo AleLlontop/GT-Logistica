@@ -273,7 +273,7 @@ public record FiltrosDeFlota(
 /// <summary>
 /// Los enums del dominio viajan en el JSON con la misma grafía que fija el contrato
 /// (<c>fueraDeServicio</c>, <c>enRegla</c>, <c>proximaAvencer</c>, …), que es camelCase y no
-/// PascalCase (convención [003] de <c>CLAUDE.md</c>).
+/// PascalCase (convención [003] de <c>AGENTS.md</c>).
 /// </summary>
 public static class NombresDeEstadoFlota
 {

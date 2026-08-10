@@ -81,6 +81,25 @@ specs/                      Una carpeta por módulo: spec, plan y tareas
 Las reglas de producto viven en `.specify/memory/constitution.md` y el estado de cada módulo en
 `specs/`. Cada módulo pasa por spec → clarificación → plan → tareas → implementación.
 
+### Enganchar tu asistente de IA
+
+El proceso es [Spec Kit](https://github.com/github/spec-kit), y **cada uno lo usa con la IA que
+prefiera**. Lo compartido está versionado —la constitución, las plantillas, los scripts, la
+extensión de git y todas las `specs/`—; lo que genera Spec Kit para una IA en particular, no. Así
+que después de clonar, una vez:
+
+```bash
+specify init --here --ai <claude | copilot | cursor | gemini | …>
+```
+
+Eso te crea tus comandos (`.claude/`, `.github/prompts/`, `.cursor/commands/`, según cuál elijas) sin
+tocar los de nadie. En Linux o Mac agregá `--script sh`: hoy sólo están generados los scripts de
+PowerShell.
+
+Las instrucciones del proyecto para asistentes están en [AGENTS.md](AGENTS.md), que sí se versiona.
+Si tu herramienta busca otro nombre, creá el archivo que espera con una sola línea que lo importe
+—por ejemplo un `CLAUDE.md` con `@AGENTS.md`— y quedará ignorado por git.
+
 Dos decisiones del Módulo 1 que conviene conocer antes de tocar el código:
 
 - **La sesión es una cookie, no un token.** Los permisos se recalculan contra la base en cada
