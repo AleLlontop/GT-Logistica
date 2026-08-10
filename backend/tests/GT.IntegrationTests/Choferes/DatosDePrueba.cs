@@ -58,17 +58,23 @@ public static class DatosDePrueba
     /// Un tipo del catálogo, saltando la API. El nombre lleva sufijo único porque el catálogo tiene
     /// índice único de nombre y varios tests comparten la misma base.
     /// </summary>
+    /// <param name="ambito">
+    /// Chofer por defecto, que es lo que el Módulo 3 siempre necesita. Los tests de flota piden
+    /// explícitamente <c>Vehiculo</c> (Módulo 4, FR-017).
+    /// </param>
     public static Task<DocumentacionTipo> CrearTipoDocumentacionAsync(
         this AplicacionDePrueba app,
         string nombre = "Licencia de conducir",
         int diasAvisoVencimiento = 30,
-        bool activo = true) =>
+        bool activo = true,
+        DocumentacionAmbito ambito = DocumentacionAmbito.Chofer) =>
         app.ConAlcanceAsync(async contexto =>
         {
             var tipo = new DocumentacionTipo
             {
                 Nombre = $"{nombre} {Interlocked.Increment(ref _contadorTipo)}",
                 DiasAvisoVencimiento = diasAvisoVencimiento,
+                Ambito = ambito,
                 Activo = activo,
             };
 

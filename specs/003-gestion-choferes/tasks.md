@@ -336,6 +336,17 @@ documentación intacta.
 
 ---
 
+## Phase 11: Ajuste posterior, encontrado desde el Módulo 4
+
+El módulo ya estaba cerrado y validado. Esta tarea entró después, desde el recorrido manual del
+Módulo 4 (`[004] T116`): el comportamiento era el mismo en los dos módulos, así que el arreglo tenía
+que ser el mismo. Se anota acá porque toca archivos de este módulo, y quien lea sólo este `tasks.md`
+tiene que poder enterarse.
+
+- [X] T126 Servir los escaneos **en línea** en vez de como descarga, en `backend/src/GT.Api/Choferes/DocumentacionEndpoints.cs`. *Abrir archivo* bajaba el PDF y obligaba a abrirlo a mano: `Results.File(..., nombre)` escribe `Content-Disposition: attachment`. Pasa a usar el helper compartido `backend/src/GT.Api/Archivos/ResultadoArchivo.cs`, que escribe `inline` con el nombre original más `X-Content-Type-Options: nosniff`. El mismo helper lo usa el Módulo 4 (`[004] T121`): **vive fuera de los dos a propósito**, porque si cada módulo resolviera lo suyo la misma acción podría comportarse distinto según de dónde se la tome. Test en `backend/tests/GT.IntegrationTests/Choferes/DescargaArchivoTests.cs`; el frontend no cambia —el enlace ya tenía `target="_blank"`— y eso es justamente lo que hace que la decisión sea del backend (FR-024, SC-011)
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

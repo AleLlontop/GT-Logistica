@@ -40,4 +40,17 @@ public class Transportista
     /// <b>activo</b>, y procede si están todos inactivos o no hay ninguno (FR-010).
     /// </summary>
     public ICollection<Chofer> Choferes { get; } = [];
+
+    /// <summary>
+    /// Vehículos que pertenecen a este transportista (Módulo 4, FR-008d).
+    ///
+    /// Desde el Módulo 4 la baja mira <b>las dos</b> colecciones: se rechaza si hay al menos un
+    /// chofer activo <b>o</b> al menos un vehículo activo, e informa las dos cantidades. Sin eso, un
+    /// vehículo activo podría quedar apuntando a un transportista inactivo, que es exactamente el
+    /// estado que FR-008a prohíbe crear desde el alta.
+    ///
+    /// <see cref="Flota.Vehiculo"/> vive en otra carpeta del dominio, pero en el mismo ensamblado:
+    /// la navegación compila sin mover nada (research §8).
+    /// </summary>
+    public ICollection<Flota.Vehiculo> Vehiculos { get; } = [];
 }

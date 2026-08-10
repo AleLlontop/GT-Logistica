@@ -8,7 +8,13 @@ public interface IRepositorioTiposDocumentacion
     /// El catálogo, con cuántos documentos usa cada tipo. Puede venir vacío: arranca así y no se
     /// precarga por migración.
     /// </summary>
-    Task<List<TipoConDocumentos>> ConsultarAsync(bool soloActivos, CancellationToken cancelacion);
+    /// <param name="ambito">
+    /// Filtra por ámbito (Módulo 4, FR-017a). <c>null</c> devuelve los dos.
+    /// </param>
+    Task<List<TipoConDocumentos>> ConsultarAsync(
+        bool soloActivos,
+        DocumentacionAmbito? ambito,
+        CancellationToken cancelacion);
 
     Task<TipoConDocumentos?> ObtenerConDocumentosAsync(int id, CancellationToken cancelacion);
 
@@ -16,6 +22,10 @@ public interface IRepositorioTiposDocumentacion
 
     Task<bool> ExisteNombreAsync(string nombre, int? idAExcluir, CancellationToken cancelacion);
 
+    /// <summary>
+    /// Cuántos documentos usan el tipo, sumando <b>las dos</b> tablas —choferes y vehículos— desde el
+    /// Módulo 4 (FR-017b). Es lo que impide la baja y el cambio de ámbito.
+    /// </summary>
     Task<int> ContarDocumentosAsync(int tipoId, CancellationToken cancelacion);
 
     Task AgregarAsync(DocumentacionTipo tipo, CancellationToken cancelacion);

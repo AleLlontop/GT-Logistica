@@ -118,6 +118,9 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Property<bool>("Activo")
                         .HasColumnType("bit");
 
+                    b.Property<byte>("Ambito")
+                        .HasColumnType("tinyint");
+
                     b.Property<int>("DiasAvisoVencimiento")
                         .HasColumnType("int");
 
@@ -174,6 +177,127 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                         .IsUnique();
 
                     b.ToTable("Transportistas", (string)null);
+                });
+
+            modelBuilder.Entity("GT.Domain.Flota.DocumentacionVehiculo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArchivoNombre")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("ArchivoRuta")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("ArchivoTipoContenido")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("DocumentacionTipoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("FechaEmision")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("FechaVencimiento")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("VehiculoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentacionTipoId");
+
+                    b.HasIndex("FechaVencimiento");
+
+                    b.HasIndex("VehiculoId", "DocumentacionTipoId", "FechaVencimiento")
+                        .IsDescending(false, false, true)
+                        .HasDatabaseName("IX_DocumentacionesVehiculo_VehiculoId_TipoId_Vencimiento");
+
+                    b.ToTable("DocumentacionesVehiculo", (string)null);
+                });
+
+            modelBuilder.Entity("GT.Domain.Flota.TipoVehiculo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("TiposVehiculo", (string)null);
+                });
+
+            modelBuilder.Entity("GT.Domain.Flota.Vehiculo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<byte>("EstadoOperativo")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Marca")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Modelo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Patente")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("TipoVehiculoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TransportistaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Patente")
+                        .IsUnique();
+
+                    b.HasIndex("TipoVehiculoId");
+
+                    b.HasIndex("TransportistaId");
+
+                    b.ToTable("Vehiculos", (string)null);
                 });
 
             modelBuilder.Entity("GT.Domain.Personas.Persona", b =>
@@ -417,6 +541,44 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Navigation("Tipo");
                 });
 
+            modelBuilder.Entity("GT.Domain.Flota.DocumentacionVehiculo", b =>
+                {
+                    b.HasOne("GT.Domain.Choferes.DocumentacionTipo", "Tipo")
+                        .WithMany()
+                        .HasForeignKey("DocumentacionTipoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Flota.Vehiculo", "Vehiculo")
+                        .WithMany("Documentacion")
+                        .HasForeignKey("VehiculoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Tipo");
+
+                    b.Navigation("Vehiculo");
+                });
+
+            modelBuilder.Entity("GT.Domain.Flota.Vehiculo", b =>
+                {
+                    b.HasOne("GT.Domain.Flota.TipoVehiculo", "Tipo")
+                        .WithMany("Vehiculos")
+                        .HasForeignKey("TipoVehiculoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Choferes.Transportista", "Transportista")
+                        .WithMany("Vehiculos")
+                        .HasForeignKey("TransportistaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Tipo");
+
+                    b.Navigation("Transportista");
+                });
+
             modelBuilder.Entity("GT.Domain.Usuarios.Usuario", b =>
                 {
                     b.HasOne("GT.Domain.Personas.Persona", "Persona")
@@ -470,6 +632,18 @@ namespace GT.Infrastructure.Persistencia.Migraciones
             modelBuilder.Entity("GT.Domain.Choferes.Transportista", b =>
                 {
                     b.Navigation("Choferes");
+
+                    b.Navigation("Vehiculos");
+                });
+
+            modelBuilder.Entity("GT.Domain.Flota.TipoVehiculo", b =>
+                {
+                    b.Navigation("Vehiculos");
+                });
+
+            modelBuilder.Entity("GT.Domain.Flota.Vehiculo", b =>
+                {
+                    b.Navigation("Documentacion");
                 });
 
             modelBuilder.Entity("GT.Domain.Personas.Persona", b =>

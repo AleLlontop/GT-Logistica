@@ -37,7 +37,7 @@ public class ConsultarTransportistaPorId(IRepositorioTransportistas repositorio)
         int id,
         CancellationToken cancelacion = default)
     {
-        var fila = await repositorio.ObtenerConChoferesActivosAsync(id, cancelacion);
+        var fila = await repositorio.ObtenerConDependenciasActivasAsync(id, cancelacion);
 
         if (fila is null)
         {

@@ -38,6 +38,10 @@
 - FR-029 no tiene escenario de aceptación de forma deliberada: describe una falla del almacén de
   archivos que no se puede provocar desde la pantalla; su verificación queda delegada a un test
   automatizado, tal como se resolvió en el Módulo 3.
+- `/speckit-clarify` (2026-08-08) cerró cuatro ambigüedades más: filtro único de estado del vehículo
+  con tres valores (FR-030a), reactivación de un vehículo dado de baja y patente que no se puede
+  reutilizar (FR-008e, FR-008f), archivo adjunto opcional (FR-016a) y corrección del ámbito de un
+  tipo de documentación sólo mientras no tenga documentos (FR-017d).
 - La relación `Transportista 1 — * Vehiculo` se incorporó después del primer cierre: el
   transportista es obligatorio en el alta (FR-008a), se puede reasignar (FR-008c), suma una columna y
   un cuarto filtro al listado (FR-030) y aparece en la ficha (FR-038).

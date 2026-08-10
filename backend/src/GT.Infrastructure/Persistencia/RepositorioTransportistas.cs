@@ -37,7 +37,7 @@ public class RepositorioTransportistas(GtDbContext contexto) : IRepositorioTrans
         }
     }
 
-    public async Task<List<TransportistaConChoferesActivos>> ConsultarAsync(
+    public async Task<List<TransportistaConDependenciasActivas>> ConsultarAsync(
         string? textoBusqueda,
         string? cuitNormalizado,
         bool soloActivos,
@@ -60,25 +60,31 @@ public class RepositorioTransportistas(GtDbContext contexto) : IRepositorioTrans
                 EF.Functions.Like(t.Cuit, porCuit));
         }
 
-        // La cantidad de choferes activos se cuenta en la misma consulta (FR-010): trae un número
-        // por fila en vez de los choferes enteros.
+        // Las cantidades de dependientes activos se cuentan en la misma consulta (FR-010, FR-008d):
+        // traen un número por fila en vez de las colecciones enteras.
         var filas = await consulta
             .OrderBy(t => t.Nombre)
             .ThenBy(t => t.Id)
             .Select(t => new
             {
                 Transportista = t,
-                ChoferesActivos = t.Choferes.Count(chofer => chofer.Activo)
+                ChoferesActivos = t.Choferes.Count(chofer => chofer.Activo),
+                // Módulo 4, FR-008d: los vehículos activos viajan en la misma consulta que los
+                // choferes. Dos números por fila, no dos colecciones traídas a memoria (research §8).
+                VehiculosActivos = t.Vehiculos.Count(vehiculo => vehiculo.Activo),
             })
             .AsNoTracking()
             .ToListAsync(cancelacion);
 
         return filas
-            .Select(fila => new TransportistaConChoferesActivos(fila.Transportista, fila.ChoferesActivos))
+            .Select(fila => new TransportistaConDependenciasActivas(
+                fila.Transportista,
+                fila.ChoferesActivos,
+                fila.VehiculosActivos))
             .ToList();
     }
 
-    public async Task<TransportistaConChoferesActivos?> ObtenerConChoferesActivosAsync(
+    public async Task<TransportistaConDependenciasActivas?> ObtenerConDependenciasActivasAsync(
         int id,
         CancellationToken cancelacion)
     {
@@ -87,14 +93,20 @@ public class RepositorioTransportistas(GtDbContext contexto) : IRepositorioTrans
             .Select(t => new
             {
                 Transportista = t,
-                ChoferesActivos = t.Choferes.Count(chofer => chofer.Activo)
+                ChoferesActivos = t.Choferes.Count(chofer => chofer.Activo),
+                // Módulo 4, FR-008d: los vehículos activos viajan en la misma consulta que los
+                // choferes. Dos números por fila, no dos colecciones traídas a memoria (research §8).
+                VehiculosActivos = t.Vehiculos.Count(vehiculo => vehiculo.Activo),
             })
             .AsNoTracking()
             .FirstOrDefaultAsync(cancelacion);
 
         return fila is null
             ? null
-            : new TransportistaConChoferesActivos(fila.Transportista, fila.ChoferesActivos);
+            : new TransportistaConDependenciasActivas(
+                fila.Transportista,
+                fila.ChoferesActivos,
+                fila.VehiculosActivos);
     }
 
     public Task<Transportista?> ObtenerPorIdAsync(int id, CancellationToken cancelacion) =>

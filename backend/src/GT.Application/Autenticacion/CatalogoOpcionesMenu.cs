@@ -33,6 +33,14 @@ public static class CatalogoOpcionesMenu
             new OpcionMenuDto("transportistas", "Transportistas", "/transportistas")),
         (CodigosPermiso.ChoferesGestionar,
             new OpcionMenuDto("tipos-documentacion", "Tipos de documentación", "/tipos-documentacion")),
+
+        // Módulo 4. Las dos entradas van atadas a permisos **distintos**: es el primer módulo que
+        // distingue niveles de acceso adentro, y el catálogo de tipos de vehículo es sólo del
+        // administrador. Tráfico ve *Flota* y no ve *Tipos de vehículo* (FR-039, research §7).
+        (CodigosPermiso.FlotaGestionar,
+            new OpcionMenuDto("flota", "Flota", "/flota")),
+        (CodigosPermiso.FlotaTiposGestionar,
+            new OpcionMenuDto("tipos-vehiculo", "Tipos de vehículo", "/tipos-vehiculo")),
     ];
 
     /// <summary>

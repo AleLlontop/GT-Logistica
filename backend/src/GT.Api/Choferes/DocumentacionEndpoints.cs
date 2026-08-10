@@ -1,3 +1,4 @@
+using GT.Api.Archivos;
 using GT.Api.Autorizacion;
 using GT.Application.Autenticacion;
 using GT.Application.Choferes;
@@ -116,6 +117,7 @@ public static class DocumentacionEndpoints
     private static async Task<IResult> DescargarAsync(
         int id,
         DescargarArchivoDocumento descargar,
+        HttpContext contexto,
         CancellationToken cancelacion)
     {
         var archivo = await descargar.EjecutarAsync(id, cancelacion);
@@ -125,7 +127,12 @@ public static class DocumentacionEndpoints
             return NoEncontrado();
         }
 
-        return Results.File(archivo.Contenido, archivo.TipoContenido, archivo.Nombre);
+        // En línea y no como descarga: quien abre un documento lo quiere ver, no bajarlo primero.
+        return ResultadoArchivo.EnLinea(
+            contexto,
+            archivo.Contenido,
+            archivo.TipoContenido,
+            archivo.Nombre);
     }
 
     private static DocumentoRequest LeerDocumento(IFormCollection formulario) => new(

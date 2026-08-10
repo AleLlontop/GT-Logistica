@@ -2,6 +2,7 @@ using GT.Api.Autorizacion;
 using GT.Application.Autenticacion;
 using GT.Application.Choferes;
 using GT.Application.Choferes.Transportistas;
+using GT.Application.Flota;
 using GT.Domain.Usuarios;
 
 namespace GT.Api.Choferes;
@@ -115,10 +116,18 @@ public static class TransportistasEndpoints
             MensajesChoferes.CuitDuplicado,
             resultado.Campo),
 
-        ErrorTransportista.ConChoferes => new ErrorResponse(
+        // El cuerpo trae las dos cantidades por separado: saber que hay dependientes sin saber
+        // cuántos —y de qué clase— no ayuda a resolverlo (Módulo 4, FR-008d, SC-008).
+        ErrorTransportista.ConChoferes => new ErrorConDependencias(
             CodigosErrorChoferes.TransportistaConChoferes,
-            MensajesChoferes.TransportistaConChoferes(resultado.CantidadChoferes ?? 0),
-            resultado.Campo),
+            MensajesChoferes.TransportistaConChoferes(
+                resultado.CantidadChoferes ?? 0,
+                resultado.CantidadVehiculos ?? 0),
+            resultado.Campo)
+        {
+            CantidadChoferes = resultado.CantidadChoferes,
+            CantidadVehiculos = resultado.CantidadVehiculos,
+        },
 
         ErrorTransportista.NoEncontrado => new ErrorResponse(
             CodigosErrorChoferes.NoEncontrado,

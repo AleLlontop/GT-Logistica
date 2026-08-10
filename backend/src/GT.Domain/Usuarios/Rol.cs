@@ -39,4 +39,20 @@ public static class CodigosPermiso
     /// porque la spec no distingue niveles de acceso dentro de él.
     /// </summary>
     public const string ChoferesGestionar = "choferes.gestionar";
+
+    /// <summary>
+    /// Módulo 4: vehículos, su documentación, el panel de vencimientos y la descarga de adjuntos. Lo
+    /// otorgan *Tráfico* y *Administrador del sistema* (FR-039).
+    /// </summary>
+    public const string FlotaGestionar = "flota.gestionar";
+
+    /// <summary>
+    /// Módulo 4: sólo el ABM del catálogo de tipos de vehículo, y lo otorga únicamente
+    /// *Administrador del sistema* (FR-039).
+    ///
+    /// Es la primera vez que un módulo distingue niveles de acceso <b>adentro</b>. Se resuelve con
+    /// dos permisos y no con un chequeo de rol en el endpoint, porque la convención del Módulo 1 es
+    /// autorizar por permiso y nunca por rol (research §7).
+    /// </summary>
+    public const string FlotaTiposGestionar = "flota.tipos.gestionar";
 }

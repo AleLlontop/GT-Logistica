@@ -10,6 +10,11 @@ export interface Transportista {
   activo: boolean
   /** Cuántos choferes activos dependen de él. Es lo que impide su baja (FR-010). */
   choferesActivos: number
+  /**
+   * Cuántos vehículos activos le pertenecen. Desde el Módulo 4 también impiden la baja, y el mensaje
+   * de rechazo informa las dos cantidades por separado (FR-008d).
+   */
+  vehiculosActivos: number
 }
 
 export interface TransportistaRequest {

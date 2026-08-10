@@ -1,4 +1,5 @@
 using GT.Domain.Choferes;
+using GT.Domain.Flota;
 using GT.Domain.Personas;
 using GT.Domain.Usuarios;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,17 @@ public class GtDbContext(DbContextOptions<GtDbContext> opciones) : DbContext(opc
     public DbSet<DocumentacionTipo> DocumentacionTipos => Set<DocumentacionTipo>();
 
     public DbSet<Documentacion> Documentaciones => Set<Documentacion>();
+
+    // ── Módulo 4: gestión de flota ─────────────────────────────────────────────────────────────
+    public DbSet<TipoVehiculo> TiposVehiculo => Set<TipoVehiculo>();
+
+    public DbSet<Vehiculo> Vehiculos => Set<Vehiculo>();
+
+    /// <summary>
+    /// Tabla propia, separada de <see cref="Documentaciones"/>: comparten la regla de vencimientos y
+    /// el almacén de archivos, no las filas (Módulo 4, research §1).
+    /// </summary>
+    public DbSet<DocumentacionVehiculo> DocumentacionesVehiculo => Set<DocumentacionVehiculo>();
 
     /// <summary>
     /// Se aplica a las propiedades <c>DateTime</c> y <c>DateTime?</c> de todo el modelo. Los

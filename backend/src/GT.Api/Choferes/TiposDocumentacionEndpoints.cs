@@ -2,6 +2,7 @@ using GT.Api.Autorizacion;
 using GT.Application.Autenticacion;
 using GT.Application.Choferes;
 using GT.Application.Choferes.Documentacion;
+using GT.Application.Flota;
 using GT.Domain.Usuarios;
 
 namespace GT.Api.Choferes;
@@ -11,6 +12,10 @@ namespace GT.Api.Choferes;
 ///
 /// Arranca vacío y no se precarga por migración: el primer tipo lo carga quien opera, desde la
 /// pantalla. Sin al menos uno no se puede registrar ningún documento.
+///
+/// <b>Sirve a dos módulos desde el Módulo 4</b> y por eso cada tipo declara su ámbito: el ABM sigue
+/// viviendo acá, bajo <c>choferes.gestionar</c>, y no se duplica en flota (Módulo 4, FR-017,
+/// research §3).
 /// </summary>
 public static class TiposDocumentacionEndpoints
 {
@@ -30,11 +35,20 @@ public static class TiposDocumentacionEndpoints
     /// Anulable a propósito: pedir el catálogo sin el parámetro tiene que tomar el valor por defecto
     /// del contrato en vez de fallar al enlazar.
     /// </param>
+    /// <param name="ambito">
+    /// Filtra por ámbito (Módulo 4, FR-017a). Omitido devuelve los dos, que es lo que muestra la
+    /// pantalla de mantenimiento. Un valor desconocido se ignora en vez de romper: filtrar de más no
+    /// es un error.
+    /// </param>
     private static async Task<IResult> ListarAsync(
         bool? soloActivos,
+        string? ambito,
         GestionTiposDocumentacion gestion,
         CancellationToken cancelacion) =>
-        Results.Ok(await gestion.ConsultarAsync(soloActivos ?? false, cancelacion));
+        Results.Ok(await gestion.ConsultarAsync(
+            soloActivos ?? false,
+            ValidadorTipoDocumentacion.LeerAmbito(ambito),
+            cancelacion));
 
     private static async Task<IResult> CrearAsync(
         TipoDocumentacionRequest peticion,
@@ -61,9 +75,24 @@ public static class TiposDocumentacionEndpoints
             return Results.Ok(resultado.Tipo);
         }
 
-        return resultado.Error is ErrorTipoDocumentacion.NoEncontrado
-            ? NoEncontrado()
-            : Results.BadRequest(TraducirError(resultado));
+        return resultado.Error switch
+        {
+            ErrorTipoDocumentacion.NoEncontrado => NoEncontrado(),
+
+            // 409 y no 400: los datos que mandaron son válidos; lo que impide el cambio es el estado
+            // del tipo, y el cuerpo dice cuántos documentos son (Módulo 4, FR-017d).
+            ErrorTipoDocumentacion.AmbitoNoModificable => Results.Json(
+                new ErrorConDependencias(
+                    CodigosErrorChoferes.AmbitoNoModificable,
+                    MensajesChoferes.AmbitoNoModificable(resultado.CantidadDocumentos ?? 0),
+                    resultado.Campo)
+                {
+                    CantidadDocumentos = resultado.CantidadDocumentos,
+                },
+                statusCode: StatusCodes.Status409Conflict),
+
+            _ => Results.BadRequest(TraducirError(resultado)),
+        };
     }
 
     private static async Task<IResult> DarDeBajaAsync(

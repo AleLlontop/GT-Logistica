@@ -84,6 +84,32 @@ public class DescargaArchivoTests(AplicacionDePrueba app) : IClassFixture<Aplica
         Assert.Equal(AyudasDeDocumentacion.Pdf("secreto"), contenido);
     }
 
+    /// <summary>
+    /// El archivo se sirve <b>en línea</b>: quien abre un documento lo quiere ver en el navegador, no
+    /// bajarlo y abrirlo a mano. Es la cabecera la que decide, no el enlace del frontend.
+    ///
+    /// El nombre viaja igual, para que "Guardar como" siga proponiendo el original, y va
+    /// <c>nosniff</c> porque servir contenido en línea desde el propio origen no puede depender de
+    /// que el navegador adivine el tipo.
+    /// </summary>
+    [Fact]
+    public async Task El_Archivo_SeSirveEnLinea_ConSuNombre()
+    {
+        var documentoId = await CrearDocumentoConArchivoAsync(99111222);
+
+        var cliente = await app.CrearClienteAutenticadoAsync();
+
+        var respuesta = await cliente.GetAsync($"/api/documentacion/{documentoId}/archivo");
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+
+        var disposicion = respuesta.Content.Headers.ContentDisposition;
+        Assert.Equal("inline", disposicion!.DispositionType);
+        Assert.Contains("escaneo.pdf", $"{disposicion.FileName} {disposicion.FileNameStar}");
+
+        Assert.Equal("nosniff", Assert.Single(respuesta.Headers.GetValues("X-Content-Type-Options")));
+    }
+
     /// <summary>Un documento sin adjunto se comunica igual que uno inexistente: no hay nada que dar.</summary>
     [Fact]
     public async Task Sin_Adjunto_RespondeNoEncontrado()

@@ -9,6 +9,7 @@ public class RepositorioTiposDocumentacion(GtDbContext contexto) : IRepositorioT
 {
     public async Task<List<TipoConDocumentos>> ConsultarAsync(
         bool soloActivos,
+        DocumentacionAmbito? ambito,
         CancellationToken cancelacion)
     {
         var consulta = contexto.DocumentacionTipos.AsQueryable();
@@ -18,10 +19,24 @@ public class RepositorioTiposDocumentacion(GtDbContext contexto) : IRepositorioT
             consulta = consulta.Where(tipo => tipo.Activo);
         }
 
+        // Cada módulo ofrece únicamente los tipos de su ámbito (Módulo 4, FR-017a). Sin el
+        // parámetro se devuelven los dos, que es lo que muestra la pantalla de mantenimiento.
+        if (ambito is { } soloDeEsteAmbito)
+        {
+            consulta = consulta.Where(tipo => tipo.Ambito == soloDeEsteAmbito);
+        }
+
         var filas = await consulta
             .OrderBy(tipo => tipo.Nombre)
             .ThenBy(tipo => tipo.Id)
-            .Select(tipo => new { Tipo = tipo, Documentos = tipo.Documentos.Count })
+            .Select(tipo => new
+            {
+                Tipo = tipo,
+                // Las dos tablas, en la misma consulta (Módulo 4, FR-017b).
+                Documentos = tipo.Documentos.Count +
+                    contexto.DocumentacionesVehiculo.Count(documento =>
+                        documento.DocumentacionTipoId == tipo.Id),
+            })
             .AsNoTracking()
             .ToListAsync(cancelacion);
 
@@ -32,7 +47,13 @@ public class RepositorioTiposDocumentacion(GtDbContext contexto) : IRepositorioT
     {
         var fila = await contexto.DocumentacionTipos
             .Where(tipo => tipo.Id == id)
-            .Select(tipo => new { Tipo = tipo, Documentos = tipo.Documentos.Count })
+            .Select(tipo => new
+            {
+                Tipo = tipo,
+                Documentos = tipo.Documentos.Count +
+                    contexto.DocumentacionesVehiculo.Count(documento =>
+                        documento.DocumentacionTipoId == tipo.Id),
+            })
             .AsNoTracking()
             .FirstOrDefaultAsync(cancelacion);
 
@@ -47,10 +68,25 @@ public class RepositorioTiposDocumentacion(GtDbContext contexto) : IRepositorioT
             tipo => tipo.Nombre == nombre && (idAExcluir == null || tipo.Id != idAExcluir),
             cancelacion);
 
-    public Task<int> ContarDocumentosAsync(int tipoId, CancellationToken cancelacion) =>
-        contexto.Documentaciones.CountAsync(
+    /// <summary>
+    /// Cuenta los documentos de <b>las dos</b> tablas —choferes y vehículos— (Módulo 4, FR-017b).
+    ///
+    /// Es el único método del Módulo 3 cuyo resultado cambió con el Módulo 4, y cambia hacia el lado
+    /// seguro: bloquea más bajas, nunca menos. Un tipo con documentos de vehículo ya no se puede dar
+    /// de baja desde la pantalla de choferes, que es lo correcto.
+    /// </summary>
+    public async Task<int> ContarDocumentosAsync(int tipoId, CancellationToken cancelacion)
+    {
+        var deChoferes = await contexto.Documentaciones.CountAsync(
             documento => documento.DocumentacionTipoId == tipoId,
             cancelacion);
+
+        var deVehiculos = await contexto.DocumentacionesVehiculo.CountAsync(
+            documento => documento.DocumentacionTipoId == tipoId,
+            cancelacion);
+
+        return deChoferes + deVehiculos;
+    }
 
     public Task AgregarAsync(DocumentacionTipo tipo, CancellationToken cancelacion)
     {

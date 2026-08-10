@@ -49,7 +49,7 @@ public class ModificarTransportista(IRepositorioTransportistas repositorio)
             return new ResultadoTransportista(ErrorTransportista.CuitDuplicado, null, "cuit");
         }
 
-        var fila = await repositorio.ObtenerConChoferesActivosAsync(id, cancelacion);
+        var fila = await repositorio.ObtenerConDependenciasActivasAsync(id, cancelacion);
 
         return new ResultadoTransportista(
             ErrorTransportista.Ninguno,
@@ -58,12 +58,18 @@ public class ModificarTransportista(IRepositorioTransportistas repositorio)
 }
 
 /// <summary>
-/// Baja lógica de un transportista (FR-010).
+/// Baja lógica de un transportista (FR-010, y desde el Módulo 4 también FR-008d).
 ///
-/// Se rechaza si tiene al menos un chofer <b>activo</b>, informando cuántos son: dejarlo dar de baja
-/// dejaría choferes activos colgando de un transportista inactivo, que es lo mismo que FR-008 no
-/// admite al darlos de alta. La baja procede si todos sus choferes están inactivos o si no tiene
-/// ninguno.
+/// Se rechaza si tiene al menos un chofer <b>activo</b> <b>o</b> al menos un vehículo <b>activo</b>,
+/// informando <b>las dos cantidades</b>: dejarlo dar de baja dejaría dependientes activos colgando de
+/// un transportista inactivo, que es lo mismo que FR-008 —y FR-008a en la flota— no admiten al darlos
+/// de alta. La baja procede si todos están inactivos o si no tiene ninguno.
+///
+/// <b>La asimetría con los catálogos es deliberada</b> y no hay que "arreglarla": acá se miran sólo
+/// los dependientes <i>activos</i>, mientras que el tipo de vehículo (FR-010 del Módulo 4) y el de
+/// documentación (FR-017b) se rechazan por dependientes cualesquiera. Un vehículo dado de baja sigue
+/// mostrando su tipo y un documento histórico sigue necesitando los días de aviso del suyo, pero un
+/// transportista inactivo no le hace falta a nadie que ya esté de baja (research §8).
 ///
 /// G&amp;T Logística S.A. no recibe trato especial: se le aplica la misma regla.
 /// </summary>
@@ -73,17 +79,18 @@ public class DarDeBajaTransportista(IRepositorioTransportistas repositorio)
         int id,
         CancellationToken cancelacion = default)
     {
-        var fila = await repositorio.ObtenerConChoferesActivosAsync(id, cancelacion);
+        var fila = await repositorio.ObtenerConDependenciasActivasAsync(id, cancelacion);
         if (fila is null)
         {
             return new ResultadoTransportista(ErrorTransportista.NoEncontrado, null);
         }
 
-        if (fila.ChoferesActivos > 0)
+        if (fila.ChoferesActivos > 0 || fila.VehiculosActivos > 0)
         {
             return new ResultadoTransportista(ErrorTransportista.ConChoferes, null)
             {
                 CantidadChoferes = fila.ChoferesActivos,
+                CantidadVehiculos = fila.VehiculosActivos,
             };
         }
 

@@ -25,6 +25,7 @@ const licencia: TipoDocumentacion = {
   id: 1,
   nombre: 'Licencia de conducir',
   diasAvisoVencimiento: 30,
+  ambito: 'chofer',
   activo: true,
   documentosAsociados: 0,
 }

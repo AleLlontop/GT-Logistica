@@ -3,10 +3,14 @@ using GT.Api.Autorizacion;
 using GT.Api.Usuarios;
 using GT.Api.Usuarios.Personas;
 using GT.Api.Choferes;
+using GT.Api.Flota;
 using GT.Application.Autenticacion;
 using GT.Application.Choferes;
 using GT.Application.Choferes.Documentacion;
 using GT.Application.Choferes.Transportistas;
+using GT.Application.Flota;
+using GT.Application.Flota.Documentacion;
+using GT.Application.Flota.TiposVehiculo;
 using GT.Application.Usuarios;
 using GT.Application.Usuarios.Personas;
 using GT.Domain.Usuarios;
@@ -75,6 +79,25 @@ builder.Services.AddScoped<CorregirDocumento>();
 builder.Services.AddScoped<EliminarDocumento>();
 builder.Services.AddScoped<DescargarArchivoDocumento>();
 builder.Services.AddScoped<ConsultarVencimientos>();
+
+// ── Módulo 4: gestión de flota ─────────────────────────────────────────────────────────────────
+// No agrega ninguna infraestructura: el almacén de archivos, el validador por firma y la paginación
+// ya están registrados arriba y se consumen sin tocarlos (research §2).
+builder.Services.AddScoped<IRepositorioTiposVehiculo, RepositorioTiposVehiculo>();
+builder.Services.AddScoped<GestionTiposVehiculo>();
+builder.Services.AddScoped<IRepositorioVehiculos, RepositorioVehiculos>();
+builder.Services.AddScoped<CrearVehiculo>();
+builder.Services.AddScoped<ConsultarFlota>();
+builder.Services.AddScoped<ConsultarFichaVehiculo>();
+builder.Services.AddScoped<ModificarVehiculo>();
+builder.Services.AddScoped<DarDeBajaVehiculo>();
+builder.Services.AddScoped<ReactivarVehiculo>();
+builder.Services.AddScoped<IRepositorioDocumentacionVehiculo, RepositorioDocumentacionVehiculo>();
+builder.Services.AddScoped<CargarDocumentoVehiculo>();
+builder.Services.AddScoped<CorregirDocumentoVehiculo>();
+builder.Services.AddScoped<EliminarDocumentoVehiculo>();
+builder.Services.AddScoped<DescargarArchivoDocumentoVehiculo>();
+builder.Services.AddScoped<ConsultarVencimientosFlota>();
 
 // Los escaneos van a un volumen, no a la base (research §3). La ruta llega por variable de entorno
 // para que el contenedor y una corrida local puedan apuntar a lugares distintos sin tocar el código.
@@ -169,7 +192,11 @@ builder.Services.AddSingleton<IAuthorizationHandler, PermisoHandler>();
 builder.Services.AddAuthorization(opciones =>
     opciones.AgregarPoliticasDePermisos(
         CodigosPermiso.UsuariosGestionar,
-        CodigosPermiso.ChoferesGestionar));
+        CodigosPermiso.ChoferesGestionar,
+        // Módulo 4: dos permisos, no uno. El catálogo de tipos de vehículo es sólo del administrador
+        // y el resto del módulo también es de Tráfico (FR-039, research §7).
+        CodigosPermiso.FlotaGestionar,
+        CodigosPermiso.FlotaTiposGestionar));
 
 builder.Services.Configure<JsonOptions>(opciones =>
     opciones.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
@@ -225,6 +252,9 @@ app.MapearTransportistas();
 app.MapearChoferes();
 app.MapearTiposDocumentacion();
 app.MapearDocumentacion();
+app.MapearTiposVehiculo();
+app.MapearVehiculos();
+app.MapearDocumentacionVehiculo();
 
 await AplicarMigracionesYSembrarAsync(app);
 

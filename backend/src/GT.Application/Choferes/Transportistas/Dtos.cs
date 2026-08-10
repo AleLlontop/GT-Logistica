@@ -8,13 +8,25 @@ public enum ErrorTransportista
     NoEncontrado,
     DatosInvalidos,
     CuitDuplicado,
+
+    /// <summary>
+    /// El transportista tiene dependientes activos. Desde el Módulo 4 cuentan <b>choferes y
+    /// vehículos</b>, y el mensaje informa las dos cantidades (FR-008d).
+    /// </summary>
     ConChoferes,
 }
 
 public record ResultadoTransportista(ErrorTransportista Error, TransportistaDto? Transportista, string? Campo = null)
 {
     public bool Exitoso => Error is ErrorTransportista.Ninguno;
+
     public int? CantidadChoferes { get; init; }
+
+    /// <summary>
+    /// Vehículos activos que dependen del transportista. Desde el Módulo 4 la baja los cuenta también,
+    /// y el mensaje informa <b>las dos</b> cantidades por separado (FR-008d, SC-008).
+    /// </summary>
+    public int? CantidadVehiculos { get; init; }
 }
 
 public record TransportistaRequest(
@@ -25,12 +37,21 @@ public record TransportistaRequest(
     string? Email);
 
 /// <summary>
-/// Un transportista con la cantidad de choferes activos que dependen de él, que es lo que impide su
-/// baja (FR-010) y la columna que el listado muestra. Se resuelve en la consulta, no trayendo los
-/// choferes a memoria.
+/// Un transportista con la cantidad de <b>dependientes activos</b> —choferes y vehículos—, que es lo
+/// que impide su baja (FR-010, y desde el Módulo 4 también FR-008d) y lo que el listado muestra.
+///
+/// Las dos cantidades se resuelven en la misma consulta: una fila con dos números, no dos colecciones
+/// traídas a memoria (research §8).
 /// </summary>
-public record TransportistaConChoferesActivos(Transportista Transportista, int ChoferesActivos);
+public record TransportistaConDependenciasActivas(
+    Transportista Transportista,
+    int ChoferesActivos,
+    int VehiculosActivos);
 
+/// <param name="VehiculosActivos">
+/// Cuántos vehículos activos pertenecen al transportista (Módulo 4, FR-008d). El listado lo muestra
+/// junto a los choferes: es lo que explica por qué algunos no se pueden dar de baja.
+/// </param>
 public record TransportistaDto(
     int Id,
     string Nombre,
@@ -39,9 +60,13 @@ public record TransportistaDto(
     string Telefono,
     string Email,
     bool Activo,
-    int ChoferesActivos)
+    int ChoferesActivos,
+    int VehiculosActivos)
 {
-    public static TransportistaDto Desde(Transportista transportista, int choferesActivos = 0) => new(
+    public static TransportistaDto Desde(
+        Transportista transportista,
+        int choferesActivos = 0,
+        int vehiculosActivos = 0) => new(
         transportista.Id,
         transportista.Nombre,
         transportista.Cuit,
@@ -49,10 +74,11 @@ public record TransportistaDto(
         transportista.Telefono,
         transportista.Email,
         transportista.Activo,
-        choferesActivos);
+        choferesActivos,
+        vehiculosActivos);
 
-    public static TransportistaDto Desde(TransportistaConChoferesActivos fila) =>
-        Desde(fila.Transportista, fila.ChoferesActivos);
+    public static TransportistaDto Desde(TransportistaConDependenciasActivas fila) =>
+        Desde(fila.Transportista, fila.ChoferesActivos, fila.VehiculosActivos);
 }
 
 public static class ValidadorTransportista

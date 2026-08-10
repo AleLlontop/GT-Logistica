@@ -174,6 +174,9 @@ public static class NombresDeEstado
 
     public static string DelDocumento(DocumentacionEstado estado) => EnCamelCase(estado.ToString());
 
+    /// <summary>Ámbito de un tipo de documentación: <c>chofer</c> o <c>vehiculo</c> (Módulo 4, FR-017).</summary>
+    public static string DelAmbito(DocumentacionAmbito ambito) => EnCamelCase(ambito.ToString());
+
     private static string EnCamelCase(string nombre) =>
         char.ToLowerInvariant(nombre[0]) + nombre[1..];
 }

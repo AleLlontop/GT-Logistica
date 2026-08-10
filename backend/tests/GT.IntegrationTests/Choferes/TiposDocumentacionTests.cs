@@ -7,8 +7,12 @@ namespace GT.IntegrationTests.Choferes;
 /// <summary>Alta y modificación del catálogo de tipos de documentación (FR-013).</summary>
 public class TiposDocumentacionTests(AplicacionDePrueba app) : IClassFixture<AplicacionDePrueba>
 {
-    private static object Alta(string nombre, int diasAvisoVencimiento = 30) =>
-        new { nombre, diasAvisoVencimiento };
+    /// <param name="ambito">
+    /// Obligatorio desde el Módulo 4 (FR-017). Chofer por defecto, que es el ámbito de todo lo que
+    /// este archivo prueba.
+    /// </param>
+    private static object Alta(string nombre, int diasAvisoVencimiento = 30, string ambito = "chofer") =>
+        new { nombre, diasAvisoVencimiento, ambito };
 
     [Fact]
     public async Task Crea_UnTipo_ConSusDiasDeAviso()
@@ -131,10 +135,28 @@ public class TiposDocumentacionTests(AplicacionDePrueba app) : IClassFixture<Apl
         Assert.DoesNotContain(activos!, t => t.Id == tipo.Id);
     }
 
+    /// <summary>El ámbito es obligatorio desde el Módulo 4 y sin él el alta se rechaza (FR-017).</summary>
+    [Fact]
+    public async Task Rechaza_UnTipoSinAmbito()
+    {
+        var cliente = await app.CrearClienteAutenticadoAsync();
+
+        var respuesta = await cliente.PostAsJsonAsync(
+            "/api/tipos-documentacion",
+            new { nombre = "Tipo sin ámbito", diasAvisoVencimiento = 30 });
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+
+        var error = await respuesta.Content.ReadFromJsonAsync<RespuestaError>();
+        Assert.Equal("datos_invalidos", error!.Codigo);
+        Assert.Equal("ambito", error.Campo);
+    }
+
     private record TipoLeido(
         int Id,
         string Nombre,
         int DiasAvisoVencimiento,
+        string Ambito,
         bool Activo,
         int DocumentosAsociados);
 

@@ -111,6 +111,9 @@ export function ListadoTransportistas() {
               <th scope="col">Email</th>
               <th scope="col">Estado</th>
               <th scope="col">Choferes activos</th>
+              {/* Módulo 4, FR-008d: la baja mira también la flota, así que la pantalla muestra las
+                  dos cantidades. Es lo que explica por qué algunos no se pueden dar de baja. */}
+              <th scope="col">Vehículos activos</th>
               <th scope="col">Acciones</th>
             </tr>
           </thead>
@@ -124,6 +127,7 @@ export function ListadoTransportistas() {
                 <td>{transportista.email}</td>
                 <td>{transportista.activo ? 'Activo' : 'Inactivo'}</td>
                 <td>{transportista.choferesActivos}</td>
+                <td>{transportista.vehiculosActivos}</td>
                 <td>
                   <button
                     type="button"

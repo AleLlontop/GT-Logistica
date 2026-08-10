@@ -81,7 +81,7 @@ ve por qué no está el chofer que dio de baja ayer, y lo encuentra cambiando el
 | Transportista | Nombre, con enlace a su ficha |
 | Documentación | Una fila por documento: tipo, número, emisión, vencimiento, **estado calculado** y el archivo si lo tiene. Agrupada por tipo, con el vigente primero y sus renovaciones anteriores debajo |
 | Documento histórico | El que fue reemplazado por una renovación se muestra atenuado y marcado como *Reemplazado*, con el estado en gris: sigue visible, pero no es el que cuenta (FR-020a) |
-| Acciones por documento | *Abrir archivo* (si lo tiene), *Corregir* y *Eliminar* (FR-015b, FR-015c) |
+| Acciones por documento | *Abrir archivo* (si lo tiene), *Corregir* y *Eliminar* (FR-015b, FR-015c). *Abrir archivo* abre el escaneo **en una pestaña nueva y se ve ahí**, no se descarga: lo decide el backend con `Content-Disposition: inline`, no el enlace |
 | Chofer sin documentos | Mensaje explícito de que no tiene documentación cargada, no una tabla vacía (caso límite) |
 | Documento sin archivo | Se muestra como *Sin respaldo*, distinto de uno con adjunto (caso límite) |
 | Acciones | *Cargar documento*, *Editar chofer* y *Dar de baja*. Si el chofer está inactivo, en lugar de *Dar de baja* aparece **Reactivar** (FR-005b) |

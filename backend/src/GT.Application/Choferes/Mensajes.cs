@@ -17,6 +17,9 @@ public static class CodigosErrorChoferes
     public const string TipoDuplicado = "tipo_duplicado";
     public const string TipoInexistente = "tipo_inexistente";
     public const string TipoConDocumentos = "tipo_con_documentos";
+
+    /// <summary>Módulo 4, FR-017d: se quiso cambiar el ámbito de un tipo que ya tiene documentos.</summary>
+    public const string AmbitoNoModificable = "ambito_no_modificable";
     public const string ArchivoNoAdmitido = "archivo_no_admitido";
     public const string ArchivoNoGuardado = "archivo_no_guardado";
     public const string NoEncontrado = "no_encontrado";
@@ -67,14 +70,27 @@ public static class MensajesChoferes
     public const string NoEncontrado =
         "Ese registro ya no existe. Puede que lo hayan eliminado desde otra sesión.";
 
-    /// <summary>Dice cuántos choferes activos impiden la baja, para que se sepa qué resolver (FR-010).</summary>
-    public static string TransportistaConChoferes(int cantidad) =>
-        $"No se puede dar de baja: tiene {cantidad} chofer(es) activo(s). Reasignalos o dalos de " +
-        "baja primero.";
+    /// <summary>
+    /// Dice cuántos dependientes activos impiden la baja, para que se sepa qué resolver (FR-010).
+    ///
+    /// Desde el Módulo 4 informa <b>las dos cantidades por separado</b> —choferes y vehículos— y no
+    /// una suma: son dos problemas distintos, que se resuelven en dos pantallas distintas (FR-008d,
+    /// SC-008).
+    /// </summary>
+    public static string TransportistaConChoferes(int choferes, int vehiculos) =>
+        $"No se puede dar de baja: {choferes} chofer(es) y {vehiculos} vehículo(s) activos dependen " +
+        "de este transportista. Reasignalos o dalos de baja primero.";
 
-    /// <summary>Dice cuántos documentos usan el tipo que se quiso dar de baja (FR-014).</summary>
+    /// <summary>
+    /// Dice cuántos documentos usan el tipo que se quiso dar de baja (FR-014). Desde el Módulo 4 la
+    /// cuenta suma los de choferes y los de vehículos (FR-017b).
+    /// </summary>
     public static string TipoConDocumentos(int cantidad) =>
         $"No se puede dar de baja: hay {cantidad} documento(s) de ese tipo cargados.";
+
+    /// <summary>Módulo 4, FR-017d. Dice cuántos son, igual que el rechazo de la baja.</summary>
+    public static string AmbitoNoModificable(int cantidad) =>
+        $"No se puede cambiar el ámbito: {cantidad} documento(s) ya usan este tipo.";
 
     // ── Confirmaciones de operación ────────────────────────────────────────────────────────────
     public const string CambiosGuardados = "Los cambios se guardaron correctamente.";

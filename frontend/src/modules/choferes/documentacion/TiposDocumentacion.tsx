@@ -6,11 +6,15 @@ import {
   darDeBajaTipo,
   listarTipos,
   modificarTipo,
+  TEXTO_AMBITO,
+  type DocumentacionAmbito,
   type TipoDocumentacion,
 } from './servicioTipos'
 
 const MENSAJE_CATALOGO_VACIO =
   'Todavía no hay tipos de documentación. Cargá el primero para poder registrar documentos.'
+
+const AMBITOS: DocumentacionAmbito[] = ['chofer', 'vehiculo']
 
 /**
  * Catálogo de tipos de documentación (User Story 6).
@@ -21,6 +25,10 @@ const MENSAJE_CATALOGO_VACIO =
  * Los días de aviso son lo que decide desde cuándo un documento figura como próximo a vencer.
  * Cambiarlos recalcula el estado de los documentos existentes la próxima vez que se consultan, sin
  * tocar ninguna fila (FR-013, US6 esc. 4).
+ *
+ * **Desde el Módulo 4 el catálogo sirve a dos módulos** y cada tipo declara su ámbito: los de chofer
+ * se ofrecen en la documentación de choferes y los de vehículo en la de flota (Módulo 4, FR-017,
+ * FR-017a). El ABM no se duplica: sigue viviendo acá.
  */
 export function TiposDocumentacion() {
   const [tipos, setTipos] = useState<TipoDocumentacion[] | null>(null)
@@ -30,8 +38,12 @@ export function TiposDocumentacion() {
   const [enEdicion, setEnEdicion] = useState<TipoDocumentacion | null>(null)
   const [nombre, setNombre] = useState('')
   const [diasAviso, setDiasAviso] = useState('30')
+  const [ambito, setAmbito] = useState<DocumentacionAmbito>('chofer')
   const [erroresDeCampo, setErroresDeCampo] = useState<Record<string, string>>({})
   const [guardando, setGuardando] = useState(false)
+
+  /** Filtro del listado. Vacío muestra los dos ámbitos, que es lo que esta pantalla mantiene. */
+  const [filtroAmbito, setFiltroAmbito] = useState<DocumentacionAmbito | ''>('')
 
   const [aBajar, setABajar] = useState<TipoDocumentacion | null>(null)
 
@@ -54,6 +66,7 @@ export function TiposDocumentacion() {
     setEnEdicion(null)
     setNombre('')
     setDiasAviso('30')
+    setAmbito('chofer')
     setErroresDeCampo({})
   }
 
@@ -61,6 +74,7 @@ export function TiposDocumentacion() {
     setEnEdicion(tipo)
     setNombre(tipo.nombre)
     setDiasAviso(String(tipo.diasAvisoVencimiento))
+    setAmbito(tipo.ambito)
     setErroresDeCampo({})
     setAviso(null)
   }
@@ -88,7 +102,7 @@ export function TiposDocumentacion() {
     setGuardando(true)
 
     try {
-      const peticion = { nombre: nombre.trim(), diasAvisoVencimiento: dias }
+      const peticion = { nombre: nombre.trim(), diasAvisoVencimiento: dias, ambito }
 
       if (enEdicion !== null) {
         await modificarTipo(enEdicion.id, peticion)
@@ -189,6 +203,33 @@ export function TiposDocumentacion() {
           )}
         </div>
 
+        <div className="campo">
+          <label htmlFor="ambito">Ámbito</label>
+          <select
+            id="ambito"
+            value={ambito}
+            onChange={(evento) => setAmbito(evento.target.value as DocumentacionAmbito)}
+            required
+            aria-invalid={erroresDeCampo.ambito !== undefined}
+            aria-describedby="ayuda-ambito"
+          >
+            {AMBITOS.map((valor) => (
+              <option key={valor} value={valor}>
+                {TEXTO_AMBITO[valor]}
+              </option>
+            ))}
+          </select>
+          <small id="ayuda-ambito">
+            Decide en qué módulo se ofrece el tipo. Se puede corregir mientras el tipo no tenga
+            ningún documento cargado.
+          </small>
+          {erroresDeCampo.ambito !== undefined && (
+            <p className="campo__error" role="alert">
+              {erroresDeCampo.ambito}
+            </p>
+          )}
+        </div>
+
         <div className="acciones">
           <button type="submit" disabled={guardando}>
             {enEdicion !== null ? 'Guardar cambios' : 'Cargar tipo'}
@@ -206,24 +247,53 @@ export function TiposDocumentacion() {
       {tipos !== null && tipos.length === 0 && <p role="status">{MENSAJE_CATALOGO_VACIO}</p>}
 
       {tipos !== null && tipos.length > 0 && (
+        <>
+        <div className="campo">
+          <label htmlFor="filtro-ambito">Filtrar por ámbito</label>
+          <select
+            id="filtro-ambito"
+            value={filtroAmbito}
+            onChange={(evento) => setFiltroAmbito(evento.target.value as DocumentacionAmbito | '')}
+            aria-describedby="ayuda-filtro-ambito"
+          >
+            <option value="">Todos</option>
+            {AMBITOS.map((valor) => (
+              <option key={valor} value={valor}>
+                {TEXTO_AMBITO[valor]}
+              </option>
+            ))}
+          </select>
+          {/* Ninguna fila queda oculta en silencio: el control dice qué está filtrando. */}
+          <small id="ayuda-filtro-ambito" role="status">
+            {filtroAmbito === ''
+              ? 'Mostrando los tipos de los dos ámbitos.'
+              : `Mostrando sólo los de ámbito ${TEXTO_AMBITO[filtroAmbito]}.`}
+          </small>
+        </div>
+
         <table>
           <caption>Catálogo de tipos de documentación</caption>
           <thead>
             <tr>
               <th scope="col">Nombre</th>
               <th scope="col">Días de aviso</th>
+              <th scope="col">Ámbito</th>
               <th scope="col">Estado</th>
               <th scope="col">Documentos que lo usan</th>
               <th scope="col">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {tipos.map((tipo) => (
+            {tipos
+              .filter((tipo) => filtroAmbito === '' || tipo.ambito === filtroAmbito)
+              .map((tipo) => (
               <tr key={tipo.id}>
                 <td>{tipo.nombre}</td>
                 <td>{tipo.diasAvisoVencimiento}</td>
+                <td>{TEXTO_AMBITO[tipo.ambito]}</td>
                 <td>{tipo.activo ? 'Activo' : 'Inactivo'}</td>
-                {/* Es lo que explica por qué algunos no se pueden dar de baja (FR-014). */}
+                {/* Es lo que explica por qué algunos no se pueden dar de baja ni cambiar de ámbito
+                    (FR-014, FR-017d). Suma los de choferes y los de vehículos (FR-017b). */}
                 <td>{tipo.documentosAsociados}</td>
                 <td>
                   <button type="button" onClick={() => editar(tipo)}>
@@ -239,6 +309,7 @@ export function TiposDocumentacion() {
             ))}
           </tbody>
         </table>
+        </>
       )}
 
       {aBajar !== null && (

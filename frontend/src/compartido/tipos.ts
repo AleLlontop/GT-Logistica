@@ -50,6 +50,18 @@ export type CodigoError =
   | 'tipo_con_documentos'
   | 'archivo_no_admitido'
   | 'archivo_no_guardado'
+  | 'ambito_no_modificable'
+  // Módulo 4
+  | 'patente_duplicada'
+  | 'patente_de_vehiculo_dado_de_baja'
+  | 'patente_invalida'
+  | 'tipo_vehiculo_inexistente'
+  | 'disponible_con_documentacion_vencida'
+  | 'disponible_sin_documentacion'
+  | 'tipo_vehiculo_en_uso'
+  | 'nombre_duplicado'
+  | 'transportista_inactivo_al_reactivar'
+  | 'tipo_inactivo_al_reactivar'
 
 /** Estados posibles de una cuenta (FR-005). */
 export type EstadoUsuario = 'activo' | 'inactivo' | 'bloqueado'

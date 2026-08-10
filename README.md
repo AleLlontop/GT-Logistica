@@ -10,6 +10,7 @@ liquidaciones y flota.
 | [1. Autenticación de usuarios](specs/001-autenticacion-usuarios/) | Implementado | Ingreso con cookie de sesión, permisos revalidados por petición, límite de intentos fallidos y menú calculado en el servidor |
 | [2. Gestión de usuarios y roles](specs/002-gestion-usuarios-roles/) | Implementado | ABM de usuarios, asignación de roles, restablecimiento de contraseña y padrón de personas |
 | [3. Gestión de choferes y su documentación](specs/003-gestion-choferes/) | Implementado | CRUDS de transportistas, choferes, documentación , listado con filtros y paginación, panel de vencimientos, catálogo de tipos y bajas.|
+| [4. Gestión de flota](specs/004-gestion-flota/) | Implementado | Padrón de vehículos con su transportista dueño, documentación con estado calculado, estado operativo derivado, listado con filtros y paginación, panel de vencimientos, catálogo de tipos de vehículo, bajas y reactivaciones |
 
 
 > Los identificadores de tarea (`T059`, `T123`, …) **se numeran desde uno en cada módulo**, así que
@@ -67,7 +68,8 @@ frontend/src/
 ├── modules/                Un directorio por módulo de negocio, no por tipo de archivo
 │   ├── autenticacion/      Ingreso y sesión
 │   ├── usuarios/           Usuarios, roles y padrón de personas
-│   └── choferes/           Choferes, transportistas y documentación
+│   ├── choferes/           Choferes, transportistas y documentación
+│   └── flota/              Vehículos, tipos de vehículo y su documentación
 └── compartido/             Layout, menú y cliente HTTP
 
 specs/                      Una carpeta por módulo: spec, plan y tareas

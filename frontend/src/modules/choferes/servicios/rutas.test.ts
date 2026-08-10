@@ -94,10 +94,10 @@ describe('rutas del módulo', () => {
     ['reactivarChofer', () => reactivarChofer(7), '/api/choferes/7/reactivacion'],
     ['listarVencimientos', () => listarVencimientos(), '/api/vencimientos'],
     ['listarTipos', () => listarTipos(), '/api/tipos-documentacion'],
-    ['crearTipo', () => crearTipo({ nombre: 'ART', diasAvisoVencimiento: 0 }), '/api/tipos-documentacion'],
+    ['crearTipo', () => crearTipo({ nombre: 'ART', diasAvisoVencimiento: 0, ambito: 'chofer' }), '/api/tipos-documentacion'],
     [
       'modificarTipo',
-      () => modificarTipo(2, { nombre: 'ART', diasAvisoVencimiento: 0 }),
+      () => modificarTipo(2, { nombre: 'ART', diasAvisoVencimiento: 0, ambito: 'chofer' }),
       '/api/tipos-documentacion/2',
     ],
     ['darDeBajaTipo', () => darDeBajaTipo(2), '/api/tipos-documentacion/2'],

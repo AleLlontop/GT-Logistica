@@ -19,6 +19,11 @@ import { ListadoChoferes } from './modules/choferes/paginas/ListadoChoferes'
 import { FichaChofer } from './modules/choferes/paginas/FichaChofer'
 import { PanelVencimientos } from './modules/choferes/paginas/PanelVencimientos'
 import { TiposDocumentacion } from './modules/choferes/documentacion/TiposDocumentacion'
+import { ListadoFlota } from './modules/flota/paginas/ListadoFlota'
+import { FichaVehiculo } from './modules/flota/paginas/FichaVehiculo'
+import { FormularioVehiculo } from './modules/flota/paginas/FormularioVehiculo'
+import { PanelVencimientosFlota } from './modules/flota/paginas/PanelVencimientosFlota'
+import { ListadoTiposVehiculo } from './modules/flota/tiposVehiculo/ListadoTiposVehiculo'
 import { cerrarSesion, obtenerSesion, type Sesion } from './modules/autenticacion/servicios/sesion'
 
 export default function App() {
@@ -347,6 +352,110 @@ export default function App() {
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioTransportista />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        {/* Rutas del Módulo 4. `/flota/vencimientos` y `/flota/nuevo` van antes que `/flota/:id`
+            para que no las tome como si fueran un identificador. */}
+        <Route
+          path="/flota"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <ListadoFlota />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/flota/vencimientos"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <PanelVencimientosFlota />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/flota/nuevo"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <FormularioVehiculo />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/flota/:id"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <FichaVehiculo />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/flota/:id/editar"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <FormularioVehiculo />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/tipos-vehiculo"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <ListadoTiposVehiculo />
                 </Layout>
               )}
             </RutaProtegida>

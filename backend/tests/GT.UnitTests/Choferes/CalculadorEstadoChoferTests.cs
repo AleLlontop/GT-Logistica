@@ -32,6 +32,7 @@ public class CalculadorEstadoChoferTests
                 Id = tipoId,
                 Nombre = $"Tipo {tipoId}",
                 DiasAvisoVencimiento = diasAviso,
+                Ambito = DocumentacionAmbito.Chofer,
             },
         };
     }

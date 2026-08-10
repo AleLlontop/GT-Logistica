@@ -36,7 +36,7 @@ public class RecalculoPorDiasAvisoTests(AplicacionDePrueba app) : IClassFixture<
 
         var cambio = await cliente.PutAsJsonAsync(
             $"/api/tipos-documentacion/{tipo.Id}",
-            new { nombre = tipo.Nombre, diasAvisoVencimiento = 10 });
+            new { nombre = tipo.Nombre, diasAvisoVencimiento = 10, ambito = "chofer" });
         cambio.EnsureSuccessStatusCode();
 
         // El mismo documento, sin haberlo tocado, ahora está al día.
@@ -76,7 +76,7 @@ public class RecalculoPorDiasAvisoTests(AplicacionDePrueba app) : IClassFixture<
 
         await cliente.PutAsJsonAsync(
             $"/api/tipos-documentacion/{tipo.Id}",
-            new { nombre = tipo.Nombre, diasAvisoVencimiento = 10 });
+            new { nombre = tipo.Nombre, diasAvisoVencimiento = 10, ambito = "chofer" });
 
         var yaNoEsta = await cliente.GetFromJsonAsync<PaginaLeida>(
             $"/api/choferes?transportistaId={transportista.Id}&estadoDocumentacion=proximaAvencer");

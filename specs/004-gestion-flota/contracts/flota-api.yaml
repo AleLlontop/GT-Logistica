@@ -1,0 +1,898 @@
+openapi: 3.0.3
+
+info:
+  title: Gestión de flota — Módulo 4
+  version: "1.0"
+  description: |
+    Contrato HTTP para el catálogo de tipos de vehículo, el padrón de flota, la documentación de cada
+    unidad y el panel de vencimientos.
+
+    **Autorización**: dos permisos, y es la primera vez que un módulo distingue niveles de acceso
+    adentro (FR-039).
+
+    - `flota.gestionar` — vehículos, su documentación, el panel y la descarga de adjuntos. Lo otorgan
+      *Tráfico* y *Administrador del sistema*.
+    - `flota.tipos.gestionar` — sólo el ABM del catálogo de tipos de vehículo. Lo otorga únicamente
+      *Administrador del sistema*.
+
+    Respuestas de autorización, iguales que en los módulos anteriores:
+
+    - Sin sesión → `401` con `sesion_expirada`.
+    - Con sesión pero sin el permiso → `403` con `sin_permiso`.
+
+    **El estado de un documento nunca se recibe, sólo se devuelve.** Ningún cuerpo de petición de este
+    contrato acepta un campo de estado: el sistema lo calcula con la fecha de vencimiento, los días de
+    aviso de su tipo y el día en curso en Argentina (FR-019, FR-020, FR-021, SC-004).
+
+    **El estado operativo sí se recibe, pero el que se devuelve puede no ser el mismo.** El operador
+    elige y el sistema guarda; lo que el listado y la ficha devuelven es el estado **derivado**: una
+    unidad guardada como `disponible` con documentación `vencida` o ausente se devuelve como
+    `fueraDeServicio` (FR-014).
+
+    Este contrato también documenta, al final, los **cambios sobre endpoints del Módulo 3**: los tipos
+    de documentación suman el ámbito, y la baja de un transportista pasa a mirar su flota.
+
+servers:
+  - url: /api
+
+paths:
+
+  # ── Catálogo de tipos de vehículo (FR-009 a FR-011) ─────────────────────────────────────────────
+
+  /flota/tipos-vehiculo:
+    get:
+      summary: Lista los tipos de vehículo
+      description: |
+        Permiso `flota.gestionar` para leer — el formulario de vehículo consume esta lista con
+        `soloActivos=true` (FR-011).
+
+        Una lista vacía es una respuesta legítima: es el estado de toda instalación nueva, y la
+        pantalla lo dice con un mensaje explícito en vez de mostrar una tabla vacía (FR-036, US1 esc. 1).
+      parameters:
+        - name: soloActivos
+          in: query
+          schema: { type: boolean, default: false }
+          description: '`true` devuelve sólo los tipos activos, que son los únicos que el alta ofrece (FR-011)'
+      responses:
+        "200":
+          description: Tipos del catálogo
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/TipoVehiculo' }
+
+    post:
+      summary: Registra un tipo de vehículo
+      description: Permiso `flota.tipos.gestionar` (FR-039).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TipoVehiculoRequest' }
+      responses:
+        "201":
+          description: Tipo registrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TipoVehiculo' }
+        "400":
+          description: '`nombre_duplicado` (FR-009) o `datos_invalidos`'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /flota/tipos-vehiculo/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+
+    put:
+      summary: Modifica un tipo de vehículo
+      description: Permiso `flota.tipos.gestionar`. Conservar el propio nombre no es un duplicado.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TipoVehiculoRequest' }
+      responses:
+        "200":
+          description: Tipo actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TipoVehiculo' }
+        "400":
+          description: '`nombre_duplicado` o `datos_invalidos`'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+
+    delete:
+      summary: Da de baja lógica un tipo de vehículo
+      description: |
+        Permiso `flota.tipos.gestionar`. **No borra**: pone `activo` en `false` (FR-009, FR-028).
+
+        Se rechaza si el tipo tiene **cualquier** vehículo asociado, activo o dado de baja, porque un
+        vehículo dado de baja sigue mostrando su tipo (FR-010, FR-011).
+      responses:
+        "204": { description: Tipo dado de baja }
+        "409":
+          description: '`tipo_vehiculo_en_uso` — el cuerpo trae `cantidadVehiculos` (FR-010, SC-008)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorConDependencias' }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+
+  /flota/tipos-vehiculo/{id}/reactivacion:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+
+    post:
+      summary: Da de alta de nuevo un tipo de vehículo dado de baja
+      description: |
+        Permiso `flota.tipos.gestionar`. Pone `activo` en `true`: el tipo vuelve a ofrecerse al
+        registrar vehículos (FR-009, FR-011).
+
+        **Recurso aparte y no un campo del `PUT`**, igual que la reactivación de vehículo: corregir
+        el nombre nunca cambia de paso el estado del tipo. Sin cuerpo —un tipo no depende de nadie,
+        así que no hay nada que reemplazar— y **idempotente**: reactivar uno ya activo lo deja como
+        está.
+      responses:
+        "200":
+          description: Tipo activo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TipoVehiculo' }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+
+  # ── Padrón de flota (FR-001 a FR-008f) ──────────────────────────────────────────────────────────
+
+  /flota/vehiculos:
+    get:
+      summary: Lista la flota, filtrada y paginada
+      description: |
+        Permiso `flota.gestionar`.
+
+        **Sin el parámetro `estado`, devuelve sólo los vehículos activos** —disponibles y fuera de
+        servicio— (FR-031). Los dados de baja se piden explícitamente con `estado=dadoDeBaja`.
+
+        Los cuatro filtros se aplican **sobre toda la flota antes de paginar**, y `total` cuenta las
+        coincidencias completas, no las de esta página (FR-032).
+
+        El `estado` de cada fila es el **derivado** (FR-014).
+      parameters:
+        - name: transportistaId
+          in: query
+          schema: { type: integer }
+          description: Filtra por el transportista dueño (FR-030, SC-003b)
+        - name: tipoVehiculoId
+          in: query
+          schema: { type: integer }
+        - name: estado
+          in: query
+          schema: { $ref: '#/components/schemas/FiltroEstadoVehiculo' }
+          description: |
+            Control único con tres valores excluyentes (FR-030a). `disponible` **nunca** devuelve una
+            unidad con documentación `vencida` ni `sinDocumentacion` (FR-015, SC-006).
+        - name: estadoDocumentacion
+          in: query
+          schema: { $ref: '#/components/schemas/EstadoDocumentacionVehiculo' }
+        - name: pagina
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+      responses:
+        "200":
+          description: Página de vehículos que cumplen los filtros
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginaDeVehiculos' }
+
+    post:
+      summary: Registra un vehículo
+      description: |
+        Permiso `flota.gestionar`.
+
+        La patente se **normaliza antes de comparar y de guardar**: mayúsculas, sin espacios, guiones
+        ni puntos (FR-003). `ab 123 cd`, `AB-123-CD` y `AB123CD` son la misma patente.
+
+        El tipo y el transportista tienen que existir y estar **activos** (FR-005, FR-008a).
+
+        **El estado operativo sólo puede ser `fueraDeServicio`**: un vehículo recién registrado no
+        tiene documentación, y sin documentación no puede quedar disponible (FR-013, FR-014a,
+        US2 esc. 8).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VehiculoRequest' }
+      responses:
+        "201":
+          description: Vehículo registrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VehiculoDetalle' }
+        "400":
+          description: |
+            `patente_duplicada` (FR-002), `patente_de_vehiculo_dado_de_baja` (FR-008f),
+            `patente_invalida` (FR-004), `tipo_vehiculo_inexistente` (FR-005),
+            `transportista_inexistente` (FR-008a), `disponible_sin_documentacion` (FR-014a)
+            o `datos_invalidos`
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /flota/vehiculos/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+
+    get:
+      summary: Ficha completa de un vehículo
+      description: |
+        Permiso `flota.gestionar`. Trae los datos de la unidad y **todos** sus documentos —vigentes e
+        históricos— con el estado de cada uno (FR-038).
+
+        Los documentos vienen agrupados por tipo y, dentro de cada tipo, por vencimiento descendente:
+        el vigente primero y sus renovaciones anteriores debajo. Cada uno declara si es el vigente de
+        su tipo (FR-024).
+      responses:
+        "200":
+          description: Ficha del vehículo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VehiculoDetalle' }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+
+    put:
+      summary: Modifica un vehículo
+      description: |
+        Permiso `flota.gestionar`. Cubre la corrección de datos, el cambio de estado operativo y la
+        **reasignación a otro transportista** (FR-008c), que no toca la documentación ya cargada
+        (SC-003c).
+
+        La unicidad de la patente **excluye al propio vehículo**: conservar la suya no es un conflicto
+        (FR-002).
+
+        `disponible` se rechaza si la documentación está `vencida` o falta, nombrando el documento que
+        lo impide (FR-014a).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VehiculoRequest' }
+      responses:
+        "200":
+          description: Vehículo actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VehiculoDetalle' }
+        "400":
+          description: |
+            `patente_duplicada`, `patente_invalida`, `tipo_vehiculo_inexistente`,
+            `transportista_inexistente`, `disponible_con_documentacion_vencida`,
+            `disponible_sin_documentacion` o `datos_invalidos`
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+
+    delete:
+      summary: Da de baja lógica un vehículo
+      description: |
+        Permiso `flota.gestionar`. **No borra**: pone `activo` en `false` (FR-001, FR-028).
+
+        No toca su documentación: los documentos y sus archivos se conservan intactos y se siguen
+        viendo en la ficha (FR-008).
+
+        La confirmación previa la pide la pantalla, no el endpoint (FR-007, SC-009).
+      responses:
+        "204": { description: Vehículo dado de baja }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+
+  /flota/vehiculos/{id}/reactivacion:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      summary: Reactiva un vehículo dado de baja
+      description: |
+        Permiso `flota.gestionar`. La unidad vuelve al listado por defecto y al panel de vencimientos
+        si corresponde, **con toda su documentación contando de nuevo** (FR-008e).
+
+        El cuerpo es **opcional**: sólo hace falta si el transportista o el tipo de la unidad fueron
+        dados de baja mientras estuvo afuera. Si alguno está inactivo y no viene un reemplazo activo,
+        se rechaza indicando cuál falta (US6 esc. 11).
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReactivacionRequest' }
+      responses:
+        "204": { description: Vehículo reactivado }
+        "400":
+          description: '`transportista_inactivo_al_reactivar` o `tipo_inactivo_al_reactivar` (FR-008e)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+
+  # ── Documentación de los vehículos (FR-016 a FR-029) ────────────────────────────────────────────
+
+  /flota/vehiculos/{vehiculoId}/documentacion:
+    parameters:
+      - { name: vehiculoId, in: path, required: true, schema: { type: integer } }
+    post:
+      summary: Carga un documento de un vehículo
+      description: |
+        Permiso `flota.gestionar`. Va como `multipart/form-data` porque puede traer el archivo, que es
+        **opcional** (FR-016a).
+
+        El tipo de documentación tiene que estar **activo y ser de ámbito `vehiculo`** (FR-017a).
+
+        La fecha de vencimiento tiene que ser **posterior** a la de emisión, no igual (FR-018).
+
+        Un documento del mismo tipo con vencimiento posterior se acepta como **renovación**: el
+        anterior queda como historial, deja de contar para el estado del vehículo y deja de alertar
+        (FR-023, FR-024, SC-010).
+
+        **La operación es todo o nada**: si el archivo no llega a almacenarse, el documento no se crea
+        (FR-029).
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: '#/components/schemas/DocumentoForm' }
+      responses:
+        "201":
+          description: Documento cargado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DocumentoVehiculo' }
+        "400":
+          description: |
+            `tipo_inexistente` — incluye el tipo de ámbito chofer, que este módulo no ofrece
+            (FR-017a) —, `vencimiento_anterior_a_emision` (FR-018), `archivo_no_admitido` (FR-025)
+            o `datos_invalidos`
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+        "500": { $ref: '#/components/responses/ArchivoNoGuardado' }
+
+  /flota/documentacion/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+
+    put:
+      summary: Corrige un documento
+      description: |
+        Permiso `flota.gestionar`. Mismas validaciones que el alta, y el estado se **recalcula** con
+        los datos corregidos (FR-026).
+
+        **Sin archivo en el formulario, el documento conserva el que ya tenía.** Para reemplazarlo se
+        manda uno nuevo; si ese archivo nuevo no llega a almacenarse, el documento no queda modificado
+        ni pierde el anterior (FR-029).
+
+        **Cuando el reemplazo sí se aplica, el archivo anterior se borra** (CHK023). El borrado va
+        *después* de confirmar la fila, igual que en la eliminación: si falla, deja un archivo
+        huérfano —invisible para quien opera— y nunca una fila que apunta a un archivo que no está.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: '#/components/schemas/DocumentoForm' }
+      responses:
+        "200":
+          description: Documento actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DocumentoVehiculo' }
+        "400":
+          description: '`tipo_inexistente`, `vencimiento_anterior_a_emision`, `archivo_no_admitido` o `datos_invalidos`'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+        "500": { $ref: '#/components/responses/ArchivoNoGuardado' }
+
+    delete:
+      summary: Elimina un documento
+      description: |
+        Permiso `flota.gestionar`. **Borra físicamente** el registro y su archivo adjunto: es la única
+        entidad del módulo que se borra de verdad (FR-027, FR-028).
+
+        La confirmación previa, con la advertencia de que no se puede deshacer, la pide la pantalla
+        (FR-027, SC-009).
+
+        Si el documento eliminado era el vigente de su tipo, el más reciente de los que quedan pasa a
+        serlo y el estado del vehículo se recalcula solo (FR-024).
+      responses:
+        "204": { description: Documento y archivo eliminados }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+
+  /flota/documentacion/{id}/archivo:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Devuelve el archivo adjunto de un documento, para verlo en el navegador
+      description: |
+        Permiso `flota.gestionar`, **el mismo que el resto** aunque sea una lectura de archivo: el
+        adjunto se sirve por este endpoint y nunca por una URL pública, así que conocer la ruta no
+        alcanza para verlo (FR-038, SC-011).
+
+        Responde con `Content-Disposition: inline` y el nombre original: quien abre un documento lo
+        quiere **ver**, no bajarlo y abrirlo a mano. Va con `X-Content-Type-Options: nosniff`, porque
+        servir contenido en línea desde el propio origen no puede depender de que el navegador
+        adivine el tipo. Es seguro porque el tipo se dedujo de la **firma** del archivo al cargarlo y
+        sólo se admiten PDF, JPG y PNG (FR-025).
+
+        `404` también cuando el documento existe pero no tiene archivo.
+      responses:
+        "200":
+          description: El archivo, en línea, con su tipo de contenido y su nombre original
+          content:
+            application/pdf: { schema: { type: string, format: binary } }
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/png: { schema: { type: string, format: binary } }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+
+  # ── Panel de vencimientos (FR-035) ──────────────────────────────────────────────────────────────
+
+  /flota/vencimientos:
+    get:
+      summary: Vehículos con documentación próxima a vencer o vencida
+      description: |
+        Permiso `flota.gestionar`.
+
+        Una fila por documento `proximaAvencer` o `vencida` de un vehículo **activo**, ordenada por
+        urgencia: primero lo vencido hace más tiempo.
+
+        Tres exclusiones deliberadas (FR-035):
+
+        - **Los vehículos dados de baja no aparecen**, cualquiera sea el estado de sus papeles.
+        - **Los documentos históricos no alertan**: sólo el vigente de cada tipo (FR-024).
+        - **Los documentos `vigente` no aparecen.**
+
+        Una lista vacía significa que no hay vencimientos pendientes, y la pantalla lo dice
+        explícitamente (US5 esc. 5, FR-036).
+
+        No hay nada que ejecutar ni ningún proceso nocturno: el estado se calcula al consultar, así que
+        un documento entra al panel solo, el día que le toca (FR-022, SC-005).
+      responses:
+        "200":
+          description: Alertas de vencimiento, ordenadas por urgencia
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AlertaVencimientoFlota' }
+
+  # ── Endpoints del Módulo 3 que este módulo MODIFICA ─────────────────────────────────────────────
+
+  /tipos-documentacion:
+    get:
+      summary: '[MODIFICADO] Lista los tipos de documentación'
+      description: |
+        Permiso `choferes.gestionar` (sin cambios). El ABM del catálogo **sigue viviendo en el
+        Módulo 3**: este módulo no lo duplica (FR-017).
+
+        **Cambio**: cada tipo devuelve su `ambito`, y el endpoint acepta el parámetro `ambito` para
+        filtrar. El formulario de documento de vehículo consume
+        `?ambito=vehiculo&soloActivos=true` (FR-017a).
+      parameters:
+        - name: soloActivos
+          in: query
+          schema: { type: boolean, default: false }
+        - name: ambito
+          in: query
+          schema: { $ref: '#/components/schemas/DocumentacionAmbito' }
+          description: '**NUEVO** (FR-017a)'
+      responses:
+        "200":
+          description: Tipos del catálogo
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/TipoDocumentacion' }
+
+    post:
+      summary: '[MODIFICADO] Registra un tipo de documentación'
+      description: |
+        **Cambio**: `ambito` pasa a ser un campo **obligatorio** del cuerpo (FR-017).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TipoDocumentacionRequest' }
+      responses:
+        "201":
+          description: Tipo registrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TipoDocumentacion' }
+        "400":
+          description: '`nombre_duplicado` o `datos_invalidos`'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /tipos-documentacion/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+
+    put:
+      summary: '[MODIFICADO] Modifica un tipo de documentación'
+      description: |
+        **Cambio**: el `ambito` se puede corregir **mientras el tipo no tenga ningún documento
+        cargado**. Con documentos asociados —de choferes o de vehículos— se rechaza informando cuántos
+        son, para que ningún documento quede colgando de un tipo que su módulo ya no ofrece (FR-017d).
+
+        El nombre y los días de aviso se modifican como siempre, tengan documentos o no.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TipoDocumentacionRequest' }
+      responses:
+        "200":
+          description: Tipo actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TipoDocumentacion' }
+        "409":
+          description: '`ambito_no_modificable` — el cuerpo trae `cantidadDocumentos` (FR-017d)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorConDependencias' }
+        "400":
+          description: '`nombre_duplicado` o `datos_invalidos`'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+
+    delete:
+      summary: '[MODIFICADO] Da de baja lógica un tipo de documentación'
+      description: |
+        **Cambio**: `cantidadDocumentos` pasa a contar **las dos tablas** —documentos de choferes y de
+        vehículos— (FR-017b). Bloquea más bajas que antes, nunca menos.
+      responses:
+        "204": { description: Tipo dado de baja }
+        "409":
+          description: '`tipo_documentacion_en_uso` — el cuerpo trae `cantidadDocumentos` (FR-017b)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorConDependencias' }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+
+  /transportistas/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    delete:
+      summary: '[MODIFICADO] Da de baja lógica un transportista'
+      description: |
+        Permiso `choferes.gestionar` (sin cambios).
+
+        **Cambio**: la baja se rechaza si el transportista tiene al menos un chofer activo **o** al
+        menos un vehículo activo, e informa las **dos** cantidades (FR-008d). Antes sólo miraba los
+        choferes.
+
+        La baja procede cuando todos sus choferes y todos sus vehículos están inactivos, o cuando no
+        tiene ninguno: un transportista cuya flota ya está toda de baja se puede dar de baja.
+      responses:
+        "204": { description: Transportista dado de baja }
+        "409":
+          description: '`transportista_con_dependencias` — el cuerpo trae `cantidadChoferes` y `cantidadVehiculos` (FR-008d, SC-008)'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorConDependencias' }
+        "404": { $ref: '#/components/responses/NoEncontrado' }
+
+components:
+
+  responses:
+    NoEncontrado:
+      description: '`no_encontrado`'
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+    ArchivoNoGuardado:
+      description: |
+        `archivo_no_guardado`. Es `500` y no `400` a propósito: el archivo era válido y el problema fue
+        del sistema, no de lo que cargaron. **El documento no se creó ni se modificó**, y la pantalla
+        conserva lo tipeado para reintentar (FR-029).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+
+    # ── Enumeraciones ─────────────────────────────────────────────────────────────────────────────
+    # Todas viajan en camelCase, nunca en PascalCase (convención [003] de CLAUDE.md).
+
+    VehiculoEstado:
+      type: string
+      enum: [disponible, fueraDeServicio]
+      description: |
+        Estado operativo del vehículo, con exactamente dos valores (FR-012). No hay estado intermedio:
+        una unidad parada por reparación se registra como `fueraDeServicio`.
+
+        **Al recibirlo** es lo que el operador eligió. **Al devolverlo** es el valor derivado: si la
+        documentación está `vencida` o falta, se devuelve `fueraDeServicio` aunque haya `disponible`
+        guardado (FR-014).
+
+    FiltroEstadoVehiculo:
+      type: string
+      enum: [disponible, fueraDeServicio, dadoDeBaja]
+      description: |
+        Control único del listado, con tres valores excluyentes (FR-030a). Combina el estado operativo
+        derivado con el estado de alta: un vehículo dado de baja toma ese valor cualquiera sea su
+        estado operativo guardado.
+
+        Omitirlo **no** es lo mismo que pedir los tres: sin el parámetro se devuelven sólo los activos
+        (FR-031).
+
+    EstadoDocumentacionVehiculo:
+      type: string
+      enum: [enRegla, proximaAvencer, vencida, sinDocumentacion]
+      description: |
+        Estado general de documentación del vehículo, derivado y nunca almacenado (FR-033). Es el peor
+        estado entre los documentos **vigentes de cada tipo** (FR-024), con la precedencia
+        `vencida` > `proximaAvencer` > `enRegla`.
+
+        `sinDocumentacion` **no es lo mismo que `enRegla`**: un vehículo sin papeles no está al día por
+        ausencia de papeles, y no puede quedar disponible.
+
+        No lo altera que a un documento le falte el archivo adjunto: eso es un dato del documento, no
+        del vehículo (FR-016a).
+
+    DocumentacionEstado:
+      type: string
+      enum: [vigente, proximaAvencer, vencida]
+      description: |
+        Estado de **un documento**, calculado por el sistema y nunca recibido (FR-019, FR-021).
+
+        Se llama `vigente` y no `enRegla` a propósito: `vigente` describe un papel, `enRegla` describe
+        una unidad. Mantenerlos distintos evita que un término signifique dos cosas según dónde
+        aparezca.
+
+    DocumentacionAmbito:
+      type: string
+      enum: [chofer, vehiculo]
+      description: A qué se aplica un tipo de documentación. Define en qué módulo se ofrece (FR-017).
+
+    # ── Tipos de vehículo ─────────────────────────────────────────────────────────────────────────
+
+    TipoVehiculo:
+      type: object
+      required: [id, nombre, activo, cantidadVehiculos]
+      properties:
+        id: { type: integer }
+        nombre: { type: string, maxLength: 100 }
+        activo: { type: boolean }
+        cantidadVehiculos:
+          type: integer
+          description: Vehículos que usan este tipo, activos e inactivos. Es lo que impide la baja (FR-010)
+
+    TipoVehiculoRequest:
+      type: object
+      required: [nombre]
+      properties:
+        nombre: { type: string, maxLength: 100 }
+
+    # ── Vehículos ─────────────────────────────────────────────────────────────────────────────────
+
+    VehiculoRequest:
+      type: object
+      required: [patente, marca, modelo, tipoVehiculoId, transportistaId, estadoOperativo]
+      properties:
+        patente:
+          type: string
+          description: |
+            Se normaliza antes de validar y de guardar (FR-003). Ya normalizada, tiene que cumplir
+            `^[A-Z]{3}[0-9]{3}$` (formato viejo) o `^[A-Z]{2}[0-9]{3}[A-Z]{2}$` (Mercosur) (FR-004).
+          example: AB123CD
+        marca: { type: string, maxLength: 50 }
+        modelo: { type: string, maxLength: 50 }
+        tipoVehiculoId:
+          type: integer
+          description: Tiene que existir y estar activo (FR-005)
+        transportistaId:
+          type: integer
+          description: Tiene que existir y estar activo (FR-008a). Reasignarlo no toca la documentación (FR-008c)
+        estadoOperativo:
+          $ref: '#/components/schemas/VehiculoEstado'
+
+    VehiculoListado:
+      type: object
+      required: [id, patente, marca, modelo, tipo, transportista, activo, estado, estadoDocumentacion]
+      properties:
+        id: { type: integer }
+        patente: { type: string, example: AB123CD }
+        marca: { type: string }
+        modelo: { type: string }
+        tipo: { $ref: '#/components/schemas/Resumen' }
+        transportista: { $ref: '#/components/schemas/Resumen' }
+        activo: { type: boolean }
+        estado:
+          allOf: [{ $ref: '#/components/schemas/VehiculoEstado' }]
+          description: El estado **derivado** (FR-014), no el guardado
+        estadoDocumentacion: { $ref: '#/components/schemas/EstadoDocumentacionVehiculo' }
+
+    VehiculoDetalle:
+      allOf:
+        - $ref: '#/components/schemas/VehiculoListado'
+        - type: object
+          required: [estadoOperativoGuardado, documentos]
+          properties:
+            estadoOperativoGuardado:
+              allOf: [{ $ref: '#/components/schemas/VehiculoEstado' }]
+              description: |
+                Lo que el operador eligió y el sistema guardó. La ficha lo necesita para poblar el
+                formulario de edición con el valor real, no con el derivado (FR-014).
+            documentos:
+              type: array
+              description: |
+                **Todos** los documentos de la unidad, vigentes e históricos (FR-038). Agrupados por
+                tipo y, dentro de cada tipo, por vencimiento descendente.
+              items: { $ref: '#/components/schemas/DocumentoVehiculo' }
+
+    PaginaDeVehiculos:
+      type: object
+      required: [items, total, pagina, tamanioPagina]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/VehiculoListado' }
+        total:
+          type: integer
+          description: Coincidencias con los filtros en **toda** la flota, no en esta página (FR-032)
+        pagina: { type: integer }
+        tamanioPagina: { type: integer, example: 20 }
+
+    ReactivacionRequest:
+      type: object
+      description: |
+        Cuerpo opcional. Sólo hace falta si el transportista o el tipo de la unidad fueron dados de
+        baja mientras estuvo afuera (FR-008e).
+      properties:
+        transportistaId: { type: integer }
+        tipoVehiculoId: { type: integer }
+
+    # ── Documentación ─────────────────────────────────────────────────────────────────────────────
+
+    DocumentoForm:
+      type: object
+      required: [documentacionTipoId, numero, fechaEmision, fechaVencimiento]
+      description: |
+        **No tiene campo de estado y no puede tenerlo**: el sistema lo calcula y no lo recibe por
+        ninguna vía (FR-021, SC-004).
+      properties:
+        documentacionTipoId:
+          type: integer
+          description: Tipo **activo y de ámbito `vehiculo`** (FR-017a)
+        numero:
+          type: string
+          maxLength: 50
+          description: 'Obligatorio y **sin unicidad**: una póliza conserva su número al renovarse (FR-016)'
+        fechaEmision: { type: string, format: date }
+        fechaVencimiento:
+          type: string
+          format: date
+          description: '**Posterior** a la emisión, no igual (FR-018)'
+        archivo:
+          type: string
+          format: binary
+          description: |
+            **Opcional** (FR-016a). PDF, JPG o PNG de hasta 10 MB, validado **por la firma del
+            archivo**, no por la extensión ni por el `Content-Type` declarado (FR-025).
+
+            Al corregir, omitirlo conserva el archivo que el documento ya tenía.
+
+    DocumentoVehiculo:
+      type: object
+      required:
+        [id, vehiculoId, tipo, numero, fechaEmision, fechaVencimiento, estado, esVigenteDelTipo,
+         tieneArchivo, diasHastaVencimiento]
+      properties:
+        id: { type: integer }
+        vehiculoId: { type: integer }
+        tipo: { $ref: '#/components/schemas/Resumen' }
+        numero: { type: string }
+        fechaEmision: { type: string, format: date }
+        fechaVencimiento: { type: string, format: date }
+        estado:
+          allOf: [{ $ref: '#/components/schemas/DocumentacionEstado' }]
+          description: Calculado al leer, nunca almacenado (FR-019, FR-022)
+        esVigenteDelTipo:
+          type: boolean
+          description: |
+            `true` en el documento que manda de su tipo: el de vencimiento más lejano y, con empate,
+            el de `Id` mayor (FR-024). Los demás son historial: se ven en la ficha, no definen el
+            estado del vehículo y no alertan.
+        tieneArchivo:
+          type: boolean
+          description: |
+            La ficha distingue con esto, **documento por documento**, cuál tiene respaldo. Que sea
+            `false` no altera el estado del vehículo (FR-016a).
+        archivoNombre:
+          type: string
+          nullable: true
+          description: Nombre original, sólo para mostrar y descargar. La ruta interna nunca sale al cliente
+        diasHastaVencimiento:
+          type: integer
+          description: Negativo si ya venció. Es lo que el panel muestra como "vence en" o "venció hace" (FR-035)
+
+    AlertaVencimientoFlota:
+      type: object
+      required: [vehiculoId, patente, transportista, documento]
+      properties:
+        vehiculoId: { type: integer }
+        patente: { type: string }
+        transportista: { $ref: '#/components/schemas/Resumen' }
+        documento: { $ref: '#/components/schemas/DocumentoVehiculo' }
+
+    TipoDocumentacion:
+      type: object
+      required: [id, nombre, diasAvisoVencimiento, ambito, activo, cantidadDocumentos]
+      description: '[MODIFICADO] Suma `ambito` (FR-017).'
+      properties:
+        id: { type: integer }
+        nombre: { type: string, maxLength: 100 }
+        diasAvisoVencimiento:
+          type: integer
+          minimum: 0
+          description: 'Días **corridos**, no hábiles: sábados, domingos y feriados cuentan igual (FR-019a)'
+        ambito: { $ref: '#/components/schemas/DocumentacionAmbito' }
+        activo: { type: boolean }
+        cantidadDocumentos:
+          type: integer
+          description: |
+            **[MODIFICADO]** Suma los documentos de choferes y los de vehículos (FR-017b). Es lo que
+            impide la baja y el cambio de ámbito.
+
+    TipoDocumentacionRequest:
+      type: object
+      required: [nombre, diasAvisoVencimiento, ambito]
+      properties:
+        nombre: { type: string, maxLength: 100 }
+        diasAvisoVencimiento: { type: integer, minimum: 0 }
+        ambito:
+          allOf: [{ $ref: '#/components/schemas/DocumentacionAmbito' }]
+          description: '**NUEVO y obligatorio** (FR-017)'
+
+    # ── Comunes ───────────────────────────────────────────────────────────────────────────────────
+
+    Resumen:
+      type: object
+      required: [id, nombre]
+      properties:
+        id: { type: integer }
+        nombre: { type: string }
+
+    Error:
+      type: object
+      required: [codigo, mensaje]
+      properties:
+        codigo:
+          type: string
+          description: Identificador estable del error. La pantalla decide el texto con este valor
+        mensaje:
+          type: string
+          description: Texto en español rioplatense, tal como figura en `contracts/README.md`
+        campo:
+          type: string
+          nullable: true
+          description: Campo del formulario que provocó el error, para marcarlo junto al mensaje
+
+    ErrorConDependencias:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          description: |
+            Los rechazos por dependencias **dicen el número**: saber que hay dependientes sin saber
+            cuántos no ayuda a resolverlo (SC-008).
+          properties:
+            cantidadVehiculos: { type: integer }
+            cantidadChoferes: { type: integer }
+            cantidadDocumentos: { type: integer }

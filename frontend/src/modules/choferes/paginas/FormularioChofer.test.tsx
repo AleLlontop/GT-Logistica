@@ -38,6 +38,7 @@ const gtlogistica: Transportista = {
   email: 'info@gt.com.ar',
   activo: true,
   choferesActivos: 0,
+  vehiculosActivos: 0,
 }
 
 function choferCreado(reutilizoPersona: boolean): ChoferDetalle {

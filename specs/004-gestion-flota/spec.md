@@ -29,6 +29,32 @@
 - Q: ¿Qué valores exactos toma el estado operativo del vehículo? → A: Exactamente dos: `disponible` y
   `fuera de servicio`. No hay estado intermedio: una unidad parada por reparación se marca
   `fuera de servicio`, igual que una inhabilitada por documentación.
+- Q: Un tipo de documentación cargado con el ámbito equivocado, ¿se puede corregir después? → A: Sí,
+  mientras no tenga ningún documento cargado. Con documentos asociados el sistema rechaza el cambio e
+  informa cuántos son, así ningún documento queda colgando de un tipo que su módulo ya no ofrece.
+- Q: El archivo escaneado de un documento de vehículo, ¿es obligatorio para guardarlo o se puede
+  adjuntar después? → A: Opcional, igual que en el Módulo 3. El documento se guarda sin archivo y se
+  adjunta más tarde. La ficha distingue, a nivel de cada documento, cuál tiene respaldo y cuál no; la
+  falta de adjunto NO altera el estado general del vehículo, que conserva sus cuatro valores.
+- Q: Un vehículo dado de baja que vuelve a la flota, ¿cómo se maneja, si su patente sigue ocupada? →
+  A: Se lo reactiva desde su ficha, con confirmación explícita. Vuelve al listado y al panel de
+  vencimientos con toda su documentación. Intentar registrar de nuevo esa patente se rechaza
+  indicando que hay que reactivar la unidad existente, igual que se resolvió para el chofer en el
+  Módulo 3.
+- Q: El filtro "estado del vehículo" del listado, ¿mezcla el estado operativo (`disponible` /
+  `fuera de servicio`) con el de alta (activo / dado de baja), o son dos filtros separados? → A: Un
+  solo filtro con tres valores excluyentes: `disponible`, `fuera de servicio` y `dado de baja`. Las
+  combinaciones que se pierden no tienen sentido operativo, y el listado queda con cuatro filtros en
+  vez de cinco.
+- Q: Los días de aviso de un tipo de documentación, ¿son días corridos o hábiles? → A: Corridos. Con
+  30 días de aviso las dos lecturas difieren en 12 días de calendario —30 días hábiles son 42
+  corridos—, y con ellas cambia si una unidad aparece o no en el panel de vencimientos. "Hábiles"
+  además arrastraría un calendario de feriados argentinos que ninguna spec contempla, y cambiaría el
+  comportamiento de la documentación de choferes ya cargada, que hoy se calcula en corridos
+  (FR-019a).
+- Q: Al reemplazar con éxito el archivo adjunto de un documento, ¿qué pasa con el archivo anterior? →
+  A: Se borra. Un escaneo que ya no corresponde deja de existir en vez de quedar guardado por las
+  dudas, igual que al eliminar el documento (FR-026a).
 - Q: Faltaba la relación `Transportista 1 — * Vehiculo`. ¿Cómo entra en este módulo? → A: Todo
   vehículo pertenece obligatoriamente a un transportista activo, que se elige al registrarlo y se
   puede reasignar después. Se reutiliza el `Transportista` del Módulo 3 —incluida G&T Logística S.A.
@@ -65,6 +91,8 @@ disponibles para elegir al registrar un vehículo.
    el tipo queda inactivo, deja de ofrecerse al registrar vehículos y su registro no se borra.
 5. **Given** un tipo con vehículos asociados, **When** se intenta darlo de baja, **Then** el sistema
    lo rechaza e informa cuántos vehículos lo están usando.
+6. **Given** un tipo dado de baja, **When** el Administrador lo edita, **Then** ve que está inactivo
+   y puede darlo de alta de nuevo; al hacerlo vuelve a ofrecerse al registrar vehículos.
 
 ---
 
@@ -163,6 +191,10 @@ respectivamente, sin que nadie haya elegido el estado y sin que el campo de esta
 12. **Given** el catálogo con tipos de ámbito chofer (licencia, psicofísico) y de ámbito vehículo
     (VTV, seguro), **When** el responsable de Tráfico elige el tipo de un documento de vehículo,
     **Then** sólo se le ofrecen los de ámbito vehículo.
+13. **Given** un documento cuyo escaneo el responsable de Tráfico todavía no tiene, **When** lo
+    guarda sin archivo, **Then** el documento queda cargado con su estado calculado, la ficha lo
+    muestra señalando que no tiene archivo, y el estado general del vehículo no se ve afectado por
+    esa ausencia.
 
 ---
 
@@ -245,12 +277,12 @@ panel de vencimientos.
 
 ---
 
-### User Story 6 - Modificar, reasignar y dar de baja vehículos (Priority: P3)
+### User Story 6 - Modificar, reasignar, dar de baja y reactivar vehículos (Priority: P3)
 
 El responsable de Tráfico corrige los datos de un vehículo cuando cambian, cambia su estado
 operativo, lo reasigna a otro transportista cuando la unidad cambia de dueño —por ejemplo, un
-vehículo terciarizado que pasa a ser propio de G&T Logística— y lo da de baja lógicamente cuando deja
-de formar parte de la flota.
+vehículo terciarizado que pasa a ser propio de G&T Logística—, lo da de baja lógicamente cuando deja
+de formar parte de la flota y lo reactiva si vuelve.
 
 **Why this priority**: Es necesario para mantener el padrón fiel a la realidad, pero es menos
 frecuente que el alta y la consulta, y su ausencia no impide operar el resto del módulo.
@@ -279,11 +311,20 @@ inactivo, con su registro y su documentación intactos.
    nada cambia.
 7. **Given** un vehículo con al menos un documento `vencida`, **When** se intenta dejarlo en estado
    operativo `disponible`, **Then** el sistema lo impide e informa qué documentación se lo impide.
-8. **Given** un vehículo dado de baja, **When** se consulta su ficha filtrando por estado inactivo,
+8. **Given** un vehículo dado de baja, **When** se consulta su ficha filtrando por `dado de baja`,
    **Then** su documentación y sus archivos adjuntos siguen intactos.
-9. **Given** un transportista con al menos un vehículo activo asociado, **When** se intenta darlo de
-   baja desde el Módulo 3, **Then** el sistema lo rechaza e informa cuántos vehículos activos
-   dependen de él, además de sus choferes activos.
+9. **Given** un vehículo dado de baja que vuelve a la flota, **When** el responsable de Tráfico lo
+   reactiva desde su ficha y confirma, **Then** vuelve a aparecer en el listado por defecto y en el
+   panel de vencimientos si corresponde, con toda su documentación y sus archivos intactos.
+10. **Given** una patente que pertenece a un vehículo dado de baja, **When** se intenta registrarla
+    como unidad nueva, **Then** el sistema lo rechaza e indica que hay que reactivar el vehículo
+    existente.
+11. **Given** un vehículo dado de baja cuyo transportista o tipo de vehículo también fue dado de
+    baja, **When** se intenta reactivarlo, **Then** el sistema pide elegir un transportista o un tipo
+    activo antes de completar la reactivación.
+12. **Given** un transportista con al menos un vehículo activo asociado, **When** se intenta darlo de
+    baja desde el Módulo 3, **Then** el sistema lo rechaza e informa cuántos vehículos activos
+    dependen de él, además de sus choferes activos.
 
 ---
 
@@ -333,6 +374,17 @@ inactivo, con su registro y su documentación intactos.
 - El transportista de un vehículo se da de baja mientras la unidad sigue activa: no puede ocurrir,
   porque la baja se rechaza antes (FR-008d); un vehículo nunca queda apuntando a un transportista
   inactivo.
+- Tipo de documentación creado con el ámbito equivocado: se corrige mientras no tenga documentos
+  cargados; con documentos asociados el cambio se rechaza informando cuántos son (cubierto en
+  User Story 3, FR-017d).
+- Documento cargado sin archivo adjunto: es válido, y el sistema lo distingue de un documento con
+  archivo **a nivel del documento**, no del vehículo. La falta de adjunto NO cambia el estado general
+  del vehículo, que toma exactamente los cuatro valores de FR-033 (cubierto en User Story 3).
+- Vehículo reactivado con documentación vencida: vuelve a alertar en el panel apenas se lo reactiva,
+  sin que nadie recargue nada, porque el estado se calcula al consultarlo (cubierto en User Story 6).
+- El transportista de un vehículo dado de baja se da de baja después: la baja del transportista
+  procede, y al querer reactivar la unidad el sistema exige elegirle un transportista activo
+  (cubierto en User Story 6).
 
 ## Requirements *(mandatory)*
 
@@ -344,8 +396,8 @@ inactivo, con su registro y su documentación intactos.
   vehículos, con patente, marca, modelo, tipo de vehículo, transportista y estado operativo; NO DEBE
   borrarlos físicamente.
 - **FR-002**: El sistema DEBE exigir que la patente de un vehículo sea única en toda la flota,
-  garantizada con una restricción de unicidad en la base de datos; en una modificación, la
-  comparación DEBE excluir al propio vehículo.
+  incluidos los vehículos dados de baja, garantizada con una restricción de unicidad en la base de
+  datos; en una modificación, la comparación DEBE excluir al propio vehículo.
 - **FR-003**: El sistema DEBE normalizar la patente a mayúsculas y sin espacios, guiones ni puntos
   antes de validar su unicidad y antes de guardarla, tanto al crear como al modificar, de modo que
   `ab 123 cd`, `AB-123-CD` y `AB123CD` sean la misma patente.
@@ -360,6 +412,13 @@ inactivo, con su registro y su documentación intactos.
   cancelar esa confirmación NO DEBE modificar nada.
 - **FR-008**: La baja de un vehículo NO DEBE alterar su documentación: sus documentos y sus archivos
   adjuntos se conservan intactos y siguen visibles en su ficha.
+- **FR-008e**: El sistema DEBE permitir reactivar un vehículo dado de baja desde su ficha, con
+  confirmación explícita previa. Al reactivarlo, DEBE volver al listado por defecto y al panel de
+  vencimientos si corresponde, con toda su documentación contando de nuevo. La reactivación DEBE
+  exigir que su transportista y su tipo de vehículo sigan activos; si alguno fue dado de baja, el
+  sistema DEBE pedir que se elija uno activo antes de reactivar la unidad.
+- **FR-008f**: El sistema NO DEBE ofrecer registrar de nuevo una patente que ya pertenece a un
+  vehículo dado de baja: DEBE rechazar el alta indicando que hay que reactivar la unidad existente.
 
 #### Pertenencia a un transportista
 
@@ -380,7 +439,9 @@ inactivo, con su registro y su documentación intactos.
 #### Catálogo de tipos de vehículo
 
 - **FR-009**: El sistema DEBE permitir registrar, consultar, modificar y dar de baja lógica tipos de
-  vehículo, con nombre único; NO DEBE borrarlos físicamente.
+  vehículo, con nombre único; NO DEBE borrarlos físicamente. DEBE permitir dar de alta de nuevo un
+  tipo dado de baja desde su edición, y el alta DEBE ser una acción propia: guardar el nombre NO DEBE
+  cambiar el estado del tipo.
 - **FR-010**: El sistema DEBE rechazar la baja de un tipo de vehículo que tenga vehículos asociados,
   informando cuántos son.
 - **FR-011**: El sistema NO DEBE ofrecer los tipos de vehículo inactivos al registrar o modificar un
@@ -412,9 +473,14 @@ inactivo, con su registro y su documentación intactos.
 #### Documentación del vehículo
 
 - **FR-016**: El sistema DEBE permitir cargar documentos asociados a un vehículo, con tipo de
-  documentación, número, fecha de emisión, fecha de vencimiento y archivo adjunto. El número DEBE ser
-  obligatorio y de hasta 50 caracteres, y NO DEBE exigirse único: dos documentos del mismo vehículo y
-  del mismo tipo pueden compartirlo, porque una póliza conserva su número al renovarse.
+  documentación, número, fecha de emisión, fecha de vencimiento y archivo adjunto opcional. El número
+  DEBE ser obligatorio y de hasta 50 caracteres, y NO DEBE exigirse único: dos documentos del mismo
+  vehículo y del mismo tipo pueden compartirlo, porque una póliza conserva su número al renovarse.
+- **FR-016a**: El archivo adjunto NO DEBE ser obligatorio para guardar un documento: el sistema DEBE
+  permitir cargarlo sin archivo y adjuntarlo más tarde desde la edición del documento. La ficha DEBE
+  distinguir a nivel de cada documento cuál tiene archivo y cuál no. La presencia o ausencia del
+  adjunto NO DEBE alterar el estado del documento ni el estado general del vehículo, que conserva
+  exactamente los cuatro valores de FR-033.
 - **FR-017**: Este módulo DEBE usar el mismo catálogo de tipos de documentación del Módulo 3, que
   DEBE extenderse con un campo obligatorio que indique a qué se aplica cada tipo: chofer o vehículo.
   NO DEBE crearse un catálogo paralelo ni duplicarse el ABM de tipos ni la regla de días de aviso.
@@ -425,12 +491,19 @@ inactivo, con su registro y su documentación intactos.
   contando tanto los documentos de choferes como los de vehículos, e informando cuántos son.
 - **FR-017c**: Los tipos de documentación ya cargados por el Módulo 3 DEBEN quedar con ámbito chofer
   al incorporarse el campo nuevo, de modo que ningún documento existente cambie de comportamiento.
+- **FR-017d**: El sistema DEBE permitir corregir el ámbito de un tipo de documentación mientras no
+  tenga ningún documento cargado. Con documentos asociados —de choferes o de vehículos— DEBE rechazar
+  el cambio e informar cuántos son, para que ningún documento quede colgando de un tipo que su módulo
+  ya no ofrece.
 - **FR-018**: El sistema DEBE exigir que la fecha de vencimiento de un documento sea posterior a su
   fecha de emisión.
 - **FR-019**: El sistema DEBE calcular automáticamente el estado de cada documento, con exactamente
   tres valores posibles: `vigente` cuando faltan más días para el vencimiento que los días de aviso
   de su tipo, `proximaAvencer` cuando el vencimiento cae entre hoy inclusive y esa ventana de aviso,
   y `vencida` cuando la fecha de vencimiento ya pasó.
+- **FR-019a**: Los días de aviso de un tipo DEBEN contarse en **días corridos**, no hábiles: sábados,
+  domingos y feriados cuentan igual que cualquier otro día. El sistema NO DEBE mantener ningún
+  calendario de feriados.
 - **FR-020**: "Hoy" DEBE entenderse como el día en curso en la hora de Argentina (UTC−3),
   independientemente de la zona horaria del servidor o del navegador. Es lo que define el borde de un
   documento que vence exactamente hoy y el momento en que un documento pasa por sí solo al estado
@@ -446,13 +519,16 @@ inactivo, con su registro y su documentación intactos.
   vencimiento más lejana. Solo ese documento DEBE determinar el estado general del vehículo, la
   restricción de FR-013 y las alertas; los anteriores DEBEN quedar como historial visible en la
   ficha.
-- **FR-025**: El archivo adjunto DEBE subirse desde el formulario del documento y quedar guardado
-  bajo el resguardo del sistema; el sistema DEBE aceptar únicamente archivos PDF, JPG y PNG de hasta
-  10 MB, y DEBE rechazar cualquier otro formato o tamaño mayor informando el motivo puntual sin
-  guardar el documento.
+- **FR-025**: Cuando se adjunta un archivo, DEBE subirse desde el formulario del documento y quedar
+  guardado bajo el resguardo del sistema; el sistema DEBE aceptar únicamente archivos PDF, JPG y PNG
+  de hasta 10 MB, y DEBE rechazar cualquier otro formato o tamaño mayor informando el motivo puntual
+  sin guardar el documento.
 - **FR-026**: El sistema DEBE permitir modificar un documento ya cargado —su tipo, número, fechas y
   archivo adjunto— aplicando las mismas validaciones que rigen el alta, y DEBE recalcular su estado
   con los datos corregidos.
+- **FR-026a**: Cuando el archivo adjunto de un documento se reemplaza con éxito, el archivo anterior
+  DEBE borrarse. Dejar el formulario sin archivo NO DEBE reemplazar nada: el documento conserva el que
+  ya tenía.
 - **FR-027**: El sistema DEBE permitir eliminar un documento. La eliminación DEBE pedir una
   confirmación explícita que advierta que no se puede deshacer; al confirmarla, el registro del
   documento y su archivo adjunto DEBEN borrarse definitivamente, sin quedar inactivos ni
@@ -478,8 +554,12 @@ inactivo, con su registro y su documentación intactos.
   más recientes de cada tipo según FR-024—, y DEBE permitir filtrar por transportista, tipo de
   vehículo, estado del vehículo y estado de documentación en cualquier combinación. Los cuatro
   filtros DEBEN ser una selección exacta entre las opciones ya cargadas en el sistema.
-- **FR-031**: Sin filtros aplicados, el listado DEBE mostrar únicamente los vehículos activos; los
-  dados de baja DEBEN aparecer al elegir ese estado en el filtro.
+- **FR-030a**: El filtro "estado del vehículo" DEBE ser un único control con tres valores
+  excluyentes: `disponible`, `fuera de servicio` y `dado de baja`. NO DEBE haber un filtro separado
+  de activo/inactivo: el estado de alta y el operativo se eligen desde el mismo control.
+- **FR-031**: Sin filtros aplicados, el listado DEBE mostrar únicamente los vehículos activos —tanto
+  los `disponible` como los `fuera de servicio`—; los dados de baja DEBEN aparecer al elegir
+  `dado de baja` en el filtro de estado del vehículo.
 - **FR-032**: El listado de flota DEBE paginarse del lado del servidor, con 20 filas por página. Los
   filtros DEBEN aplicarse sobre toda la flota antes de paginar, y el sistema DEBE mostrar el total de
   vehículos que cumplen los filtros junto con la página en curso.
@@ -538,6 +618,10 @@ inactivo, con su registro y su documentación intactos.
 - **VehiculoEstado** (estado operativo del vehículo): `disponible`, `fuera de servicio`. Lo elige el
   operador, pero el valor que se muestra y por el que se filtra se deriva al consultarlo según
   FR-014.
+- **Estado del vehículo en el filtro del listado** (derivado, no se almacena): `disponible`,
+  `fuera de servicio`, `dado de baja`. Combina el estado operativo derivado con el estado de alta en
+  un único control (FR-030a); un vehículo dado de baja toma ese valor cualquiera sea su estado
+  operativo guardado.
 - **DocumentacionAmbito**: `chofer`, `vehiculo`. Aplica al tipo de documentación y define en qué
   módulo se ofrece.
 - **DocumentacionEstado**: `vigente`, `proximaAvencer`, `vencida`. Aplica al documento y lo calcula

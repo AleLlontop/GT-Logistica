@@ -455,14 +455,20 @@ paths:
     parameters:
       - { name: id, in: path, required: true, schema: { type: integer } }
     get:
-      summary: Descarga el archivo adjunto de un documento
+      summary: Devuelve el archivo adjunto de un documento, para verlo en el navegador
       description: |
         **Exige sesión y el permiso del módulo**, igual que el resto. Es deliberado: un psicofísico o
         una licencia son datos personales sensibles, así que conocer la ruta no alcanza para verlos
         (research §3).
+
+        Responde con `Content-Disposition: inline` y el nombre original: quien abre un documento lo
+        quiere **ver**, no bajarlo y abrirlo a mano. Va con `X-Content-Type-Options: nosniff`, porque
+        servir contenido en línea desde el propio origen no puede depender de que el navegador
+        adivine el tipo. Es seguro porque el tipo se dedujo de la **firma** del archivo al cargarlo y
+        sólo se admiten PDF, JPG y PNG.
       responses:
         "200":
-          description: El archivo, con su tipo de contenido y su nombre original
+          description: El archivo, en línea, con su tipo de contenido y su nombre original
           content:
             application/octet-stream:
               schema: { type: string, format: binary }

@@ -11,6 +11,9 @@ namespace GT.IntegrationTests.Choferes;
 /// Se rechaza mientras tenga choferes <b>activos</b>, e informa cuántos: dejarlo pasar dejaría
 /// choferes activos colgando de un transportista inactivo, que es lo mismo que FR-008 no admite al
 /// darlos de alta.
+///
+/// Desde el Módulo 4 la regla mira también su flota y el mensaje informa las dos cantidades; el caso
+/// del vehículo activo se prueba en <c>Flota/BajaTransportistaConFlotaTests</c> (FR-008d).
 /// </summary>
 public class BajaTransportistaTests(AplicacionDePrueba app) : IClassFixture<AplicacionDePrueba>
 {
@@ -31,7 +34,8 @@ public class BajaTransportistaTests(AplicacionDePrueba app) : IClassFixture<Apli
         var error = await respuesta.Content.ReadFromJsonAsync<ErrorLeido>();
         Assert.Equal("transportista_con_choferes", error!.Codigo);
         Assert.Equal(
-            "No se puede dar de baja: tiene 2 chofer(es) activo(s). Reasignalos o dalos de baja primero.",
+            "No se puede dar de baja: 2 chofer(es) y 0 vehículo(s) activos dependen de este " +
+            "transportista. Reasignalos o dalos de baja primero.",
             error.Mensaje);
     }
 
@@ -100,5 +104,6 @@ public class BajaTransportistaTests(AplicacionDePrueba app) : IClassFixture<Apli
         string Telefono,
         string Email,
         bool Activo,
-        int ChoferesActivos);
+        int ChoferesActivos,
+        int VehiculosActivos);
 }

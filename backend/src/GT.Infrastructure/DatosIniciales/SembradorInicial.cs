@@ -34,6 +34,12 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
         (CodigosPermiso.ChoferesGestionar, "Choferes",
             "Gestionar transportistas, choferes y su documentación"),
+
+        (CodigosPermiso.FlotaGestionar, "Flota",
+            "Gestionar vehículos, su documentación y el panel de vencimientos"),
+
+        (CodigosPermiso.FlotaTiposGestionar, "Flota",
+            "Mantener el catálogo de tipos de vehículo"),
     ];
 
     /// <summary>
@@ -41,13 +47,22 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
     ///
     /// El Módulo 3 es el primero que habilita algo para un rol que no es el administrador: *Tráfico*
     /// recibe `choferes.gestionar` y ningún permiso del Módulo 2 (FR-027).
+    ///
+    /// El Módulo 4 es el primero que reparte **dos** permisos del mismo módulo de forma distinta:
+    /// Tráfico gestiona la flota pero no el catálogo de tipos de vehículo, que es sólo del
+    /// administrador (Módulo 4, FR-039, research §7).
     /// </summary>
     private static readonly Dictionary<string, string[]> PermisosPorRol = new()
     {
         [CodigosRol.AdministradorSistema] =
-            [CodigosPermiso.UsuariosGestionar, CodigosPermiso.ChoferesGestionar],
+        [
+            CodigosPermiso.UsuariosGestionar,
+            CodigosPermiso.ChoferesGestionar,
+            CodigosPermiso.FlotaGestionar,
+            CodigosPermiso.FlotaTiposGestionar,
+        ],
 
-        [CodigosRol.Trafico] = [CodigosPermiso.ChoferesGestionar],
+        [CodigosRol.Trafico] = [CodigosPermiso.ChoferesGestionar, CodigosPermiso.FlotaGestionar],
     };
 
     /// <param name="passwordInicial">

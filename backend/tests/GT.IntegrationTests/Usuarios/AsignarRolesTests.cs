@@ -163,10 +163,17 @@ public class AsignarRolesTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
         var roles = await cliente.GetFromJsonAsync<List<RolLeido>>("/api/roles");
 
         var trafico = roles!.Single(rol => rol.Codigo == CodigosRol.Trafico);
-        var choferes = Assert.Single(trafico.PermisosPorModulo);
 
-        Assert.Equal("Choferes", choferes.Modulo);
+        var choferes = Assert.Single(trafico.PermisosPorModulo, modulo => modulo.Modulo == "Choferes");
         Assert.Contains(choferes.Permisos, permiso => permiso.Codigo == CodigosPermiso.ChoferesGestionar);
+
+        // Desde el Módulo 4, Tráfico suma la gestión de la flota. **No** suma el catálogo de tipos de
+        // vehículo, que es sólo del administrador: es el primer módulo con dos niveles de acceso
+        // adentro (FR-039, research §7).
+        var flota = Assert.Single(trafico.PermisosPorModulo, modulo => modulo.Modulo == "Flota");
+        var permisoDeFlota = Assert.Single(flota.Permisos);
+
+        Assert.Equal(CodigosPermiso.FlotaGestionar, permisoDeFlota.Codigo);
     }
 
     [Fact]

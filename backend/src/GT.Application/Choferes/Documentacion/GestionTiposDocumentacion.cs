@@ -11,11 +11,18 @@ namespace GT.Application.Choferes.Documentacion;
 /// </summary>
 public class GestionTiposDocumentacion(IRepositorioTiposDocumentacion repositorio)
 {
+    /// <param name="ambito">
+    /// Desde el Módulo 4, cada módulo pide sólo los tipos de su ámbito: el formulario de documento de
+    /// vehículo consume <c>?ambito=vehiculo&amp;soloActivos=true</c> y no ve los de chofer, ni al
+    /// revés (FR-017a). <c>null</c> devuelve los dos ámbitos, que es lo que muestra la pantalla de
+    /// mantenimiento.
+    /// </param>
     public async Task<List<TipoDocumentacionDto>> ConsultarAsync(
         bool soloActivos = false,
+        DocumentacionAmbito? ambito = null,
         CancellationToken cancelacion = default)
     {
-        var tipos = await repositorio.ConsultarAsync(soloActivos, cancelacion);
+        var tipos = await repositorio.ConsultarAsync(soloActivos, ambito, cancelacion);
 
         return tipos.Select(TipoDocumentacionDto.Desde).ToList();
     }
@@ -42,6 +49,8 @@ public class GestionTiposDocumentacion(IRepositorioTiposDocumentacion repositori
         {
             Nombre = nombre,
             DiasAvisoVencimiento = peticion.DiasAvisoVencimiento!.Value,
+            // El validador ya rechazó un ámbito ausente o desconocido (FR-017).
+            Ambito = ValidadorTipoDocumentacion.LeerAmbito(peticion.Ambito)!.Value,
             Activo = true,
         };
 
@@ -90,8 +99,27 @@ public class GestionTiposDocumentacion(IRepositorioTiposDocumentacion repositori
                 Campo: "nombre");
         }
 
+        var ambito = ValidadorTipoDocumentacion.LeerAmbito(peticion.Ambito)!.Value;
+        var documentos = await repositorio.ContarDocumentosAsync(id, cancelacion);
+
+        // FR-017d: el ámbito se corrige mientras el tipo no tenga ningún documento, de ninguno de los
+        // dos lados. Con documentos asociados, cambiarlo los dejaría colgando de un tipo que su
+        // propio módulo ya no ofrece, y su formulario de corrección no podría volver a elegirlo.
+        //
+        // El nombre y los días de aviso se modifican igual, tengan documentos o no.
+        if (tipo.Ambito != ambito && documentos > 0)
+        {
+            return new ResultadoTipoDocumentacion(
+                ErrorTipoDocumentacion.AmbitoNoModificable,
+                Campo: "ambito")
+            {
+                CantidadDocumentos = documentos,
+            };
+        }
+
         tipo.Nombre = nombre;
         tipo.DiasAvisoVencimiento = peticion.DiasAvisoVencimiento!.Value;
+        tipo.Ambito = ambito;
 
         try
         {
@@ -103,8 +131,6 @@ public class GestionTiposDocumentacion(IRepositorioTiposDocumentacion repositori
                 ErrorTipoDocumentacion.NombreDuplicado,
                 Campo: "nombre");
         }
-
-        var documentos = await repositorio.ContarDocumentosAsync(id, cancelacion);
 
         return new ResultadoTipoDocumentacion(
             ErrorTipoDocumentacion.Ninguno,
