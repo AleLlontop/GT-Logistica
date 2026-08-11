@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using GT.Domain.Choferes;
 using GT.Domain.Flota;
 using GT.IntegrationTests.Infraestructura;
 
@@ -82,6 +83,67 @@ public class AsignablesTests(AplicacionDePrueba app) : IClassFixture<AplicacionD
 
         Assert.Contains(asignables!.Choferes, fila => fila.Id == escenario.ChoferId);
         Assert.Contains(asignables.Vehiculos, fila => fila.Id == escenario.VehiculoId);
+    }
+
+    /// <summary>
+    /// Ofrecerla no es callarse el motivo: la unidad con documentación vencida viene con la
+    /// observación que nombra el documento y su fecha. Sin eso, el desplegable contradecía al Módulo
+    /// 4 —que la muestra fuera de servicio por el estado derivado— sin explicar por qué.
+    /// </summary>
+    [Fact]
+    public async Task La_UnidadConDocumentacionVencida_SeOfreceConLaObservacion()
+    {
+        var cliente = await app.CrearClienteAutenticadoAsync();
+
+        var escenario = await app.ArmarEscenarioAsync(diasDelDocumentoDelVehiculo: -30);
+
+        var asignables = await cliente.GetFromJsonAsync<AsignablesLeidos>("/api/viajes/asignables");
+
+        var vehiculo = Assert.Single(asignables!.Vehiculos, fila => fila.Id == escenario.VehiculoId);
+
+        Assert.NotNull(vehiculo.Observacion);
+        Assert.Contains("vencido el", vehiculo.Observacion);
+        Assert.Contains(
+            FechaHoyArgentina.Hoy().AddDays(-30).ToString("dd/MM/yyyy"),
+            vehiculo.Observacion);
+    }
+
+    [Fact]
+    public async Task La_UnidadEnRegla_NoTraeObservacion()
+    {
+        var cliente = await app.CrearClienteAutenticadoAsync();
+        var escenario = await app.ArmarEscenarioAsync();
+
+        var asignables = await cliente.GetFromJsonAsync<AsignablesLeidos>("/api/viajes/asignables");
+
+        Assert.All(
+            asignables!.Vehiculos.Where(fila => fila.Id == escenario.VehiculoId),
+            fila => Assert.Null(fila.Observacion));
+
+        Assert.All(
+            asignables.Choferes.Where(fila => fila.Id == escenario.ChoferId),
+            fila => Assert.Null(fila.Observacion));
+    }
+
+    /// <summary>
+    /// La observación se calcula contra <b>la fecha del viaje</b>, igual que el bloqueo (SC-014). Un
+    /// documento que venció ayer no observa nada en un viaje de la semana pasada: ese día estaba
+    /// vigente, y esa unidad efectivamente hizo ese viaje.
+    /// </summary>
+    [Fact]
+    public async Task La_Observacion_SeEvaluaContraLaFechaDelViaje()
+    {
+        var cliente = await app.CrearClienteAutenticadoAsync();
+
+        var escenario = await app.ArmarEscenarioAsync(diasDelDocumentoDelVehiculo: -1);
+        var fechaDelViaje = FechaHoyArgentina.Hoy().AddDays(-7);
+
+        var asignables = await cliente.GetFromJsonAsync<AsignablesLeidos>(
+            $"/api/viajes/asignables?fecha={fechaDelViaje:yyyy-MM-dd}");
+
+        var vehiculo = Assert.Single(asignables!.Vehiculos, fila => fila.Id == escenario.VehiculoId);
+
+        Assert.Null(vehiculo.Observacion);
     }
 
     /// <summary>

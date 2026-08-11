@@ -81,16 +81,26 @@ public interface IRepositorioViajes
         CancellationToken cancelacion = default);
 
     /// <summary>
-    /// Los dos desplegables de la pantalla de asignación (FR-021).
-    ///
-    /// Choferes activos, y vehículos activos con <b>estado operativo guardado</b> <c>disponible</c>
-    /// —no el derivado contra el día en curso: eso rompería la carga retroactiva, porque una unidad
-    /// hoy inhabilitada pudo estar en regla el día del viaje que se está asentando (SC-014)—.
+    /// Los choferes que alimentan el desplegable de asignación: los <b>activos</b>, con su persona y
+    /// toda su documentación (FR-021).
     ///
     /// La habilitación por documentación <b>no</b> filtra esta lista: se resuelve al asignar, contra
-    /// la fecha del viaje. No pagina: son dos desplegables sobre padrones de decenas de filas.
+    /// la fecha del viaje. Los documentos vienen igual porque de ellos sale la observación que la
+    /// pantalla muestra al lado del nombre, evaluada contra esa misma fecha.
+    ///
+    /// No pagina: es un desplegable sobre un padrón de decenas de filas.
     /// </summary>
-    Task<Asignables> ConsultarAsignablesAsync(CancellationToken cancelacion = default);
+    Task<IReadOnlyList<Domain.Choferes.Chofer>> ConsultarChoferesAsignablesAsync(
+        CancellationToken cancelacion = default);
+
+    /// <summary>
+    /// Los vehículos que alimentan el desplegable: activos y con <b>estado operativo guardado</b>
+    /// <c>disponible</c> —no el derivado contra el día en curso: eso rompería la carga retroactiva,
+    /// porque una unidad hoy inhabilitada pudo estar en regla el día del viaje que se está asentando
+    /// (FR-021, SC-014)—, con toda su documentación.
+    /// </summary>
+    Task<IReadOnlyList<Domain.Flota.Vehiculo>> ConsultarVehiculosAsignablesAsync(
+        CancellationToken cancelacion = default);
 
     /// <summary>
     /// El chofer con su persona y toda su documentación, para poder evaluar la habilitación y

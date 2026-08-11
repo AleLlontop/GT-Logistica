@@ -7,9 +7,19 @@ import {
   listarAsignables,
   obtenerViaje,
   type Advertencia,
+  type Asignable,
   type Asignables,
   type ViajeDetalle,
 } from '../servicios/servicioViajes'
+
+/**
+ * El texto de cada opción del desplegable. La unidad observada se ofrece igual —sacarla rompería la
+ * carga retroactiva (SC-014)— pero con el motivo al lado: es la palabra, no un color, y explica por
+ * qué el módulo de Flota puede estar mostrando esa misma unidad fuera de servicio (convención [003]).
+ */
+function textoDeLaOpcion(unidad: Asignable) {
+  return unidad.observacion === null ? unidad.nombre : `${unidad.nombre} — ${unidad.observacion}`
+}
 
 const MENSAJE_SIN_CHOFERES =
   'Todavía no hay choferes activos. Cargá al menos uno en el módulo de Choferes.'
@@ -48,8 +58,12 @@ export function AsignacionViaje() {
   useEffect(() => {
     let vigente = true
 
-    Promise.all([obtenerViaje(viajeId), listarAsignables()])
-      .then(([viaje, asignables]) => {
+    // En dos pasos y no en paralelo: la lista se pide **con la fecha del viaje**, que es contra la
+    // que el servidor evalúa la documentación de cada unidad. Pedirla antes de saber la fecha
+    // devolvería observaciones calculadas contra hoy, equivocadas para un viaje retroactivo.
+    obtenerViaje(viajeId)
+      .then(async (viaje) => ({ viaje, asignables: await listarAsignables(viaje.fecha) }))
+      .then(({ viaje, asignables }) => {
         if (!vigente) return
 
         setViaje(viaje)
@@ -145,7 +159,7 @@ export function AsignacionViaje() {
             </option>
             {asignables.choferes.map((chofer) => (
               <option key={chofer.id} value={chofer.id}>
-                {chofer.nombre}
+                {textoDeLaOpcion(chofer)}
               </option>
             ))}
           </select>
@@ -164,7 +178,7 @@ export function AsignacionViaje() {
             </option>
             {asignables.vehiculos.map((vehiculo) => (
               <option key={vehiculo.id} value={vehiculo.id}>
-                {vehiculo.nombre}
+                {textoDeLaOpcion(vehiculo)}
               </option>
             ))}
           </select>

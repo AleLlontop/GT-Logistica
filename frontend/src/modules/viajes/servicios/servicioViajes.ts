@@ -140,12 +140,31 @@ export function modificarViaje(id: number, peticion: ViajePeticion) {
  * cargar y el viaje se queda `pendiente` sin asignar.
  */
 export interface Asignables {
-  choferes: Resumen[]
-  vehiculos: Resumen[]
+  choferes: Asignable[]
+  vehiculos: Asignable[]
 }
 
-export function listarAsignables() {
-  return obtener<Asignables>('/viajes/asignables')
+/**
+ * Una opción de los desplegables de asignación (FR-021).
+ *
+ * `observacion` dice por qué la unidad está observada **a la fecha del viaje** —«Seguro vencido el
+ * 10/08/2026»— o es `null` si no lo está. La unidad se ofrece igual: el filtro es el estado operativo
+ * guardado y no la documentación, que se resuelve al asignar contra esa misma fecha (SC-014).
+ */
+export interface Asignable {
+  id: number
+  nombre: string
+  observacion: string | null
+}
+
+/**
+ * @param fecha La del viaje, en `yyyy-MM-dd`. Sin ella el servidor evalúa contra hoy, que sería una
+ * observación equivocada para un viaje retroactivo.
+ */
+export function listarAsignables(fecha?: string) {
+  return obtener<Asignables>(
+    fecha === undefined ? '/viajes/asignables' : `/viajes/asignables?fecha=${fecha}`,
+  )
 }
 
 /**

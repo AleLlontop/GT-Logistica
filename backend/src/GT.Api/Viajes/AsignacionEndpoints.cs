@@ -31,10 +31,17 @@ public static class AsignacionEndpoints
         grupo.MapPost("/{id:int}/asignacion", AsignarAsync);
     }
 
+    /// <summary>
+    /// <paramref name="fecha"/> es la del viaje que se está por asignar, y es opcional: sin ella se
+    /// evalúa contra hoy. No filtra la lista —eso lo hace el estado operativo guardado— sino que fija
+    /// contra qué día se calcula la observación de cada unidad, de modo que sea exactamente la misma
+    /// que después decide el rechazo (FR-021, FR-022, SC-014).
+    /// </summary>
     private static async Task<IResult> ListarAsignablesAsync(
         ConsultarAsignables consultar,
-        CancellationToken cancelacion) =>
-        Results.Ok(await consultar.EjecutarAsync(cancelacion));
+        CancellationToken cancelacion,
+        DateOnly? fecha = null) =>
+        Results.Ok(await consultar.EjecutarAsync(fecha, cancelacion));
 
     /// <summary>
     /// Devuelve el sobre <c>{ viaje, advertencias }</c>: es una de las tres operaciones que pueden

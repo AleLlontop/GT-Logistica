@@ -376,12 +376,26 @@ paths:
           hoy inhabilitada pudo estar en regla el día del viaje que se está asentando (FR-021, SC-014).
 
         **La habilitación por documentación no filtra esta lista**: se evalúa al asignar, contra la
-        fecha del viaje (FR-022, FR-023).
+        fecha del viaje (FR-022, FR-023). Pero sí la **observa**: cada unidad viene con `observacion`,
+        que nombra el documento vencido a esa fecha —el mismo que después va a nombrar el rechazo— o
+        `null` si no hay ninguno. Ofrecerla muda contradecía al Módulo 4, que la muestra fuera de
+        servicio por el estado derivado, y dejaba elegir a ciegas una unidad que el servidor iba a
+        rechazar (convención [003]: un listado no oculta ni calla lo que sabe de sus filas).
 
         No pagina: son dos desplegables sobre padrones de decenas de filas.
 
         Las dos listas pueden venir vacías, y es una respuesta legítima: la pantalla informa qué falta
         cargar y el viaje se queda `pendiente` sin asignar.
+      parameters:
+        - name: fecha
+          in: query
+          required: false
+          schema: { type: string, format: date }
+          description: |
+            La fecha del viaje que se está por asignar. **No filtra**: fija contra qué día se calcula
+            la `observacion` de cada unidad, para que sea exactamente la misma que después decide el
+            rechazo. Sin ella se evalúa contra hoy, que para un viaje retroactivo observaría una
+            unidad que ese día estaba en regla (SC-014).
       responses:
         "200":
           description: Choferes y vehículos asignables
@@ -393,10 +407,10 @@ paths:
                 properties:
                   choferes:
                     type: array
-                    items: { $ref: "#/components/schemas/Resumen" }
+                    items: { $ref: "#/components/schemas/Asignable" }
                   vehiculos:
                     type: array
-                    items: { $ref: "#/components/schemas/Resumen" }
+                    items: { $ref: "#/components/schemas/Asignable" }
         "401": { $ref: "#/components/responses/SinSesion" }
         "403": { $ref: "#/components/responses/SinPermiso" }
 
@@ -724,6 +738,23 @@ components:
           description: |
             `false` se muestra con la palabra `(inactivo)` al lado del nombre, nunca sólo con un color
             (FR-008, FR-030, FR-049).
+
+    Asignable:
+      type: object
+      description: |
+        Una opción de los desplegables de asignación. No es un `Resumen`: acá el `activo` sobra —la
+        lista ya filtró por él— y hace falta otra cosa, la `observacion`.
+      required: [id, nombre, observacion]
+      properties:
+        id: { type: integer }
+        nombre:
+          type: string
+          description: Apellido y nombre del chofer, o patente del vehículo
+        observacion:
+          type: [string, "null"]
+          description: |
+            Por qué la unidad está observada a la fecha consultada —`Seguro vencido el 10/08/2026`— o
+            `null` si no lo está. La unidad se ofrece igual: esto explica, no filtra (FR-021, SC-014).
 
     ClienteRequest:
       type: object

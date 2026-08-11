@@ -42,9 +42,12 @@ const VIAJE: ViajeDetalle = {
 }
 
 const ASIGNABLES: Asignables = {
-  choferes: [{ id: 3, nombre: 'Gómez, Juan', activo: true }],
-  vehiculos: [{ id: 5, nombre: 'AB123CD', activo: true }],
+  choferes: [{ id: 3, nombre: 'Gómez, Juan', observacion: null }],
+  vehiculos: [{ id: 5, nombre: 'AB123CD', observacion: null }],
 }
+
+const CHOFER_ASIGNADO = { id: 3, nombre: 'Gómez, Juan', activo: true }
+const VEHICULO_ASIGNADO = { id: 5, nombre: 'AB123CD', activo: true }
 
 function renderizar() {
   return render(
@@ -64,7 +67,7 @@ describe('AsignacionViaje', () => {
     listarAsignables.mockResolvedValue(ASIGNABLES)
     asignarChoferYVehiculo.mockReset()
     asignarChoferYVehiculo.mockResolvedValue({
-      viaje: { ...VIAJE, chofer: ASIGNABLES.choferes[0], vehiculo: ASIGNABLES.vehiculos[0] },
+      viaje: { ...VIAJE, chofer: CHOFER_ASIGNADO, vehiculo: VEHICULO_ASIGNADO },
       advertencias: [],
     })
   })
@@ -102,7 +105,7 @@ describe('AsignacionViaje', () => {
    */
   it('la advertencia por documento próximo a vencer no impide que la asignación se haya guardado', async () => {
     asignarChoferYVehiculo.mockResolvedValue({
-      viaje: { ...VIAJE, chofer: ASIGNABLES.choferes[0], vehiculo: ASIGNABLES.vehiculos[0] },
+      viaje: { ...VIAJE, chofer: CHOFER_ASIGNADO, vehiculo: VEHICULO_ASIGNADO },
       advertencias: [
         {
           codigo: 'documentacion_proxima_a_vencer',
@@ -141,5 +144,43 @@ describe('AsignacionViaje', () => {
     expect(
       screen.getByText('Todavía no hay vehículos disponibles. Revisá el módulo de Flota.'),
     ).toBeInTheDocument()
+  })
+
+  /**
+   * FR-021 y SC-014: la unidad con documentación vencida **se sigue ofreciendo**, porque el filtro es
+   * el estado operativo guardado. Pero se ofrece con el motivo escrito al lado: sin eso, el
+   * desplegable contradice al módulo de Flota, que la muestra fuera de servicio, y quien opera elige
+   * a ciegas una unidad que el servidor va a rechazar.
+   */
+  it('ofrece la unidad observada con el motivo al lado', async () => {
+    listarAsignables.mockResolvedValue({
+      choferes: ASIGNABLES.choferes,
+      vehiculos: [
+        { id: 5, nombre: 'AB123CD', observacion: null },
+        { id: 9, nombre: 'EF456GH', observacion: 'Seguro vencido el 10/08/2026' },
+      ],
+    })
+
+    renderizar()
+
+    const vehiculos = await screen.findByLabelText('Vehículo')
+
+    expect(vehiculos).toHaveTextContent('EF456GH — Seguro vencido el 10/08/2026')
+    expect(
+      screen.getByRole('option', { name: 'EF456GH — Seguro vencido el 10/08/2026' }),
+    ).toBeEnabled()
+    expect(screen.getByRole('option', { name: 'AB123CD' })).toBeInTheDocument()
+  })
+
+  /**
+   * La observación se calcula contra la fecha del viaje, así que la pantalla tiene que mandarla: con
+   * la de hoy, un viaje retroactivo mostraría observada una unidad que ese día estaba en regla.
+   */
+  it('pide la lista con la fecha del viaje', async () => {
+    renderizar()
+
+    await screen.findByLabelText('Vehículo')
+
+    expect(listarAsignables).toHaveBeenCalledWith('2026-08-10')
   })
 })

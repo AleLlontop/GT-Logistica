@@ -223,7 +223,9 @@ public record PaginaDeClientesLeida(
     int Pagina,
     int TamanioPagina);
 
-public record AsignablesLeidos(List<ResumenLeido> Choferes, List<ResumenLeido> Vehiculos);
+public record AsignableLeido(int Id, string Nombre, string? Observacion);
+
+public record AsignablesLeidos(List<AsignableLeido> Choferes, List<AsignableLeido> Vehiculos);
 
 public record TotalLeido(int Id, string Nombre, int CantidadViajes, decimal ImporteTotal);
 

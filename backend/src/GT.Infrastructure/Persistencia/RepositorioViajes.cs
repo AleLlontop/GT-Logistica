@@ -196,32 +196,34 @@ public class RepositorioViajes(GtDbContext contexto) : IRepositorioViajes
     /// Las dos listas pueden venir vacías, y es una respuesta legítima: la pantalla informa qué falta
     /// cargar y el viaje se queda <c>pendiente</c> sin asignar.
     /// </summary>
-    public async Task<Asignables> ConsultarAsignablesAsync(CancellationToken cancelacion = default)
-    {
-        var choferes = await contexto.Choferes
+    /// <summary>
+    /// Trae la documentación con su tipo porque de ella sale la observación de cada opción, que la
+    /// calcula la capa de aplicación contra la fecha del viaje. Acá no se evalúa nada: la regla de
+    /// habilitación vive en el dominio y una sola vez.
+    /// </summary>
+    public async Task<IReadOnlyList<Domain.Choferes.Chofer>> ConsultarChoferesAsignablesAsync(
+        CancellationToken cancelacion = default) =>
+        await contexto.Choferes
             .Where(chofer => chofer.Activo)
+            .Include(chofer => chofer.Persona)
+            .Include(chofer => chofer.Documentacion).ThenInclude(documento => documento.Tipo)
             .OrderBy(chofer => chofer.Persona!.Apellido)
             .ThenBy(chofer => chofer.Persona!.Nombre)
             .ThenBy(chofer => chofer.Id)
-            .Select(chofer => new Resumen(
-                chofer.Id,
-                chofer.Persona!.Apellido + ", " + chofer.Persona.Nombre,
-                chofer.Activo))
             .AsNoTracking()
             .ToListAsync(cancelacion);
 
-        var vehiculos = await contexto.Vehiculos
+    public async Task<IReadOnlyList<Domain.Flota.Vehiculo>> ConsultarVehiculosAsignablesAsync(
+        CancellationToken cancelacion = default) =>
+        await contexto.Vehiculos
             .Where(vehiculo =>
                 vehiculo.Activo &&
                 vehiculo.EstadoOperativo == Domain.Flota.VehiculoEstado.Disponible)
+            .Include(vehiculo => vehiculo.Documentacion).ThenInclude(documento => documento.Tipo)
             .OrderBy(vehiculo => vehiculo.Patente)
             .ThenBy(vehiculo => vehiculo.Id)
-            .Select(vehiculo => new Resumen(vehiculo.Id, vehiculo.Patente, vehiculo.Activo))
             .AsNoTracking()
             .ToListAsync(cancelacion);
-
-        return new Asignables(choferes, vehiculos);
-    }
 
     public Task<Domain.Choferes.Chofer?> ObtenerChoferParaAsignarAsync(
         int id,

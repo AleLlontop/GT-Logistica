@@ -151,6 +151,16 @@ public static class MensajesViajes
         string fechaDelViaje) =>
         $"No podés asignar {unidad}: {tipoDocumento} N° {numeroDocumento} está vencido al {fechaDelViaje}.";
 
+    /// <summary>
+    /// La observación que acompaña a una unidad en el desplegable: el mismo documento que el servidor
+    /// va a nombrar al rechazarla, evaluado contra la misma fecha (FR-021, FR-022).
+    ///
+    /// Es corta a propósito —entra al lado de la patente en un <c>option</c>— y no repite la unidad,
+    /// que ya está escrita ahí. El mensaje completo lo da el rechazo, cuando hay dónde leerlo.
+    /// </summary>
+    public static string ObservacionDocumentoVencido(string tipoDocumento, string fechaVencimiento) =>
+        $"{tipoDocumento} vencido el {fechaVencimiento}";
+
     public static string AsignacionNoPermitida(int numero, string estado) =>
         $"El viaje {numero} está {estado} y no se puede reasignar.";
 

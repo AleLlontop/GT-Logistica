@@ -323,5 +323,22 @@ public record TotalesDelPeriodo(
     IReadOnlyList<TotalDelPeriodo> PorCliente,
     IReadOnlyList<TotalDelPeriodo> PorTransportista);
 
+/// <summary>
+/// Una opción de los desplegables de asignación (FR-021).
+///
+/// No es un <see cref="Resumen"/>: acá el <c>Activo</c> sobra —la lista ya filtró por él— y hace falta
+/// otra cosa, la <paramref name="Observacion"/>.
+/// </summary>
+/// <param name="Observacion">
+/// Por qué esta unidad está observada <b>a la fecha del viaje</b>, o <c>null</c> si no lo está.
+///
+/// La lista sigue ofreciéndola: el filtro es el estado operativo guardado y no la documentación, que
+/// se resuelve al asignar contra la fecha del viaje (FR-021, SC-014). Pero ofrecerla muda contradecía
+/// al Módulo 4, que la muestra fuera de servicio por el estado derivado, y dejaba a quien opera
+/// eligiendo a ciegas una unidad que el servidor iba a rechazar. Un listado no oculta filas en
+/// silencio y tampoco las ofrece sin decir lo que sabe de ellas (convención [003]).
+/// </param>
+public record Asignable(int Id, string Nombre, string? Observacion = null);
+
 /// <summary>Las dos listas que alimentan los desplegables de la pantalla de asignación (FR-021).</summary>
-public record Asignables(IReadOnlyList<Resumen> Choferes, IReadOnlyList<Resumen> Vehiculos);
+public record Asignables(IReadOnlyList<Asignable> Choferes, IReadOnlyList<Asignable> Vehiculos);
