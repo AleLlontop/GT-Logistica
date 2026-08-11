@@ -139,18 +139,27 @@ public class AsignarRolesTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
     }
 
     [Fact]
-    public async Task Devuelve_UnRolSinPermisos_ConLaListaVacia()
+    public async Task Gerencia_RecibeSuPrimerPermisoConElModulo5()
     {
-        // Es lo esperado mientras los módulos que otorgan esos permisos no estén implementados: no
-        // es un error ni una lista faltante. Gerencia sigue sin ninguno; Tráfico dejó de servir como
-        // ejemplo al llegar el Módulo 3, que le otorga `choferes.gestionar`.
+        // Este test verificaba que un rol **sin ningún permiso** devolviera la lista vacía sin ser un
+        // error. Con el Módulo 5 ya no queda ningún rol así: `viajes.consultar` lo reciben los cuatro,
+        // porque mirar el listado, la ficha y los totales no exige poder operar (Módulo 5, FR-051).
+        //
+        // Gerencia era el último ejemplo disponible, así que el test pasa a afirmar lo que ahora es
+        // cierto: recibe exactamente ese permiso y ninguno de gestión.
         var cliente = await app.CrearClienteAutenticadoAsync();
 
         var roles = await cliente.GetFromJsonAsync<List<RolLeido>>("/api/roles");
 
         var gerencia = roles!.Single(rol => rol.Codigo == CodigosRol.Gerencia);
 
-        Assert.Empty(gerencia.PermisosPorModulo);
+        var viajes = gerencia.PermisosPorModulo.Single(modulo => modulo.Modulo == "Viajes");
+
+        Assert.Equal(
+            [CodigosPermiso.ViajesConsultar],
+            viajes.Permisos.Select(permiso => permiso.Codigo));
+
+        Assert.Single(gerencia.PermisosPorModulo);
     }
 
     [Fact]

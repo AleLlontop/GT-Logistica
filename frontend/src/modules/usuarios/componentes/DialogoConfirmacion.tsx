@@ -3,6 +3,13 @@ import { useEffect, useRef, type KeyboardEvent } from 'react'
 interface Props {
   titulo: string
   mensaje: string
+  /**
+   * Texto del botón que confirma. Por defecto `Confirmar`.
+   *
+   * Lo trajo el Módulo 5, donde `contracts/README.md` fija el verbo de cada confirmación —`Dar de
+   * baja`, `Rendir sin importe`—: un botón que dice qué va a pasar se lee sin releer el diálogo.
+   */
+  etiquetaConfirmar?: string
   onConfirmar: () => void
   onCancelar: () => void
 }
@@ -14,7 +21,13 @@ interface Props {
  * Accesibilidad (contracts/README.md): recibe el foco al abrirse, se cierra con `Escape` —que
  * equivale a cancelar— y devuelve el foco al elemento desde el que se abrió.
  */
-export function DialogoConfirmacion({ titulo, mensaje, onConfirmar, onCancelar }: Props) {
+export function DialogoConfirmacion({
+  titulo,
+  mensaje,
+  etiquetaConfirmar = 'Confirmar',
+  onConfirmar,
+  onCancelar,
+}: Props) {
   const dialogo = useRef<HTMLDivElement>(null)
   const origen = useRef<Element | null>(null)
 
@@ -51,7 +64,7 @@ export function DialogoConfirmacion({ titulo, mensaje, onConfirmar, onCancelar }
       <p>{mensaje}</p>
 
       <button type="button" onClick={onConfirmar}>
-        Confirmar
+        {etiquetaConfirmar}
       </button>
       <button type="button" onClick={onCancelar}>
         Cancelar

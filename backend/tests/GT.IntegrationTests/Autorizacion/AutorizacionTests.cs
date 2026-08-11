@@ -51,11 +51,20 @@ public class AutorizacionTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
         var cliente = await app.CrearClienteAutenticadoAsync(usuario.Username, PasswordDeTrafico);
 
         // El menú de este usuario trae las tres entradas del Módulo 3 —el primer módulo abierto a un
-        // rol que no es el administrador (FR-027)— y la de flota del Módulo 4. Ninguna del Módulo 2.
+        // rol que no es el administrador (FR-027)—, la de flota del Módulo 4 y las tres del Módulo 5.
+        // Ninguna del Módulo 2.
         var sesion = await cliente.GetFromJsonAsync<SesionDeRespuesta>("/api/auth/sesion");
 
         Assert.Equal(
-            ["choferes", "transportistas", "tipos-documentacion", "flota"],
+            [
+                "choferes",
+                "transportistas",
+                "tipos-documentacion",
+                "flota",
+                "viajes",
+                "clientes",
+                "totales",
+            ],
             sesion!.OpcionesMenu.Select(opcion => opcion.Codigo));
 
         Assert.DoesNotContain(sesion.OpcionesMenu, opcion => opcion.Codigo is "usuarios" or "personas");

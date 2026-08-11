@@ -22,6 +22,8 @@ namespace GT.Infrastructure.Persistencia.Migraciones
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.HasSequence<int>("NumeroDeViaje");
+
             modelBuilder.Entity("GT.Domain.Choferes.Chofer", b =>
                 {
                     b.Property<int>("Id")
@@ -473,6 +475,174 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.ToTable("Usuarios", (string)null);
                 });
 
+            modelBuilder.Entity("GT.Domain.Viajes.CambioDeEstadoViaje", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<byte?>("EstadoAnterior")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("EstadoNuevo")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime>("OcurridoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ViajeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("ViajeId", "OcurridoEn");
+
+                    b.ToTable("CambiosDeEstadoViaje", (string)null);
+                });
+
+            modelBuilder.Entity("GT.Domain.Viajes.Cliente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Cuit")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
+
+                    b.Property<string>("Direccion")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<string>("RazonSocial")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Telefono")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Cuit")
+                        .IsUnique();
+
+                    b.ToTable("Clientes", (string)null);
+                });
+
+            modelBuilder.Entity("GT.Domain.Viajes.Viaje", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ChoferId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Destino")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("DetalleCarga")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<byte>("Estado")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("Importe")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("MotivoAnulacion")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Numero")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValueSql("NEXT VALUE FOR dbo.NumeroDeViaje");
+
+                    b.Property<string>("NumeroRemito")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Origen")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("TransportistaId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("VehiculoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChoferId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Viajes_ChoferEnCurso")
+                        .HasFilter("[ChoferId] IS NOT NULL AND [Estado] = 1");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("Estado");
+
+                    b.HasIndex("Numero")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Viajes_Numero");
+
+                    b.HasIndex("NumeroRemito")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Viajes_NumeroRemito")
+                        .HasFilter("[NumeroRemito] IS NOT NULL AND [Estado] <> 3");
+
+                    b.HasIndex("TransportistaId");
+
+                    b.HasIndex("VehiculoId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Viajes_VehiculoEnCurso")
+                        .HasFilter("[VehiculoId] IS NOT NULL AND [Estado] = 1");
+
+                    b.HasIndex("Fecha", "Numero")
+                        .IsDescending()
+                        .HasDatabaseName("IX_Viajes_Fecha_Numero");
+
+                    b.ToTable("Viajes", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Viajes_Importe", "[Importe] >= 0");
+                        });
+                });
+
             modelBuilder.Entity("PermisoRol", b =>
                 {
                     b.Property<int>("PermisosId")
@@ -589,6 +759,57 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Navigation("Persona");
                 });
 
+            modelBuilder.Entity("GT.Domain.Viajes.CambioDeEstadoViaje", b =>
+                {
+                    b.HasOne("GT.Domain.Usuarios.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Viajes.Viaje", "Viaje")
+                        .WithMany("CambiosDeEstado")
+                        .HasForeignKey("ViajeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+
+                    b.Navigation("Viaje");
+                });
+
+            modelBuilder.Entity("GT.Domain.Viajes.Viaje", b =>
+                {
+                    b.HasOne("GT.Domain.Choferes.Chofer", "Chofer")
+                        .WithMany()
+                        .HasForeignKey("ChoferId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("GT.Domain.Viajes.Cliente", "Cliente")
+                        .WithMany("Viajes")
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Choferes.Transportista", "Transportista")
+                        .WithMany()
+                        .HasForeignKey("TransportistaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("GT.Domain.Flota.Vehiculo", "Vehiculo")
+                        .WithMany()
+                        .HasForeignKey("VehiculoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Chofer");
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("Transportista");
+
+                    b.Navigation("Vehiculo");
+                });
+
             modelBuilder.Entity("PermisoRol", b =>
                 {
                     b.HasOne("GT.Domain.Usuarios.Permiso", null)
@@ -649,6 +870,16 @@ namespace GT.Infrastructure.Persistencia.Migraciones
             modelBuilder.Entity("GT.Domain.Personas.Persona", b =>
                 {
                     b.Navigation("Chofer");
+                });
+
+            modelBuilder.Entity("GT.Domain.Viajes.Cliente", b =>
+                {
+                    b.Navigation("Viajes");
+                });
+
+            modelBuilder.Entity("GT.Domain.Viajes.Viaje", b =>
+                {
+                    b.Navigation("CambiosDeEstado");
                 });
 #pragma warning restore 612, 618
         }

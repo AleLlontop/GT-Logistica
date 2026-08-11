@@ -40,6 +40,12 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
         (CodigosPermiso.FlotaTiposGestionar, "Flota",
             "Mantener el catálogo de tipos de vehículo"),
+
+        (CodigosPermiso.ViajesGestionar, "Viajes",
+            "Registrar viajes y clientes, asignar chofer y vehículo, y cambiar el estado del viaje"),
+
+        (CodigosPermiso.ViajesConsultar, "Viajes",
+            "Consultar viajes, clientes y totales por período"),
     ];
 
     /// <summary>
@@ -51,6 +57,11 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
     /// El Módulo 4 es el primero que reparte **dos** permisos del mismo módulo de forma distinta:
     /// Tráfico gestiona la flota pero no el catálogo de tipos de vehículo, que es sólo del
     /// administrador (Módulo 4, FR-039, research §7).
+    ///
+    /// El Módulo 5 es el primero que le da algo a *Administración de la empresa* y a *Gerencia*:
+    /// `viajes.consultar` lo reciben **los cuatro roles**, porque mirar el listado, la ficha y los
+    /// totales no exige poder operar. `viajes.gestionar` sigue el reparto de siempre, Tráfico y
+    /// administrador (Módulo 5, FR-051, research §10).
     /// </summary>
     private static readonly Dictionary<string, string[]> PermisosPorRol = new()
     {
@@ -60,9 +71,21 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.ChoferesGestionar,
             CodigosPermiso.FlotaGestionar,
             CodigosPermiso.FlotaTiposGestionar,
+            CodigosPermiso.ViajesGestionar,
+            CodigosPermiso.ViajesConsultar,
         ],
 
-        [CodigosRol.Trafico] = [CodigosPermiso.ChoferesGestionar, CodigosPermiso.FlotaGestionar],
+        [CodigosRol.Trafico] =
+        [
+            CodigosPermiso.ChoferesGestionar,
+            CodigosPermiso.FlotaGestionar,
+            CodigosPermiso.ViajesGestionar,
+            CodigosPermiso.ViajesConsultar,
+        ],
+
+        [CodigosRol.Administracion] = [CodigosPermiso.ViajesConsultar],
+
+        [CodigosRol.Gerencia] = [CodigosPermiso.ViajesConsultar],
     };
 
     /// <param name="passwordInicial">

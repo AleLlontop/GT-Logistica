@@ -10,6 +10,26 @@ export interface Sesion {
   username: string
   roles: Rol[]
   opcionesMenu: OpcionMenu[]
+  /**
+   * Códigos de permiso efectivos. La pantalla decide **por permiso y nunca por rol** qué acciones
+   * ofrece (convención [004]).
+   *
+   * Lo trajo el Módulo 5, el primero en el que una misma pantalla se mira con un permiso y se opera
+   * con otro: quien tiene sólo `viajes.consultar` ve el listado y la ficha sin ningún botón de
+   * escritura (FR-052). Ocultarlos es una cortesía, no la restricción: invocar la acción a mano
+   * igual devuelve 403 (SC-012).
+   */
+  permisos: string[]
+}
+
+/** Los permisos que este frontend consulta por nombre. */
+export const Permisos = {
+  viajesGestionar: 'viajes.gestionar',
+  viajesConsultar: 'viajes.consultar',
+} as const
+
+export function tienePermiso(sesion: Sesion | null, codigo: string): boolean {
+  return sesion?.permisos.includes(codigo) ?? false
 }
 
 /**

@@ -24,7 +24,20 @@ import { FichaVehiculo } from './modules/flota/paginas/FichaVehiculo'
 import { FormularioVehiculo } from './modules/flota/paginas/FormularioVehiculo'
 import { PanelVencimientosFlota } from './modules/flota/paginas/PanelVencimientosFlota'
 import { ListadoTiposVehiculo } from './modules/flota/tiposVehiculo/ListadoTiposVehiculo'
-import { cerrarSesion, obtenerSesion, type Sesion } from './modules/autenticacion/servicios/sesion'
+import { ListadoClientes } from './modules/viajes/clientes/ListadoClientes'
+import { FormularioCliente } from './modules/viajes/clientes/FormularioCliente'
+import { ListadoViajes } from './modules/viajes/paginas/ListadoViajes'
+import { FormularioViaje } from './modules/viajes/paginas/FormularioViaje'
+import { FichaViaje } from './modules/viajes/paginas/FichaViaje'
+import { AsignacionViaje } from './modules/viajes/paginas/AsignacionViaje'
+import { TotalesPeriodo } from './modules/viajes/paginas/TotalesPeriodo'
+import {
+  cerrarSesion,
+  obtenerSesion,
+  Permisos,
+  tienePermiso,
+  type Sesion,
+} from './modules/autenticacion/servicios/sesion'
 
 export default function App() {
   const [sesion, setSesion] = useState<Sesion | null>(null)
@@ -51,6 +64,10 @@ export default function App() {
   if (cargando) {
     return <p role="status">Cargando…</p>
   }
+
+  // Módulo 5: las pantallas se miran con `viajes.consultar` y se operan con `viajes.gestionar`, así
+  // que las de este módulo reciben el permiso para decidir qué acciones ofrecen (FR-052).
+  const puedeGestionarViajes = tienePermiso(sesion, Permisos.viajesGestionar)
 
   return (
     <BrowserRouter>
@@ -456,6 +473,162 @@ export default function App() {
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ListadoTiposVehiculo />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        {/* Rutas del Módulo 5. `/viajes/nuevo` y `/viajes/totales` van antes que `/viajes/:id`, y
+            `/clientes/nuevo` antes que `/clientes/:id`, para que no las tome como identificadores.
+            Es la misma precaución que del lado del backend resuelve la restricción `{id:int}`. */}
+        <Route
+          path="/viajes"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <ListadoViajes puedeGestionar={puedeGestionarViajes} />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/viajes/totales"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <TotalesPeriodo />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/viajes/nuevo"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <FormularioViaje />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/viajes/:id"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <FichaViaje puedeGestionar={puedeGestionarViajes} />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/viajes/:id/asignacion"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <AsignacionViaje />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/viajes/:id/editar"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <FormularioViaje />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/clientes"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <ListadoClientes puedeGestionar={puedeGestionarViajes} />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/clientes/nuevo"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <FormularioCliente />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/clientes/:id"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <FormularioCliente />
                 </Layout>
               )}
             </RutaProtegida>

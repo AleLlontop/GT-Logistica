@@ -55,4 +55,19 @@ public static class CodigosPermiso
     /// autorizar por permiso y nunca por rol (research §7).
     /// </summary>
     public const string FlotaTiposGestionar = "flota.tipos.gestionar";
+
+    /// <summary>
+    /// Módulo 5: registrar viajes, editarlos, asignar chofer y vehículo, y cambiar su estado. Lo
+    /// otorgan *Tráfico* y *Administrador del sistema* (FR-051).
+    /// </summary>
+    public const string ViajesGestionar = "viajes.gestionar";
+
+    /// <summary>
+    /// Módulo 5: mirar el listado, la ficha y los totales, sin poder tocar nada.
+    ///
+    /// Lo otorgan <b>los cuatro roles</b>. Es el primer permiso que llega a *Administración de la
+    /// empresa* y a *Gerencia*, que hasta el Módulo 4 no tenían ninguno: la pregunta "¿en qué anda el
+    /// viaje de tal cliente?" la hacen ellos, y responderla no exige poder operar (FR-051, research §10).
+    /// </summary>
+    public const string ViajesConsultar = "viajes.consultar";
 }

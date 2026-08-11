@@ -13,6 +13,7 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 | [002 — Gestión de usuarios y roles](002-gestion-usuarios-roles/) | Implementado y validado | 92 / 92 |
 | [003 — Gestión de choferes y su documentación](003-gestion-choferes/) | Implementado y validado | 126 / 126 |
 | [004 — Gestión de flota](004-gestion-flota/) | Implementado y validado | 121 / 121 |
+| [005 — Gestión de viajes](005-gestion-viajes/) | Implementado, falta el recorrido manual | 133 / 134 |
 
 ## Qué queda abierto
 
@@ -51,6 +52,28 @@ Quedan dos cosas anotadas, ninguna bloqueante:
   `tasks.md` no pide ninguna de esas renombradas; cambiarlos rompería el frontend y los tests del
   Módulo 3 sin ganancia funcional. **Las cantidades sí se agregaron al cuerpo del error**, que es lo
   que SC-008 necesita. Si se prefiere seguir el contrato al pie de la letra, es una tarea acotada.
+
+**Módulo 5.** Queda **el recorrido manual del quickstart** (`T131`), que hay que hacer con las tres
+cuentas —`admin`, un usuario de *Tráfico* y uno de *Gerencia*—. Los cuatro módulos anteriores
+encontraron ahí cosas que ningún test veía, incluidas dos en las que la spec pedía lo que no había que
+hacer, así que no es un trámite de cierre. Todo lo demás está hecho y en verde: 217 tests unitarios,
+544 de integración y 195 de frontend.
+
+Tres cosas anotadas, ninguna bloqueante:
+
+- `005-gestion-viajes/checklists/ciclo-de-vida-e-integracion.md` tiene **34 ítems sin resolver**. No
+  son huecos confirmados: son preguntas de calidad de spec que el propio checklist dice que en varios
+  casos ya están respondidas en `plan.md`, `research.md` o los contratos. Los seis que sí eran
+  conflictos se resolvieron antes de implementar, y agregaron dos requisitos (FR-019b, FR-026a) y
+  cuatro escenarios de aceptación.
+- **La sesión pasó a devolver los permisos efectivos.** FR-052 pide que quien tiene sólo
+  `viajes.consultar` no vea las acciones de escritura, y la sesión sólo traía los roles. Se agregó
+  `permisos` a `SesionResponse` —por permiso y nunca por rol, según la convención [004]— porque sin
+  ese dato la pantalla no puede cumplir el requisito. Toca un archivo del Módulo 1 que el plan no
+  había previsto.
+- **`DialogoConfirmacion` acepta la etiqueta del botón.** `contracts/README.md` fija el verbo de cada
+  confirmación —`Dar de baja`, `Rendir sin importe`— y el diálogo compartido del Módulo 2 tenía
+  `Confirmar` fijo. Es un parámetro opcional: ningún llamador anterior cambió.
 
 ## Lo que encontraron los recorridos
 
@@ -106,6 +129,12 @@ Decisiones que exceden a su módulo y que conviene conocer antes de empezar el s
   primer módulo cuyo acceso no es exclusivo del administrador. También el primero que guarda
   archivos cargados por el usuario, con el volumen fuera del repositorio y la descarga por endpoint
   autorizado.
+- **Módulo 5** — primer módulo con **ciclo de vida cerrado**, **historial de quién hizo qué**,
+  **recursos compartidos que se ocupan y se liberan** y **dinero**. Las cuatro cosas se resolvieron sin
+  maquinaria propia: un `switch` de transiciones, una tabla de tres columnas útiles, dos índices únicos
+  filtrados y un `decimal` con un formateador de nueve líneas. También el primero que se apoya sobre
+  **dos** módulos de negocio anteriores sin modificarles una tabla, una columna ni una pantalla, y el
+  primero en el que una confirmación vive en el backend porque el paso no se deshace.
 - **Módulo 4** — primer módulo que se apoya sobre otro módulo de negocio en vez de sobre la
   infraestructura común, y primero con **dos niveles de acceso adentro**: dos permisos, no un permiso
   y un chequeo de rol. También el primero que guarda un estado **y** lo deriva al leer, para conservar

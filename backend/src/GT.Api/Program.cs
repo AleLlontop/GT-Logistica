@@ -13,6 +13,9 @@ using GT.Application.Flota.Documentacion;
 using GT.Application.Flota.TiposVehiculo;
 using GT.Application.Usuarios;
 using GT.Application.Usuarios.Personas;
+using GT.Application.Viajes;
+using GT.Application.Viajes.Clientes;
+using GT.Api.Viajes;
 using GT.Domain.Usuarios;
 using GT.Infrastructure.Archivos;
 using GT.Infrastructure.Correo;
@@ -98,6 +101,28 @@ builder.Services.AddScoped<CorregirDocumentoVehiculo>();
 builder.Services.AddScoped<EliminarDocumentoVehiculo>();
 builder.Services.AddScoped<DescargarArchivoDocumentoVehiculo>();
 builder.Services.AddScoped<ConsultarVencimientosFlota>();
+
+// ── Módulo 5: gestión de viajes ────────────────────────────────────────────────────────────────
+// No agrega ninguna infraestructura, ninguna variable de entorno y ninguna dependencia: la
+// paginación, la autorización por permiso, el menú resuelto por el servidor, los calculadores de
+// documentación y `TimeProvider` ya están arriba y se consumen tal como están (research §3, §7).
+builder.Services.AddScoped<IRepositorioClientes, RepositorioClientes>();
+builder.Services.AddScoped<CrearCliente>();
+builder.Services.AddScoped<ConsultarClientes>();
+builder.Services.AddScoped<ModificarCliente>();
+builder.Services.AddScoped<DarDeBajaCliente>();
+builder.Services.AddScoped<DarDeAltaCliente>();
+builder.Services.AddScoped<IRepositorioViajes, RepositorioViajes>();
+builder.Services.AddScoped<CrearViaje>();
+builder.Services.AddScoped<ModificarViaje>();
+builder.Services.AddScoped<ConsultarViajes>();
+builder.Services.AddScoped<ConsultarFichaViaje>();
+builder.Services.AddScoped<ConsultarAsignables>();
+builder.Services.AddScoped<AsignarChoferYVehiculo>();
+builder.Services.AddScoped<PonerViajeEnCurso>();
+builder.Services.AddScoped<RendirViaje>();
+builder.Services.AddScoped<AnularViaje>();
+builder.Services.AddScoped<ConsultarTotales>();
 
 // Los escaneos van a un volumen, no a la base (research §3). La ruta llega por variable de entorno
 // para que el contenedor y una corrida local puedan apuntar a lugares distintos sin tocar el código.
@@ -196,7 +221,11 @@ builder.Services.AddAuthorization(opciones =>
         // Módulo 4: dos permisos, no uno. El catálogo de tipos de vehículo es sólo del administrador
         // y el resto del módulo también es de Tráfico (FR-039, research §7).
         CodigosPermiso.FlotaGestionar,
-        CodigosPermiso.FlotaTiposGestionar));
+        CodigosPermiso.FlotaTiposGestionar,
+        // Módulo 5: los `GET` van bajo `viajes.consultar` y las escrituras bajo `viajes.gestionar`.
+        // No son niveles ordenados: quien gestiona tiene los dos, sembrados por separado (FR-050).
+        CodigosPermiso.ViajesGestionar,
+        CodigosPermiso.ViajesConsultar));
 
 builder.Services.Configure<JsonOptions>(opciones =>
     opciones.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
@@ -255,6 +284,11 @@ app.MapearDocumentacion();
 app.MapearTiposVehiculo();
 app.MapearVehiculos();
 app.MapearDocumentacionVehiculo();
+app.MapearClientes();
+app.MapearViajes();
+app.MapearAsignacion();
+app.MapearCicloDeVida();
+app.MapearTotales();
 
 await AplicarMigracionesYSembrarAsync(app);
 

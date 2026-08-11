@@ -1,0 +1,955 @@
+openapi: 3.0.3
+
+info:
+  title: Gestión de viajes — Módulo 5
+  version: "1.0"
+  description: |
+    Contrato HTTP para el padrón de clientes, el registro de viajes, la asignación de chofer y
+    vehículo, el ciclo de vida del viaje y los totales por período.
+
+    **Autorización**: dos permisos (FR-050, FR-051).
+
+    - `viajes.gestionar` — alta, modificación, asignación, cambios de estado, anulación y el ABM del
+      padrón de clientes. Lo otorgan *Tráfico* y *Administrador del sistema*.
+    - `viajes.consultar` — listados, fichas y totales. Lo otorgan los cuatro roles: *Tráfico*,
+      *Administrador del sistema*, *Administración de la empresa* y *Gerencia*.
+
+    Quien gestiona tiene los dos: son permisos, no niveles ordenados. La autorización se evalúa por
+    permiso y **nunca por rol** (FR-050).
+
+    Respuestas de autorización, iguales que en los módulos anteriores:
+
+    - Sin sesión → `401` con `sesion_expirada`.
+    - Con sesión pero sin el permiso → `403` con `sin_permiso`.
+
+    ---
+
+    **Cuatro reglas que atraviesan todo el contrato:**
+
+    1. **El estado del viaje nunca se recibe en un `PUT`.** Cada transición es un recurso propio
+       (`/en-curso`, `/rendicion`, `/anulacion`), de modo que corregir un dato no pueda avanzar ni
+       anular un viaje en silencio (FR-034).
+
+    2. **El chofer y el vehículo tampoco.** La asignación es un recurso propio (`/asignacion`) y no
+       forma parte del alta ni de la edición: corregir un destino no puede tocar quién hace el viaje
+       (FR-019a).
+
+    3. **Un viaje `rendido` es inmutable para todos los roles**, incluido el *Administrador del
+       sistema*. Toda operación de escritura sobre él responde `409` con `viaje_rendido_inmutable`
+       (FR-018).
+
+    4. **Las advertencias que no bloquean viajan con el resultado**, en `advertencias[]`, y nunca como
+       error. Las tres operaciones que pueden advertir —alta, edición y asignación— devuelven un sobre
+       `{ viaje, advertencias }`; el resto devuelve el recurso pelado (FR-015a).
+
+    **Códigos HTTP**: `400` cuando el problema está en lo que se tipeó (campos, duplicados,
+    dependencias); `409` cuando está en el estado de algo que se comparte o que cambió (unidad
+    ocupada, transición no permitida, viaje rendido, confirmación pendiente).
+
+servers:
+  - url: /api
+
+paths:
+
+  # ── Padrón de clientes (FR-001 a FR-009) ────────────────────────────────────────────────────────
+
+  /clientes:
+    get:
+      summary: Lista los clientes
+      description: |
+        Permiso `viajes.consultar`. Paginado del lado del servidor, 20 filas por página, con orden
+        total que termina en el identificador del cliente (FR-009).
+
+        Un padrón vacío es una respuesta legítima —es el estado de toda instalación nueva— y la
+        pantalla lo dice con un mensaje explícito (FR-009, US1 esc. 1).
+      parameters:
+        - name: soloActivos
+          in: query
+          schema: { type: boolean, default: false }
+          description: |
+            `true` devuelve sólo los activos, que son los únicos que el formulario de viaje ofrece
+            (FR-008). Declarado anulable con `?? false`, según la convención [003].
+        - name: busqueda
+          in: query
+          schema: { type: string }
+          description: Coincidencia parcial sobre la razón social, sin distinguir mayúsculas ni acentos
+        - name: pagina
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+      responses:
+        "200":
+          description: Página del padrón
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginaDeClientes" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+    post:
+      summary: Registra un cliente
+      description: |
+        Permiso `viajes.gestionar`. El CUIT se normaliza a sólo dígitos **antes** de validar y de
+        guardar, y se valida con la misma regla del Módulo 3 (FR-004).
+
+        El rechazo por CUIT que pertenece a un cliente **dado de baja** tiene código propio
+        (`cuit_de_cliente_dado_de_baja`), distinto del duplicado común: quien lo intenta no encuentra
+        al cliente en el listado por defecto y necesita que se le diga que lo dé de alta de nuevo
+        (FR-007).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ClienteRequest" }
+      responses:
+        "201":
+          description: Cliente registrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Cliente" }
+        "400":
+          description: |
+            `datos_invalidos`, `cuit_invalido`, `cuit_duplicado`, `cuit_de_cliente_dado_de_baja`,
+            `email_invalido`
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /clientes/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+
+    get:
+      summary: Ficha de un cliente
+      description: Permiso `viajes.consultar`.
+      responses:
+        "200":
+          description: Cliente
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Cliente" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+    put:
+      summary: Modifica un cliente
+      description: |
+        Permiso `viajes.gestionar`. La comparación de CUIT excluye al propio cliente: conservar el suyo
+        no genera conflicto (FR-003).
+
+        **No incluye `activo`**: dar de baja y dar de alta son recursos propios (FR-007, precedente
+        [004]).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ClienteRequest" }
+      responses:
+        "200":
+          description: Cliente actualizado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Cliente" }
+        "400":
+          description: "`datos_invalidos`, `cuit_invalido`, `cuit_duplicado`, `email_invalido`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+    delete:
+      summary: Da de baja un cliente
+      description: |
+        Permiso `viajes.gestionar`. Baja **lógica**: el registro no se borra nunca (FR-001).
+
+        Se rechaza si el cliente tiene al menos un viaje **`pendiente` o `en curso`**, e informa
+        cuántos son en el mensaje **y** en `cantidadViajes` del cuerpo del error (FR-006, SC-009).
+
+        Un cliente cuyos viajes están todos **`rendido` o `anulado` se da de baja sin problema**: es el
+        caso normal del que dejó de operar con la empresa, que por definición tiene historial. La
+        restricción protege lo único que hay que proteger —que no quede trabajo comprometido colgando
+        de un cliente inactivo—.
+
+        La confirmación previa la pide la pantalla, no el endpoint (FR-005).
+      responses:
+        "204": { description: Cliente dado de baja }
+        "400":
+          description: "`cliente_con_viajes`, con `cantidadViajes`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorConDependencias" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  /clientes/{id}/alta:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      summary: Da de alta de nuevo un cliente dado de baja
+      description: |
+        Permiso `viajes.gestionar`. Recurso propio y no un campo del `PUT`, para que corregir una razón
+        social no pueda reactivar en silencio a alguien que estaba dado de baja (FR-007, precedente
+        [004]).
+
+        **No pide confirmación aparte** —no destruye nada y se deshace con la baja, que sí la pide— y
+        **es idempotente**: darle de alta a un cliente ya activo devuelve `204` sin cambiar nada.
+
+        Los viajes históricos del cliente quedan intactos (US1 esc. 9).
+      responses:
+        "204": { description: Cliente activo }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  # ── Viajes: alta, consulta y edición (FR-010 a FR-018, FR-040 a FR-045) ─────────────────────────
+
+  /viajes:
+    get:
+      summary: Lista los viajes
+      description: |
+        Permiso `viajes.consultar`. Paginado del lado del servidor, 20 filas por página (FR-043).
+
+        **Orden**: `fecha` descendente y, a igual fecha, `numero` descendente. Es un criterio total —
+        `numero` es único— así que dos viajes del mismo día no se intercambian entre páginas
+        (convención [003], FR-043).
+
+        **Sin `estado`, los anulados no se devuelven** (FR-044). No es lo mismo que "todos": la
+        exclusión está escrita como predicado único de la consulta y la pantalla dice explícitamente
+        qué está mostrando (FR-049).
+
+        Los filtros y la búsqueda se aplican sobre **todos** los viajes antes de paginar, y `total`
+        cuenta las coincidencias completas, no las de esta página.
+      parameters:
+        - name: clienteId
+          in: query
+          schema: { type: integer }
+        - name: transportistaId
+          in: query
+          schema: { type: integer }
+          description: |
+            Usa el transportista **registrado en el viaje**, no el actual del chofer: los viajes de un
+            chofer que cambió de transportista siguen apareciendo bajo el de entonces (FR-028, SC-010).
+        - name: estado
+          in: query
+          schema: { $ref: "#/components/schemas/EstadoViaje" }
+          description: |
+            Un valor desconocido se ignora en vez de romper: filtrar de más no es un error, y devuelve
+            el listado por defecto —todos menos los anulados—.
+        - name: desde
+          in: query
+          schema: { type: string, format: date }
+          description: Compara contra la **fecha del viaje**
+        - name: hasta
+          in: query
+          schema: { type: string, format: date }
+        - name: busqueda
+          in: query
+          schema: { type: string }
+          description: |
+            Coincidencia parcial sobre origen, destino y razón social del cliente, **sin distinguir
+            mayúsculas ni acentos** (FR-042). Se resuelve con colación explícita en la consulta
+            (research §8).
+        - name: pagina
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+      responses:
+        "200":
+          description: Página del listado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginaDeViajes" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+    post:
+      summary: Registra un viaje
+      description: |
+        Permiso `viajes.gestionar`. El viaje nace en estado `pendiente` (FR-032), con un número
+        asignado por el sistema que **nunca se reutiliza** ni siquiera cuando el viaje que lo tenía se
+        anula (FR-011).
+
+        **No acepta `choferId` ni `vehiculoId`**: el viaje se registra primero y se asigna después
+        (FR-019a, US3 esc. 14).
+
+        Escribe la primera fila del historial: `null → pendiente`, con el usuario de la sesión y el
+        instante del servidor (FR-035).
+
+        Puede devolver advertencias que **no** frenan el guardado: `origen_igual_a_destino` (FR-015) y
+        `carga_retroactiva` (FR-016).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ViajeRequest" }
+      responses:
+        "201":
+          description: Viaje registrado, con las advertencias que correspondan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespuestaViaje" }
+        "400":
+          description: "`datos_invalidos`, `cliente_inexistente`, `remito_duplicado`, `importe_negativo`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /viajes/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+
+    get:
+      summary: Ficha completa de un viaje
+      description: |
+        Permiso `viajes.consultar`. Incluye el **historial completo de cambios de estado**, empezando
+        por el alta (FR-035, FR-045).
+      responses:
+        "200":
+          description: Viaje con su historial
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ViajeDetalle" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+    put:
+      summary: Modifica los datos de un viaje
+      description: |
+        Permiso `viajes.gestionar`. Sólo procede en `pendiente` o `en curso`, con las mismas
+        validaciones que rigen el alta (FR-017).
+
+        **No incluye `numero`, `estado`, `choferId` ni `vehiculoId`.** No es que los ignore: no están
+        en el contrato de entrada (FR-011, FR-019a, FR-034). La asignación de un viaje editado queda
+        intacta (US3 esc. 15).
+
+        **Cambiar `fecha` revalida la asignación contra la fecha nueva** (FR-022a). Si el chofer o el
+        vehículo quedaran bloqueados a esa fecha, **no se guarda nada** —ni la fecha ni ningún otro
+        campo— y se responde `409` con `fecha_bloquea_asignacion`, nombrando el documento y la unidad
+        que lo impiden. Nunca queda guardado un viaje cuya asignación esté bloqueada a su propia fecha,
+        por ningún camino (SC-004).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ViajeRequest" }
+      responses:
+        "200":
+          description: Viaje actualizado, con las advertencias que correspondan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespuestaViaje" }
+        "400":
+          description: "`datos_invalidos`, `cliente_inexistente`, `remito_duplicado`, `importe_negativo`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: |
+            `viaje_rendido_inmutable` (FR-018), `viaje_anulado_inmutable`, `fecha_bloquea_asignacion`
+            (FR-022a, con `unidadQueBloquea` y `documentoQueBloquea`)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorDeBloqueo" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  # ── Asignación de chofer y vehículo (FR-019 a FR-030) ──────────────────────────────────────────
+
+  /viajes/asignables:
+    get:
+      summary: Choferes y vehículos que se pueden asignar
+      description: |
+        Permiso `viajes.gestionar`. Lo que alimenta los dos desplegables de la pantalla de asignación
+        (FR-021).
+
+        - **Choferes**: sólo activos. Ningún dado de baja, aunque tenga viajes históricos (US3 esc. 2).
+        - **Vehículos**: sólo activos y con **estado operativo guardado** `disponible`. No usa el
+          estado derivado contra el día en curso: eso rompería la carga retroactiva, porque una unidad
+          hoy inhabilitada pudo estar en regla el día del viaje que se está asentando (FR-021, SC-014).
+
+        **La habilitación por documentación no filtra esta lista**: se evalúa al asignar, contra la
+        fecha del viaje (FR-022, FR-023).
+
+        No pagina: son dos desplegables sobre padrones de decenas de filas.
+
+        Las dos listas pueden venir vacías, y es una respuesta legítima: la pantalla informa qué falta
+        cargar y el viaje se queda `pendiente` sin asignar.
+      responses:
+        "200":
+          description: Choferes y vehículos asignables
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [choferes, vehiculos]
+                properties:
+                  choferes:
+                    type: array
+                    items: { $ref: "#/components/schemas/Resumen" }
+                  vehiculos:
+                    type: array
+                    items: { $ref: "#/components/schemas/Resumen" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /viajes/{id}/asignacion:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      summary: Asigna o reasigna el chofer y el vehículo de un viaje
+      description: |
+        Permiso `viajes.gestionar`. **Recurso propio**, no un campo del `PUT`: es la única operación
+        del módulo que devuelve bloqueos y advertencias por documentación, y sacarla del guardado de
+        datos deja las dos respuestas limpias (FR-019a).
+
+        Sólo procede en `pendiente` o `en curso`; en `rendido` o `anulado` responde `409` (FR-020).
+
+        **Los dos campos son obligatorios**: no hay asignación parcial, así que un viaje tiene chofer
+        y vehículo o no tiene ninguno de los dos (FR-019b).
+
+        **Si el viaje ya está `en curso`, verifica ocupación** antes de guardar: reasignarle una unidad
+        que está en otro viaje `en curso` se rechaza con `chofer_ocupado` o `vehiculo_ocupado`,
+        nombrando el viaje que la ocupa (FR-026a). Reasignar un viaje `pendiente` **no** verifica nada:
+        un pendiente no ocupa a nadie (FR-027).
+
+        **Toda la evaluación corre contra la fecha del viaje**, no contra el día en curso (FR-024,
+        SC-014). Reutiliza sin cambios la regla de "documento vigente por tipo" y la ventana de aviso
+        de los Módulos 3 y 4:
+
+        | Estado del peor documento vigente, a la fecha del viaje | Resultado |
+        |---|---|
+        | Alguno vencido | `409 documentacion_vencida`, **no se guarda nada** (FR-022) |
+        | Ninguno vencido, alguno próximo a vencer | `200` con `documentacion_proxima_a_vencer` en `advertencias[]` — **se guarda** (FR-023) |
+        | Todos vigentes, o ninguno cargado | `200` sin advertencias (FR-024) |
+
+        Un chofer o un vehículo **sin ningún documento cargado no bloquea**: el sistema informa sobre
+        lo que está cargado y no infiere lo que falta (FR-024).
+
+        **Registra el transportista del chofer en el viaje** (FR-028). Es una referencia al padrón, no
+        una copia del nombre: no se mueve si el chofer cambia de transportista después, pero los datos
+        del transportista se leen siempre del padrón. Reasignar el chofer la vuelve a escribir con el
+        transportista del nuevo.
+
+        **No compara el transportista del vehículo con el del chofer** (FR-029): el transportista del
+        viaje sale siempre del chofer.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [choferId, vehiculoId]
+              properties:
+                choferId: { type: integer }
+                vehiculoId: { type: integer }
+      responses:
+        "200":
+          description: Asignación guardada, con las advertencias que correspondan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespuestaViaje" }
+        "400":
+          description: "`chofer_inexistente`, `vehiculo_inexistente`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: |
+            `documentacion_vencida` (con `unidadQueBloquea` y `documentoQueBloquea`),
+            `chofer_ocupado` y `vehiculo_ocupado` (sólo si el viaje ya está `en curso`, con
+            `viajeQueOcupa`), `asignacion_no_permitida`, `viaje_rendido_inmutable`
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorDeBloqueo" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  # ── Ciclo de vida (FR-031 a FR-039) ────────────────────────────────────────────────────────────
+
+  /viajes/{id}/en-curso:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      summary: Pone el viaje en curso
+      description: |
+        Permiso `viajes.gestionar`. Única transición que llega a `en curso`, y sólo desde `pendiente`
+        (FR-033).
+
+        **Exige chofer y vehículo asignados y activos en sus padrones** (FR-025), y que ninguno de los
+        dos esté en otro viaje `en curso` (FR-026). El rechazo por ocupación **nombra el número del
+        viaje que lo ocupa**: saber que está ocupado sin saber por qué no ayuda a resolverlo.
+
+        Si el chofer o el vehículo se dio de baja **después** de asignarlo, responde `409` con
+        `unidad_dada_de_baja` indicando cuál es: el viaje no arranca hasta que se lo reasigne (FR-025,
+        US4 esc. 14). En cambio, **la documentación y el estado operativo del vehículo no se
+        revalidan acá**: se controlaron al asignar, y volver a mirarlos dejaría en tierra un viaje
+        planificado con la unidad en regla (FR-024, US4 esc. 11 y 15).
+
+        La exclusividad está garantizada con **índices únicos filtrados en la base**, no sólo con la
+        consulta previa: cuando dos operadores lo intentan al mismo tiempo, el primero gana y el
+        segundo recibe `chofer_ocupado` (SC-005).
+
+        Un viaje `pendiente` **no** ocupa a nadie, cualquiera sea su fecha: la exclusividad alcanza
+        únicamente a los `en curso` (FR-027, US3 esc. 12).
+
+        Escribe su fila de historial en la misma transacción (FR-035).
+      responses:
+        "200":
+          description: Viaje en curso
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ViajeDetalle" }
+        "409":
+          description: |
+            `falta_asignacion`, `unidad_dada_de_baja`, `chofer_ocupado`, `vehiculo_ocupado` (los dos
+            con `viajeQueOcupa`), `transicion_no_permitida`, `viaje_rendido_inmutable`
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorDeBloqueo" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  /viajes/{id}/rendicion:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      summary: Rinde el viaje
+      description: |
+        Permiso `viajes.gestionar`. Única transición que llega a `rendido`, y sólo desde `en curso`
+        (FR-033). No se puede pasar de `pendiente` directamente a `rendido`: la acción no se ofrece y
+        el guardado la rechaza igual si se la invoca (US4 esc. 10).
+
+        **Con importe en cero, no rinde al primer intento** (FR-038). Responde `409` con
+        `rendicion_requiere_confirmacion` **sin cambiar nada**; la pantalla muestra el diálogo y
+        reintenta con `{ "confirmado": true }`.
+
+        La confirmación vive acá y no sólo en la pantalla porque FR-018 deja el viaje inmutable
+        después: es la diferencia entre un paso reversible y uno que no lo es (FR-015a, SC-007a). El
+        sistema **no** exige que se complete el importe: el viaje sin cargo es válido y se rinde igual.
+
+        Al rendir, el chofer y el vehículo **dejan de estar ocupados** y quedan libres para otro viaje.
+        La asignación se conserva y se sigue viendo en el listado y en la ficha: liberar es dejar de
+        ocupar, nunca borrar el dato (FR-037).
+
+        **A partir de acá el viaje es inmutable para todos los roles**, incluido el *Administrador del
+        sistema* (FR-018, SC-013).
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                confirmado:
+                  type: boolean
+                  default: false
+                  description: |
+                    Sólo hace falta cuando el importe es cero. Con importe mayor a cero se ignora: no
+                    hay nada que confirmar.
+      responses:
+        "200":
+          description: Viaje rendido
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ViajeDetalle" }
+        "409":
+          description: |
+            `rendicion_requiere_confirmacion` (nada cambió), `transicion_no_permitida`,
+            `viaje_rendido_inmutable`
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  /viajes/{id}/anulacion:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      summary: Anula el viaje
+      description: |
+        Permiso `viajes.gestionar`. Procede desde `pendiente` y desde `en curso`; **no** desde
+        `rendido` (FR-033, US6 esc. 6).
+
+        **El motivo es obligatorio** (hasta 500 caracteres) y la confirmación explícita la pide la
+        pantalla, que no habilita el botón sin motivo escrito (FR-036, US6 esc. 2). Cancelar no
+        modifica nada: ni el estado, ni la asignación, ni el historial.
+
+        El chofer y el vehículo **quedan libres inmediatamente**, igual que al rendir, y la asignación
+        se conserva en la ficha para saber a quién se le había encargado (FR-037).
+
+        El importe de un viaje anulado **no figura en ningún total** (FR-047, SC-008).
+
+        `anulado` es terminal: no existe ninguna acción para devolverlo a `pendiente` ni a `en curso`
+        (US6 esc. 7).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motivo]
+              properties:
+                motivo: { type: string, maxLength: 500, minLength: 1 }
+      responses:
+        "200":
+          description: Viaje anulado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ViajeDetalle" }
+        "400":
+          description: "`motivo_requerido`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: "`transicion_no_permitida`, `viaje_rendido_inmutable`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  # ── Totales por período (FR-046, FR-046a, FR-047) ──────────────────────────────────────────────
+
+  /viajes/totales:
+    get:
+      summary: Totales por cliente y por transportista en un período
+      description: |
+        Permiso `viajes.consultar`. Pantalla propia, distinta del listado (FR-046).
+
+        **El rango de fechas es obligatorio**: sin `desde` y `hasta` no calcula nada y responde `400`
+        con `rango_de_fechas_requerido` (FR-046a). La fecha de corte es **la fecha del viaje**, no la
+        de carga ni la de rendición.
+
+        **Los viajes anulados se excluyen de toda cantidad y de todo importe**, escrito como predicado
+        de la consulta (FR-047).
+
+        **Los viajes sin transportista no aparecen en `porTransportista`**: un viaje sin chofer
+        asignado todavía no tiene transportista, y es el comportamiento esperado.
+
+        SC-008 se verifica comparando esta pantalla con el listado: la suma de los importes de las
+        filas del listado filtrado por cliente y rango coincide con el total de ese cliente, porque las
+        dos consultas excluyen los anulados con el mismo predicado.
+      parameters:
+        - name: desde
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: hasta
+          in: query
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: Los dos cuadros
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [porCliente, porTransportista]
+                properties:
+                  porCliente:
+                    type: array
+                    items: { $ref: "#/components/schemas/TotalDelPeriodo" }
+                  porTransportista:
+                    type: array
+                    items: { $ref: "#/components/schemas/TotalDelPeriodo" }
+        "400":
+          description: "`rango_de_fechas_requerido`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+components:
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+
+  responses:
+    SinSesion:
+      description: Sin sesión — `sesion_expirada`
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    SinPermiso:
+      description: Con sesión pero sin el permiso — `sin_permiso`
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NoEncontrado:
+      description: "`no_encontrado`"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+
+    EstadoViaje:
+      type: string
+      enum: [pendiente, enCurso, rendido, anulado]
+      description: |
+        Los cuatro valores de FR-031, en camelCase y no en PascalCase (convención [003]). Lo determina
+        el ciclo de vida; ningún usuario lo edita como un campo más (FR-034).
+
+        `demorado` **no** es un quinto valor: es una señal booleana derivada al leer (FR-039).
+
+    Resumen:
+      type: object
+      description: Un identificador con su nombre, y si está activo en su padrón
+      required: [id, nombre, activo]
+      properties:
+        id: { type: integer }
+        nombre: { type: string }
+        activo:
+          type: boolean
+          description: |
+            `false` se muestra con la palabra `(inactivo)` al lado del nombre, nunca sólo con un color
+            (FR-008, FR-030, FR-049).
+
+    ClienteRequest:
+      type: object
+      required: [razonSocial, cuit, telefono, email]
+      properties:
+        razonSocial: { type: string, maxLength: 100 }
+        cuit:
+          type: string
+          description: Se normaliza a sólo dígitos antes de validar y de guardar (FR-004)
+        telefono: { type: string, maxLength: 30 }
+        email: { type: string, format: email, maxLength: 254 }
+        direccion: { type: string, maxLength: 200, nullable: true }
+
+    Cliente:
+      allOf:
+        - $ref: "#/components/schemas/ClienteRequest"
+        - type: object
+          required: [id, activo]
+          properties:
+            id: { type: integer }
+            activo: { type: boolean }
+
+    PaginaDeClientes:
+      type: object
+      required: [items, total, pagina, tamanioPagina]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Cliente" }
+        total: { type: integer, description: Coincidencias completas, no las de esta página }
+        pagina: { type: integer }
+        tamanioPagina: { type: integer, example: 20 }
+
+    ViajeRequest:
+      type: object
+      description: |
+        Lo que llega del formulario de viaje. **No incluye número, estado, chofer ni vehículo**: el
+        número lo genera el sistema (FR-011), el estado tiene sus recursos propios (FR-034) y la
+        asignación el suyo (FR-019a).
+      required: [clienteId, fecha, origen, destino]
+      properties:
+        clienteId:
+          type: integer
+          description: Tiene que estar **activo** (FR-008)
+        fecha:
+          type: string
+          format: date
+          description: |
+            Admite pasado —carga retroactiva, que el sistema señala— y futuro —viaje planificado—, sin
+            límite de antigüedad ni de anticipación (FR-016).
+        origen: { type: string, maxLength: 100 }
+        destino: { type: string, maxLength: 100 }
+        numeroRemito:
+          type: string
+          maxLength: 50
+          nullable: true
+          description: |
+            Opcional. Cuando se carga, único entre los viajes **no anulados**, garantizado con un
+            índice único filtrado en la base (FR-014).
+        detalleCarga: { type: string, maxLength: 500, nullable: true }
+        importe:
+          type: number
+          format: double
+          default: 0
+          minimum: 0
+          description: |
+            Pesos argentinos, dos decimales. Cero es válido —viaje sin cargo o con importe todavía sin
+            definir— y negativo se rechaza (FR-013).
+
+    Viaje:
+      type: object
+      description: Fila del listado — exactamente las diez columnas de FR-040, más las señales derivadas
+      required:
+        [id, numero, fecha, cliente, origen, destino, estado, importe, demorado, esRetroactivo]
+      properties:
+        id: { type: integer }
+        numero:
+          type: integer
+          description: Generado por el sistema, no editable en ningún estado, nunca reutilizado (FR-011)
+        fecha: { type: string, format: date }
+        cliente: { $ref: "#/components/schemas/Resumen" }
+        origen: { type: string }
+        destino: { type: string }
+        chofer:
+          allOf: [{ $ref: "#/components/schemas/Resumen" }]
+          nullable: true
+        vehiculo:
+          allOf: [{ $ref: "#/components/schemas/Resumen" }]
+          nullable: true
+          description: El `nombre` es la patente
+        transportista:
+          allOf: [{ $ref: "#/components/schemas/Resumen" }]
+          nullable: true
+          description: |
+            El registrado en el viaje al asignar el chofer, no el actual del chofer (FR-028). `null`
+            mientras no haya chofer asignado.
+        estado: { $ref: "#/components/schemas/EstadoViaje" }
+        importe: { type: number, format: double }
+        demorado:
+          type: boolean
+          description: |
+            **Derivado al leer, nunca guardado** (FR-039): `true` cuando el viaje lleva más de 5 días
+            corridos `en curso`, contados desde el instante en que pasó a ese estado. No le cambia el
+            estado al viaje: sigue siendo `enCurso`. Se muestra con la palabra `Demorado`, no sólo con
+            un color.
+        esRetroactivo:
+          type: boolean
+          description: |
+            **Derivado al leer**: la fecha del viaje es anterior al día en curso en Argentina (FR-016).
+        motivoAnulacion:
+          type: string
+          nullable: true
+          description: Presente sólo en los anulados (FR-036)
+
+    ViajeDetalle:
+      allOf:
+        - $ref: "#/components/schemas/Viaje"
+        - type: object
+          required: [historial]
+          properties:
+            numeroRemito: { type: string, nullable: true }
+            detalleCarga: { type: string, nullable: true }
+            historial:
+              type: array
+              description: |
+                Completo, de la más vieja a la más nueva, empezando por el alta (FR-035, FR-045). No es
+                editable ni borrable por ninguna vía.
+              items: { $ref: "#/components/schemas/CambioDeEstado" }
+
+    CambioDeEstado:
+      type: object
+      required: [estadoNuevo, usuario, ocurridoEn]
+      properties:
+        estadoAnterior:
+          allOf: [{ $ref: "#/components/schemas/EstadoViaje" }]
+          nullable: true
+          description: "`null` sólo en el registro del alta: antes del alta no había estado"
+        estadoNuevo: { $ref: "#/components/schemas/EstadoViaje" }
+        usuario:
+          type: string
+          description: Nombre de usuario de quien produjo el cambio (FR-035)
+        ocurridoEn:
+          type: string
+          format: date-time
+          description: |
+            Instante en UTC, **con la `Z`** que lo declara: la convención [002] lo garantiza para todo
+            el sistema. El frontend lo muestra en hora local.
+
+    Advertencia:
+      type: object
+      description: |
+        Una advertencia que **no** frenó la operación (FR-015a). Nombra siempre el motivo puntual y
+        nunca se comunica sólo por color.
+      required: [codigo, mensaje]
+      properties:
+        codigo:
+          type: string
+          enum: [origen_igual_a_destino, carga_retroactiva, documentacion_proxima_a_vencer]
+        mensaje: { type: string }
+
+    RespuestaViaje:
+      type: object
+      description: |
+        Sobre de las tres operaciones que pueden advertir: alta, edición y asignación. El resto de los
+        endpoints devuelve el recurso pelado.
+
+        La advertencia va acá y no adentro del viaje porque no es un dato del viaje: es un dato de
+        **esta operación**. Guardada en el recurso, reaparecería en cada consulta posterior de la ficha
+        (research §5).
+      required: [viaje, advertencias]
+      properties:
+        viaje: { $ref: "#/components/schemas/ViajeDetalle" }
+        advertencias:
+          type: array
+          items: { $ref: "#/components/schemas/Advertencia" }
+
+    TotalDelPeriodo:
+      type: object
+      required: [id, nombre, cantidadViajes, importeTotal]
+      properties:
+        id: { type: integer }
+        nombre: { type: string, description: Razón social del cliente o nombre del transportista }
+        cantidadViajes: { type: integer }
+        importeTotal: { type: number, format: double }
+
+    Error:
+      type: object
+      required: [codigo, mensaje]
+      properties:
+        codigo: { type: string }
+        mensaje:
+          type: string
+          description: |
+            Se muestra tal cual. En español rioplatense, sin detalles técnicos, sin códigos de error y
+            sin nombres de campos internos.
+        campo:
+          type: string
+          nullable: true
+          description: Campo del formulario a marcar, cuando el rechazo es de un campo
+
+    ErrorConDependencias:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          properties:
+            cantidadViajes:
+              type: integer
+              description: |
+                Cuántos viajes `pendiente` o `en curso` dependen del cliente. Va en el cuerpo además de en el
+                mensaje: saber que hay dependientes sin saber cuántos no ayuda a resolverlo (FR-006,
+                precedente [004]).
+
+    ErrorDeBloqueo:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          properties:
+            viajeQueOcupa:
+              type: integer
+              nullable: true
+              description: Número del viaje `en curso` que ocupa al chofer o al vehículo (FR-026)
+            unidadQueBloquea:
+              type: string
+              nullable: true
+              description: Nombre del chofer o patente del vehículo cuya documentación bloquea (FR-022)
+            documentoQueBloquea:
+              type: string
+              nullable: true
+              description: Tipo y número del documento vencido a la fecha del viaje (FR-022, SC-004)

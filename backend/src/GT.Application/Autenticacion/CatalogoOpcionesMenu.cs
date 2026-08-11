@@ -41,6 +41,14 @@ public static class CatalogoOpcionesMenu
             new OpcionMenuDto("flota", "Flota", "/flota")),
         (CodigosPermiso.FlotaTiposGestionar,
             new OpcionMenuDto("tipos-vehiculo", "Tipos de vehículo", "/tipos-vehiculo")),
+
+        // Módulo 5. Las tres entradas van atadas a `viajes.consultar` —el permiso **de lectura**— y
+        // no a `viajes.gestionar`: las tres pantallas se pueden mirar sin poder tocar nada, y quien
+        // sólo consulta no ve adentro ningún botón de alta, edición, asignación ni cambio de estado
+        // (FR-050, research §10).
+        (CodigosPermiso.ViajesConsultar, new OpcionMenuDto("viajes", "Viajes", "/viajes")),
+        (CodigosPermiso.ViajesConsultar, new OpcionMenuDto("clientes", "Clientes", "/clientes")),
+        (CodigosPermiso.ViajesConsultar, new OpcionMenuDto("totales", "Totales", "/viajes/totales")),
     ];
 
     /// <summary>
