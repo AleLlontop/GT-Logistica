@@ -367,7 +367,7 @@ con alguno anulado, y comprobar que los totales cuentan sólo los del rango y ni
 - [X] T128 [P] Revisar que los textos de `backend/src/GT.Application/Viajes/Mensajes.cs` y los de `frontend/src/modules/viajes/` estén en español rioplatense y coincidan **palabra por palabra** con `contracts/README.md`
 - [X] T129 Revisar que ningún endpoint de `backend/src/GT.Api/Viajes/` quede sin su permiso, que los `GET` exijan `viajes.consultar` y las escrituras `viajes.gestionar`, que ninguno decida por rol, y que **todas las rutas con identificador lleven `{id:int}`** (FR-050, FR-052, SC-012, trampa 1)
 - [X] T130 Verificar que **ningún archivo de `GT.Domain/Choferes/`, `GT.Domain/Flota/`, sus repositorios, sus endpoints ni sus pantallas** haya quedado modificado, comparando contra `main` con `git diff --stat` (spec §Assumptions, plan §Project Structure)
-- [ ] T131 Correr el recorrido completo de `specs/005-gestion-viajes/quickstart.md` con las tres cuentas: `admin`, un usuario de *Tráfico* y uno de *Gerencia* (SC-001, SC-011)
+- [X] T131 Correr el recorrido completo de `specs/005-gestion-viajes/quickstart.md` con las tres cuentas: `admin`, un usuario de *Tráfico* y uno de *Gerencia* (SC-001, SC-011)
 - [X] T132 Correr `dotnet test` en `backend/` y `npm test` en `frontend/`, y dejar ambos en verde
 - [X] T133 [P] Actualizar `specs/README.md` con el estado del Módulo 5 y con lo que el recorrido manual haya encontrado
 - [X] T134 Actualizar `AGENTS.md` con las decisiones transversales de esta feature, una línea por decisión y con la referencia `[005]`, tomando como punto de partida las seis candidatas de `plan.md` §Mantenimiento y descartando las que al implementar resulten no ser transversales
