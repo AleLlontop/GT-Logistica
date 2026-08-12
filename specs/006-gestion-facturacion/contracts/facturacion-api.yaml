@@ -1,0 +1,976 @@
+openapi: 3.0.3
+
+info:
+  title: Gestión de facturación (Módulo 6) — G&T Logística
+  version: "1.0.0"
+  description: |
+    Contrato HTTP del Módulo 6. Emisión de facturas a cliente agrupando viajes rendidos, con
+    generación del documento en PDF, seguimiento de cobranzas, anulación y refacturación.
+
+    **Autenticación**: cookie de sesión del Módulo 1 (`gt.sesion`). Sin sesión: `401`.
+
+    **Tres permisos** (FR-066, FR-067):
+      - `facturacion.gestionar` — configurar la empresa emisora, emitir, corregir, cobrar.
+      - `facturacion.consultar` — listado, ficha, documento, panel de vencimientos, totales.
+      - `facturacion.anular` — anular.
+    Sin el permiso correspondiente: `403`. Ocultar el botón es una cortesía; la restricción es ésta
+    (FR-068).
+
+    **Regla de códigos** (convención [005], research §11):
+      - `400` cuando el problema está en **lo que se tipeó**: campos, formatos, duplicados, datos
+        faltantes de otra entidad.
+      - `409` cuando está en el **estado** de algo que se comparte o que cambió: viaje ya facturado,
+        anulada ya reemplazada, transición no permitida, factura inmutable, **confirmación pendiente**.
+
+    **Rutas literales y `{id:int}`**: `/api/facturas/facturables`, `/api/facturas/vista-previa`,
+    `/api/facturas/anuladas-sin-reemplazo`, `/api/facturas/vencimientos` y `/api/facturas/totales`
+    conviven con `/api/facturas/{id}`. La de identificador **lleva restricción de tipo** en el
+    registro del endpoint; sin ella las cinco literales quedan inalcanzables y no falla al compilar
+    ni al arrancar (convención [005]).
+
+    **Instantes**: todo `date-time` sale en UTC con `Z`. Las fechas sin hora van como `yyyy-MM-dd`.
+
+    **Importes**: `decimal` con dos decimales, en pesos argentinos. Nunca punto flotante.
+
+servers:
+  - url: /api
+
+tags:
+  - name: Empresa emisora
+  - name: Facturas
+  - name: Ciclo de vida
+  - name: Reportes
+
+paths:
+
+  # ───────────────────────────────────────────────────────────────────────────────
+  # Empresa emisora (FR-001 a FR-006)
+  # ───────────────────────────────────────────────────────────────────────────────
+
+  /facturacion/empresa-emisora:
+    get:
+      tags: [Empresa emisora]
+      summary: Datos de la empresa emisora
+      description: |
+        Devuelve `200` siempre, también cuando la empresa nunca se configuró: en ese caso
+        `configurada` es `false` y `faltantes` enumera los cuatro obligatorios que falten, por
+        nombre. La pantalla muestra el formulario vacío con el mensaje explícito, nunca una pantalla
+        en blanco (US1 esc. 1).
+      security: [{ cookieSesion: [facturacion.consultar] }]
+      responses:
+        "200":
+          description: Configuración actual
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmpresaEmisora" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+    put:
+      tags: [Empresa emisora]
+      summary: Guardar los datos de la empresa emisora
+      description: |
+        Crea la fila la primera vez y la actualiza siempre después. **No hay `POST` ni `DELETE`**: la
+        configuración es única para todo el sistema (FR-001).
+
+        No toca el logo, que tiene sus propios recursos.
+      security: [{ cookieSesion: [facturacion.gestionar] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmpresaEmisoraRequest" }
+      responses:
+        "200":
+          description: Guardada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmpresaEmisora" }
+        "400":
+          description: |
+            `cuit_invalido` · `email_invalido` · `datos_invalidos` (razón social, domicilio o
+            condición de IVA faltantes).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /facturacion/empresa-emisora/logo:
+    get:
+      tags: [Empresa emisora]
+      summary: Ver el logo
+      description: |
+        Se sirve **en línea** con `Content-Disposition: inline` y `X-Content-Type-Options: nosniff`
+        (convención [003]).
+      security: [{ cookieSesion: [facturacion.consultar] }]
+      responses:
+        "200":
+          description: El archivo
+          content:
+            image/jpeg: { schema: { type: string, format: binary } }
+            image/png: { schema: { type: string, format: binary } }
+        "404": { description: No hay logo cargado }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+    put:
+      tags: [Empresa emisora]
+      summary: Subir o reemplazar el logo
+      description: |
+        El tipo se valida por la **firma del archivo**, no por la extensión ni por el `Content-Type`
+        declarado (FR-003). Se admiten **únicamente JPG y PNG**: un PDF válido se rechaza igual.
+
+        Reemplazar borra el archivo anterior después de confirmar la fila.
+      security: [{ cookieSesion: [facturacion.gestionar] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [archivo]
+              properties:
+                archivo: { type: string, format: binary }
+      responses:
+        "200":
+          description: Logo guardado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EmpresaEmisora" }
+        "400":
+          description: "`archivo_no_admitido` — el mensaje dice qué formatos se aceptan"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+    delete:
+      tags: [Empresa emisora]
+      summary: Quitar el logo
+      description: |
+        La configuración queda sin logo y las facturas se siguen emitiendo (FR-004). Idempotente:
+        quitar un logo que no está responde `204` igual.
+      security: [{ cookieSesion: [facturacion.gestionar] }]
+      responses:
+        "204": { description: Sin logo }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  # ───────────────────────────────────────────────────────────────────────────────
+  # Armado de la factura (FR-015 a FR-021, FR-049)
+  # ───────────────────────────────────────────────────────────────────────────────
+
+  /facturas/facturables:
+    get:
+      tags: [Facturas]
+      summary: Viajes que se pueden facturar a un cliente en un período
+      description: |
+        Devuelve **únicamente** los viajes que cumplen las tres condiciones a la vez: son del cliente
+        elegido, están en estado `rendido`, y su **fecha** cae dentro del mes y año elegidos
+        (FR-015, FR-016). No aparecen los `pendiente`, `en curso`, `anulado` ni `facturado`, ni los
+        ya incluidos en una factura vigente (FR-017).
+
+        **Los viajes sin número de remito sí aparecen**, marcados con `puedeFacturarse: false` y su
+        `motivoNoFacturable`. No se esconden: quien opera tiene que ver por qué no puede facturarlos
+        (FR-019a).
+
+        Una lista vacía es una respuesta legítima y la pantalla la explica nombrando la combinación
+        (FR-021).
+      security: [{ cookieSesion: [facturacion.gestionar] }]
+      parameters:
+        - { name: clienteId, in: query, required: true, schema: { type: integer } }
+        - { name: mes, in: query, required: true, schema: { type: integer, minimum: 1, maximum: 12 } }
+        - { name: anio, in: query, required: true, schema: { type: integer, minimum: 2025, maximum: 2026 } }
+      responses:
+        "200":
+          description: Viajes facturables
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ViajeFacturable" }
+        "400":
+          description: "`cliente_inexistente` · `datos_invalidos`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /facturas/anuladas-sin-reemplazo:
+    get:
+      tags: [Facturas]
+      summary: Facturas anuladas de un cliente que todavía nadie refacturó
+      description: |
+        Alimenta el desplegable de la Refacturación (FR-049). Ofrece **sólo** las anuladas de ese
+        cliente que no fueron reemplazadas por otra Refacturación (FR-049a).
+      security: [{ cookieSesion: [facturacion.gestionar] }]
+      parameters:
+        - { name: clienteId, in: query, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Anuladas sin reemplazo
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/FacturaResumen" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /facturas/vista-previa:
+    post:
+      tags: [Facturas]
+      summary: Vista previa del documento, sin crear ni guardar nada
+      description: |
+        Devuelve **el documento en PDF**, armado por el **mismo armador** que produce el archivo al
+        emitir (FR-033). No crea la factura, no guarda ningún archivo y no registra nada: una vista
+        previa abandonada no deja rastro (US2 esc. 33).
+
+        Es `POST` y no `GET` porque lleva la selección de viajes en el cuerpo. Se sirve en línea, y
+        la pantalla lo muestra en un marco sobre una URL de `Blob`.
+
+        Aplica las mismas validaciones de datos que la emisión —empresa emisora configurada, cliente
+        con domicilio, viajes con remito— porque un documento que no se puede emitir tampoco se
+        puede previsualizar honestamente. **No** aplica las confirmaciones de FR-032: no hay nada
+        irreversible que confirmar.
+      security: [{ cookieSesion: [facturacion.gestionar] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmisionRequest" }
+      responses:
+        "200":
+          description: El documento, para mirarlo
+          content:
+            application/pdf: { schema: { type: string, format: binary } }
+        "400":
+          description: |
+            `empresa_emisora_incompleta` · `cliente_sin_domicilio` · `viaje_sin_remito` ·
+            `cliente_inexistente` · `datos_invalidos`
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  # ───────────────────────────────────────────────────────────────────────────────
+  # Facturas
+  # ───────────────────────────────────────────────────────────────────────────────
+
+  /facturas:
+    get:
+      tags: [Facturas]
+      summary: Listado paginado de facturas
+      description: |
+        Filtros combinables (FR-058). **El filtro por estado opera sobre el estado derivado** y sus
+        cuatro valores son excluyentes: `pendiente` devuelve sólo las impagas en plazo y `vencida`
+        sólo las pasadas de fecha. Ninguna factura sale bajo los dos (FR-058a).
+
+        Sin filtro de estado se devuelven **todas**, incluidas las anuladas, y el control de la
+        pantalla dice explícitamente qué está mostrando (FR-064).
+
+        Orden: fecha de facturación descendente y, a igual fecha, número de comprobante descendente
+        (FR-059). Los filtros se aplican **antes** de paginar.
+      security: [{ cookieSesion: [facturacion.consultar] }]
+      parameters:
+        - { name: clienteId, in: query, schema: { type: integer } }
+        - { name: desde, in: query, schema: { type: string, format: date } }
+        - { name: hasta, in: query, schema: { type: string, format: date } }
+        - { name: mes, in: query, schema: { type: integer, minimum: 1, maximum: 12 } }
+        - { name: anio, in: query, schema: { type: integer, minimum: 2025, maximum: 2026 } }
+        - name: estado
+          in: query
+          schema: { $ref: "#/components/schemas/EstadoFacturaVisible" }
+        - name: tipoComprobante
+          in: query
+          schema: { $ref: "#/components/schemas/TipoComprobante" }
+        - { name: pagina, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        "200":
+          description: Página de resultados
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginaDeFacturas" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+    post:
+      tags: [Facturas]
+      summary: Emitir una factura
+      description: |
+        Crea la factura en estado `pendiente`, marca sus viajes como `facturado` y **genera y guarda
+        el documento en PDF**, todo en una sola operación: o pasa todo o no pasa nada (FR-054).
+
+        **El neto, el IVA y el total no viajan en el cuerpo**: los calcula el servidor a partir de
+        los viajes que encuentra en la base (FR-024).
+
+        **Dos confirmaciones previas** (FR-032). El primer intento responde `409` **sin crear nada**
+        cuando la selección incluye un viaje con importe en cero, o cuando la fecha de facturación es
+        anterior a la de algún viaje incluido. El segundo intento lleva `confirmado: true`.
+      security: [{ cookieSesion: [facturacion.gestionar] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmisionRequest" }
+      responses:
+        "201":
+          description: Emitida
+          headers:
+            Location: { schema: { type: string }, description: "`/api/facturas/{id}`" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FacturaDetalle" }
+        "400":
+          description: |
+            `empresa_emisora_incompleta` (con `faltantes`) · `cliente_inexistente` ·
+            `cliente_inactivo` · `cliente_sin_domicilio` · `viaje_sin_remito` (con `viajes`) ·
+            `numero_duplicado` (con `facturaEnConflicto`) · `numero_invalido` ·
+            `sin_viajes_seleccionados` · `refacturacion_sin_reemplazada` ·
+            `original_con_reemplazada` · `vencimiento_pago_anterior` · `cae_vencimiento_anterior` ·
+            `datos_invalidos`
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: |
+            `viaje_ya_facturado` (con `viajes` y `facturaEnConflicto`) ·
+            `anulada_ya_reemplazada` (con `facturaEnConflicto`) ·
+            `emision_requiere_confirmacion` (con `motivoConfirmacion` y `viajes`)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorDeBloqueo" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /facturas/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+
+    get:
+      tags: [Facturas]
+      summary: Ficha completa de una factura
+      description: |
+        Devuelve los datos del emisor **tal como quedaron al emitirla**, los del cliente igual, el
+        detalle de los viajes incluidos con su importe, los tres importes, el CAE, los vencimientos,
+        la fecha de cobro y el motivo de anulación cuando corresponda, la referencia de
+        refacturación en **las dos** direcciones, y el historial completo (FR-060).
+      security: [{ cookieSesion: [facturacion.consultar] }]
+      responses:
+        "200":
+          description: La ficha
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FacturaDetalle" }
+        "404": { $ref: "#/components/responses/NoEncontrada" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+    put:
+      tags: [Facturas]
+      summary: Corregir una factura emitida
+      description: |
+        Modifica **únicamente** el detalle, el CAE, el vencimiento del CAE y el vencimiento de pago
+        (FR-035). Cualquier otro campo enviado se ignora; el cliente, los viajes y los importes no
+        son editables por ninguna vía (FR-036).
+
+        **Regenera el documento** y reemplaza al anterior (FR-031b), y agrega al historial una
+        entrada de corrección con quién y cuándo (FR-037).
+
+        Disponible en `pendiente`, `vencida` y `pagada`. **No cambia el estado ni la fecha de cobro**
+        (FR-044). En `anulada` responde `409`: es el único estado que cierra la corrección (FR-038).
+      security: [{ cookieSesion: [facturacion.gestionar] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CorreccionRequest" }
+      responses:
+        "200":
+          description: Corregida
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FacturaDetalle" }
+        "400":
+          description: |
+            `cae_requerido` · `cae_vencimiento_anterior` · `vencimiento_pago_anterior` ·
+            `datos_invalidos`
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: "`factura_anulada_inmutable`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorDeBloqueo" }
+        "404": { $ref: "#/components/responses/NoEncontrada" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /facturas/{id}/documento:
+    get:
+      tags: [Facturas]
+      summary: El documento de la factura
+      description: |
+        Se sirve **en línea**, con un nombre que identifica la factura —`Factura 0014-00000003.pdf`—
+        y `X-Content-Type-Options: nosniff` (FR-031a, convención [003]).
+
+        Disponible en **cualquier estado** (FR-031d). Si la factura está anulada, el documento ya
+        trae impresas la leyenda y el motivo, porque se regeneró al anularla: la leyenda **no** se
+        estampa al servir el archivo.
+
+        **El documento no es el comprobante fiscal** (FR-031c): es su representación impresa. La
+        validez la da el CAE obtenido en AFIP/ARCA por fuera del sistema.
+      security: [{ cookieSesion: [facturacion.consultar] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: El PDF
+          content:
+            application/pdf: { schema: { type: string, format: binary } }
+        "404": { $ref: "#/components/responses/NoEncontrada" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  # ───────────────────────────────────────────────────────────────────────────────
+  # Ciclo de vida — cada cambio de estado es un recurso propio (FR-044)
+  # ───────────────────────────────────────────────────────────────────────────────
+
+  /facturas/{id}/cobro:
+    post:
+      tags: [Ciclo de vida]
+      summary: Registrar el cobro
+      description: |
+        Deja la factura en `pagada` con su fecha de cobro (FR-042). Sólo desde `pendiente` o
+        `vencida`. La fecha de cobro no puede ser anterior a la de facturación.
+
+        **`pagada` es terminal**: no existe ninguna acción que revierta el cobro (FR-043).
+      security: [{ cookieSesion: [facturacion.gestionar] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fechaCobro]
+              properties:
+                fechaCobro: { type: string, format: date }
+      responses:
+        "200":
+          description: Cobrada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FacturaDetalle" }
+        "400":
+          description: "`fecha_cobro_anterior` · `datos_invalidos`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: "`transicion_no_permitida` — la factura ya está `pagada` o está `anulada`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorDeBloqueo" }
+        "404": { $ref: "#/components/responses/NoEncontrada" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /facturas/{id}/anulacion:
+    post:
+      tags: [Ciclo de vida]
+      summary: Anular la factura
+      description: |
+        Exige **motivo escrito** obligatorio (FR-046). Deja la factura en `anulada`, devuelve
+        **todos** sus viajes a `rendido` y **regenera el documento** con la leyenda y el motivo
+        impresos, todo en la misma operación: si el documento no se puede regenerar, la anulación no
+        queda aplicada a medias (FR-048, FR-031b).
+
+        La confirmación la pide **la pantalla**, no el backend: la anulación es un cambio de estado
+        con motivo, y su irreversibilidad ya está cubierta por el motivo obligatorio.
+
+        Anular una factura `pagada` se rechaza informando desde qué fecha está cobrada, **sin
+        ofrecer ni sugerir revertir el cobro**: no existe ninguna acción que lo haga (FR-043a).
+
+        Permiso propio: `facturacion.anular`. Quien tiene sólo `facturacion.gestionar` recibe `403`.
+      security: [{ cookieSesion: [facturacion.anular] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motivo]
+              properties:
+                motivo: { type: string, maxLength: 500, minLength: 1 }
+      responses:
+        "200":
+          description: Anulada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FacturaDetalle" }
+        "400":
+          description: "`motivo_requerido`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: |
+            `factura_cobrada` (con `fechaCobro`) · `transicion_no_permitida` (ya estaba anulada)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorDeBloqueo" }
+        "404": { $ref: "#/components/responses/NoEncontrada" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  # ───────────────────────────────────────────────────────────────────────────────
+  # Reportes
+  # ───────────────────────────────────────────────────────────────────────────────
+
+  /facturas/vencimientos:
+    get:
+      tags: [Reportes]
+      summary: Panel de vencimientos
+      description: |
+        Las facturas `vencida` y las que vencen dentro de los próximos **7 días corridos**. Las
+        `pagada` y `anulada` no figuran (FR-063).
+
+        `dias` es negativo cuando hay atraso y positivo cuando queda plazo; la pantalla lo dice con
+        la palabra que lo explica y no sólo con un color (FR-065).
+      security: [{ cookieSesion: [facturacion.consultar] }]
+      responses:
+        "200":
+          description: El panel
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/FilaDeVencimiento" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /facturas/totales:
+    get:
+      tags: [Reportes]
+      summary: Totales facturado, cobrado y pendiente por cliente
+      description: |
+        **El rango de fechas es obligatorio** (FR-061): sin él el sistema no calcula ni devuelve
+        ningún total y responde `400` con `rango_de_fechas_requerido`, para que la pantalla diga que
+        falta elegirlo en vez de mostrar un cuadro vacío.
+
+        La fecha de corte es la **fecha de facturación**. Las anuladas se excluyen como predicado de
+        la consulta, no como filtrado posterior (FR-062).
+      security: [{ cookieSesion: [facturacion.consultar] }]
+      parameters:
+        - { name: desde, in: query, required: true, schema: { type: string, format: date } }
+        - { name: hasta, in: query, required: true, schema: { type: string, format: date } }
+      responses:
+        "200":
+          description: Totales por cliente
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/TotalPorCliente" }
+        "400":
+          description: "`rango_de_fechas_requerido`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+components:
+
+  securitySchemes:
+    cookieSesion:
+      type: apiKey
+      in: cookie
+      name: gt.sesion
+
+  responses:
+    SinSesion:
+      description: Sin sesión válida
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    SinPermiso:
+      description: Sesión válida sin el permiso necesario
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NoEncontrada:
+      description: La factura no existe
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+
+    # ── Enumeraciones (camelCase en el JSON, convención [003]) ─────────────────
+
+    TipoComprobante:
+      type: string
+      enum: [facturaA, facturaB, facturaC]
+
+    TipoFacturacion:
+      type: string
+      enum: [original, refacturacion]
+
+    CondicionDeVenta:
+      type: string
+      enum: [contado, cuentaCorriente, tarjeta, cheque]
+
+    EstadoFacturaVisible:
+      type: string
+      description: |
+        Lo que se ve y lo que se filtra. `vencida` **se deriva al leer** comparando el vencimiento de
+        pago con el día en curso; no es una columna y no hay proceso que la escriba (FR-041).
+      enum: [pendiente, vencida, pagada, anulada]
+
+    # ── Errores ───────────────────────────────────────────────────────────────
+
+    Error:
+      type: object
+      required: [codigo, mensaje]
+      properties:
+        codigo: { type: string, example: numero_duplicado }
+        mensaje:
+          type: string
+          description: Texto en español rioplatense, listo para mostrar tal cual.
+        campo:
+          type: string
+          nullable: true
+          description: Campo del formulario que hay que marcar, cuando corresponde.
+        faltantes:
+          type: array
+          nullable: true
+          description: Nombres de los datos que faltan (FR-006, FR-011a).
+          items: { type: string }
+
+    ErrorDeBloqueo:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          properties:
+            facturaEnConflicto:
+              allOf: [{ $ref: "#/components/schemas/FacturaResumen" }]
+              nullable: true
+              description: |
+                La factura que ya usa el número, la que ya incluye el viaje, o la Refacturación que
+                ya reemplaza a la anulada. Saber que hay conflicto sin saber con qué no ayuda a
+                resolverlo (convención [004]).
+            viajes:
+              type: array
+              nullable: true
+              description: Los viajes que producen el rechazo, nombrados uno por uno.
+              items: { $ref: "#/components/schemas/ViajeEnConflicto" }
+            motivoConfirmacion:
+              type: string
+              nullable: true
+              enum: [viajeEnCero, fechaAnteriorAViaje]
+              description: |
+                Qué hay que confirmar (FR-032). El primer intento **no creó nada**; el segundo lleva
+                `confirmado: true`.
+            fechaCobro:
+              type: string
+              format: date
+              nullable: true
+              description: Desde cuándo está cobrada, en el rechazo de anular una `pagada` (FR-043a).
+
+    ViajeEnConflicto:
+      type: object
+      properties:
+        id: { type: integer }
+        numero: { type: integer }
+        motivo:
+          type: string
+          enum: [sinRemito, yaFacturado, importeEnCero, posteriorAlaFactura]
+
+    # ── Empresa emisora ───────────────────────────────────────────────────────
+
+    EmpresaEmisoraRequest:
+      type: object
+      required: [razonSocial, cuit, domicilio, condicionIva]
+      properties:
+        razonSocial: { type: string, maxLength: 200 }
+        cuit:
+          type: string
+          description: Se normaliza a sólo dígitos antes de validar y de guardar. `30-71234567-8` es válido.
+        domicilio: { type: string, maxLength: 200 }
+        condicionIva: { type: string, maxLength: 100 }
+        ingresosBrutos: { type: string, maxLength: 50, nullable: true }
+        inicioActividades: { type: string, format: date, nullable: true }
+        puntoDeVenta: { type: string, maxLength: 4, nullable: true }
+        cbu: { type: string, maxLength: 22, nullable: true }
+        telefono: { type: string, maxLength: 50, nullable: true }
+        email: { type: string, maxLength: 254, nullable: true }
+
+    EmpresaEmisora:
+      allOf:
+        - type: object
+          required: [configurada, faltantes]
+          properties:
+            configurada:
+              type: boolean
+              description: |
+                `false` mientras falte alguno de los cuatro obligatorios, incluida la situación en
+                que nunca se guardó nada (US1 esc. 1).
+            faltantes:
+              type: array
+              items: { type: string }
+              description: Los obligatorios que faltan, por nombre (FR-006).
+            logo:
+              nullable: true
+              type: object
+              properties:
+                nombre: { type: string }
+                url: { type: string, example: /api/facturacion/empresa-emisora/logo }
+        - $ref: "#/components/schemas/EmpresaEmisoraRequest"
+
+    # ── Armado ────────────────────────────────────────────────────────────────
+
+    ViajeFacturable:
+      type: object
+      required: [id, numero, fecha, origen, destino, importe, puedeFacturarse]
+      properties:
+        id: { type: integer }
+        numero: { type: integer }
+        fecha: { type: string, format: date }
+        numeroRemito: { type: string, nullable: true }
+        origen: { type: string }
+        destino: { type: string }
+        importe: { type: number, format: double }
+        puedeFacturarse:
+          type: boolean
+          description: "`false` sólo por falta de remito, hoy (FR-019a)."
+        motivoNoFacturable:
+          type: string
+          nullable: true
+          enum: [sinRemito]
+
+    EmisionRequest:
+      type: object
+      required:
+        [clienteId, tipoComprobante, tipoFacturacion, condicionDeVenta, mes, anio,
+         fecha, numeroComprobante, cae, caeVencimiento, vencimientoPago, viajeIds]
+      description: |
+        **No lleva `neto`, `iva` ni `total`**: los calcula el servidor a partir de los viajes
+        (FR-024). Tampoco lleva la alícuota, que sale del tipo de comprobante (FR-023).
+      properties:
+        clienteId: { type: integer }
+        tipoComprobante: { $ref: "#/components/schemas/TipoComprobante" }
+        tipoFacturacion: { $ref: "#/components/schemas/TipoFacturacion" }
+        condicionDeVenta: { $ref: "#/components/schemas/CondicionDeVenta" }
+        mes: { type: integer, minimum: 1, maximum: 12 }
+        anio: { type: integer, minimum: 2025, maximum: 2026 }
+        fecha:
+          type: string
+          format: date
+          description: Fecha de facturación. La pantalla propone hoy (FR-012).
+        numeroComprobante:
+          type: string
+          pattern: '^\d{4}-\d{8}$'
+          example: 0014-00000003
+        detalle: { type: string, maxLength: 500, nullable: true }
+        cae: { type: string, maxLength: 20 }
+        caeVencimiento: { type: string, format: date }
+        vencimientoPago:
+          type: string
+          format: date
+          description: La pantalla propone la fecha de facturación más 30 días corridos.
+        facturaReemplazadaId:
+          type: integer
+          nullable: true
+          description: Obligatoria si `tipoFacturacion` es `refacturacion`; prohibida si es `original` (FR-049).
+        viajeIds:
+          type: array
+          minItems: 1
+          items: { type: integer }
+        confirmado:
+          type: boolean
+          nullable: true
+          description: |
+            Sólo hace falta después de un `409 emision_requiere_confirmacion` (FR-032). Sin motivo
+            que confirmar se ignora.
+
+    CorreccionRequest:
+      type: object
+      required: [cae, caeVencimiento, vencimientoPago]
+      properties:
+        detalle: { type: string, maxLength: 500, nullable: true }
+        cae: { type: string, maxLength: 20, minLength: 1 }
+        caeVencimiento: { type: string, format: date }
+        vencimientoPago: { type: string, format: date }
+
+    # ── Facturas ──────────────────────────────────────────────────────────────
+
+    FacturaResumen:
+      type: object
+      properties:
+        id: { type: integer }
+        numeroComprobante: { type: string }
+        fecha: { type: string, format: date }
+        estado: { $ref: "#/components/schemas/EstadoFacturaVisible" }
+
+    FacturaListado:
+      type: object
+      properties:
+        id: { type: integer }
+        numeroComprobante: { type: string }
+        fecha: { type: string, format: date }
+        cliente:
+          type: object
+          properties:
+            id: { type: integer }
+            razonSocial:
+              type: string
+              description: La **congelada en la factura**, no la del padrón (FR-034a).
+            activo:
+              type: boolean
+              description: Del padrón. `false` se muestra con la palabra `Inactivo` (FR-011).
+        tipoComprobante: { $ref: "#/components/schemas/TipoComprobante" }
+        mes: { type: integer }
+        anio: { type: integer }
+        total: { type: number, format: double }
+        estado: { $ref: "#/components/schemas/EstadoFacturaVisible" }
+        vencimientoPago: { type: string, format: date }
+        motivoAnulacion: { type: string, nullable: true }
+
+    PaginaDeFacturas:
+      type: object
+      description: Formato de paginación del sistema desde el Módulo 3 (convención [003]).
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/FacturaListado" }
+        total: { type: integer }
+        pagina: { type: integer }
+        tamanioPagina: { type: integer, example: 20 }
+
+    FacturaDetalle:
+      type: object
+      properties:
+        id: { type: integer }
+        numeroComprobante: { type: string }
+        fecha: { type: string, format: date }
+        tipoComprobante: { $ref: "#/components/schemas/TipoComprobante" }
+        tipoFacturacion: { $ref: "#/components/schemas/TipoFacturacion" }
+        condicionDeVenta: { $ref: "#/components/schemas/CondicionDeVenta" }
+        mes: { type: integer }
+        anio: { type: integer }
+        detalle: { type: string, nullable: true }
+        emisor:
+          type: object
+          description: Los datos **congelados al emitir** (FR-034). El logo no se congela.
+          properties:
+            razonSocial: { type: string }
+            cuit: { type: string }
+            domicilio: { type: string }
+            condicionIva: { type: string }
+            ingresosBrutos: { type: string, nullable: true }
+            inicioActividades: { type: string, format: date, nullable: true }
+            puntoDeVenta: { type: string, nullable: true }
+            cbu: { type: string, nullable: true }
+            telefono: { type: string, nullable: true }
+            email: { type: string, nullable: true }
+        cliente:
+          type: object
+          description: Copia congelada (FR-034a) **más** la referencia al padrón.
+          properties:
+            id: { type: integer }
+            razonSocial: { type: string }
+            cuit: { type: string }
+            domicilio: { type: string }
+            activo: { type: boolean }
+        viajes:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              numero: { type: integer }
+              fecha: { type: string, format: date }
+              numeroRemito: { type: string }
+              origen: { type: string }
+              destino: { type: string }
+              importe: { type: number, format: double }
+        neto: { type: number, format: double }
+        iva: { type: number, format: double }
+        alicuota:
+          type: number
+          format: double
+          description: Derivada del tipo de comprobante, no almacenada (research §5).
+        total: { type: number, format: double }
+        cae: { type: string }
+        caeVencimiento: { type: string, format: date }
+        vencimientoPago: { type: string, format: date }
+        estado: { $ref: "#/components/schemas/EstadoFacturaVisible" }
+        fechaCobro: { type: string, format: date, nullable: true }
+        motivoAnulacion: { type: string, nullable: true }
+        reemplazaA:
+          allOf: [{ $ref: "#/components/schemas/FacturaResumen" }]
+          nullable: true
+          description: A qué factura anulada reemplaza esta Refacturación (FR-050).
+        reemplazadaPor:
+          allOf: [{ $ref: "#/components/schemas/FacturaResumen" }]
+          nullable: true
+          description: Qué Refacturación reemplazó a esta anulada (FR-050).
+        documentoUrl:
+          type: string
+          example: /api/facturas/12/documento
+        historial:
+          type: array
+          items: { $ref: "#/components/schemas/EntradaDeHistorial" }
+
+    EntradaDeHistorial:
+      type: object
+      properties:
+        estadoAnterior:
+          type: string
+          nullable: true
+          description: "`null` en la emisión y en las correcciones."
+        estadoNuevo:
+          type: string
+          nullable: true
+          description: "`null` **sólo** en una corrección (FR-037), que la pantalla lee como `Corrección de datos`."
+        usuario: { type: string }
+        ocurridoEn: { type: string, format: date-time }
+
+    # ── Reportes ──────────────────────────────────────────────────────────────
+
+    FilaDeVencimiento:
+      type: object
+      properties:
+        id: { type: integer }
+        numeroComprobante: { type: string }
+        cliente: { type: string }
+        total: { type: number, format: double }
+        vencimientoPago: { type: string, format: date }
+        dias:
+          type: integer
+          description: Negativo = días de atraso. Positivo o cero = días de plazo.
+
+    TotalPorCliente:
+      type: object
+      properties:
+        clienteId: { type: integer }
+        razonSocial: { type: string }
+        cantidad:
+          type: integer
+          description: Facturas no anuladas del rango (FR-062).
+        facturado: { type: number, format: double }
+        cobrado: { type: number, format: double }
+        pendiente:
+          type: number
+          format: double
+          description: "`facturado − cobrado`."
