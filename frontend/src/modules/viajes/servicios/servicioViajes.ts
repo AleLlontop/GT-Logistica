@@ -1,8 +1,26 @@
 import { actualizar, enviar, obtener, query } from './api'
 import type { PaginaDe } from '../clientes/servicioClientes'
 
-/** Los cuatro valores de FR-031, en camelCase igual que en el JSON (convención [003]). */
-export type EstadoViaje = 'pendiente' | 'enCurso' | 'rendido' | 'anulado'
+/**
+ * Los estados del viaje, en camelCase igual que en el JSON (convención [003]).
+ *
+ * `facturado` lo agregó el Módulo 6 (FR-051): el viaje ya está incluido en una factura vigente. Es
+ * terminal e inmutable con el mismo alcance que `rendido` (FR-052), y de él **sí** se vuelve — anular la
+ * factura devuelve sus viajes a `rendido`.
+ */
+export type EstadoViaje = 'pendiente' | 'enCurso' | 'rendido' | 'anulado' | 'facturado'
+
+/**
+ * La factura que incluye este viaje, o `null` mientras no esté facturado (Módulo 6, FR-055).
+ *
+ * Sale de la navegación por `FacturaId` del backend, nunca de columnas copiadas al viaje.
+ */
+export interface FacturaDelViaje {
+  id: number
+  numero: string
+  /** `yyyy-MM-dd`. Se muestra con `formatearFecha`. */
+  fecha: string
+}
 
 /**
  * Un identificador con su nombre y si sigue activo en su padrón.
@@ -37,6 +55,8 @@ export interface ViajeListado {
   /** Derivado al leer: la fecha del viaje es anterior a hoy (FR-016). */
   esRetroactivo: boolean
   motivoAnulacion: string | null
+  /** Módulo 6, FR-055: `null` mientras el viaje no esté facturado. */
+  factura: FacturaDelViaje | null
 }
 
 export interface CambioDeEstado {
@@ -227,6 +247,16 @@ export const NOMBRES_DE_ESTADO: Record<EstadoViaje, string> = {
   enCurso: 'En curso',
   rendido: 'Rendido',
   anulado: 'Anulado',
+  facturado: 'Facturado',
+}
+
+/**
+ * La leyenda de un viaje facturado, con el número y la fecha de su factura (Módulo 6, FR-055).
+ *
+ * Va **además** del estado y no en su lugar: el estado dice qué es y esto dice dónde mirar.
+ */
+export function leyendaDeFactura(factura: FacturaDelViaje, fechaFormateada: string): string {
+  return `Facturado en ${factura.numero}, del ${fechaFormateada}`
 }
 
 /** El nombre con `(inactivo)` cuando corresponde. Nunca sólo un color (FR-049). */

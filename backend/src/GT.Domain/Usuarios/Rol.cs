@@ -70,4 +70,28 @@ public static class CodigosPermiso
     /// viaje de tal cliente?" la hacen ellos, y responderla no exige poder operar (FR-051, research §10).
     /// </summary>
     public const string ViajesConsultar = "viajes.consultar";
+
+    /// <summary>
+    /// Módulo 6: configurar la empresa emisora, emitir una factura, corregirla y registrar su cobro.
+    /// Lo otorgan *Administración de la empresa* y *Administrador del sistema* (FR-066, research §7).
+    ///
+    /// Es el primer permiso de escritura que **no** recibe Tráfico: facturar es tarea administrativa.
+    /// </summary>
+    public const string FacturacionGestionar = "facturacion.gestionar";
+
+    /// <summary>
+    /// Módulo 6: listado, ficha, documento, panel de vencimientos y totales, sin poder tocar nada.
+    /// Lo otorgan los tres roles anteriores **más** Gerencia (FR-066).
+    /// </summary>
+    public const string FacturacionConsultar = "facturacion.consultar";
+
+    /// <summary>
+    /// Módulo 6: anular una factura. Lo otorga **sólo** *Administrador del sistema* (FR-067).
+    ///
+    /// Con esto el 6 pasa a ser el módulo con la autorización más granular del sistema —tres permisos—
+    /// y no agregó una línea de maquinaria: es el precedente [004] con un nivel más. Quien tiene
+    /// `facturacion.gestionar` sin éste ve todas las acciones menos *Anular*, y si la invoca a mano
+    /// recibe `403` (FR-068, SC-014).
+    /// </summary>
+    public const string FacturacionAnular = "facturacion.anular";
 }

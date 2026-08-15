@@ -97,6 +97,8 @@ export function FiltrosViajes({ valor, onCambio }: Props) {
           <option value="pendiente">{NOMBRES_DE_ESTADO.pendiente}</option>
           <option value="enCurso">{NOMBRES_DE_ESTADO.enCurso}</option>
           <option value="rendido">{NOMBRES_DE_ESTADO.rendido}</option>
+          {/* Módulo 6, FR-055. Va después de `rendido` porque es el estado que le sigue. */}
+          <option value="facturado">{NOMBRES_DE_ESTADO.facturado}</option>
           <option value="anulado">{NOMBRES_DE_ESTADO.anulado}</option>
         </select>
       </div>

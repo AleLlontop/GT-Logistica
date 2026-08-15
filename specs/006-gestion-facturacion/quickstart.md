@@ -71,7 +71,7 @@ Desde *Clientes* y *Viajes*, cargá:
    ✅ US1 esc. 1
 3. Escribí un CUIT de diez dígitos y guardá: el campo queda marcado con el motivo y no se guarda nada.
    ✅ US1 esc. 3
-4. Completá razón social, CUIT (`30-71234567-8`, con guiones), domicilio, condición de IVA, punto de
+4. Completá razón social, CUIT (`30-71234567-1`, con guiones), domicilio, condición de IVA, punto de
    venta `0014` y CBU. Guardá: la pantalla **no cambia** y confirma el guardado. ✅ US1 esc. 2
 5. Subí un PDF como logo: se rechaza diciendo qué formatos acepta y la configuración queda igual.
    Subí un PNG: queda cargado. ✅ US1 esc. 6, 9

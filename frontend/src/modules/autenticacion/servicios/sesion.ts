@@ -26,6 +26,15 @@ export interface Sesion {
 export const Permisos = {
   viajesGestionar: 'viajes.gestionar',
   viajesConsultar: 'viajes.consultar',
+
+  /**
+   * Módulo 6. Son **tres** y no dos: es el módulo con la autorización más granular del sistema. Se
+   * mira con `facturacion.consultar`, se opera con `facturacion.gestionar`, y anular tiene su propio
+   * permiso porque devuelve viajes a `rendido` y no se deshace (FR-066, FR-067).
+   */
+  facturacionGestionar: 'facturacion.gestionar',
+  facturacionConsultar: 'facturacion.consultar',
+  facturacionAnular: 'facturacion.anular',
 } as const
 
 export function tienePermiso(sesion: Sesion | null, codigo: string): boolean {

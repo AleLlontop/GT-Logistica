@@ -178,6 +178,15 @@ public static class EstadoTerminal
             ErrorViaje.ViajeAnuladoInmutable,
             NumeroDelViaje: viaje.Numero),
 
+        // Módulo 6, FR-052: un viaje facturado es inmutable con el mismo alcance que uno rendido.
+        // `TransicionesDeViaje.EsTerminal` ya lo declara terminal, pero los cinco caminos rebotan
+        // **acá** y no ahí: sin este caso, editar un viaje facturado seguiría funcionando, porque el
+        // `PUT` de edición no consulta ninguna transición. El rechazo lo nombra por su factura para
+        // que quien opera sepa qué anular si de verdad necesita corregirlo.
+        EstadoViaje.Facturado => new ResultadoViaje(
+            ErrorViaje.ViajeFacturadoInmutable,
+            NumeroDelViaje: viaje.Numero),
+
         _ => null,
     };
 }

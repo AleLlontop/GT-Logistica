@@ -146,7 +146,9 @@ public class AsignarRolesTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
         // porque mirar el listado, la ficha y los totales no exige poder operar (Módulo 5, FR-051).
         //
         // Gerencia era el último ejemplo disponible, así que el test pasa a afirmar lo que ahora es
-        // cierto: recibe exactamente ese permiso y ninguno de gestión.
+        // cierto. El **Módulo 6 sumó el segundo**: `facturacion.consultar`, con el mismo criterio —mirar
+        // la cobranza no exige poder facturar—. Lo que sigue siendo verdad, y es lo que este test
+        // protege, es que Gerencia **no recibe ningún permiso de gestión** (Módulo 6, FR-066).
         var cliente = await app.CrearClienteAutenticadoAsync();
 
         var roles = await cliente.GetFromJsonAsync<List<RolLeido>>("/api/roles");
@@ -159,7 +161,14 @@ public class AsignarRolesTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
             [CodigosPermiso.ViajesConsultar],
             viajes.Permisos.Select(permiso => permiso.Codigo));
 
-        Assert.Single(gerencia.PermisosPorModulo);
+        var facturacion = gerencia.PermisosPorModulo.Single(modulo => modulo.Modulo == "Facturación");
+
+        Assert.Equal(
+            [CodigosPermiso.FacturacionConsultar],
+            facturacion.Permisos.Select(permiso => permiso.Codigo));
+
+        // Dos módulos y nada más: ningún permiso de gestión, ni de anulación.
+        Assert.Equal(2, gerencia.PermisosPorModulo.Count);
     }
 
     [Fact]

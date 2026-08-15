@@ -1,7 +1,7 @@
 namespace GT.Domain.Viajes;
 
 /// <summary>
-/// Estado del viaje, con exactamente cuatro valores y transiciones cerradas (FR-031, FR-033).
+/// Estado del viaje, con cinco valores y transiciones cerradas (FR-031, FR-033; Módulo 6 FR-051).
 ///
 /// <b>⚠ Los números importan y no son un detalle de serialización.</b> Los tres índices únicos
 /// filtrados de la tabla <c>Viajes</c> llevan estos valores escritos a mano en su <c>WHERE</c>:
@@ -30,4 +30,20 @@ public enum EstadoViaje : byte
 
     /// <summary>Terminal. No cuenta como trabajo realizado y no figura en ningún total (FR-047).</summary>
     Anulado = 3,
+
+    /// <summary>
+    /// El viaje ya está incluido en una factura vigente (Módulo 6, FR-051). Terminal e inmutable para
+    /// todos los roles, con el mismo alcance que ya regía para <see cref="Rendido"/> (FR-052).
+    ///
+    /// <b>Va al final del enum y los cuatro anteriores no se reordenan</b>, y no es una preferencia
+    /// de estilo: los tres índices filtrados de arriba llevan el <c>1</c> y el <c>3</c> escritos a
+    /// mano. Agregar al final no toca ninguno, y el de remito —<c>Estado &lt;&gt; 3</c>— pasa a cubrir
+    /// también a los facturados, que es lo correcto: un viaje facturado no libera su remito
+    /// (Módulo 6, research §8.1).
+    ///
+    /// A diferencia de los otros dos terminales, de éste <b>sí</b> se vuelve: anular la factura
+    /// devuelve sus viajes a <see cref="Rendido"/> (FR-047 del Módulo 6). Lo hace el caso de uso de
+    /// facturación y ningún endpoint del Módulo 5.
+    /// </summary>
+    Facturado = 4,
 }

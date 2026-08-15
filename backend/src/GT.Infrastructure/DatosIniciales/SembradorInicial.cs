@@ -46,6 +46,15 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
         (CodigosPermiso.ViajesConsultar, "Viajes",
             "Consultar viajes, clientes y totales por período"),
+
+        (CodigosPermiso.FacturacionGestionar, "Facturación",
+            "Configurar la empresa emisora, emitir facturas, corregirlas y registrar el cobro"),
+
+        (CodigosPermiso.FacturacionConsultar, "Facturación",
+            "Consultar facturas, su documento, el panel de vencimientos y los totales facturados"),
+
+        (CodigosPermiso.FacturacionAnular, "Facturación",
+            "Anular una factura y devolver sus viajes a rendido"),
     ];
 
     /// <summary>
@@ -62,6 +71,12 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
     /// `viajes.consultar` lo reciben **los cuatro roles**, porque mirar el listado, la ficha y los
     /// totales no exige poder operar. `viajes.gestionar` sigue el reparto de siempre, Tráfico y
     /// administrador (Módulo 5, FR-051, research §10).
+    ///
+    /// El Módulo 6 es el primero cuyo permiso de **escritura no llega a Tráfico**: facturar es tarea
+    /// administrativa. `facturacion.gestionar` va a *Administración de la empresa* y al administrador;
+    /// `facturacion.consultar` suma además a *Gerencia*; y `facturacion.anular` queda **sólo** en el
+    /// administrador, que es el tercer nivel de granularidad del sistema (Módulo 6, FR-066, FR-067,
+    /// research §7).
     /// </summary>
     private static readonly Dictionary<string, string[]> PermisosPorRol = new()
     {
@@ -73,6 +88,9 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.FlotaTiposGestionar,
             CodigosPermiso.ViajesGestionar,
             CodigosPermiso.ViajesConsultar,
+            CodigosPermiso.FacturacionGestionar,
+            CodigosPermiso.FacturacionConsultar,
+            CodigosPermiso.FacturacionAnular,
         ],
 
         [CodigosRol.Trafico] =
@@ -83,9 +101,18 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.ViajesConsultar,
         ],
 
-        [CodigosRol.Administracion] = [CodigosPermiso.ViajesConsultar],
+        [CodigosRol.Administracion] =
+        [
+            CodigosPermiso.ViajesConsultar,
+            CodigosPermiso.FacturacionGestionar,
+            CodigosPermiso.FacturacionConsultar,
+        ],
 
-        [CodigosRol.Gerencia] = [CodigosPermiso.ViajesConsultar],
+        [CodigosRol.Gerencia] =
+        [
+            CodigosPermiso.ViajesConsultar,
+            CodigosPermiso.FacturacionConsultar,
+        ],
     };
 
     /// <param name="passwordInicial">

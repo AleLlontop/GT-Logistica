@@ -31,6 +31,15 @@ public class AplicacionDePrueba : WebApplicationFactory<Program>, IAsyncLifetime
     private readonly string _rutaDeArchivos =
         Path.Combine(Path.GetTempPath(), $"GtLogistica_Archivos_{Guid.NewGuid():N}");
 
+    /// <summary>
+    /// El volumen de la corrida, para los tests que necesitan verificar <b>qué se escribió y qué no</b>.
+    ///
+    /// Lo usa <c>VistaPreviaTests</c>: FR-033 exige que previsualizar no guarde ningún archivo, y un
+    /// archivo huérfano es invisible desde la aplicación, así que la única forma de comprobarlo es mirar
+    /// el directorio. El almacén no expone un listado porque a la aplicación no le hace falta.
+    /// </summary>
+    public string RutaDeArchivos => _rutaDeArchivos;
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Development evita la redirección forzada a HTTPS y HSTS, que no aportan nada al servidor

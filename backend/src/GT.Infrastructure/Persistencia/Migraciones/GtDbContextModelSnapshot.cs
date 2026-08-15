@@ -181,6 +181,270 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.ToTable("Transportistas", (string)null);
                 });
 
+            modelBuilder.Entity("GT.Domain.Facturacion.CambioDeEstadoFactura", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<byte?>("EstadoAnterior")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte?>("EstadoNuevo")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("FacturaId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("OcurridoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("FacturaId", "OcurridoEn");
+
+                    b.ToTable("CambiosDeEstadoFactura", (string)null);
+                });
+
+            modelBuilder.Entity("GT.Domain.Facturacion.EmpresaEmisora", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Cbu")
+                        .HasMaxLength(22)
+                        .HasColumnType("nvarchar(22)");
+
+                    b.Property<string>("CondicionIva")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Cuit")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
+
+                    b.Property<string>("Domicilio")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<string>("IngresosBrutos")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateOnly?>("InicioActividades")
+                        .HasColumnType("date");
+
+                    b.Property<string>("LogoNombreOriginal")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("LogoRuta")
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<string>("LogoTipoContenido")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PuntoDeVenta")
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
+
+                    b.Property<string>("RazonSocial")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Telefono")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EmpresaEmisora", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_EmpresaEmisora_FilaUnica", "[Id] = 1");
+                        });
+                });
+
+            modelBuilder.Entity("GT.Domain.Facturacion.FacturaCliente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Cae")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateOnly>("CaeVencimiento")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ClienteCuit")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
+
+                    b.Property<string>("ClienteDomicilio")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ClienteRazonSocial")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte>("CondicionDeVenta")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Detalle")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("DocumentoRuta")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<string>("EmisorCbu")
+                        .HasMaxLength(22)
+                        .HasColumnType("nvarchar(22)");
+
+                    b.Property<string>("EmisorCondicionIva")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("EmisorCuit")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
+
+                    b.Property<string>("EmisorDomicilio")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("EmisorEmail")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<string>("EmisorIngresosBrutos")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateOnly?>("EmisorInicioActividades")
+                        .HasColumnType("date");
+
+                    b.Property<string>("EmisorPuntoDeVenta")
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
+
+                    b.Property<string>("EmisorRazonSocial")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("EmisorTelefono")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<byte>("Estado")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int?>("FacturaReemplazadaId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("FechaCobro")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("Iva")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("MotivoAnulacion")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("Neto")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("NumeroComprobante")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("nvarchar(13)");
+
+                    b.Property<short>("PeriodoAnio")
+                        .HasColumnType("smallint");
+
+                    b.Property<byte>("PeriodoMes")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("TipoComprobante")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("TipoFacturacion")
+                        .HasColumnType("tinyint");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateOnly>("VencimientoPago")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId")
+                        .HasDatabaseName("IX_Facturas_ClienteId");
+
+                    b.HasIndex("FacturaReemplazadaId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Facturas_FacturaReemplazada")
+                        .HasFilter("[FacturaReemplazadaId] IS NOT NULL");
+
+                    b.HasIndex("NumeroComprobante")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Facturas_Numero")
+                        .HasFilter("[Estado] <> 2");
+
+                    b.HasIndex("Estado", "VencimientoPago")
+                        .HasDatabaseName("IX_Facturas_Estado_VencimientoPago");
+
+                    b.HasIndex("Fecha", "NumeroComprobante")
+                        .IsDescending()
+                        .HasDatabaseName("IX_Facturas_Fecha_Numero");
+
+                    b.ToTable("Facturas", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Facturas_PeriodoMes", "[PeriodoMes] BETWEEN 1 AND 12");
+
+                            t.HasCheckConstraint("CK_Facturas_Total", "[Total] = [Neto] + [Iva]");
+                        });
+                });
+
             modelBuilder.Entity("GT.Domain.Flota.DocumentacionVehiculo", b =>
                 {
                     b.Property<int>("Id")
@@ -576,6 +840,9 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Property<byte>("Estado")
                         .HasColumnType("tinyint");
 
+                    b.Property<int?>("FacturaId")
+                        .HasColumnType("int");
+
                     b.Property<DateOnly>("Fecha")
                         .HasColumnType("date");
 
@@ -616,6 +883,9 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.HasIndex("ClienteId");
 
                     b.HasIndex("Estado");
+
+                    b.HasIndex("FacturaId")
+                        .HasDatabaseName("IX_Viajes_FacturaId");
 
                     b.HasIndex("Numero")
                         .IsUnique()
@@ -711,6 +981,43 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Navigation("Tipo");
                 });
 
+            modelBuilder.Entity("GT.Domain.Facturacion.CambioDeEstadoFactura", b =>
+                {
+                    b.HasOne("GT.Domain.Facturacion.FacturaCliente", "Factura")
+                        .WithMany("CambiosDeEstado")
+                        .HasForeignKey("FacturaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Usuarios.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Factura");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("GT.Domain.Facturacion.FacturaCliente", b =>
+                {
+                    b.HasOne("GT.Domain.Viajes.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Facturacion.FacturaCliente", "FacturaReemplazada")
+                        .WithMany()
+                        .HasForeignKey("FacturaReemplazadaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("FacturaReemplazada");
+                });
+
             modelBuilder.Entity("GT.Domain.Flota.DocumentacionVehiculo", b =>
                 {
                     b.HasOne("GT.Domain.Choferes.DocumentacionTipo", "Tipo")
@@ -791,6 +1098,11 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("GT.Domain.Facturacion.FacturaCliente", "Factura")
+                        .WithMany("Viajes")
+                        .HasForeignKey("FacturaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("GT.Domain.Choferes.Transportista", "Transportista")
                         .WithMany()
                         .HasForeignKey("TransportistaId")
@@ -804,6 +1116,8 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Navigation("Chofer");
 
                     b.Navigation("Cliente");
+
+                    b.Navigation("Factura");
 
                     b.Navigation("Transportista");
 
@@ -855,6 +1169,13 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Navigation("Choferes");
 
                     b.Navigation("Vehiculos");
+                });
+
+            modelBuilder.Entity("GT.Domain.Facturacion.FacturaCliente", b =>
+                {
+                    b.Navigation("CambiosDeEstado");
+
+                    b.Navigation("Viajes");
                 });
 
             modelBuilder.Entity("GT.Domain.Flota.TipoVehiculo", b =>

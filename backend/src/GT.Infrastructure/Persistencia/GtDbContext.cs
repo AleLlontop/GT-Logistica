@@ -1,4 +1,5 @@
 using GT.Domain.Choferes;
+using GT.Domain.Facturacion;
 using GT.Domain.Flota;
 using GT.Domain.Personas;
 using GT.Domain.Usuarios;
@@ -48,6 +49,27 @@ public class GtDbContext(DbContextOptions<GtDbContext> opciones) : DbContext(opc
     /// casos de uso que cambian el estado de un viaje, en la misma transacción que el cambio.
     /// </summary>
     public DbSet<CambioDeEstadoViaje> CambiosDeEstadoViaje => Set<CambioDeEstadoViaje>();
+
+    // ── Módulo 6: gestión de facturación ───────────────────────────────────────────────────────
+    /// <summary>
+    /// Configuración única de todo el sistema: **una sola fila**, garantizada por un <c>CHECK</c> en
+    /// la base y no por la disciplina del código. La fila no existe hasta el primer guardado
+    /// (Módulo 6, research §12).
+    /// </summary>
+    public DbSet<EmpresaEmisora> EmpresaEmisora => Set<EmpresaEmisora>();
+
+    /// <summary>
+    /// La tabla se llama <c>Facturas</c>, que es como la nombra el negocio; la entidad
+    /// <c>FacturaCliente</c>, para dejar lugar a la liquidación al transportista, que también es una
+    /// factura y todavía no existe.
+    /// </summary>
+    public DbSet<FacturaCliente> Facturas => Set<FacturaCliente>();
+
+    /// <summary>
+    /// Historial de FR-045 **y** registro de correcciones de FR-037, en la misma tabla. No se escribe
+    /// desde ningún endpoint: la alimentan los casos de uso, en la misma transacción que el cambio.
+    /// </summary>
+    public DbSet<CambioDeEstadoFactura> CambiosDeEstadoFactura => Set<CambioDeEstadoFactura>();
 
     /// <summary>
     /// Se aplica a las propiedades <c>DateTime</c> y <c>DateTime?</c> de todo el modelo. Los

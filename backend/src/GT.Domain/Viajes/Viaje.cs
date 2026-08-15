@@ -94,6 +94,22 @@ public class Viaje
 
     public Transportista? Transportista { get; set; }
 
+    /// <summary>
+    /// La factura que incluye este viaje, o <c>null</c> mientras no esté facturado (Módulo 6, FR-053).
+    ///
+    /// <b>Es lo que garantiza que un viaje no entre en dos facturas</b>, y la garantía es estructural:
+    /// una columna escalar no puede apuntar a dos facturas, así que no hay índice que agregue nada. Lo
+    /// que queda por cerrar es la carrera entre dos operadores simultáneos, y eso lo cierra el
+    /// <c>UPDATE</c> condicional con verificación de filas afectadas de <c>RepositorioFacturas</c>
+    /// (Módulo 6, research §4).
+    ///
+    /// El listado y la ficha del Módulo 5 muestran el número y la fecha de la factura resolviéndolos
+    /// por esta navegación, nunca por columnas copiadas al viaje (FR-055).
+    /// </summary>
+    public int? FacturaId { get; set; }
+
+    public Facturacion.FacturaCliente? Factura { get; set; }
+
     /// <summary>Historial de cambios de estado, de la más vieja a la más nueva (FR-035).</summary>
     public ICollection<CambioDeEstadoViaje> CambiosDeEstado { get; } = [];
 

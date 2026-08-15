@@ -97,6 +97,17 @@ public class ViajeConfiguracion : IEntityTypeConfiguration<Viaje>
         tabla.HasIndex(viaje => viaje.TransportistaId);
         tabla.HasIndex(viaje => viaje.Estado);
 
+        // Módulo 6, FR-053. **No único, y no es un descuido**: una factura tiene muchos viajes. La
+        // exclusividad —que un viaje no entre en dos facturas— ya la garantiza la forma del dato: una
+        // columna escalar no puede apuntar a dos filas, así que no hay nada que un índice único
+        // agregue. Lo que falta cerrar es la carrera entre dos operadores simultáneos, y eso lo cierra
+        // el `UPDATE` condicional de `RepositorioFacturas` (Módulo 6, research §4).
+        //
+        // Los tres índices filtrados de arriba **no se tocan**: el enum sumó `Facturado = 4` al final,
+        // así que el `1` y el `3` siguen apuntando a lo mismo. El de remito pasa a cubrir también a
+        // los facturados, que es lo correcto: un viaje facturado no libera su remito.
+        tabla.HasIndex(viaje => viaje.FacturaId).HasDatabaseName("IX_Viajes_FacturaId");
+
         // ── Las cuatro claves foráneas, todas en Restrict ───────────────────────────────────────
         // Nada de lo que este módulo referencia se borra físicamente: los cuatro padrones usan baja
         // lógica, así que el borrado en cascada no tiene a quién servir.
@@ -120,6 +131,13 @@ public class ViajeConfiguracion : IEntityTypeConfiguration<Viaje>
         tabla.HasOne(viaje => viaje.Transportista)
             .WithMany()
             .HasForeignKey(viaje => viaje.TransportistaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Módulo 6. En `Restrict` como las otras cuatro: nada borra facturas, y una factura sin sus
+        // viajes no diría lo mismo que su documento.
+        tabla.HasOne(viaje => viaje.Factura)
+            .WithMany(factura => factura.Viajes)
+            .HasForeignKey(viaje => viaje.FacturaId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

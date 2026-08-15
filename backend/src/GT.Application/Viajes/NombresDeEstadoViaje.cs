@@ -16,6 +16,7 @@ public static class NombresDeEstadoViaje
         EstadoViaje.EnCurso => "enCurso",
         EstadoViaje.Rendido => "rendido",
         EstadoViaje.Anulado => "anulado",
+        EstadoViaje.Facturado => "facturado",
         _ => throw new ArgumentOutOfRangeException(nameof(estado), estado, null),
     };
 
@@ -34,6 +35,10 @@ public static class NombresDeEstadoViaje
         "enCurso" => EstadoViaje.EnCurso,
         "rendido" => EstadoViaje.Rendido,
         "anulado" => EstadoViaje.Anulado,
+
+        // Módulo 6, FR-055: el filtro de estado del listado acepta `facturado`.
+        "facturado" => EstadoViaje.Facturado,
+
         _ => null,
     };
 
@@ -48,6 +53,7 @@ public static class NombresDeEstadoViaje
         EstadoViaje.EnCurso => "en curso",
         EstadoViaje.Rendido => "rendido",
         EstadoViaje.Anulado => "anulado",
+        EstadoViaje.Facturado => "facturado",
         _ => throw new ArgumentOutOfRangeException(nameof(estado), estado, null),
     };
 }

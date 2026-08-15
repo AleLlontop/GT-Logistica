@@ -3,11 +3,14 @@ using GT.Api.Autorizacion;
 using GT.Api.Usuarios;
 using GT.Api.Usuarios.Personas;
 using GT.Api.Choferes;
+using GT.Api.Facturacion;
 using GT.Api.Flota;
 using GT.Application.Autenticacion;
 using GT.Application.Choferes;
 using GT.Application.Choferes.Documentacion;
 using GT.Application.Choferes.Transportistas;
+using GT.Application.Facturacion;
+using GT.Application.Facturacion.EmpresaEmisora;
 using GT.Application.Flota;
 using GT.Application.Flota.Documentacion;
 using GT.Application.Flota.TiposVehiculo;
@@ -20,6 +23,7 @@ using GT.Domain.Usuarios;
 using GT.Infrastructure.Archivos;
 using GT.Infrastructure.Correo;
 using GT.Infrastructure.DatosIniciales;
+using GT.Infrastructure.Documentos;
 using GT.Infrastructure.Persistencia;
 using GT.Infrastructure.Seguridad;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -81,7 +85,10 @@ builder.Services.AddScoped<CargarDocumento>();
 builder.Services.AddScoped<CorregirDocumento>();
 builder.Services.AddScoped<EliminarDocumento>();
 builder.Services.AddScoped<DescargarArchivoDocumento>();
-builder.Services.AddScoped<ConsultarVencimientos>();
+
+// Calificado desde el Módulo 6, que tiene su propio `ConsultarVencimientos` —el de las facturas—. Este
+// archivo es el único lugar del sistema que ve los dos.
+builder.Services.AddScoped<GT.Application.Choferes.Documentacion.ConsultarVencimientos>();
 
 // ── Módulo 4: gestión de flota ─────────────────────────────────────────────────────────────────
 // No agrega ninguna infraestructura: el almacén de archivos, el validador por firma y la paginación
@@ -131,6 +138,44 @@ builder.Services.AddSingleton<IAlmacenDeArchivos>(servicios => new AlmacenDeArch
     builder.Configuration["GT_ARCHIVOS_RUTA"]
         ?? Path.Combine(builder.Environment.ContentRootPath, "archivos"),
     servicios.GetRequiredService<ILogger<AlmacenDeArchivos>>()));
+
+// ── Módulo 6: gestión de facturación ───────────────────────────────────────────────────────────
+// La única dependencia nueva del módulo, y hay que declararle la licencia **antes** de la primera
+// invocación: sin esta línea el armador tira excepción al generar el primer documento y no antes
+// (research §1). Va acá, junto al resto del registro de infraestructura, porque es configuración de
+// arranque y no una decisión que el armador pueda tomar por su cuenta.
+//
+// `Community` es la licencia gratuita para organizaciones de menos de USD 1M de facturación anual.
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
+// El armador es la frontera con QuestPDF: la capa de aplicación habla con la interfaz y el dominio no
+// sabe que existe un PDF. Singleton porque no tiene estado: recibe los datos ya formateados y dibuja.
+builder.Services.AddSingleton<IArmadorDocumentoFactura, ArmadorDocumentoFacturaQuestPdf>();
+
+builder.Services.AddScoped<IRepositorioEmpresaEmisora, RepositorioEmpresaEmisora>();
+builder.Services.AddScoped<ConsultarEmpresaEmisora>();
+builder.Services.AddScoped<GuardarEmpresaEmisora>();
+builder.Services.AddScoped<GestionarLogo>();
+
+builder.Services.AddScoped<IRepositorioFacturas, RepositorioFacturas>();
+builder.Services.AddScoped<PreparadorDeFactura>();
+builder.Services.AddScoped<ConsultarFacturables>();
+builder.Services.AddScoped<ConsultarAnuladasSinReemplazo>();
+builder.Services.AddScoped<VistaPreviaFactura>();
+builder.Services.AddScoped<EmitirFactura>();
+builder.Services.AddScoped<ConsultarFacturas>();
+builder.Services.AddScoped<ConsultarFichaFactura>();
+builder.Services.AddScoped<ServirDocumentoFactura>();
+builder.Services.AddScoped<CorregirFactura>();
+builder.Services.AddScoped<RegistrarCobro>();
+builder.Services.AddScoped<AnularFactura>();
+
+// Calificado: el Módulo 3 ya tiene un `ConsultarVencimientos` —el de la documentación de choferes— y
+// este archivo es el único lugar del sistema que ve los dos. Los espacios de nombres los distinguen; el
+// Módulo 4 resolvió lo mismo poniéndole `Flota` al suyo, y acá el nombre corto sigue siendo el correcto
+// dentro del módulo.
+builder.Services.AddScoped<GT.Application.Facturacion.ConsultarVencimientos>();
+builder.Services.AddScoped<ConsultarTotalesFacturacion>();
 
 // El adjunto se corta en 10 MB (FR-015a). Rechazarlo acá evita leer en memoria un cuerpo enorme
 // antes de descartarlo; el margen extra cubre los otros campos del formulario.
@@ -225,7 +270,14 @@ builder.Services.AddAuthorization(opciones =>
         // Módulo 5: los `GET` van bajo `viajes.consultar` y las escrituras bajo `viajes.gestionar`.
         // No son niveles ordenados: quien gestiona tiene los dos, sembrados por separado (FR-050).
         CodigosPermiso.ViajesGestionar,
-        CodigosPermiso.ViajesConsultar));
+        CodigosPermiso.ViajesConsultar,
+        // Módulo 6: **tres** permisos, el módulo con la autorización más granular del sistema. Se mira
+        // con `consultar`, se opera con `gestionar`, y anular tiene el suyo porque devuelve viajes a
+        // `rendido` y no se deshace. No agregó una línea de maquinaria: el `PermisoHandler` y el
+        // catálogo de menú del Módulo 1 los absorbieron sin cambios (FR-066, FR-067, research §7).
+        CodigosPermiso.FacturacionGestionar,
+        CodigosPermiso.FacturacionConsultar,
+        CodigosPermiso.FacturacionAnular));
 
 builder.Services.Configure<JsonOptions>(opciones =>
     opciones.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
@@ -289,6 +341,15 @@ app.MapearViajes();
 app.MapearAsignacion();
 app.MapearCicloDeVida();
 app.MapearTotales();
+app.MapearEmpresaEmisora();
+
+// El orden entre estos dos no importa —ASP.NET Core enruta por especificidad, no por orden de
+// registro—, pero la restricción `{id:int}` de `MapearFacturas` sí: sin ella las cinco rutas literales
+// de los otros grupos quedan inalcanzables (convención [005], research §15.1).
+app.MapearArmadoDeFacturas();
+app.MapearReportesDeFacturacion();
+app.MapearCicloDeVidaDeFacturas();
+app.MapearFacturas();
 
 await AplicarMigracionesYSembrarAsync(app);
 

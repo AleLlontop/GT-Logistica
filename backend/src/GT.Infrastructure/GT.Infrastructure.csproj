@@ -14,6 +14,20 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.10" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.10" />
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="10.0.10" />
+
+    <!--
+      Módulo 6: genera el documento de la factura (research §1). Es la única dependencia nueva del
+      módulo, y la única clase que la conoce es `Documentos/ArmadorDocumentoFacturaQuestPdf`.
+
+      LICENCIA: gratuita —`LicenseType.Community`— para organizaciones con menos de USD 1M de
+      facturación anual, que es el caso de G&T Logística. Queda escrito acá como condición de uso y no
+      como supuesto oculto: si la empresa supera ese umbral, hay que contratar licencia comercial.
+
+      Su motor de texto necesita `libfontconfig1` y `libfreetype6` en la imagen de ejecución, que
+      instala `backend/Dockerfile`. Sin ellos el backend compila, arranca y falla recién al emitir la
+      primera factura.
+    -->
+    <PackageReference Include="QuestPDF" Version="2026.7.3" />
   </ItemGroup>
 
   <PropertyGroup>

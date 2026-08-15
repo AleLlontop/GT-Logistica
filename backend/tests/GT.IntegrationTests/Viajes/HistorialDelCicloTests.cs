@@ -39,6 +39,8 @@ public class HistorialDelCicloTests(AplicacionDePrueba app) : IClassFixture<Apli
             origen = "Rosario",
             destino = "Córdoba",
             importe = 240_000m,
+            // Módulo 6, FR-055a: el camino hasta `rendido` exige el remito.
+            numeroRemito = ArmadoDeEscenarios.RemitoUnico(),
         });
 
         var creado = (await alta.Content.ReadFromJsonAsync<RespuestaViajeLeida>())!.Viaje;
@@ -124,6 +126,8 @@ public class HistorialDelCicloTests(AplicacionDePrueba app) : IClassFixture<Apli
             origen = "Rosario",
             destino = "Córdoba",
             importe = 100_000m,
+            // Módulo 6, FR-055a: el camino hasta `rendido` exige el remito.
+            numeroRemito = ArmadoDeEscenarios.RemitoUnico(),
         });
 
         var creado = (await alta.Content.ReadFromJsonAsync<RespuestaViajeLeida>())!.Viaje;

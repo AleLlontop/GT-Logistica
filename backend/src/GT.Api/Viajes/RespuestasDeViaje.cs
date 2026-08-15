@@ -53,6 +53,11 @@ public static class RespuestasDeViaje
             ErrorViaje.MotivoRequerido => Invalido(
                 CodigosErrorViajes.MotivoRequerido, MensajesViajes.MotivoRequerido, resultado.Campo),
 
+            // Módulo 6, FR-055a. `400` y no `409`: falta un dato del viaje, y se resuelve cargándolo
+            // antes de volver a intentar (research §11).
+            ErrorViaje.RemitoRequerido => Invalido(
+                CodigosErrorViajes.RemitoRequerido, MensajesViajes.RemitoRequerido, resultado.Campo),
+
             ErrorViaje.ChoferInexistente => Invalido(
                 CodigosErrorViajes.ChoferInexistente,
                 MensajesViajes.ChoferInexistente,
@@ -76,6 +81,10 @@ public static class RespuestasDeViaje
             ErrorViaje.ViajeAnuladoInmutable => Conflicto(new ErrorDeBloqueo(
                 CodigosErrorViajes.ViajeAnuladoInmutable,
                 MensajesViajes.ViajeAnuladoInmutable(numero))),
+
+            ErrorViaje.ViajeFacturadoInmutable => Conflicto(new ErrorDeBloqueo(
+                CodigosErrorViajes.ViajeFacturadoInmutable,
+                MensajesViajes.ViajeFacturadoInmutable(numero))),
 
             ErrorViaje.TransicionNoPermitida => Conflicto(new ErrorDeBloqueo(
                 CodigosErrorViajes.TransicionNoPermitida,

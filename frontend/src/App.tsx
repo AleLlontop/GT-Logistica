@@ -31,6 +31,13 @@ import { FormularioViaje } from './modules/viajes/paginas/FormularioViaje'
 import { FichaViaje } from './modules/viajes/paginas/FichaViaje'
 import { AsignacionViaje } from './modules/viajes/paginas/AsignacionViaje'
 import { TotalesPeriodo } from './modules/viajes/paginas/TotalesPeriodo'
+import { EmpresaEmisora } from './modules/facturacion/paginas/EmpresaEmisora'
+import { AltaFactura } from './modules/facturacion/paginas/AltaFactura'
+import { ListadoFacturas } from './modules/facturacion/paginas/ListadoFacturas'
+import { FichaFactura } from './modules/facturacion/paginas/FichaFactura'
+import { CorreccionFactura } from './modules/facturacion/paginas/CorreccionFactura'
+import { PanelVencimientos as PanelVencimientosFacturas } from './modules/facturacion/paginas/PanelVencimientos'
+import { TotalesFacturados } from './modules/facturacion/paginas/TotalesFacturados'
 import {
   cerrarSesion,
   obtenerSesion,
@@ -68,6 +75,13 @@ export default function App() {
   // Módulo 5: las pantallas se miran con `viajes.consultar` y se operan con `viajes.gestionar`, así
   // que las de este módulo reciben el permiso para decidir qué acciones ofrecen (FR-052).
   const puedeGestionarViajes = tienePermiso(sesion, Permisos.viajesGestionar)
+
+  // Módulo 6: las pantallas se miran con `facturacion.consultar` y se operan con
+  // `facturacion.gestionar`; anular tiene su propio permiso porque devuelve viajes a `rendido` y no se
+  // deshace (FR-067). Ocultar los botones es una cortesía; la restricción sigue siendo el `403` del
+  // servidor (FR-068, convención [005]).
+  const puedeGestionarFacturas = tienePermiso(sesion, Permisos.facturacionGestionar)
+  const puedeAnularFacturas = tienePermiso(sesion, Permisos.facturacionAnular)
 
   return (
     <BrowserRouter>
@@ -629,6 +643,132 @@ export default function App() {
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioCliente />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        {/* Rutas del Módulo 6. Las literales `/facturas/nueva`, `/facturas/vencimientos` y
+            `/facturas/totales` van antes que `/facturas/:id` para que no las tome como
+            identificadores. Es la misma precaución que del lado del backend resuelve la restricción
+            `{id:int}`, y acá también falla recién al pedirlas. */}
+        <Route
+          path="/facturas"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <ListadoFacturas puedeGestionar={puedeGestionarFacturas} />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/facturas/vencimientos"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <PanelVencimientosFacturas />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/facturas/totales"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <TotalesFacturados />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/facturas/nueva"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <AltaFactura />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/facturas/:id"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <FichaFactura
+                    puedeGestionar={puedeGestionarFacturas}
+                    puedeAnular={puedeAnularFacturas}
+                  />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/facturas/:id/editar"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <CorreccionFactura />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/facturacion/empresa"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <EmpresaEmisora />
                 </Layout>
               )}
             </RutaProtegida>

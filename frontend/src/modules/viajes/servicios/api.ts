@@ -38,6 +38,13 @@ export const CodigosErrorViajes = {
   vehiculoOcupado: 'vehiculo_ocupado',
   rendicionRequiereConfirmacion: 'rendicion_requiere_confirmacion',
   motivoRequerido: 'motivo_requerido',
+
+  /** Módulo 6, FR-052: el viaje ya está en una factura vigente. */
+  viajeFacturadoInmutable: 'viaje_facturado_inmutable',
+
+  /** Módulo 6, FR-055a: rendir exige el remito porque sale impreso en la factura. */
+  remitoRequerido: 'remito_requerido',
+
   rangoDeFechasRequerido: 'rango_de_fechas_requerido',
 
   // Asignación

@@ -1,5 +1,18 @@
 import { DialogoConfirmacion } from '../../usuarios/componentes/DialogoConfirmacion'
 
+/**
+ * Módulo 6, FR-055a: el remito pasa a ser obligatorio para rendir, porque sale impreso en la fila del
+ * viaje dentro del detalle de la factura.
+ *
+ * **Vive acá y no en la ficha, y no abre ningún diálogo**: el rechazo llega como `400
+ * remito_requerido` y la ficha lo muestra con el enlace para cargarlo. Está junto a la confirmación de
+ * rendición porque las dos son cosas que pueden frenar el mismo paso, y quien venga a cambiar una tiene
+ * que ver la otra — pero son distintas: ésta es un dato que falta, aquélla es un aviso que se confirma
+ * (research §11).
+ */
+export const MENSAJE_REMITO_REQUERIDO =
+  'Cargá el número de remito antes de rendir el viaje: sale impreso en el detalle de la factura.'
+
 interface Props {
   numero: number
   onConfirmar: () => void

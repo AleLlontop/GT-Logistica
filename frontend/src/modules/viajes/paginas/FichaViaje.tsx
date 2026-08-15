@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import { formatearFecha, formatearInstante } from '../../../compartido/fechas'
 import { formatearPesos } from '../../../compartido/moneda'
 import { ConfirmacionAnulacion } from '../componentes/ConfirmacionAnulacion'
-import { ConfirmacionRendicion } from '../componentes/ConfirmacionRendicion'
+import {
+  ConfirmacionRendicion,
+  MENSAJE_REMITO_REQUERIDO,
+} from '../componentes/ConfirmacionRendicion'
 import { CodigosErrorViajes, esErrorDeViajes } from '../servicios/api'
 import {
   anularViaje,
+  leyendaDeFactura,
   nombreConEstado,
   NOMBRES_DE_ESTADO,
   obtenerViaje,
@@ -21,6 +25,14 @@ const MENSAJE_VIAJE_RENDIDO =
   'Este viaje está rendido. Los viajes rendidos no se editan, no se reasignan y no se anulan.'
 const MENSAJE_VIAJE_ANULADO =
   'Este viaje está anulado. No se edita, no se reasigna y no se puede volver atrás.'
+
+/**
+ * Módulo 6, FR-052. Dice **dónde** mirar para destrabarlo: sin la mención a la factura, quien opera ve
+ * una ficha sin botones y no sabe qué hacer al respecto.
+ */
+const MENSAJE_VIAJE_FACTURADO =
+  'Este viaje está facturado. No se edita, no se reasigna y no cambia de estado. Anulá la factura si ' +
+  'necesitás corregirlo.'
 const MENSAJE_FALTA_ASIGNAR = 'Asigná chofer y vehículo antes de poner el viaje en curso.'
 const MENSAJE_ERROR_GENERICO = 'Ocurrió un problema inesperado. Volvé a intentar en unos minutos.'
 
@@ -67,6 +79,9 @@ export function FichaViaje({ puedeGestionar }: Props) {
   const [confirmandoRendicion, setConfirmandoRendicion] = useState(false)
   const [confirmandoAnulacion, setConfirmandoAnulacion] = useState(false)
 
+  /** Módulo 6, FR-055a: el intento de rendir se rechazó porque falta el número de remito. */
+  const [faltaRemito, setFaltaRemito] = useState(false)
+
   const traer = useCallback(() => {
     obtenerViaje(viajeId)
       .then((viaje) => {
@@ -112,6 +127,7 @@ export function FichaViaje({ puedeGestionar }: Props) {
    */
   async function rendir(confirmado = false) {
     limpiarAnuncios()
+    setFaltaRemito(false)
 
     try {
       const actualizado = await rendirViaje(viajeId, confirmado)
@@ -125,6 +141,14 @@ export function FichaViaje({ puedeGestionar }: Props) {
       }
 
       setConfirmandoRendicion(false)
+
+      // Módulo 6, FR-055a. **No abre diálogo**: es un dato que falta, no un aviso que se confirma. Se
+      // muestra el rechazo del servidor y se ofrece el camino para resolverlo, que es la pantalla de
+      // edición — el remito no se carga desde la ficha.
+      if (esErrorDeViajes(fallo, CodigosErrorViajes.remitoRequerido)) {
+        setFaltaRemito(true)
+      }
+
       mostrarFallo(fallo)
     }
   }
@@ -182,6 +206,7 @@ export function FichaViaje({ puedeGestionar }: Props) {
           (FR-018, contracts/README.md). */}
       {viaje.estado === 'rendido' && <p role="status">{MENSAJE_VIAJE_RENDIDO}</p>}
       {viaje.estado === 'anulado' && <p role="status">{MENSAJE_VIAJE_ANULADO}</p>}
+      {viaje.estado === 'facturado' && <p role="status">{MENSAJE_VIAJE_FACTURADO}</p>}
 
       <dl>
         <dt>Cliente</dt>
@@ -223,6 +248,19 @@ export function FichaViaje({ puedeGestionar }: Props) {
 
         <dt>Transportista</dt>
         <dd>{nombreConEstado(viaje.transportista)}</dd>
+
+        {/* Módulo 6, FR-055: el número y la fecha de la factura, con enlace a su ficha. Sale de la
+            navegación del backend, no de columnas copiadas al viaje. */}
+        {viaje.factura && (
+          <>
+            <dt>Factura</dt>
+            <dd>
+              <Link to={`/facturas/${viaje.factura.id}`}>
+                {leyendaDeFactura(viaje.factura, formatearFecha(viaje.factura.fecha))}
+              </Link>
+            </dd>
+          </>
+        )}
 
         {viaje.motivoAnulacion !== null && (
           <>
@@ -288,9 +326,23 @@ export function FichaViaje({ puedeGestionar }: Props) {
             )}
 
             {viaje.estado === 'enCurso' && (
-              <button type="button" onClick={() => rendir()}>
-                Rendir
-              </button>
+              <>
+                <button type="button" onClick={() => rendir()}>
+                  Rendir
+                </button>
+
+                {/* Módulo 6, FR-055a. El mensaje del rechazo ya se muestra arriba; acá va el camino
+                    para resolverlo, porque el remito se carga en la pantalla de edición y no en la
+                    ficha. */}
+                {faltaRemito && (
+                  <p role="status">
+                    {MENSAJE_REMITO_REQUERIDO}{' '}
+                    <button type="button" onClick={() => navegar(`/viajes/${viaje.id}/editar`)}>
+                      Cargar el remito
+                    </button>
+                  </p>
+                )}
+              </>
             )}
 
             <button type="button" onClick={() => setConfirmandoAnulacion(true)}>

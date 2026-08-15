@@ -40,9 +40,16 @@ public static class CodigosErrorViajes
     public const string MotivoRequerido = "motivo_requerido";
     public const string RangoDeFechasRequerido = "rango_de_fechas_requerido";
 
+    /// <summary>Módulo 6, FR-055a.</summary>
+    public const string RemitoRequerido = "remito_requerido";
+
     // ── Viajes (409): el estado cambió o es compartido ──────────────────────────────────────────
     public const string ViajeRendidoInmutable = "viaje_rendido_inmutable";
     public const string ViajeAnuladoInmutable = "viaje_anulado_inmutable";
+
+    /// <summary>Módulo 6, FR-052.</summary>
+    public const string ViajeFacturadoInmutable = "viaje_facturado_inmutable";
+
     public const string TransicionNoPermitida = "transicion_no_permitida";
     public const string FaltaAsignacion = "falta_asignacion";
     public const string UnidadDadaDeBaja = "unidad_dada_de_baja";
@@ -110,6 +117,14 @@ public static class MensajesViajes
     public static string ViajeAnuladoInmutable(int numero) =>
         $"El viaje {numero} está anulado y no se puede modificar.";
 
+    /// <summary>
+    /// Módulo 6, FR-052. Dice <b>dónde</b> mirar para destrabarlo: sin la mención a la factura, quien
+    /// opera sabe que no puede tocar el viaje y no sabe qué hacer al respecto.
+    /// </summary>
+    public static string ViajeFacturadoInmutable(int numero) =>
+        $"El viaje {numero} está facturado y no se puede modificar. Anulá la factura si necesitás " +
+        "corregirlo.";
+
     public static string TransicionNoPermitida(int numero, string estadoActual, string estadoPedido) =>
         $"No se puede pasar el viaje {numero} de {estadoActual} a {estadoPedido}.";
 
@@ -131,6 +146,13 @@ public static class MensajesViajes
         "rendirlo igual.";
 
     public const string MotivoRequerido = "Escribí el motivo de la anulación.";
+
+    /// <summary>
+    /// Módulo 6, FR-055a. Dice <b>por qué</b> hace falta: sin el motivo, la regla parece un requisito
+    /// arbitrario que apareció de un día para el otro (contracts/README §Rendición de un viaje).
+    /// </summary>
+    public const string RemitoRequerido =
+        "Cargá el número de remito antes de rendir el viaje: sale impreso en el detalle de la factura.";
 
     public const string RangoDeFechasRequerido = "Elegí un rango de fechas para ver los totales.";
 

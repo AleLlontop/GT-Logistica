@@ -59,6 +59,26 @@ public class RendirViaje(IRepositorioViajes viajes, TimeProvider reloj)
                 EstadoPedido: NombresDeEstadoViaje.EnTexto(EstadoViaje.Rendido));
         }
 
+        // Módulo 6, FR-055a: **el único cambio de comportamiento sobre una operación existente del
+        // Módulo 5.** El remito sale impreso en la fila del viaje dentro del detalle de la factura, así
+        // que un viaje rendido sin remito no se puede facturar nunca más — un viaje rendido no admite
+        // edición en ninguna versión del sistema (FR-018).
+        //
+        // Va antes de la confirmación de importe cero porque es un dato que falta, no un aviso: pedir
+        // confirmación y recién después rechazar por el remito haría que quien opera confirme algo que
+        // no iba a pasar. Y sigue siendo opcional en `pendiente` y en `en curso`.
+        //
+        // La limitación conocida queda declarada y **sin camino de corrección**: los viajes que ya
+        // estaban rendidos sin remito antes de esta regla no se pueden facturar, y abrirles la edición
+        // sería revertir la decisión que el Módulo 5 tomó a propósito (FR-019a, research §8).
+        if (string.IsNullOrWhiteSpace(viaje.NumeroRemito))
+        {
+            return new ResultadoViaje(
+                ErrorViaje.RemitoRequerido,
+                NumeroDelViaje: viaje.Numero,
+                Campo: "numeroRemito");
+        }
+
         // FR-038. El primer intento **no aplica el cambio**: responde y el viaje queda exactamente
         // como estaba.
         if (viaje.Importe == 0m && peticion?.Confirmado != true)

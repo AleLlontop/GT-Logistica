@@ -126,6 +126,13 @@ public record ViajeRequest(
 /// <param name="EsRetroactivo">
 /// Derivado al leer: la fecha del viaje es anterior al día en curso en Argentina (FR-016).
 /// </param>
+/// <param name="Factura">
+/// Módulo 6, FR-055: el número y la fecha de la factura que incluye este viaje, o <c>null</c> mientras
+/// no esté facturado. La fila lo muestra como <c>Facturado en {número}, del {fecha}</c>.
+///
+/// <b>Sale de la navegación por <c>FacturaId</c>, no de columnas copiadas al viaje</b>: copiarlas
+/// obligaría a mantenerlas sincronizadas y podrían discrepar del dato que ya está.
+/// </param>
 public record ViajeListado(
     int Id,
     int Numero,
@@ -140,7 +147,16 @@ public record ViajeListado(
     decimal Importe,
     bool Demorado,
     bool EsRetroactivo,
-    string? MotivoAnulacion);
+    string? MotivoAnulacion,
+    FacturaDelViaje? Factura = null);
+
+/// <summary>
+/// La factura de un viaje facturado, tal como la muestran el listado y la ficha del Módulo 5 (FR-055).
+///
+/// Lleva el <c>Id</c> además del número para que la ficha pueda enlazar a la factura; el listado sólo
+/// usa el número y la fecha.
+/// </summary>
+public record FacturaDelViaje(int Id, string Numero, string Fecha);
 
 /// <summary>Ficha completa (FR-045), con el historial de cambios de estado.</summary>
 public record ViajeDetalle(
@@ -160,10 +176,11 @@ public record ViajeDetalle(
     string? MotivoAnulacion,
     string? NumeroRemito,
     string? DetalleCarga,
-    IReadOnlyList<CambioDeEstadoDto> Historial)
+    IReadOnlyList<CambioDeEstadoDto> Historial,
+    FacturaDelViaje? FacturaDelViaje = null)
     : ViajeListado(
         Id, Numero, Fecha, Cliente, Origen, Destino, Chofer, Vehiculo, Transportista, Estado,
-        Importe, Demorado, EsRetroactivo, MotivoAnulacion)
+        Importe, Demorado, EsRetroactivo, MotivoAnulacion, FacturaDelViaje)
 {
     /// <summary>
     /// Arma la ficha a partir del viaje ya cargado con sus relaciones y su historial.
@@ -217,7 +234,14 @@ public record ViajeDetalle(
                     NombresDeEstadoViaje.EnJson(cambio.EstadoAnterior),
                     NombresDeEstadoViaje.EnJson(cambio.EstadoNuevo),
                     cambio.Usuario?.Username ?? $"Usuario {cambio.UsuarioId}",
-                    cambio.OcurridoEn))]);
+                    cambio.OcurridoEn))],
+            // Módulo 6, FR-055. Resuelto por la navegación, nunca por columnas copiadas al viaje.
+            viaje.Factura is { } factura
+                ? new FacturaDelViaje(
+                    factura.Id,
+                    factura.NumeroComprobante,
+                    factura.Fecha.ToString("yyyy-MM-dd"))
+                : null);
     }
 }
 
@@ -255,6 +279,10 @@ public enum ErrorViaje
     RemitoDuplicado,
     ImporteNegativo,
     MotivoRequerido,
+
+    /// <summary>Módulo 6, FR-055a: rendir exige el remito porque sale impreso en la factura.</summary>
+    RemitoRequerido,
+
     ChoferInexistente,
     VehiculoInexistente,
     RangoDeFechasRequerido,
@@ -262,6 +290,10 @@ public enum ErrorViaje
     // ── De acá para abajo, 409 ──────────────────────────────────────────────────────────────────
     ViajeRendidoInmutable,
     ViajeAnuladoInmutable,
+
+    /// <summary>Módulo 6, FR-052: el viaje ya está en una factura vigente.</summary>
+    ViajeFacturadoInmutable,
+
     TransicionNoPermitida,
     FaltaAsignacion,
     UnidadDadaDeBaja,

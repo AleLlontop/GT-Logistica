@@ -68,8 +68,13 @@ Una sola pantalla, un solo formulario, un solo guardado. No hay listado ni alta:
 | Teléfono | no | 50 |
 | Email | no | 254 |
 
-El CUIT se normaliza a sólo dígitos antes de validar: escribir `30-71234567-8` es válido y se guarda
-como `30712345678` (FR-002, misma regla del Módulo 3).
+El CUIT se normaliza a sólo dígitos antes de validar: escribir `30-71234567-1` es válido y se guarda
+como `30712345671` (FR-002, misma regla del Módulo 3).
+
+> El ejemplo decía `30-71234567-8` hasta el recorrido del quickstart. **Ese número no pasa la
+> validación**: el verificador que cierra para `3071234567` es `1`, no `8`. El texto del contrato no
+> cambia —la regla es la misma— pero el ejemplo tenía que ser un CUIT válido de verdad, porque es el que
+> alguien va a tipear al seguir el recorrido.
 
 **Guardado exitoso** (no cambia de pantalla, se anuncia con `role="status"`):
 

@@ -89,20 +89,36 @@ public static class ArmadoDeEscenarios
             nombre);
     }
 
-    /// <summary>Un viaje del escenario, en el estado y la fecha que el test necesite.</summary>
+    /// <summary>
+    /// Un viaje del escenario, en el estado y la fecha que el test necesite.
+    /// </summary>
+    /// <param name="numeroRemito">
+    /// <b>Trae uno único por defecto, y hace falta desde el Módulo 6</b>: FR-055a volvió el remito
+    /// obligatorio para rendir, así que un viaje del escenario sin remito no puede recorrer el ciclo de
+    /// vida completo. Los tests que verifican la regla del remito pasan el valor explícitamente —o
+    /// <c>null</c>— en vez de depender de este default.
+    /// </param>
     public static Task<Viaje> CrearViajeDelEscenarioAsync(
         this AplicacionDePrueba app,
         EscenarioDeAsignacion escenario,
         DateOnly? fecha = null,
         EstadoViaje estado = EstadoViaje.Pendiente,
         bool asignado = false,
-        decimal importe = 0m) =>
+        decimal importe = 0m,
+        string? numeroRemito = null) =>
         app.CrearViajeAsync(
             escenario.ClienteId,
             fecha: fecha ?? FechaHoyArgentina.Hoy(),
             estado: estado,
             importe: importe,
+            numeroRemito: numeroRemito ?? RemitoUnico(),
             choferId: asignado ? escenario.ChoferId : null,
             vehiculoId: asignado ? escenario.VehiculoId : null,
             transportistaId: asignado ? escenario.TransportistaId : null);
+
+    /// <summary>
+    /// Un remito distinto en cada llamada: es único entre los viajes no anulados, así que dos viajes de
+    /// prueba con el mismo número chocarían contra el índice (FR-014).
+    /// </summary>
+    public static string RemitoUnico() => $"R-{DatosDePruebaViajes.SemillaUnica()}";
 }

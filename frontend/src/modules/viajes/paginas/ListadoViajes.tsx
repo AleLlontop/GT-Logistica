@@ -7,6 +7,7 @@ import { Paginacion } from '../componentes/Paginacion'
 import type { PaginaDe } from '../clientes/servicioClientes'
 import {
   FILTROS_VIAJES_INICIALES,
+  leyendaDeFactura,
   listarViajes,
   nombreConEstado,
   NOMBRES_DE_ESTADO,
@@ -136,6 +137,14 @@ export function ListadoViajes({ puedeGestionar }: Props) {
                   {/* `Demorado` acompaña al estado; no lo reemplaza: el viaje sigue en curso
                       (FR-039). */}
                   {viaje.demorado && <span> Demorado</span>}
+                  {/* Módulo 6, FR-055: la fila dice en qué factura quedó. El estado dice qué es y
+                      esto dice dónde mirar. */}
+                  {viaje.factura && (
+                    <span>
+                      {' '}
+                      {leyendaDeFactura(viaje.factura, formatearFecha(viaje.factura.fecha))}
+                    </span>
+                  )}
                 </td>
                 <td>{formatearPesos(viaje.importe)}</td>
               </tr>

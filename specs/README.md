@@ -13,7 +13,8 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 | [002 — Gestión de usuarios y roles](002-gestion-usuarios-roles/) | Implementado y validado | 92 / 92 |
 | [003 — Gestión de choferes y su documentación](003-gestion-choferes/) | Implementado y validado | 126 / 126 |
 | [004 — Gestión de flota](004-gestion-flota/) | Implementado y validado | 121 / 121 |
-| [005 — Gestión de viajes](005-gestion-viajes/) | Implementado, falta el recorrido manual | 133 / 134 |
+| [005 — Gestión de viajes](005-gestion-viajes/) | Implementado y validado | 134 / 134 |
+| [006 — Gestión de facturación](006-gestion-facturacion/) | Implementado y validado | 125 / 125 |
 
 ## Qué queda abierto
 
@@ -53,11 +54,9 @@ Quedan dos cosas anotadas, ninguna bloqueante:
   Módulo 3 sin ganancia funcional. **Las cantidades sí se agregaron al cuerpo del error**, que es lo
   que SC-008 necesita. Si se prefiere seguir el contrato al pie de la letra, es una tarea acotada.
 
-**Módulo 5.** Queda **el recorrido manual del quickstart** (`T131`), que hay que hacer con las tres
-cuentas —`admin`, un usuario de *Tráfico* y uno de *Gerencia*—. Los cuatro módulos anteriores
-encontraron ahí cosas que ningún test veía, incluidas dos en las que la spec pedía lo que no había que
-hacer, así que no es un trámite de cierre. Todo lo demás está hecho y en verde: 217 tests unitarios,
-544 de integración y 195 de frontend.
+**Módulo 5.** Nada. El recorrido manual del quickstart (`T131`) se hizo con las tres cuentas —`admin`,
+un usuario de *Tráfico* y uno de *Gerencia*— y las historias quedaron verificadas operando la
+aplicación.
 
 Tres cosas anotadas, ninguna bloqueante:
 
@@ -75,9 +74,25 @@ Tres cosas anotadas, ninguna bloqueante:
   confirmación —`Dar de baja`, `Rendir sin importe`— y el diálogo compartido del Módulo 2 tenía
   `Confirmar` fijo. Es un parámetro opcional: ningún llamador anterior cambió.
 
+**Módulo 6.** Nada. Los 46 pasos de su quickstart se recorrieron con las tres cuentas —`admin`,
+`admin.empresa` y `gerencia`— y las siete historias quedaron verificadas operando la aplicación.
+
+Una cosa anotada, no bloqueante: `006-gestion-facturacion/checklists/documento.md` tiene **30 ítems
+sin tildar**. Son deuda de spec sobre la disposición del documento —dónde sale el teléfono del
+emisor, cómo se corta la tabla entre páginas, qué formato lleva el `% IVA`— y no bloquean nada de lo
+implementado; los cinco que sí eran huecos reales se resolvieron editando la spec antes de las
+tareas. `checklists/requirements.md` quedó cerrado, 16 de 16.
+
 ## Lo que encontraron los recorridos
 
 Vale anotarlo porque justifica seguir haciendo la validación manual aunque los tests estén en verde.
+
+**El Módulo 6**, una sola cosa, y no estaba en el código sino en el propio recorrido: **el CUIT de
+ejemplo no pasaba la validación**. `contracts/README.md` y el paso 4 del quickstart pedían tipear
+`30-71234567-8`, y el dígito verificador que cierra para `3071234567` es `1`. La regla estaba bien
+implementada —rechazaba, como debía—; lo que estaba mal era el número que el recorrido mandaba
+escribir. Corregido en los dos lugares. Sirve de recordatorio de que los datos de ejemplo de una spec
+se validan igual que el código.
 
 **El Módulo 4**, dos cosas, y las dos de una clase distinta a las anteriores: **no eran defectos**.
 Estaban implementadas exactamente como la spec pedía, con sus tests en verde. Lo que el recorrido
@@ -142,3 +157,10 @@ Decisiones que exceden a su módulo y que conviene conocer antes de empezar el s
   reglas que rigen para todo el sistema: **cambiar el estado de una entidad es un recurso propio**, no
   un campo del `PUT` de edición, y **los adjuntos se sirven en línea**, con la decisión en el backend y
   no en el enlace, para que la misma acción se comporte igual en todas las pantallas.
+- **Módulo 6** — primer módulo que **genera un artefacto**: el documento de la factura se arma con el
+  mismo armador que la vista previa y sobre la misma entidad, y es **función de sus datos y de nada
+  más** —ni siquiera del reloj—, así que dos armados del mismo comprobante dan los mismos bytes.
+  También el primero que **congela** en un documento lo que salió impreso, con copia de los datos más
+  referencia a la entidad de origen, y el primero que **cambia el comportamiento de operaciones de
+  otro módulo** ya cerrado: la spec acota esos cambios a una lista numerada, y romper tests del
+  Módulo 5 es la señal de que la lista hacía falta.

@@ -86,12 +86,16 @@ public class RendicionTests(AplicacionDePrueba app) : IClassFixture<AplicacionDe
 
         var viaje = await app.RecargarViajeAsync(viajeId);
 
+        // El `PUT` reemplaza el recurso completo, así que el remito viaja de nuevo: omitirlo lo dejaría
+        // en nulo y, desde FR-055a del Módulo 6, el viaje no se podría rendir. Es lo que hace el
+        // formulario real, que carga los campos y los manda todos.
         var edicion = await cliente.PutAsJsonAsync($"/api/viajes/{viajeId}", new
         {
             clienteId = viaje!.ClienteId,
             fecha = viaje.Fecha.ToString("yyyy-MM-dd"),
             origen = viaje.Origen,
             destino = viaje.Destino,
+            numeroRemito = viaje.NumeroRemito,
             importe = 180_000m,
         });
 
@@ -142,6 +146,9 @@ public class RendicionTests(AplicacionDePrueba app) : IClassFixture<AplicacionDe
         var viaje = await app.CrearViajeAsync(
             clienteId ?? escenario.ClienteId,
             importe: importe,
+            // Módulo 6, FR-055a: rendir exige el remito, así que un viaje que va a rendirse lo lleva.
+            // La regla propia del remito la verifica `RemitoAlRendirTests`.
+            numeroRemito: ArmadoDeEscenarios.RemitoUnico(),
             choferId: escenario.ChoferId,
             vehiculoId: escenario.VehiculoId,
             transportistaId: escenario.TransportistaId);

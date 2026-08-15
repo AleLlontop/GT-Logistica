@@ -43,6 +43,9 @@ public class RepositorioViajes(GtDbContext contexto) : IRepositorioViajes
             .Include(viaje => viaje.Vehiculo)
             .Include(viaje => viaje.Transportista)
             .Include(viaje => viaje.CambiosDeEstado).ThenInclude(cambio => cambio.Usuario)
+            // Módulo 6, FR-055: la ficha muestra el número y la fecha de la factura de un viaje
+            // facturado. Sale de la navegación, nunca de columnas copiadas al viaje.
+            .Include(viaje => viaje.Factura)
             .AsNoTracking()
             .FirstOrDefaultAsync(viaje => viaje.Id == id, cancelacion);
 
@@ -174,7 +177,16 @@ public class RepositorioViajes(GtDbContext contexto) : IRepositorioViajes
                         .Max(cambio => (DateTime?)cambio.OcurridoEn) < limiteDeDemora,
                 // FR-016.
                 viaje.Fecha < hoy,
-                viaje.MotivoAnulacion))
+                viaje.MotivoAnulacion,
+                // Módulo 6, FR-055. Se resuelve **dentro de la consulta**, por la navegación: la fila
+                // dice `Facturado en {número}, del {fecha}` sin una segunda vuelta a la base ni columnas
+                // copiadas al viaje.
+                viaje.Factura == null
+                    ? null
+                    : new FacturaDelViaje(
+                        viaje.Factura.Id,
+                        viaje.Factura.NumeroComprobante,
+                        viaje.Factura.Fecha.ToString("yyyy-MM-dd"))))
             .AsNoTracking()
             .ToListAsync(cancelacion);
 

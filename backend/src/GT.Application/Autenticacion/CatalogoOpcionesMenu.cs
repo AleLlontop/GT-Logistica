@@ -49,6 +49,21 @@ public static class CatalogoOpcionesMenu
         (CodigosPermiso.ViajesConsultar, new OpcionMenuDto("viajes", "Viajes", "/viajes")),
         (CodigosPermiso.ViajesConsultar, new OpcionMenuDto("clientes", "Clientes", "/clientes")),
         (CodigosPermiso.ViajesConsultar, new OpcionMenuDto("totales", "Totales", "/viajes/totales")),
+
+        // Módulo 6. Tres entradas van atadas a `facturacion.consultar` —las tres pantallas de lectura—
+        // y la cuarta a `facturacion.gestionar`, porque la configuración de la empresa emisora no es
+        // de lectura para nadie (FR-066, research §7).
+        //
+        // Se llama `Totales facturados` y no `Totales` a secas porque el Módulo 5 ya ocupó ese nombre
+        // apuntando a `/viajes/totales`: dos entradas con el mismo nombre en el mismo menú no se
+        // distinguen (contracts/README §Pantallas).
+        (CodigosPermiso.FacturacionConsultar, new OpcionMenuDto("facturas", "Facturas", "/facturas")),
+        (CodigosPermiso.FacturacionConsultar,
+            new OpcionMenuDto("vencimientos-facturas", "Vencimientos", "/facturas/vencimientos")),
+        (CodigosPermiso.FacturacionConsultar,
+            new OpcionMenuDto("totales-facturados", "Totales facturados", "/facturas/totales")),
+        (CodigosPermiso.FacturacionGestionar,
+            new OpcionMenuDto("empresa-emisora", "Empresa emisora", "/facturacion/empresa")),
     ];
 
     /// <summary>
