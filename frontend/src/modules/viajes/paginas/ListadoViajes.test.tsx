@@ -47,6 +47,7 @@ function viaje(parcial: Partial<ViajeListado> = {}): ViajeListado {
     demorado: false,
     esRetroactivo: false,
     motivoAnulacion: null,
+    factura: null,
     ...parcial,
   }
 }

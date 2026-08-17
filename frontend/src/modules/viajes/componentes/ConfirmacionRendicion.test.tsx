@@ -35,6 +35,7 @@ const EN_CURSO: ViajeDetalle = {
   demorado: false,
   esRetroactivo: false,
   motivoAnulacion: null,
+  factura: null,
   numeroRemito: null,
   detalleCarga: null,
   historial: [],

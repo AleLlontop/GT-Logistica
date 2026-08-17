@@ -28,6 +28,7 @@ const VIAJE: ViajeDetalle = {
   demorado: false,
   esRetroactivo: false,
   motivoAnulacion: null,
+  factura: null,
   numeroRemito: 'R-0001',
   detalleCarga: null,
   historial: [
