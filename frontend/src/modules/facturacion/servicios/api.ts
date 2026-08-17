@@ -88,11 +88,11 @@ export interface FacturaResumen {
  * extraerlos del texto (precedente [004]).
  */
 export interface ErrorDeFactura extends ErrorApi {
-  faltantes?: string[] | null
-  facturaEnConflicto?: FacturaResumen | null
-  viajes?: ViajeEnConflicto[] | null
-  motivoConfirmacion?: MotivoConfirmacion | null
-  fechaCobro?: string | null
+  faltantes?: string[]
+  facturaEnConflicto?: FacturaResumen
+  viajes?: ViajeEnConflicto[]
+  motivoConfirmacion?: MotivoConfirmacion
+  fechaCobro?: string
 }
 
 /** Los cuatro valores del estado visible, en camelCase igual que en el JSON (convención [003]). */
@@ -203,6 +203,26 @@ export function detalleDeError(error: unknown): ErrorDeFactura | null {
 }
 
 // ── Cómo se nombra cada cosa en pantalla (`contracts/README.md`) ─────────────────────────────────
+
+/**
+ * La situación en palabras a partir de los días que calculó el servidor (FR-063).
+ *
+ * `dias` es negativo cuando hay atraso y positivo cuando queda plazo. El cero tiene su propio texto: decir
+ * `Vence en 0 días` sería técnicamente correcto y no es lo que nadie diría.
+ */
+export function situacion(dias: number): string {
+  if (dias < 0) {
+    const atraso = Math.abs(dias)
+
+    return `Vencida hace ${atraso} ${atraso === 1 ? 'día' : 'días'}`
+  }
+
+  if (dias === 0) {
+    return 'Vence hoy'
+  }
+
+  return `Vence en ${dias} ${dias === 1 ? 'día' : 'días'}`
+}
 
 export const NOMBRES_DE_ESTADO: Record<EstadoFacturaVisible, string> = {
   pendiente: 'Pendiente',

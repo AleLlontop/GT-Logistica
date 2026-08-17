@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatearFecha } from '../../../compartido/fechas'
 import { formatearPesos } from '../../../compartido/moneda'
+import { situacion } from '../servicios/api'
 import { consultarVencimientos, type FilaDeVencimiento } from '../servicios/servicioFacturas'
 
 export const MENSAJE_PANEL_VACIO =
@@ -82,24 +83,4 @@ export function PanelVencimientos() {
       )}
     </main>
   )
-}
-
-/**
- * La situación en palabras a partir de los días que calculó el servidor (FR-063).
- *
- * `dias` es negativo cuando hay atraso y positivo cuando queda plazo. El cero tiene su propio texto: decir
- * `Vence en 0 días` sería técnicamente correcto y no es lo que nadie diría.
- */
-export function situacion(dias: number): string {
-  if (dias < 0) {
-    const atraso = Math.abs(dias)
-
-    return `Vencida hace ${atraso} ${atraso === 1 ? 'día' : 'días'}`
-  }
-
-  if (dias === 0) {
-    return 'Vence hoy'
-  }
-
-  return `Vence en ${dias} ${dias === 1 ? 'día' : 'días'}`
 }

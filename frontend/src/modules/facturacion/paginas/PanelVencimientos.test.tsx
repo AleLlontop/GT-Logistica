@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { PanelVencimientos, situacion } from './PanelVencimientos'
+import { PanelVencimientos } from './PanelVencimientos'
+import { situacion } from '../servicios/api'
 import { TotalesFacturados } from './TotalesFacturados'
 import type { FilaDeVencimiento, TotalPorCliente } from '../servicios/servicioFacturas'
 
