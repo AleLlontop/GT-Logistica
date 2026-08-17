@@ -1,7 +1,9 @@
 FROM node:24-alpine
 WORKDIR /app
 
-COPY frontend/package.json frontend/package-lock.json ./
+# El `.npmrc` va en esta capa y no con el resto: trae `engine-strict`, y si llegara
+# después el `npm ci` de acá abajo ya habría corrido sin verificar la versión de Node.
+COPY frontend/package.json frontend/package-lock.json frontend/.npmrc ./
 RUN npm ci
 
 COPY frontend/ ./
