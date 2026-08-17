@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ErrorHttp } from '../../../compartido/clienteHttp'
 import { formatearFecha } from '../../../compartido/fechas'
 import {
   listarClientes,
