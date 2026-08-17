@@ -85,6 +85,28 @@ export type CodigoError =
   | 'documentacion_vencida'
   | 'asignacion_no_permitida'
   | 'fecha_bloquea_asignacion'
+  // Módulo 6
+  | 'empresa_emisora_incompleta'
+  | 'cliente_inactivo'
+  | 'cliente_sin_domicilio'
+  | 'viaje_sin_remito'
+  | 'numero_duplicado'
+  | 'numero_invalido'
+  | 'sin_viajes_seleccionados'
+  | 'refacturacion_sin_reemplazada'
+  | 'original_con_reemplazada'
+  | 'vencimiento_pago_anterior'
+  | 'cae_vencimiento_anterior'
+  | 'cae_requerido'
+  | 'fecha_cobro_anterior'
+  | 'viaje_ya_facturado'
+  | 'anulada_ya_reemplazada'
+  | 'factura_anulada_inmutable'
+  | 'factura_cobrada'
+  | 'emision_requiere_confirmacion'
+  // Los dos que el Módulo 6 le agregó al 5, dentro de la lista acotada de cambios de su spec
+  | 'viaje_facturado_inmutable'
+  | 'remito_requerido'
 
 /** Estados posibles de una cuenta (FR-005). */
 export type EstadoUsuario = 'activo' | 'inactivo' | 'bloqueado'

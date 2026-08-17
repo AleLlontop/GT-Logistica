@@ -1,5 +1,5 @@
 import { ErrorHttp, peticion } from '../../../compartido/clienteHttp'
-import type { CodigoError } from '../../../compartido/tipos'
+import type { CodigoError, ErrorApi } from '../../../compartido/tipos'
 
 /**
  * Acceso HTTP del módulo de facturación.
@@ -87,10 +87,7 @@ export interface FacturaResumen {
  * explicarse. Viajan **en el cuerpo además de en el mensaje** para que la pantalla no tenga que
  * extraerlos del texto (precedente [004]).
  */
-export interface ErrorDeFactura {
-  codigo: string
-  mensaje: string
-  campo?: string | null
+export interface ErrorDeFactura extends ErrorApi {
   faltantes?: string[] | null
   facturaEnConflicto?: FacturaResumen | null
   viajes?: ViajeEnConflicto[] | null
