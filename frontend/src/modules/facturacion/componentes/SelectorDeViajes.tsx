@@ -83,7 +83,7 @@ export function SelectorDeViajes({
             <th scope="col">Remito</th>
             <th scope="col">Origen</th>
             <th scope="col">Destino</th>
-            <th scope="col">Importe</th>
+            <th scope="col" className="text-right">Importe</th>
           </tr>
         </thead>
         <tbody>
@@ -110,7 +110,7 @@ export function SelectorDeViajes({
               </td>
               <td>{viaje.origen}</td>
               <td>{viaje.destino}</td>
-              <td>{formatearPesos(viaje.importe)}</td>
+              <td className="text-right font-medium">{formatearPesos(viaje.importe)}</td>
             </tr>
           ))}
         </tbody>

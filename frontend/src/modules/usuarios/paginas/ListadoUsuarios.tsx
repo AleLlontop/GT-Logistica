@@ -1,8 +1,12 @@
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import type { UsuarioListado } from '../../../compartido/tipos'
-import { DialogoConfirmacion } from '../componentes/DialogoConfirmacion'
+import { DialogoConfirmacion } from '../../../compartido/ui/DialogoConfirmacion'
 import { FiltrosUsuarios } from '../componentes/FiltrosUsuarios'
 import {
   FILTROS_VACIOS,
@@ -63,23 +67,39 @@ export function ListadoUsuarios() {
   }
 
   return (
-    <main>
-      <h1>Gestión de usuarios</h1>
-
-      <Link to="/usuarios/nuevo">Nuevo usuario</Link>
-
+    <section>
+      <EncabezadoDePantalla
+        titulo="Gestión de usuarios"
+        accionPrincipal={
+          <>
+            <Link to="/usuarios/nuevo">Nuevo usuario</Link>
+          </>
+        }
+      />
       <FiltrosUsuarios valor={filtros} onCambio={setFiltros} />
 
-      {error !== null && <p role="alert">{error}</p>}
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
+      )}
 
-      {usuarios === null && error === null && <p role="status">Cargando usuarios…</p>}
+      {usuarios === null && error === null && (
+        <EstadoVacio caso="cargando" className="border-0 shadow-none">
+          Cargando usuarios…
+        </EstadoVacio>
+      )}
 
       {usuarios !== null && usuarios.length === 0 && (
-        <p role="status">{MENSAJE_SIN_RESULTADOS}</p>
+        <EstadoVacio caso="vacio" className="border-0 shadow-none">
+          {MENSAJE_SIN_RESULTADOS}
+        </EstadoVacio>
       )}
 
       {usuarios !== null && usuarios.length > 0 && (
-        <table>
+        <Listado>
+          <TablaDesplazable>
+            <table>
           <caption>Usuarios del sistema</caption>
           <thead>
             <tr>
@@ -115,6 +135,8 @@ export function ListadoUsuarios() {
             ))}
           </tbody>
         </table>
+          </TablaDesplazable>
+        </Listado>
       )}
 
       {aBajar !== null && (
@@ -125,6 +147,6 @@ export function ListadoUsuarios() {
           onCancelar={() => setABajar(null)}
         />
       )}
-    </main>
+    </section>
   )
 }

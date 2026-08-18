@@ -1,7 +1,12 @@
+import { Estado } from '../../../compartido/ui/Estado'
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Paginacion } from '../componentes/Paginacion'
-import { claseDeEstado, TEXTO_ESTADO_CHOFER } from '../servicios/estados'
+import { Paginacion } from '../../../compartido/ui/Paginacion'
+import { TEXTO_ESTADO_CHOFER } from '../servicios/estados'
 import {
   FILTROS_CHOFERES_INICIALES,
   listarChoferes,
@@ -74,13 +79,17 @@ export function ListadoChoferes() {
     filtros.estadoDocumentacion !== ''
 
   return (
-    <main>
-      <h1>Choferes</h1>
-
-      <Link to="/choferes/nuevo">Nuevo chofer</Link>
-      <Link to="/choferes/vencimientos">Ver vencimientos</Link>
-
-      <section aria-label="Filtros" className="filtros">
+    <section>
+      <EncabezadoDePantalla
+        titulo="Choferes"
+        accionPrincipal={
+          <>
+            <Link to="/choferes/nuevo">Nuevo chofer</Link>
+            <Link to="/choferes/vencimientos">Ver vencimientos</Link>
+          </>
+        }
+      />
+      <section aria-label="Filtros" className="flex flex-wrap items-end gap-4 border-b border-borde bg-superficie-hundida px-4 py-3 [&_.campo]:flex [&_.campo]:flex-col [&_.campo]:gap-1 [&_label]:text-xs [&_label]:font-medium [&_label]:text-texto-suave [&_select]:rounded-chico [&_select]:border [&_select]:border-borde-fuerte [&_select]:bg-superficie [&_select]:px-2 [&_select]:py-1.5 [&_select]:text-sm [&_select]:text-texto [&_input]:rounded-chico [&_input]:border [&_input]:border-borde-fuerte [&_input]:bg-superficie [&_input]:px-2 [&_input]:py-1.5 [&_input]:text-sm [&_input]:text-texto [&_button]:rounded-chico [&_button]:border [&_button]:border-borde-fuerte [&_button]:bg-superficie [&_button]:px-3 [&_button]:py-1.5 [&_button]:text-sm">
         <div className="campo">
           <label htmlFor="filtro-apellido">Apellido</label>
           <input
@@ -168,17 +177,32 @@ export function ListadoChoferes() {
         </button>
       </section>
 
-      {error !== null && <p role="alert">{error}</p>}
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
+      )}
 
-      {resultado === null && error === null && <p role="status">Cargando choferes…</p>}
+      {resultado === null && error === null && (
+        <EstadoVacio caso="cargando" className="border-0 shadow-none">
+          Cargando choferes…
+        </EstadoVacio>
+      )}
 
       {resultado !== null && resultado.items.length === 0 && (
-        <p role="status">{filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_SIN_CHOFERES}</p>
+        <EstadoVacio
+          caso={filtrando ? 'sinCoincidencias' : 'vacio'}
+          className="border-0 shadow-none"
+        >
+          {filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_SIN_CHOFERES}
+        </EstadoVacio>
       )}
 
       {resultado !== null && resultado.items.length > 0 && (
         <>
-          <table>
+          <Listado>
+          <TablaDesplazable>
+            <table>
             <caption>Choferes</caption>
             <thead>
               <tr>
@@ -200,8 +224,8 @@ export function ListadoChoferes() {
                   <td>{chofer.transportista.nombre}</td>
                   <td>{chofer.activo ? 'Activo' : 'Inactivo'}</td>
                   {/* El estado nunca se comunica sólo por color: el texto siempre acompaña. */}
-                  <td className={claseDeEstado(chofer.estadoDocumentacion)}>
-                    {TEXTO_ESTADO_CHOFER[chofer.estadoDocumentacion]}
+                  <td>
+                    <Estado valor={chofer.estadoDocumentacion} texto={TEXTO_ESTADO_CHOFER[chofer.estadoDocumentacion]} />
                   </td>
                   <td>
                     <Link to={`/choferes/${chofer.id}`}>Ver ficha</Link>
@@ -210,6 +234,8 @@ export function ListadoChoferes() {
               ))}
             </tbody>
           </table>
+          </TablaDesplazable>
+        </Listado>
 
           <Paginacion
             pagina={resultado.pagina}
@@ -220,6 +246,6 @@ export function ListadoChoferes() {
           />
         </>
       )}
-    </main>
+    </section>
   )
 }

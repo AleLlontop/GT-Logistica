@@ -1,3 +1,5 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -149,16 +151,16 @@ export function FormularioViaje() {
 
   if (cargando) {
     return (
-      <main>
-        <h1>{titulo}</h1>
+      <section>
+        <EncabezadoDePantalla titulo={titulo} />
         <p role="status">Cargando…</p>
-      </main>
+      </section>
     )
   }
 
   return (
-    <main>
-      <h1>{titulo}</h1>
+    <section>
+      <EncabezadoDePantalla titulo={titulo} />
 
       {/* El número se muestra y no se edita: lo genera el sistema (FR-011, FR-017). */}
       {numero !== null && <p>Número de viaje: {numero}</p>}
@@ -172,7 +174,7 @@ export function FormularioViaje() {
         </div>
       )}
 
-      <form onSubmit={guardar} noValidate>
+      <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
         <div className={classNameCampo('clienteId')}>
           <label htmlFor="clienteId">Cliente</label>
           <select
@@ -313,6 +315,6 @@ export function FormularioViaje() {
           </button>
         </div>
       </form>
-    </main>
+    </section>
   )
 }

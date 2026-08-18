@@ -1,3 +1,4 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -162,7 +163,7 @@ export function FormularioDocumento({
     corrigiendo && fechaVencimiento !== '' && fechaVencimiento !== documento.fechaVencimiento
 
   return (
-    <form onSubmit={guardar} noValidate>
+    <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
       <h2>{corrigiendo ? 'Corregir documento' : 'Cargar documento'}</h2>
 
       {errorGeneral !== null && <p role="alert">{errorGeneral}</p>}

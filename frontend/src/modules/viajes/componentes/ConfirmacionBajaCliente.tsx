@@ -1,4 +1,4 @@
-import { DialogoConfirmacion } from '../../usuarios/componentes/DialogoConfirmacion'
+import { DialogoConfirmacion } from '../../../compartido/ui/DialogoConfirmacion'
 
 interface Props {
   razonSocial: string

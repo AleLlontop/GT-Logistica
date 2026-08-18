@@ -1,3 +1,5 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import { CargaDeLogo } from '../componentes/CargaDeLogo'
@@ -138,21 +140,21 @@ export function EmpresaEmisora() {
 
   if (cargando) {
     return (
-      <main>
-        <h1>Empresa emisora</h1>
+      <section>
+        <EncabezadoDePantalla titulo="Empresa emisora" />
         <p role="status">Cargando…</p>
-      </main>
+      </section>
     )
   }
 
   return (
-    <main>
-      <h1>Empresa emisora</h1>
+    <section>
+      <EncabezadoDePantalla titulo="Empresa emisora" />
 
       {/* Arriba del formulario vacío, con las palabras exactas del contrato (US1 esc. 1). */}
       {empresa !== null && !empresa.configurada && <p role="status">{MENSAJE_SIN_CONFIGURAR}</p>}
 
-      <form onSubmit={guardar} noValidate>
+      <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
         {/* El guardado no cambia de pantalla, así que se anuncia acá (convención [003]). */}
         {aviso !== null && <p role="status">{aviso}</p>}
         {errorGlobal !== null && <p role="alert">{errorGlobal}</p>}
@@ -330,7 +332,7 @@ export function EmpresaEmisora() {
           onCambio={volcar}
         />
       )}
-    </main>
+    </section>
   )
 }
 

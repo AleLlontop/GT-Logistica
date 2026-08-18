@@ -1,3 +1,4 @@
+import { Dialogo } from '../../../compartido/ui/Dialogo'
 import { useState } from 'react'
 
 /** Largo máximo del motivo (FR-046, contracts/README §Anular una factura). */
@@ -36,8 +37,7 @@ export function ConfirmacionAnulacion({
   const puedeAnular = motivo.trim() !== '' && motivo.length <= LARGO_MAXIMO_DEL_MOTIVO
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="titulo-anulacion">
-      <h2 id="titulo-anulacion">¿Anular la factura {numero}?</h2>
+    <Dialogo titulo={`¿Anular la factura ${numero}?`} onCerrar={onCancelar}>
 
       <p>
         Sus {cantidadDeViajes} viajes vuelven a estado rendido y quedan disponibles para facturar de
@@ -72,6 +72,6 @@ export function ConfirmacionAnulacion({
           Anular factura
         </button>
       </div>
-    </div>
+    </Dialogo>
   )
 }

@@ -1,3 +1,5 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -116,10 +118,10 @@ export function AsignacionViaje() {
 
   if (viaje === null || asignables === null) {
     return (
-      <main>
-        <h1>Asignar chofer y vehículo</h1>
+      <section>
+        <EncabezadoDePantalla titulo="Asignar chofer y vehículo" />
         {error !== null ? <p role="alert">{error}</p> : <p role="status">Cargando…</p>}
-      </main>
+      </section>
     )
   }
 
@@ -128,8 +130,8 @@ export function AsignacionViaje() {
   const faltaElegir = choferId === '' || vehiculoId === ''
 
   return (
-    <main>
-      <h1>Asignar chofer y vehículo — viaje {viaje.numero}</h1>
+    <section>
+      <EncabezadoDePantalla titulo={`Asignar chofer y vehículo — viaje ${viaje.numero}`} />
 
       <p>La documentación se valida contra la fecha del viaje: {formatearFecha(viaje.fecha)}.</p>
 
@@ -145,7 +147,7 @@ export function AsignacionViaje() {
       {sinChoferes && <p role="status">{MENSAJE_SIN_CHOFERES}</p>}
       {sinVehiculos && <p role="status">{MENSAJE_SIN_VEHICULOS}</p>}
 
-      <form onSubmit={asignar} noValidate>
+      <form onSubmit={asignar} noValidate className={clasesDeFormulario}>
         <div className="campo">
           <label htmlFor="choferId">Chofer</label>
           <select
@@ -194,6 +196,6 @@ export function AsignacionViaje() {
           </button>
         </div>
       </form>
-    </main>
+    </section>
   )
 }

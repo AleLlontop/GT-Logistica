@@ -1,3 +1,5 @@
+import { Dialogo } from '../../../compartido/ui/Dialogo'
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
 import { useState, type FormEvent } from 'react'
 
 export const ADVERTENCIA_COBRO =
@@ -39,12 +41,11 @@ export function RegistrarCobro({
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="titulo-cobro">
-      <h2 id="titulo-cobro">Registrar el cobro de la factura {numero}</h2>
+    <Dialogo titulo={`Registrar el cobro de la factura ${numero}`} onCerrar={onCancelar}>
 
       <p>{ADVERTENCIA_COBRO}</p>
 
-      <form onSubmit={enviar} noValidate>
+      <form onSubmit={enviar} noValidate className={clasesDeFormulario}>
         <div className="campo">
           <label htmlFor="fechaCobro">Fecha de cobro</label>
           <input
@@ -65,6 +66,6 @@ export function RegistrarCobro({
           </button>
         </div>
       </form>
-    </div>
+    </Dialogo>
   )
 }

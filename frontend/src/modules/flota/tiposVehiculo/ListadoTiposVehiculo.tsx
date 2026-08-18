@@ -1,7 +1,11 @@
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
-import { DialogoConfirmacion } from '../../usuarios/componentes/DialogoConfirmacion'
+import { DialogoConfirmacion } from '../../../compartido/ui/DialogoConfirmacion'
 import { FormularioTipoVehiculo } from './FormularioTipoVehiculo'
 import { darDeBajaTipoVehiculo, listarTiposVehiculo, type TipoVehiculo } from './servicioTiposVehiculo'
 
@@ -64,12 +68,20 @@ export function ListadoTiposVehiculo() {
   }
 
   return (
-    <main>
-      <h1>Tipos de vehículo</h1>
-
-      <Link to="/flota">Volver a la flota</Link>
-
-      {error !== null && <p role="alert">{error}</p>}
+    <section>
+      <EncabezadoDePantalla
+        titulo="Tipos de vehículo"
+        accionPrincipal={
+          <>
+            <Link to="/flota">Volver a la flota</Link>
+          </>
+        }
+      />
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
+      )}
       {aviso !== null && <p role="status">{aviso}</p>}
 
       <FormularioTipoVehiculo
@@ -83,12 +95,20 @@ export function ListadoTiposVehiculo() {
         onCancelar={() => setEnEdicion(null)}
       />
 
-      {tipos === null && error === null && <p role="status">Cargando tipos de vehículo…</p>}
+      {tipos === null && error === null && (
+        <EstadoVacio caso="cargando" className="border-0 shadow-none">
+          Cargando tipos de vehículo…
+        </EstadoVacio>
+      )}
 
-      {tipos !== null && tipos.length === 0 && <p role="status">{MENSAJE_CATALOGO_VACIO}</p>}
+      {tipos !== null && tipos.length === 0 && <EstadoVacio caso="vacio" className="border-0 shadow-none">
+          {MENSAJE_CATALOGO_VACIO}
+        </EstadoVacio>}
 
       {tipos !== null && tipos.length > 0 && (
-        <table>
+        <Listado>
+          <TablaDesplazable>
+            <table>
           <caption>Catálogo de tipos de vehículo</caption>
           <thead>
             <tr>
@@ -120,6 +140,8 @@ export function ListadoTiposVehiculo() {
             ))}
           </tbody>
         </table>
+          </TablaDesplazable>
+        </Listado>
       )}
 
       {aBajar !== null && (
@@ -133,6 +155,6 @@ export function ListadoTiposVehiculo() {
           onCancelar={() => setABajar(null)}
         />
       )}
-    </main>
+    </section>
   )
 }

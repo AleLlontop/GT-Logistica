@@ -1,8 +1,9 @@
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import type { UsuarioDetalle } from '../../../compartido/tipos'
-import { DialogoConfirmacion } from '../componentes/DialogoConfirmacion'
+import { DialogoConfirmacion } from '../../../compartido/ui/DialogoConfirmacion'
 import { nombreCompleto } from '../personas/servicios/personas'
 import {
   formatearFecha,
@@ -77,24 +78,24 @@ export function DetalleUsuario() {
 
   if (error !== null) {
     return (
-      <main>
+      <section>
         <p role="alert">{error}</p>
         <Link to="/usuarios">Volver al listado</Link>
-      </main>
+      </section>
     )
   }
 
   if (usuario === null) {
     return (
-      <main>
+      <section>
         <p role="status">Cargando usuario…</p>
-      </main>
+      </section>
     )
   }
 
   return (
-    <main>
-      <h1>{usuario.username}</h1>
+    <section className="flex flex-col gap-4 [&>section]:rounded-medio [&>section]:border [&>section]:border-borde [&>section]:bg-superficie [&>section]:shadow-tarjeta [&>section>h2]:m-0 [&>section>h2]:border-b [&>section>h2]:border-borde [&>section>h2]:px-5 [&>section>h2]:py-3 [&>section>h2]:text-sm [&>section>h2]:font-semibold [&>section>h2]:uppercase [&>section>h2]:tracking-wide [&>section>h2]:text-texto-suave [&_dl]:m-0 [&_dl]:grid [&_dl]:grid-cols-[minmax(10rem,auto)_1fr] [&_dl]:gap-x-6 [&_dl]:gap-y-2 [&_dl]:px-5 [&_dl]:py-4 [&_dt]:text-sm [&_dt]:text-texto-suave [&_dd]:m-0 [&_dd]:text-sm [&_dd]:font-medium [&_dd]:text-texto [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm [&_caption]:sr-only [&_thead]:bg-superficie-hundida [&_th]:border-b [&_th]:border-borde-fuerte [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_th]:whitespace-nowrap [&_tbody_tr]:border-b [&_tbody_tr]:border-borde [&_td]:px-4 [&_td]:py-2.5 [&_td]:align-top">
+      <EncabezadoDePantalla titulo={usuario.username} />
 
       <dl>
         <dt>Nombre de usuario</dt>
@@ -157,6 +158,6 @@ export function DetalleUsuario() {
           onCancelar={() => setConfirmando(false)}
         />
       )}
-    </main>
+    </section>
   )
 }

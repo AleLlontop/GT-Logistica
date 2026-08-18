@@ -1,3 +1,5 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useState, type FormEvent } from 'react'
 import { ErrorHttp, peticion } from '../../../compartido/clienteHttp'
 
@@ -95,10 +97,10 @@ export function CambiarPassword() {
   }
 
   return (
-    <main>
-      <h1>Cambiar contraseña</h1>
+    <section>
+      <EncabezadoDePantalla titulo="Cambiar contraseña" />
 
-      <form onSubmit={alEnviar} noValidate>
+      <form onSubmit={alEnviar} noValidate className={clasesDeFormulario}>
         {errorGeneral !== null && (
           <p className="formulario__error" role="alert">
             {errorGeneral}
@@ -178,6 +180,6 @@ export function CambiarPassword() {
           {enviando ? 'Guardando…' : 'Cambiar contraseña'}
         </button>
       </form>
-    </main>
+    </section>
   )
 }

@@ -1,3 +1,5 @@
+import { Estado } from '../../../compartido/ui/Estado'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -10,7 +12,6 @@ import { FormularioDocumentoVehiculo } from '../documentacion/FormularioDocument
 import { eliminarDocumentoVehiculo } from '../documentacion/servicioDocumentacionVehiculo'
 import { rutaDelArchivoDeFlota } from '../servicios/api'
 import {
-  claseDeEstado,
   formatearFecha,
   TEXTO_ESTADO_DOCUMENTACION,
   TEXTO_ESTADO_DOCUMENTO,
@@ -124,25 +125,55 @@ export function FichaVehiculo() {
 
   if (error !== null && vehiculo === null) {
     return (
-      <main>
-        <h1>Ficha de la unidad</h1>
+      <section>
+        <EncabezadoDePantalla titulo="Ficha de la unidad" />
         <p role="alert">{error}</p>
         <Link to="/flota">Volver al listado</Link>
-      </main>
+      </section>
     )
   }
 
   if (vehiculo === null) {
     return (
-      <main>
+      <section>
         <p role="status">Cargando ficha…</p>
-      </main>
+      </section>
     )
   }
 
   return (
-    <main>
-      <h1>{vehiculo.patente}</h1>
+    <section className="flex flex-col gap-4 [&>section]:rounded-medio [&>section]:border [&>section]:border-borde [&>section]:bg-superficie [&>section]:shadow-tarjeta [&>section>h2]:m-0 [&>section>h2]:border-b [&>section>h2]:border-borde [&>section>h2]:px-5 [&>section>h2]:py-3 [&>section>h2]:text-sm [&>section>h2]:font-semibold [&>section>h2]:uppercase [&>section>h2]:tracking-wide [&>section>h2]:text-texto-suave [&_dl]:m-0 [&_dl]:grid [&_dl]:grid-cols-[minmax(10rem,auto)_1fr] [&_dl]:gap-x-6 [&_dl]:gap-y-2 [&_dl]:px-5 [&_dl]:py-4 [&_dt]:text-sm [&_dt]:text-texto-suave [&_dd]:m-0 [&_dd]:text-sm [&_dd]:font-medium [&_dd]:text-texto [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm [&_caption]:sr-only [&_thead]:bg-superficie-hundida [&_th]:border-b [&_th]:border-borde-fuerte [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_th]:whitespace-nowrap [&_tbody_tr]:border-b [&_tbody_tr]:border-borde [&_td]:px-4 [&_td]:py-2.5 [&_td]:align-top">
+      <EncabezadoDePantalla
+        titulo={vehiculo.patente}
+        accionPrincipal={
+          <>
+            <button type="button" onClick={() => navegar(`/flota/${vehiculo.id}/editar`)}>
+              Editar
+            </button>
+
+            {/* Si está dada de baja, en lugar de Dar de baja aparece Reactivar (FR-008e). */}
+            {vehiculo.activo ? (
+              <button
+                type="button"
+                onClick={() => setAConfirmar({ tipo: 'baja', patente: vehiculo.patente })}
+              >
+                Dar de baja
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setAConfirmar({ tipo: 'reactivacion', patente: vehiculo.patente })}
+              >
+                Reactivar
+              </button>
+            )}
+
+            <button type="button" onClick={() => setCargandoDocumento(true)}>
+              Agregar documento
+            </button>
+          </>
+        }
+      />
 
       {error !== null && <p role="alert">{error}</p>}
       {aviso !== null && <p role="status">{aviso}</p>}
@@ -160,43 +191,16 @@ export function FichaVehiculo() {
           <dd>{vehiculo.transportista.nombre}</dd>
           <dt>Estado</dt>
           {/* El **derivado**, que es el que responde si la unidad puede salir a la ruta (FR-014). */}
-          <dd className={claseDeEstado(vehiculo.estado)}>
-            {TEXTO_ESTADO_VEHICULO[vehiculo.estado]}
+          <dd>
+            <Estado valor={vehiculo.estado} texto={TEXTO_ESTADO_VEHICULO[vehiculo.estado]} />
             {!vehiculo.activo && ' — Dada de baja'}
           </dd>
           <dt>Documentación</dt>
-          <dd className={claseDeEstado(vehiculo.estadoDocumentacion)}>
-            {TEXTO_ESTADO_DOCUMENTACION[vehiculo.estadoDocumentacion]}
+          <dd>
+            <Estado valor={vehiculo.estadoDocumentacion} texto={TEXTO_ESTADO_DOCUMENTACION[vehiculo.estadoDocumentacion]} />
           </dd>
         </dl>
       </section>
-
-      <div className="acciones">
-        <button type="button" onClick={() => navegar(`/flota/${vehiculo.id}/editar`)}>
-          Editar
-        </button>
-
-        {/* Si está dada de baja, en lugar de Dar de baja aparece Reactivar (FR-008e). */}
-        {vehiculo.activo ? (
-          <button
-            type="button"
-            onClick={() => setAConfirmar({ tipo: 'baja', patente: vehiculo.patente })}
-          >
-            Dar de baja
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setAConfirmar({ tipo: 'reactivacion', patente: vehiculo.patente })}
-          >
-            Reactivar
-          </button>
-        )}
-
-        <button type="button" onClick={() => setCargandoDocumento(true)}>
-          Agregar documento
-        </button>
-      </div>
 
       {cargandoDocumento && (
         <FormularioDocumentoVehiculo
@@ -254,8 +258,8 @@ export function FichaVehiculo() {
                   <td>{documento.numero}</td>
                   <td>{formatearFecha(documento.fechaEmision)}</td>
                   <td>{formatearFecha(documento.fechaVencimiento)}</td>
-                  <td className={claseDeEstado(documento.estado)}>
-                    {TEXTO_ESTADO_DOCUMENTO[documento.estado]}
+                  <td>
+                    <Estado valor={documento.estado} texto={TEXTO_ESTADO_DOCUMENTO[documento.estado]} />
                     {/* El histórico lleva la palabra, no nada más el gris (convención [003]). */}
                     {!documento.esVigenteDelTipo && ' — Histórico'}
                     {documento.esVigenteDelTipo && (
@@ -308,6 +312,6 @@ export function FichaVehiculo() {
           onCancelar={() => setDocumentoAEliminar(null)}
         />
       )}
-    </main>
+    </section>
   )
 }

@@ -1,6 +1,11 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
-import { DialogoConfirmacion } from '../../usuarios/componentes/DialogoConfirmacion'
+import { DialogoConfirmacion } from '../../../compartido/ui/DialogoConfirmacion'
 import {
   crearTipo,
   darDeBajaTipo,
@@ -152,13 +157,17 @@ export function TiposDocumentacion() {
   }
 
   return (
-    <main>
-      <h1>Tipos de documentación</h1>
+    <section>
+      <EncabezadoDePantalla titulo="Tipos de documentación" />
 
-      {error !== null && <p role="alert">{error}</p>}
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
+      )}
       {aviso !== null && <p role="status">{aviso}</p>}
 
-      <form onSubmit={guardar} noValidate>
+      <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
         <h2>{enEdicion !== null ? `Editar ${enEdicion.nombre}` : 'Nuevo tipo'}</h2>
 
         <div className="campo">
@@ -242,9 +251,15 @@ export function TiposDocumentacion() {
         </div>
       </form>
 
-      {tipos === null && error === null && <p role="status">Cargando tipos…</p>}
+      {tipos === null && error === null && (
+        <EstadoVacio caso="cargando" className="border-0 shadow-none">
+          Cargando tipos…
+        </EstadoVacio>
+      )}
 
-      {tipos !== null && tipos.length === 0 && <p role="status">{MENSAJE_CATALOGO_VACIO}</p>}
+      {tipos !== null && tipos.length === 0 && <EstadoVacio caso="vacio" className="border-0 shadow-none">
+          {MENSAJE_CATALOGO_VACIO}
+        </EstadoVacio>}
 
       {tipos !== null && tipos.length > 0 && (
         <>
@@ -271,7 +286,9 @@ export function TiposDocumentacion() {
           </small>
         </div>
 
-        <table>
+        <Listado>
+          <TablaDesplazable>
+            <table>
           <caption>Catálogo de tipos de documentación</caption>
           <thead>
             <tr>
@@ -309,6 +326,8 @@ export function TiposDocumentacion() {
             ))}
           </tbody>
         </table>
+          </TablaDesplazable>
+        </Listado>
         </>
       )}
 
@@ -320,6 +339,6 @@ export function TiposDocumentacion() {
           onCancelar={() => setABajar(null)}
         />
       )}
-    </main>
+    </section>
   )
 }

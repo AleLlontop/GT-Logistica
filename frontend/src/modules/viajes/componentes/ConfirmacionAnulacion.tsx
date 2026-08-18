@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { Dialogo } from '../../../compartido/ui/Dialogo'
+import { useState } from 'react'
 
 interface Props {
   numero: number
@@ -20,40 +21,14 @@ interface Props {
  * cancelar y el foco vuelve al elemento desde el que se abrió.
  */
 export function ConfirmacionAnulacion({ numero, onConfirmar, onCancelar }: Props) {
-  const dialogo = useRef<HTMLDivElement>(null)
-  const origen = useRef<Element | null>(null)
   const [motivo, setMotivo] = useState('')
 
-  useEffect(() => {
-    origen.current = document.activeElement
-    dialogo.current?.focus()
 
-    return () => {
-      if (origen.current instanceof HTMLElement) {
-        origen.current.focus()
-      }
-    }
-  }, [])
-
-  function alPresionarTecla(evento: KeyboardEvent<HTMLDivElement>) {
-    if (evento.key === 'Escape') {
-      evento.stopPropagation()
-      onCancelar()
-    }
-  }
 
   const sinMotivo = motivo.trim() === ''
 
   return (
-    <div
-      ref={dialogo}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="titulo-anulacion"
-      tabIndex={-1}
-      onKeyDown={alPresionarTecla}
-    >
-      <h2 id="titulo-anulacion">¿Anular el viaje {numero}?</h2>
+    <Dialogo titulo={`¿Anular el viaje ${numero}?`} onCerrar={onCancelar}>
 
       <p>
         Deja de contar como trabajo realizado y su importe no figura en ningún total. El chofer y el
@@ -75,6 +50,6 @@ export function ConfirmacionAnulacion({ numero, onConfirmar, onCancelar }: Props
       <button type="button" onClick={onCancelar}>
         Cancelar
       </button>
-    </div>
+    </Dialogo>
   )
 }

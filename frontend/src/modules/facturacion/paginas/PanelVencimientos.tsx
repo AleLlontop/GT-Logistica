@@ -1,3 +1,7 @@
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatearFecha } from '../../../compartido/fechas'
@@ -44,23 +48,35 @@ export function PanelVencimientos() {
   }, [])
 
   return (
-    <main>
-      <h1>Vencimientos</h1>
+    <section>
+      <EncabezadoDePantalla titulo="Vencimientos" />
 
-      {error !== null && <p role="alert">{error}</p>}
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
+      )}
 
-      {filas === null && error === null && <p role="status">Cargando vencimientos…</p>}
+      {filas === null && error === null && (
+        <EstadoVacio caso="cargando" className="border-0 shadow-none">
+          Cargando vencimientos…
+        </EstadoVacio>
+      )}
 
-      {filas !== null && filas.length === 0 && <p role="status">{MENSAJE_PANEL_VACIO}</p>}
+      {filas !== null && filas.length === 0 && <EstadoVacio caso="vacio" className="border-0 shadow-none">
+          {MENSAJE_PANEL_VACIO}
+        </EstadoVacio>}
 
       {filas !== null && filas.length > 0 && (
-        <table>
+        <Listado>
+          <TablaDesplazable>
+            <table>
           <caption>Facturas vencidas y por vencer en los próximos 7 días</caption>
           <thead>
             <tr>
               <th scope="col">Cliente</th>
               <th scope="col">Número</th>
-              <th scope="col">Importe</th>
+              <th scope="col" className="text-right">Importe</th>
               <th scope="col">Vencimiento</th>
               <th scope="col">Situación</th>
             </tr>
@@ -72,7 +88,7 @@ export function PanelVencimientos() {
                 <td>
                   <Link to={`/facturas/${fila.id}`}>{fila.numeroComprobante}</Link>
                 </td>
-                <td>{formatearPesos(fila.total)}</td>
+                <td className="text-right font-medium">{formatearPesos(fila.total)}</td>
                 <td>{formatearFecha(fila.vencimientoPago)}</td>
                 {/* La palabra, no el color (FR-065). */}
                 <td>{situacion(fila.dias)}</td>
@@ -80,7 +96,9 @@ export function PanelVencimientos() {
             ))}
           </tbody>
         </table>
+          </TablaDesplazable>
+        </Listado>
       )}
-    </main>
+    </section>
   )
 }

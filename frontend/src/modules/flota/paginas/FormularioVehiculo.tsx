@@ -1,3 +1,5 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -168,9 +170,9 @@ export function FormularioVehiculo() {
 
   if (tipos === null || transportistas === null) {
     return (
-      <main>
+      <section>
         <p role="status">Cargando catálogos…</p>
-      </main>
+      </section>
     )
   }
 
@@ -178,31 +180,31 @@ export function FormularioVehiculo() {
   // qué con el enlace que lo resuelve, en vez de mostrar un formulario que va a fallar.
   if (!editando && tipos.length === 0) {
     return (
-      <main>
-        <h1>Registrar unidad</h1>
+      <section>
+        <EncabezadoDePantalla titulo="Registrar unidad" />
         <p role="alert">{MENSAJE_SIN_TIPOS}</p>
         <Link to="/tipos-vehiculo">Ir a Tipos de vehículo</Link>
-      </main>
+      </section>
     )
   }
 
   if (!editando && transportistas.length === 0) {
     return (
-      <main>
-        <h1>Registrar unidad</h1>
+      <section>
+        <EncabezadoDePantalla titulo="Registrar unidad" />
         <p role="alert">{MENSAJE_SIN_TRANSPORTISTAS}</p>
         <Link to="/transportistas">Ir a Transportistas</Link>
-      </main>
+      </section>
     )
   }
 
   return (
-    <main>
-      <h1>{editando ? 'Editar unidad' : 'Registrar unidad'}</h1>
+    <section>
+      <EncabezadoDePantalla titulo={editando ? 'Editar unidad' : 'Registrar unidad'} />
 
       {errorGeneral !== null && <p role="alert">{errorGeneral}</p>}
 
-      <form onSubmit={guardar} noValidate>
+      <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
         <div className="campo">
           <label htmlFor="patente">Patente</label>
           <input
@@ -347,6 +349,6 @@ export function FormularioVehiculo() {
           </button>
         </div>
       </form>
-    </main>
+    </section>
   )
 }

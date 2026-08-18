@@ -1,3 +1,4 @@
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -169,19 +170,19 @@ export function FichaViaje({ puedeGestionar }: Props) {
 
   if (error !== null) {
     return (
-      <main>
-        <h1>Viaje</h1>
+      <section>
+        <EncabezadoDePantalla titulo="Viaje" />
         <p role="alert">{error}</p>
-      </main>
+      </section>
     )
   }
 
   if (viaje === null) {
     return (
-      <main>
-        <h1>Viaje</h1>
+      <section>
+        <EncabezadoDePantalla titulo="Viaje" />
         <p role="status">Cargando…</p>
-      </main>
+      </section>
     )
   }
 
@@ -190,8 +191,65 @@ export function FichaViaje({ puedeGestionar }: Props) {
   const faltaAsignar = viaje.chofer === null || viaje.vehiculo === null
 
   return (
-    <main>
-      <h1>Viaje {viaje.numero}</h1>
+    <section className="flex flex-col gap-4 [&>section]:rounded-medio [&>section]:border [&>section]:border-borde [&>section]:bg-superficie [&>section]:shadow-tarjeta [&>section>h2]:m-0 [&>section>h2]:border-b [&>section>h2]:border-borde [&>section>h2]:px-5 [&>section>h2]:py-3 [&>section>h2]:text-sm [&>section>h2]:font-semibold [&>section>h2]:uppercase [&>section>h2]:tracking-wide [&>section>h2]:text-texto-suave [&_dl]:m-0 [&_dl]:grid [&_dl]:grid-cols-[minmax(10rem,auto)_1fr] [&_dl]:gap-x-6 [&_dl]:gap-y-2 [&_dl]:px-5 [&_dl]:py-4 [&_dt]:text-sm [&_dt]:text-texto-suave [&_dd]:m-0 [&_dd]:text-sm [&_dd]:font-medium [&_dd]:text-texto [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm [&_caption]:sr-only [&_thead]:bg-superficie-hundida [&_th]:border-b [&_th]:border-borde-fuerte [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_th]:whitespace-nowrap [&_tbody_tr]:border-b [&_tbody_tr]:border-borde [&_td]:px-4 [&_td]:py-2.5 [&_td]:align-top">
+      <EncabezadoDePantalla
+        titulo={`Viaje ${viaje.numero}`}
+        accionPrincipal={
+          <>
+            {puedeGestionar && enCurso && (
+              <>
+                <button type="button" onClick={() => navegar(`/viajes/${viaje.id}/editar`)}>
+                  Editar
+                </button>
+
+                <button type="button" onClick={() => navegar(`/viajes/${viaje.id}/asignacion`)}>
+                  {viaje.chofer === null
+                    ? 'Asignar chofer y vehículo'
+                    : 'Reasignar chofer y vehículo'}
+                </button>
+
+                {viaje.estado === 'pendiente' && (
+                  <>
+                    {/* Deshabilitado **con el motivo a la vista**, no en silencio (FR-025). */}
+                    <button type="button" onClick={ponerEnCurso} disabled={faltaAsignar}>
+                      Poner en curso
+                    </button>
+                    {faltaAsignar && <p role="status">{MENSAJE_FALTA_ASIGNAR}</p>}
+                  </>
+                )}
+
+                {viaje.estado === 'enCurso' && (
+                  <>
+                    <button type="button" onClick={() => rendir()}>
+                      Rendir
+                    </button>
+
+                    {/* Módulo 6, FR-055a. El mensaje del rechazo ya se muestra arriba; acá va el camino
+                        para resolverlo, porque el remito se carga en la pantalla de edición y no en la
+                        ficha. */}
+                    {faltaRemito && (
+                      <p role="status">
+                        {MENSAJE_REMITO_REQUERIDO}{' '}
+                        <button type="button" onClick={() => navegar(`/viajes/${viaje.id}/editar`)}>
+                          Cargar el remito
+                        </button>
+                      </p>
+                    )}
+                  </>
+                )}
+
+                <button type="button" onClick={() => setConfirmandoAnulacion(true)}>
+                  Anular
+                </button>
+              </>
+            )}
+
+            <button type="button" onClick={() => navegar('/viajes')}>
+              Volver al listado
+            </button>
+          </>
+        }
+      />
 
       {error !== null && <p role="alert">{error}</p>}
       {aviso !== null && <p role="status">{aviso}</p>}
@@ -302,59 +360,6 @@ export function FichaViaje({ puedeGestionar }: Props) {
 
       {/* La pantalla ofrece exactamente las acciones que el estado admite y ninguna más: en
           `rendido` y en `anulado` no hay ninguna (contracts/README.md). */}
-      <div className="acciones">
-        {puedeGestionar && enCurso && (
-          <>
-            <button type="button" onClick={() => navegar(`/viajes/${viaje.id}/editar`)}>
-              Editar
-            </button>
-
-            <button type="button" onClick={() => navegar(`/viajes/${viaje.id}/asignacion`)}>
-              {viaje.chofer === null
-                ? 'Asignar chofer y vehículo'
-                : 'Reasignar chofer y vehículo'}
-            </button>
-
-            {viaje.estado === 'pendiente' && (
-              <>
-                {/* Deshabilitado **con el motivo a la vista**, no en silencio (FR-025). */}
-                <button type="button" onClick={ponerEnCurso} disabled={faltaAsignar}>
-                  Poner en curso
-                </button>
-                {faltaAsignar && <p role="status">{MENSAJE_FALTA_ASIGNAR}</p>}
-              </>
-            )}
-
-            {viaje.estado === 'enCurso' && (
-              <>
-                <button type="button" onClick={() => rendir()}>
-                  Rendir
-                </button>
-
-                {/* Módulo 6, FR-055a. El mensaje del rechazo ya se muestra arriba; acá va el camino
-                    para resolverlo, porque el remito se carga en la pantalla de edición y no en la
-                    ficha. */}
-                {faltaRemito && (
-                  <p role="status">
-                    {MENSAJE_REMITO_REQUERIDO}{' '}
-                    <button type="button" onClick={() => navegar(`/viajes/${viaje.id}/editar`)}>
-                      Cargar el remito
-                    </button>
-                  </p>
-                )}
-              </>
-            )}
-
-            <button type="button" onClick={() => setConfirmandoAnulacion(true)}>
-              Anular
-            </button>
-          </>
-        )}
-
-        <button type="button" onClick={() => navegar('/viajes')}>
-          Volver al listado
-        </button>
-      </div>
 
       {confirmandoRendicion && (
         <ConfirmacionRendicion
@@ -371,6 +376,6 @@ export function FichaViaje({ puedeGestionar }: Props) {
           onCancelar={() => setConfirmandoAnulacion(false)}
         />
       )}
-    </main>
+    </section>
   )
 }

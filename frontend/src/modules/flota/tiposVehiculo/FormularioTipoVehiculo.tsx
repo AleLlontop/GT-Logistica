@@ -1,3 +1,4 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
 import { useEffect, useState, type FormEvent } from 'react'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import {
@@ -106,7 +107,7 @@ export function FormularioTipoVehiculo({ enEdicion, onGuardado, onCancelar }: Pr
   }
 
   return (
-    <form onSubmit={guardar} noValidate>
+    <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
       <h2>{enEdicion !== null ? `Editar ${enEdicion.nombre}` : 'Nuevo tipo de vehículo'}</h2>
 
       {errorGeneral !== null && <p role="alert">{errorGeneral}</p>}

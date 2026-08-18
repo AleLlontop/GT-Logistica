@@ -1,3 +1,5 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -123,38 +125,38 @@ export function CorreccionFactura() {
 
   if (cargando) {
     return (
-      <main>
-        <h1>Corregir factura</h1>
+      <section>
+        <EncabezadoDePantalla titulo="Corregir factura" />
         <p role="status">Cargando…</p>
-      </main>
+      </section>
     )
   }
 
   if (factura === null) {
     return (
-      <main>
-        <h1>Corregir factura</h1>
+      <section>
+        <EncabezadoDePantalla titulo="Corregir factura" />
         <p role="alert">{errorGlobal ?? 'No encontramos lo que buscabas.'}</p>
-      </main>
+      </section>
     )
   }
 
   // FR-038: la anulada es el único estado que cierra la corrección.
   if (factura.estado === 'anulada') {
     return (
-      <main>
-        <h1>Corregir factura {factura.numeroComprobante}</h1>
+      <section>
+        <EncabezadoDePantalla titulo={`Corregir factura ${factura.numeroComprobante}`} />
         <p role="alert">Una factura anulada no se puede corregir.</p>
         <button type="button" onClick={() => navegar(`/facturas/${factura.id}`)}>
           Volver a la ficha
         </button>
-      </main>
+      </section>
     )
   }
 
   return (
-    <main>
-      <h1>Corregir factura {factura.numeroComprobante}</h1>
+    <section>
+      <EncabezadoDePantalla titulo={`Corregir factura ${factura.numeroComprobante}`} />
 
       <p role="note">{AVISO_SOLO_LECTURA}</p>
 
@@ -202,7 +204,7 @@ export function CorreccionFactura() {
         </dl>
       </section>
 
-      <form onSubmit={guardar} noValidate>
+      <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
         {/* El guardado no cambia de pantalla, así que se anuncia acá (convención [003]). */}
         {aviso !== null && <p role="status">{aviso}</p>}
         {errorGlobal !== null && <p role="alert">{errorGlobal}</p>}
@@ -282,6 +284,6 @@ export function CorreccionFactura() {
           </button>
         </div>
       </form>
-    </main>
+    </section>
   )
 }

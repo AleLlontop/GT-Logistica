@@ -1,3 +1,5 @@
+import { clasesDeFormulario } from '../../../../compartido/ui/clases'
+import { EncabezadoDePantalla } from '../../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../../compartido/clienteHttp'
@@ -163,17 +165,17 @@ export function FormularioPersona() {
 
   if (cargando) {
     return (
-      <main>
+      <section>
         <p role="status">Cargando persona…</p>
-      </main>
+      </section>
     )
   }
 
   return (
-    <main>
-      <h1>{esEdicion ? 'Editar persona' : 'Nueva persona'}</h1>
+    <section>
+      <EncabezadoDePantalla titulo={esEdicion ? 'Editar persona' : 'Nueva persona'} />
 
-      <form onSubmit={alEnviar} noValidate>
+      <form onSubmit={alEnviar} noValidate className={clasesDeFormulario}>
         {errorGeneral !== null && (
           <p className="formulario__error" role="alert">
             {errorGeneral}
@@ -250,7 +252,7 @@ export function FormularioPersona() {
           {enviando ? 'Guardando…' : 'Guardar'}
         </button>
       </form>
-    </main>
+    </section>
   )
 }
 

@@ -21,11 +21,6 @@ export const TEXTO_ESTADO_CHOFER: Record<EstadoDocumentacionChofer, string> = {
   sinDocumentacion: 'Sin documentación',
 }
 
-/** Clase para el color. Va **además** del texto, nunca en su lugar. */
-export function claseDeEstado(estado: EstadoDocumento | EstadoDocumentacionChofer) {
-  return `estado estado--${estado}`
-}
-
 /** `Vence en {n} días` o `Venció hace {n} días`, que es lo que acompaña al estado en el panel. */
 export function textoDelPlazo(diasHastaVencimiento: number) {
   if (diasHastaVencimiento === 0) return 'Vence hoy'

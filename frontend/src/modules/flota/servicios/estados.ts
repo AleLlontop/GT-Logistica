@@ -38,13 +38,6 @@ export const TEXTO_FILTRO_ESTADO: Record<FiltroEstadoVehiculo, string> = {
   dadoDeBaja: 'Dado de baja',
 }
 
-/** Clase para el color. Va **además** del texto, nunca en su lugar. */
-export function claseDeEstado(
-  estado: EstadoDocumento | EstadoDocumentacionVehiculo | VehiculoEstado,
-) {
-  return `estado estado--${estado}`
-}
-
 /** `Vence en {n} días` o `Venció hace {n} días`, que es lo que el panel muestra (FR-035). */
 export function textoDelPlazo(diasHastaVencimiento: number) {
   if (diasHastaVencimiento === 0) return 'Vence hoy'

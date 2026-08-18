@@ -1,3 +1,8 @@
+import { Estado } from '../../../compartido/ui/Estado'
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -5,10 +10,9 @@ import {
   type Transportista,
 } from '../../choferes/transportistas/servicioTransportistas'
 import { FiltrosFlota } from '../componentes/FiltrosFlota'
-import { Paginacion } from '../componentes/Paginacion'
+import { Paginacion } from '../../../compartido/ui/Paginacion'
 import { listarTiposVehiculo, type TipoVehiculo } from '../tiposVehiculo/servicioTiposVehiculo'
 import {
-  claseDeEstado,
   TEXTO_ESTADO_DOCUMENTACION,
   TEXTO_ESTADO_VEHICULO,
 } from '../servicios/estados'
@@ -76,12 +80,16 @@ export function ListadoFlota() {
     filtros.estadoDocumentacion !== ''
 
   return (
-    <main>
-      <h1>Flota</h1>
-
-      <Link to="/flota/nuevo">Registrar unidad</Link>
-      <Link to="/flota/vencimientos">Ver vencimientos</Link>
-
+    <section>
+      <EncabezadoDePantalla
+        titulo="Flota"
+        accionPrincipal={
+          <>
+            <Link to="/flota/nuevo">Registrar unidad</Link>
+            <Link to="/flota/vencimientos">Ver vencimientos</Link>
+          </>
+        }
+      />
       <FiltrosFlota
         filtros={filtros}
         transportistas={transportistas}
@@ -93,17 +101,32 @@ export function ListadoFlota() {
         }}
       />
 
-      {error !== null && <p role="alert">{error}</p>}
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
+      )}
 
-      {resultado === null && error === null && <p role="status">Cargando la flota…</p>}
+      {resultado === null && error === null && (
+        <EstadoVacio caso="cargando" className="border-0 shadow-none">
+          Cargando la flota…
+        </EstadoVacio>
+      )}
 
       {resultado !== null && resultado.items.length === 0 && (
-        <p role="status">{filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_SIN_VEHICULOS}</p>
+        <EstadoVacio
+          caso={filtrando ? 'sinCoincidencias' : 'vacio'}
+          className="border-0 shadow-none"
+        >
+          {filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_SIN_VEHICULOS}
+        </EstadoVacio>
       )}
 
       {resultado !== null && resultado.items.length > 0 && (
         <>
-          <table>
+          <Listado>
+          <TablaDesplazable>
+            <table>
             <caption>Unidades de la flota</caption>
             <thead>
               <tr>
@@ -126,13 +149,13 @@ export function ListadoFlota() {
                   <td>{vehiculo.tipo.nombre}</td>
                   <td>{vehiculo.transportista.nombre}</td>
                   {/* El estado nunca se comunica sólo por color: el texto siempre acompaña. */}
-                  <td className={claseDeEstado(vehiculo.estado)}>
-                    {TEXTO_ESTADO_VEHICULO[vehiculo.estado]}
+                  <td>
+                    <Estado valor={vehiculo.estado} texto={TEXTO_ESTADO_VEHICULO[vehiculo.estado]} />
                     {/* Una unidad dada de baja lleva la palabra que lo explica (convención [003]). */}
                     {!vehiculo.activo && ' — Dada de baja'}
                   </td>
-                  <td className={claseDeEstado(vehiculo.estadoDocumentacion)}>
-                    {TEXTO_ESTADO_DOCUMENTACION[vehiculo.estadoDocumentacion]}
+                  <td>
+                    <Estado valor={vehiculo.estadoDocumentacion} texto={TEXTO_ESTADO_DOCUMENTACION[vehiculo.estadoDocumentacion]} />
                   </td>
                   <td>
                     <Link to={`/flota/${vehiculo.id}`}>Ver ficha</Link>
@@ -141,8 +164,11 @@ export function ListadoFlota() {
               ))}
             </tbody>
           </table>
+          </TablaDesplazable>
+        </Listado>
 
           <Paginacion
+            nombrePlural="vehículos"
             pagina={resultado.pagina}
             total={resultado.total}
             tamanioPagina={resultado.tamanioPagina}
@@ -150,6 +176,6 @@ export function ListadoFlota() {
           />
         </>
       )}
-    </main>
+    </section>
   )
 }

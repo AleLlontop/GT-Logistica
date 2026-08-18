@@ -15,6 +15,7 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 | [004 — Gestión de flota](004-gestion-flota/) | Implementado y validado | 121 / 121 |
 | [005 — Gestión de viajes](005-gestion-viajes/) | Implementado y validado | 134 / 134 |
 | [006 — Gestión de facturación](006-gestion-facturacion/) | Implementado y validado | 125 / 125 |
+| [007 — Rediseño de la aplicación](007-diseno-interfaz/) | Implementado, **falta la validación manual** | 110 / 126 |
 
 ## Qué queda abierto
 
@@ -73,6 +74,22 @@ Tres cosas anotadas, ninguna bloqueante:
 - **`DialogoConfirmacion` acepta la etiqueta del botón.** `contracts/README.md` fija el verbo de cada
   confirmación —`Dar de baja`, `Rendir sin importe`— y el diálogo compartido del Módulo 2 tenía
   `Confirmar` fijo. Es un parámetro opcional: ningún llamador anterior cambió.
+
+**Módulo 7.** El rediseño está implementado y la suite entera en verde —285 tests de frontend, 301 de
+backend, build y lint limpios—, pero **falta el recorrido manual**, que en esta feature no es un
+trámite: es la prueba principal. Quedan 16 tareas, todas de verificación con la aplicación andando:
+
+- **La Parte C del quickstart (T124)**, que es recorrer enteros los seis quickstarts anteriores para
+  comprobar que ningún comportamiento cambió. Es lo que mide SC-001 y lo único que puede descubrir
+  que el rediseño se llevó algo puesto que los tests no ven.
+- **Lo que sólo se ve mirando**: que los seis diálogos se vean iguales (T104), que el foco cicle
+  dentro de un diálogo abierto (T103), que un mismo estado se vea igual en los tres paneles de
+  vencimientos (T109), que un aviso no corra el contenido al aparecer (T110), y que una ficha
+  inmutable comunique por qué no ofrece acciones (T097).
+- **Densidad, anchos y teclado** (T111 a T117): 1280 px, 200 % de zoom, desplazamiento contenido en
+  las tablas anchas, y el alta de factura completa sólo con teclado.
+- **Contraste y escala de grises** (T120, T121): la paleta está calculada y verificada en frío —los
+  diez pares dan entre 3,13:1 y 15,12:1—, pero falta medirla sobre las pantallas reales.
 
 **Módulo 6.** Nada. Los 46 pasos de su quickstart se recorrieron con las tres cuentas —`admin`,
 `admin.empresa` y `gerencia`— y las siete historias quedaron verificadas operando la aplicación.
@@ -157,6 +174,14 @@ Decisiones que exceden a su módulo y que conviene conocer antes de empezar el s
   reglas que rigen para todo el sistema: **cambiar el estado de una entidad es un recurso propio**, no
   un campo del `PUT` de edición, y **los adjuntos se sirven en línea**, con la decisión en el backend y
   no en el enlace, para que la misma acción se comporte igual en todas las pantallas.
+- **Módulo 7** — primer módulo que **no agrega funcionalidad**: rediseña las 42 pantallas ya
+  construidas sin cambiar qué hace ninguna. Su hallazgo transferible es de método: **congelando los
+  textos, la suite existente pasa a ser la prueba de que el comportamiento no cambió**, porque las
+  285 pruebas consultan por rol, etiqueta y texto y sólo tres líneas dependen de la estructura. Con
+  esa red se reestructuraron 42 pantallas, se movieron las acciones de las cinco fichas del pie al
+  encabezado y se migró el diálogo a Radix sin una sola regresión. También el primero que **incorpora
+  dependencias de interfaz** —Tailwind, Radix, Lucide— con un límite escrito: ninguna puede
+  reemplazar un control nativo que los tests operan.
 - **Módulo 6** — primer módulo que **genera un artefacto**: el documento de la factura se arma con el
   mismo armador que la vista previa y sobre la misma entidad, y es **función de sus datos y de nada
   más** —ni siquiera del reloj—, así que dos armados del mismo comprobante dan los mismos bytes.

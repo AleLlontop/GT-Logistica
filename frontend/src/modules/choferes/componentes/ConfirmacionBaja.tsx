@@ -1,4 +1,4 @@
-import { DialogoConfirmacion } from '../../usuarios/componentes/DialogoConfirmacion'
+import { DialogoConfirmacion } from '../../../compartido/ui/DialogoConfirmacion'
 
 /** Qué se está por dar de baja, que es lo que decide el texto de la confirmación. */
 export type QueSeDaDeBaja =

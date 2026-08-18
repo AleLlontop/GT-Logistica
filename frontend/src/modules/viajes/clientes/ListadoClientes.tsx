@@ -1,8 +1,13 @@
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { clasesDeEnlaceDeFila } from '../../../compartido/ui/clases'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import { ConfirmacionBajaCliente } from '../componentes/ConfirmacionBajaCliente'
-import { Paginacion } from '../componentes/Paginacion'
+import { Paginacion } from '../../../compartido/ui/Paginacion'
 import {
   darDeAltaCliente,
   darDeBajaCliente,
@@ -104,12 +109,17 @@ export function ListadoClientes({ puedeGestionar }: Props) {
   const filtrando = filtros.busqueda.trim() !== '' || filtros.soloActivos
 
   return (
-    <main>
-      <h1>Clientes</h1>
-
-      {puedeGestionar && <Link to="/clientes/nuevo">Nuevo cliente</Link>}
-
+    <section>
+      <EncabezadoDePantalla
+        titulo="Clientes"
+        accionPrincipal={
+          <>
+            {puedeGestionar && <Link to="/clientes/nuevo">Nuevo cliente</Link>}
+          </>
+        }
+      />
       <form
+        className="flex flex-wrap items-end gap-4 border-b border-borde bg-superficie-hundida px-4 py-3 [&_.campo]:flex [&_.campo]:flex-col [&_.campo]:gap-1 [&_label]:text-xs [&_label]:font-medium [&_label]:text-texto-suave [&_input]:rounded-chico [&_input]:border [&_input]:border-borde-fuerte [&_input]:bg-superficie [&_input]:px-2 [&_input]:py-1.5 [&_input]:text-sm [&_button]:rounded-chico [&_button]:border [&_button]:border-borde-fuerte [&_button]:bg-superficie [&_button]:px-3 [&_button]:py-1.5 [&_button]:text-sm"
         onSubmit={(evento) => {
           evento.preventDefault()
           setPagina(1)
@@ -138,17 +148,32 @@ export function ListadoClientes({ puedeGestionar }: Props) {
         />
       </form>
 
-      {error !== null && <p role="alert">{error}</p>}
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
+      )}
       {aviso !== null && <p role="status">{aviso}</p>}
 
-      {resultado === null && error === null && <p role="status">Cargando clientes…</p>}
+      {resultado === null && error === null && (
+        <EstadoVacio caso="cargando" className="border-0 shadow-none">
+          Cargando clientes…
+        </EstadoVacio>
+      )}
 
       {resultado !== null && resultado.items.length === 0 && (
-        <p role="status">{filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_PADRON_VACIO}</p>
+        <EstadoVacio
+          caso={filtrando ? 'sinCoincidencias' : 'vacio'}
+          className="border-0 shadow-none"
+        >
+          {filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_PADRON_VACIO}
+        </EstadoVacio>
       )}
 
       {resultado !== null && resultado.items.length > 0 && (
-        <table>
+        <Listado>
+          <TablaDesplazable>
+            <table>
           <caption>Padrón de clientes</caption>
           <thead>
             <tr>
@@ -174,7 +199,7 @@ export function ListadoClientes({ puedeGestionar }: Props) {
                 <td>{cliente.activo ? 'Activo' : 'Inactivo'}</td>
                 {puedeGestionar && (
                   <td>
-                    <button type="button" onClick={() => navegar(`/clientes/${cliente.id}`)}>
+                    <button type="button" onClick={() => navegar(`/clientes/${cliente.id}`)} className={clasesDeEnlaceDeFila()}>
                       Editar
                     </button>
 
@@ -193,6 +218,8 @@ export function ListadoClientes({ puedeGestionar }: Props) {
             ))}
           </tbody>
         </table>
+          </TablaDesplazable>
+        </Listado>
       )}
 
       {resultado !== null && (
@@ -200,7 +227,7 @@ export function ListadoClientes({ puedeGestionar }: Props) {
           pagina={resultado.pagina}
           total={resultado.total}
           tamanioPagina={resultado.tamanioPagina}
-          entidad="clientes"
+          nombrePlural="clientes"
           onCambiarPagina={setPagina}
         />
       )}
@@ -212,6 +239,6 @@ export function ListadoClientes({ puedeGestionar }: Props) {
           onCancelar={() => setABajar(null)}
         />
       )}
-    </main>
+    </section>
   )
 }

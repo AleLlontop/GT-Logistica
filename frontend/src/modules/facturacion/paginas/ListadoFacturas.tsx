@@ -1,9 +1,16 @@
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { clasesDeBoton } from '../../../compartido/ui/clases'
+import { Estado } from '../../../compartido/ui/Estado'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { clasesDeEnlaceDeFila } from '../../../compartido/ui/clases'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { formatearFecha } from '../../../compartido/fechas'
 import { formatearPesos } from '../../../compartido/moneda'
 import { FiltrosFacturas } from '../componentes/FiltrosFacturas'
-import { Paginacion } from '../componentes/Paginacion'
+import { Paginacion } from '../../../compartido/ui/Paginacion'
 import {
   ESTADO_EN_ORACION,
   NOMBRES_DE_ESTADO,
@@ -79,30 +86,52 @@ export function ListadoFacturas({ puedeGestionar }: Props) {
     filtros.tipoComprobante !== ''
 
   return (
-    <main>
-      <h1>Facturas</h1>
+    <section>
+      <EncabezadoDePantalla
+        titulo="Facturas"
+        accionPrincipal={
+          puedeGestionar && (
+            <Link to="/facturas/nueva" className={clasesDeBoton('primario')}>
+              Nueva factura
+            </Link>
+          )
+        }
+      />
 
-      {puedeGestionar && <Link to="/facturas/nueva">Nueva factura</Link>}
-
-      <FiltrosFacturas valor={filtros} onCambio={cambiarFiltros} />
-
-      {/* El control nunca oculta filas en silencio: si no se eligió estado, dice qué está mostrando
-          (FR-064). */}
-      <p role="status">
-        {filtros.estado === ''
-          ? 'Mostrando todas las facturas, incluidas las anuladas.'
-          : `Mostrando sólo las facturas ${ESTADO_EN_ORACION[filtros.estado]}.`}
-      </p>
-
-      {error !== null && <p role="alert">{error}</p>}
-
-      {resultado === null && error === null && <p role="status">Cargando facturas…</p>}
-
-      {resultado !== null && resultado.items.length === 0 && (
-        <p role="status">{filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_SIN_FACTURAS}</p>
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
       )}
 
-      {resultado !== null && resultado.items.length > 0 && (
+      <Listado>
+        <FiltrosFacturas valor={filtros} onCambio={cambiarFiltros} />
+
+        {/* El control nunca oculta filas en silencio: si no se eligió estado, dice qué está mostrando
+            (FR-064). */}
+        <p role="status" className="border-b border-borde px-4 py-2 text-sm text-texto-suave">
+          {filtros.estado === ''
+            ? 'Mostrando todas las facturas, incluidas las anuladas.'
+            : `Mostrando sólo las facturas ${ESTADO_EN_ORACION[filtros.estado]}.`}
+        </p>
+
+        {resultado === null && error === null && (
+          <EstadoVacio caso="cargando" className="border-0 shadow-none">
+            Cargando facturas…
+          </EstadoVacio>
+        )}
+
+        {resultado !== null && resultado.items.length === 0 && (
+          <EstadoVacio
+            caso={filtrando ? 'sinCoincidencias' : 'vacio'}
+            className="border-0 shadow-none"
+          >
+            {filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_SIN_FACTURAS}
+          </EstadoVacio>
+        )}
+
+        {resultado !== null && resultado.items.length > 0 && (
+          <TablaDesplazable>
         <table>
           <caption>Facturas emitidas</caption>
           <thead>
@@ -112,7 +141,9 @@ export function ListadoFacturas({ puedeGestionar }: Props) {
               <th scope="col">Cliente</th>
               <th scope="col">Tipo</th>
               <th scope="col">Período</th>
-              <th scope="col">Total</th>
+              <th scope="col" className="text-right">
+                Total
+              </th>
               <th scope="col">Estado</th>
               <th scope="col">Vencimiento de pago</th>
             </tr>
@@ -121,9 +152,16 @@ export function ListadoFacturas({ puedeGestionar }: Props) {
             {resultado.items.map((factura) => (
               // La fila anulada va atenuada **y** con la palabra que lo explica en la columna de
               // estado: un elemento atenuado nunca comunica sólo con el color (FR-065).
-              <tr key={factura.id} className={factura.estado === 'anulada' ? 'atenuada' : undefined}>
+              <tr
+                key={factura.id}
+                className={factura.estado === 'anulada' ? 'atenuada' : undefined}
+              >
                 <td>
-                  <button type="button" onClick={() => navegar(`/facturas/${factura.id}`)}>
+                  <button
+                    type="button"
+                    onClick={() => navegar(`/facturas/${factura.id}`)}
+                    className={clasesDeEnlaceDeFila()}
+                  >
                     {factura.numeroComprobante}
                   </button>
                 </td>
@@ -133,18 +171,24 @@ export function ListadoFacturas({ puedeGestionar }: Props) {
                 <td>
                   {String(factura.mes).padStart(2, '0')}/{factura.anio}
                 </td>
-                <td>{formatearPesos(factura.total)}</td>
+                <td className="text-right font-medium">{formatearPesos(factura.total)}</td>
                 <td>
-                  {NOMBRES_DE_ESTADO[factura.estado]}
+                  <Estado valor={factura.estado} texto={NOMBRES_DE_ESTADO[factura.estado]} />
                   {/* Cada estado suma el dato que lo explica (contracts/README §Listado). */}
                   {factura.estado === 'vencida' && (
-                    <span> — Venció hace {diasDesde(factura.vencimientoPago)} días</span>
+                    <span className="block text-xs text-texto-suave">
+                      {' '}
+                      — Venció hace {diasDesde(factura.vencimientoPago)} días
+                    </span>
                   )}
                   {factura.estado === 'pagada' && factura.fechaCobro !== null && (
-                    <span> — Cobrada el {formatearFecha(factura.fechaCobro)}</span>
+                    <span className="block text-xs text-texto-suave">
+                      {' '}
+                      — Cobrada el {formatearFecha(factura.fechaCobro)}
+                    </span>
                   )}
                   {factura.estado === 'anulada' && factura.motivoAnulacion !== null && (
-                    <span> — {factura.motivoAnulacion}</span>
+                    <span className="block text-xs text-texto-suave"> — {factura.motivoAnulacion}</span>
                   )}
                 </td>
                 <td>{formatearFecha(factura.vencimientoPago)}</td>
@@ -152,18 +196,20 @@ export function ListadoFacturas({ puedeGestionar }: Props) {
             ))}
           </tbody>
         </table>
-      )}
+          </TablaDesplazable>
+        )}
+      </Listado>
 
       {resultado !== null && (
         <Paginacion
           pagina={resultado.pagina}
           total={resultado.total}
           tamanioPagina={resultado.tamanioPagina}
-          entidad="facturas"
+          nombrePlural="facturas"
           onCambiarPagina={setPagina}
         />
       )}
-    </main>
+    </section>
   )
 }
 

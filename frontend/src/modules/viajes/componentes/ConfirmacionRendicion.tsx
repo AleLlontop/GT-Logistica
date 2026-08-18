@@ -1,4 +1,4 @@
-import { DialogoConfirmacion } from '../../usuarios/componentes/DialogoConfirmacion'
+import { DialogoConfirmacion } from '../../../compartido/ui/DialogoConfirmacion'
 
 /**
  * Módulo 6, FR-055a: el remito pasa a ser obligatorio para rendir, porque sale impreso en la fila del

@@ -1,3 +1,8 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState } from 'react'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import { formatearPesos } from '../../../compartido/moneda'
@@ -61,10 +66,10 @@ export function TotalesPeriodo() {
     totales !== null && totales.porCliente.length === 0 && totales.porTransportista.length === 0
 
   return (
-    <main>
-      <h1>Totales por período</h1>
+    <section>
+      <EncabezadoDePantalla titulo="Totales por período" />
 
-      <form onSubmit={(evento) => evento.preventDefault()}>
+      <form onSubmit={(evento) => evento.preventDefault()} className={clasesDeFormulario}>
         <div className="campo">
           <label htmlFor="totales-desde">Desde</label>
           <input
@@ -86,11 +91,19 @@ export function TotalesPeriodo() {
         </div>
       </form>
 
-      {error !== null && <p role="alert">{error}</p>}
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
+      )}
 
-      {!rangoElegido && <p role="status">{MENSAJE_FALTA_RANGO}</p>}
+      {!rangoElegido && <EstadoVacio caso="vacio" className="border-0 shadow-none">
+          {MENSAJE_FALTA_RANGO}
+        </EstadoVacio>}
 
-      {rangoElegido && sinResultados && <p role="status">{MENSAJE_SIN_RESULTADOS}</p>}
+      {rangoElegido && sinResultados && <EstadoVacio caso="vacio" className="border-0 shadow-none">
+          {MENSAJE_SIN_RESULTADOS}
+        </EstadoVacio>}
 
       {totales !== null && totales.porCliente.length > 0 && (
         <Cuadro
@@ -107,7 +120,7 @@ export function TotalesPeriodo() {
           filas={totales.porTransportista}
         />
       )}
-    </main>
+    </section>
   )
 }
 
@@ -124,13 +137,15 @@ function Cuadro({
     <section>
       <h2>{titulo}</h2>
 
-      <table>
+      <Listado>
+          <TablaDesplazable>
+            <table>
         <caption>{titulo}</caption>
         <thead>
           <tr>
             <th scope="col">{encabezado}</th>
             <th scope="col">Viajes</th>
-            <th scope="col">Importe</th>
+            <th scope="col" className="text-right">Importe</th>
           </tr>
         </thead>
         <tbody>
@@ -138,11 +153,13 @@ function Cuadro({
             <tr key={fila.id}>
               <td>{fila.nombre}</td>
               <td>{fila.cantidadViajes}</td>
-              <td>{formatearPesos(fila.importeTotal)}</td>
+              <td className="text-right font-medium">{formatearPesos(fila.importeTotal)}</td>
             </tr>
           ))}
         </tbody>
       </table>
+          </TablaDesplazable>
+        </Listado>
     </section>
   )
 }

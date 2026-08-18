@@ -1,136 +1,131 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/geist';
+
 /*
- * Estilos mínimos del Módulo 1.
+ * Sistema de diseño del Sistema Integral de Gestión (Módulo 7).
  *
- * Los colores cumplen el piso de contraste que exige FR-025: el texto principal sobre el fondo
- * queda muy por encima de 4.5:1, y el mensaje de error también.
+ * Éste es el único archivo CSS del proyecto. Las primitivas de `compartido/ui/` llevan sus
+ * utilidades adentro; ninguna pantalla define color, tamaño ni separación por su cuenta (FR-008).
+ *
+ * Los valores de color están **medidos**, no estimados: cada uno cumple 4,5:1 para texto y 3:1 para
+ * lo no textual que comunica, sobre los tres fondos del sistema (data-model §1.1).
+ *
+ * Los nombres respetan los espacios de nombre de Tailwind v4 —`--color-*`, `--font-*`, `--radius-*`,
+ * `--shadow-*`, `--container-*`—: un token fuera de ellos queda como variable suelta y no genera
+ * ninguna utilidad.
  */
 
-:root {
-  --color-fondo: #ffffff;
-  --color-texto: #1a1a1a;
-  --color-texto-suave: #4a4a4a;
-  --color-borde: #767676;
+@theme {
+  /* ── Fondos y superficies ──────────────────────────────────────────────────────────────────── */
+  --color-pagina: #f4f6f9;
+  --color-superficie: #ffffff;
+  --color-superficie-alterna: #f7f9fb;
+  --color-superficie-hundida: #e9edf3;
+
+  /* ── Texto ─────────────────────────────────────────────────────────────────────────────────── */
+  --color-texto: #141821; /* 15,12:1 en el peor fondo */
+  --color-texto-suave: #4e5666; /*  6,28:1 */
+  --color-texto-tenue: #5e6779; /*  4,84:1 — lo atenuado, calibrado al límite justo */
+
+  /* ── Acento ────────────────────────────────────────────────────────────────────────────────── */
+  --color-acento: #12507b; /* 7,27:1 · 8,54:1 con blanco encima */
+  --color-acento-oscuro: #0d3b5c; /* 11,68:1 con blanco encima */
+  --color-acento-fondo: #e6eef6; /* 7,29:1 con el acento encima */
+
+  /* ── Semánticos ────────────────────────────────────────────────────────────────────────────── */
+  --color-exito: #1b6b41;
+  --color-exito-fondo: #e6f2ea; /* 5,66:1 */
+  --color-advertencia: #7d5300;
+  --color-advertencia-fondo: #fbf0da; /* 5,98:1 */
   --color-error: #a4262c;
-  --color-error-fondo: #fdf3f4;
-  --color-acento: #12507b;
+  --color-error-fondo: #fbeeef; /* 6,42:1 */
 
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color: var(--color-texto);
-  background-color: var(--color-fondo);
+  /* ── Bordes ────────────────────────────────────────────────────────────────────────────────── */
+  --color-borde: #c6cdd8; /* decorativo: separa sin comunicar */
+  --color-borde-fuerte: #7b8698; /* 3,13:1 — comunica: borde de campo, contorno de control */
+
+  /* ── Tipografía ────────────────────────────────────────────────────────────────────────────── */
+  --font-sans:
+    'Geist Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* ── Radios y profundidad ──────────────────────────────────────────────────────────────────── */
+  --radius-chico: 0.25rem;
+  --radius-medio: 0.5rem;
+  --radius-grande: 0.75rem;
+  --shadow-tarjeta: 0 1px 2px rgb(20 24 33 / 0.06), 0 1px 3px rgb(20 24 33 / 0.08);
+  --shadow-dialogo: 0 10px 15px -3px rgb(20 24 33 / 0.15), 0 4px 6px -4px rgb(20 24 33 / 0.1);
+
+  /* ── Anchos ────────────────────────────────────────────────────────────────────────────────── */
+  --container-lectura: 90rem; /* FR-017: en un monitor ancho el texto no se estira */
+
+  /*
+   * El ancho de un campo acompaña al dato que recibe (FR-030): un CUIT, una patente o un importe no
+   * ocupan lo mismo que una razón social o un domicilio.
+   */
+  --container-campo-corto: 10rem;
+  --container-campo-medio: 20rem;
+  --container-campo-largo: 36rem;
 }
 
-* {
-  box-sizing: border-box;
+/*
+ * `atenuada` / `atenuado` son las dos únicas clases con nombre propio del sistema, y existen porque
+ * el concepto tiene nombre en las specs desde el Módulo 3: *"todo elemento atenuado lleva además la
+ * palabra que lo explica"*. Se aplican a la fila de una factura o un viaje anulados, y a un registro
+ * dado de baja.
+ *
+ * El color es `--color-texto-tenue`, que está calibrado en el límite justo —4,84:1 sobre el peor de
+ * los tres fondos—: es el más claro que sigue siendo legible. Atenuado no es borroso (FR-021).
+ */
+@utility atenuada {
+  color: var(--color-texto-tenue);
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
+@utility atenuado {
+  color: var(--color-texto-tenue);
 }
 
-/* El foco tiene que verse siempre: es la mitad de poder operar con teclado (FR-025). */
-:focus-visible {
-  outline: 3px solid var(--color-acento);
-  outline-offset: 2px;
-}
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
 
-/* ── Pantalla de ingreso ─────────────────────────────────────────────────────────────────────── */
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--color-pagina);
+    color: var(--color-texto);
+  }
 
-.ingreso {
-  max-width: 24rem;
-  margin: 4rem auto;
-  padding: 0 1.5rem;
-}
+  /*
+   * El foco tiene que verse siempre: es la mitad de poder operar con teclado (FR-039). Va acá y no
+   * en cada primitiva para que alcance también a los controles nativos, que esta feature estila
+   * pero no reemplaza.
+   */
+  :focus-visible {
+    outline: 3px solid var(--color-acento);
+    outline-offset: 2px;
+  }
 
-.ingreso h1 {
-  font-size: 1.5rem;
-  margin-bottom: 0.25rem;
-}
+  /*
+   * Cifras tabulares en todo el sistema. Es lo que sostiene FR-020: que los importes de una columna
+   * se comparen en vertical con los separadores de miles y decimales en la misma línea. No depende
+   * de que la fuente propia cargue.
+   */
+  table,
+  dd,
+  input[type='number'],
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
 
-.ingreso__empresa {
-  margin-top: 0;
-  color: var(--color-texto-suave);
-}
-
-.ingreso__error {
-  background-color: var(--color-error-fondo);
-  border-left: 4px solid var(--color-error);
-  color: var(--color-error);
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
-}
-
-.campo {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 1rem;
-}
-
-.campo label {
-  margin-bottom: 0.25rem;
-  font-weight: 600;
-}
-
-.campo input {
-  padding: 0.5rem;
-  font-size: 1rem;
-  border: 1px solid var(--color-borde);
-  border-radius: 4px;
-}
-
-button {
-  padding: 0.6rem 1.2rem;
-  font-size: 1rem;
-  cursor: pointer;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background-color: var(--color-acento);
-  color: #ffffff;
-}
-
-button:disabled {
-  background-color: #6b6b6b;
-  cursor: not-allowed;
-}
-
-/* ── Layout con sesión abierta ───────────────────────────────────────────────────────────────── */
-
-.layout__encabezado {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid var(--color-borde);
-}
-
-.layout__marca {
-  font-weight: 600;
-}
-
-.layout__sesion {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-nav ul {
-  display: flex;
-  gap: 1rem;
-  list-style: none;
-  margin: 0;
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid var(--color-borde);
-}
-
-nav a {
-  color: var(--color-acento);
-}
-
-main {
-  padding: 1.5rem;
-}
-
-.inicio__sin-opciones {
-  color: var(--color-texto-suave);
+  /* Si alguien pidió menos movimiento, no se lo damos (FR-041). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }

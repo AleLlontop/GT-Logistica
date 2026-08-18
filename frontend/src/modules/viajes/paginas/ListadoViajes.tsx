@@ -1,9 +1,14 @@
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { clasesDeEnlaceDeFila } from '../../../compartido/ui/clases'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { formatearFecha } from '../../../compartido/fechas'
 import { formatearPesos } from '../../../compartido/moneda'
 import { FiltrosViajes } from '../componentes/FiltrosViajes'
-import { Paginacion } from '../componentes/Paginacion'
+import { Paginacion } from '../../../compartido/ui/Paginacion'
 import type { PaginaDe } from '../clientes/servicioClientes'
 import {
   FILTROS_VIAJES_INICIALES,
@@ -74,11 +79,15 @@ export function ListadoViajes({ puedeGestionar }: Props) {
     filtros.busqueda.trim() !== ''
 
   return (
-    <main>
-      <h1>Viajes</h1>
-
-      {puedeGestionar && <Link to="/viajes/nuevo">Nuevo viaje</Link>}
-
+    <section>
+      <EncabezadoDePantalla
+        titulo="Viajes"
+        accionPrincipal={
+          <>
+            {puedeGestionar && <Link to="/viajes/nuevo">Nuevo viaje</Link>}
+          </>
+        }
+      />
       <FiltrosViajes valor={filtros} onCambio={cambiarFiltros} />
 
       {/* El control nunca oculta filas en silencio: si no se eligió estado, dice qué está mostrando
@@ -89,16 +98,31 @@ export function ListadoViajes({ puedeGestionar }: Props) {
           : `Mostrando sólo: ${NOMBRES_DE_ESTADO[filtros.estado]}.`}
       </p>
 
-      {error !== null && <p role="alert">{error}</p>}
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
+      )}
 
-      {resultado === null && error === null && <p role="status">Cargando viajes…</p>}
+      {resultado === null && error === null && (
+        <EstadoVacio caso="cargando" className="border-0 shadow-none">
+          Cargando viajes…
+        </EstadoVacio>
+      )}
 
       {resultado !== null && resultado.items.length === 0 && (
-        <p role="status">{filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_SIN_VIAJES}</p>
+        <EstadoVacio
+          caso={filtrando ? 'sinCoincidencias' : 'vacio'}
+          className="border-0 shadow-none"
+        >
+          {filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_SIN_VIAJES}
+        </EstadoVacio>
       )}
 
       {resultado !== null && resultado.items.length > 0 && (
-        <table>
+        <Listado>
+          <TablaDesplazable>
+            <table>
           <caption>Viajes registrados</caption>
           <thead>
             <tr>
@@ -111,14 +135,14 @@ export function ListadoViajes({ puedeGestionar }: Props) {
               <th scope="col">Vehículo</th>
               <th scope="col">Transportista</th>
               <th scope="col">Estado</th>
-              <th scope="col">Importe</th>
+              <th scope="col" className="text-right">Importe</th>
             </tr>
           </thead>
           <tbody>
             {resultado.items.map((viaje) => (
               <tr key={viaje.id}>
                 <td>
-                  <button type="button" onClick={() => navegar(`/viajes/${viaje.id}`)}>
+                  <button type="button" onClick={() => navegar(`/viajes/${viaje.id}`)} className={clasesDeEnlaceDeFila()}>
                     {viaje.numero}
                   </button>
                 </td>
@@ -146,13 +170,15 @@ export function ListadoViajes({ puedeGestionar }: Props) {
                     </span>
                   )}
                 </td>
-                <td>{formatearPesos(viaje.importe)}</td>
+                <td className="text-right font-medium">{formatearPesos(viaje.importe)}</td>
               </tr>
             ))}
           </tbody>
           {/* Sin pie de tabla: los totales viven en su pantalla, y sumar la página daría un número
               que no es el del período (FR-046a). */}
         </table>
+          </TablaDesplazable>
+        </Listado>
       )}
 
       {/* Al filtrar por anulado, cada fila muestra su motivo (FR-036, US6 esc. 5). */}
@@ -175,10 +201,10 @@ export function ListadoViajes({ puedeGestionar }: Props) {
           pagina={resultado.pagina}
           total={resultado.total}
           tamanioPagina={resultado.tamanioPagina}
-          entidad="viajes"
+          nombrePlural="viajes"
           onCambiarPagina={setPagina}
         />
       )}
-    </main>
+    </section>
   )
 }

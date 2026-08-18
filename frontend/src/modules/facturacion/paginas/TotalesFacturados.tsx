@@ -1,3 +1,8 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useState, type FormEvent } from 'react'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import { formatearFecha } from '../../../compartido/fechas'
@@ -54,10 +59,10 @@ export function TotalesFacturados() {
   const rangoCompleto = desde !== '' && hasta !== ''
 
   return (
-    <main>
-      <h1>Totales facturados</h1>
+    <section>
+      <EncabezadoDePantalla titulo="Totales facturados" />
 
-      <form onSubmit={consultar} noValidate>
+      <form onSubmit={consultar} noValidate className={clasesDeFormulario}>
         <div className="campo">
           <label htmlFor="totales-desde">Desde</label>
           <input
@@ -85,10 +90,16 @@ export function TotalesFacturados() {
         </button>
       </form>
 
-      {error !== null && <p role="alert">{error}</p>}
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
+      )}
 
       {/* Sin rango elegido no se calcula ni se muestra nada, y la pantalla lo dice (FR-061). */}
-      {totales === null && error === null && <p role="status">{MENSAJE_SIN_RANGO}</p>}
+      {totales === null && error === null && <EstadoVacio caso="vacio" className="border-0 shadow-none">
+          {MENSAJE_SIN_RANGO}
+        </EstadoVacio>}
 
       {totales !== null && totales.length === 0 && rangoConsultado !== null && (
         <p role="status">
@@ -99,15 +110,17 @@ export function TotalesFacturados() {
 
       {totales !== null && totales.length > 0 && (
         <>
-          <table>
+          <Listado>
+          <TablaDesplazable>
+            <table>
             <caption>Totales facturados por cliente</caption>
             <thead>
               <tr>
                 <th scope="col">Cliente</th>
                 <th scope="col">Cantidad de facturas</th>
-                <th scope="col">Facturado</th>
-                <th scope="col">Cobrado</th>
-                <th scope="col">Pendiente de cobro</th>
+                <th scope="col" className="text-right">Facturado</th>
+                <th scope="col" className="text-right">Cobrado</th>
+                <th scope="col" className="text-right">Pendiente de cobro</th>
               </tr>
             </thead>
             <tbody>
@@ -115,17 +128,19 @@ export function TotalesFacturados() {
                 <tr key={fila.clienteId}>
                   <td>{fila.razonSocial}</td>
                   <td>{fila.cantidad}</td>
-                  <td>{formatearPesos(fila.facturado)}</td>
-                  <td>{formatearPesos(fila.cobrado)}</td>
-                  <td>{formatearPesos(fila.pendiente)}</td>
+                  <td className="text-right font-medium">{formatearPesos(fila.facturado)}</td>
+                  <td className="text-right font-medium">{formatearPesos(fila.cobrado)}</td>
+                  <td className="text-right font-medium">{formatearPesos(fila.pendiente)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </TablaDesplazable>
+        </Listado>
 
           <p role="note">{NOTA_DE_LOS_TOTALES}</p>
         </>
       )}
-    </main>
+    </section>
   )
 }

@@ -1,3 +1,4 @@
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -133,10 +134,10 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
 
   if (factura === null) {
     return (
-      <main>
-        <h1>Factura</h1>
+      <section>
+        <EncabezadoDePantalla titulo="Factura" />
         {error !== null ? <p role="alert">{error}</p> : <p role="status">Cargando…</p>}
-      </main>
+      </section>
     )
   }
 
@@ -145,8 +146,36 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
   const admiteCorreccion = admiteCobroYAnulacion || factura.estado === 'pagada'
 
   return (
-    <main>
-      <h1>Factura {factura.numeroComprobante}</h1>
+    <section className="flex flex-col gap-4 [&>section]:rounded-medio [&>section]:border [&>section]:border-borde [&>section]:bg-superficie [&>section]:shadow-tarjeta [&>section>h2]:m-0 [&>section>h2]:border-b [&>section>h2]:border-borde [&>section>h2]:px-5 [&>section>h2]:py-3 [&>section>h2]:text-sm [&>section>h2]:font-semibold [&>section>h2]:uppercase [&>section>h2]:tracking-wide [&>section>h2]:text-texto-suave [&_dl]:m-0 [&_dl]:grid [&_dl]:grid-cols-[minmax(10rem,auto)_1fr] [&_dl]:gap-x-6 [&_dl]:gap-y-2 [&_dl]:px-5 [&_dl]:py-4 [&_dt]:text-sm [&_dt]:text-texto-suave [&_dd]:m-0 [&_dd]:text-sm [&_dd]:font-medium [&_dd]:text-texto [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm [&_caption]:sr-only [&_thead]:bg-superficie-hundida [&_th]:border-b [&_th]:border-borde-fuerte [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_th]:whitespace-nowrap [&_tbody_tr]:border-b [&_tbody_tr]:border-borde [&_td]:px-4 [&_td]:py-2.5 [&_td]:align-top">
+      <EncabezadoDePantalla
+        titulo={`Factura ${factura.numeroComprobante}`}
+        accionPrincipal={
+          <>
+            {puedeGestionar && admiteCorreccion && (
+              <button type="button" onClick={() => navegar(`/facturas/${factura.id}/editar`)}>
+                Corregir datos
+              </button>
+            )}
+
+            {puedeGestionar && admiteCobroYAnulacion && (
+              <button type="button" onClick={() => setCobrando(true)}>
+                Registrar cobro
+              </button>
+            )}
+
+            {/* Permiso propio: quien gestiona sin `facturacion.anular` no ve este botón (FR-067). */}
+            {puedeAnular && admiteCobroYAnulacion && (
+              <button type="button" onClick={() => setAnulando(true)}>
+                Anular
+              </button>
+            )}
+
+            <button type="button" onClick={() => navegar('/facturas')}>
+              Volver al listado
+            </button>
+          </>
+        }
+      />
 
       {/* Resultado que aparece sin que la pantalla cambie: se anuncia (convención [003]). */}
       {aviso !== null && <p role="status">{aviso}</p>}
@@ -284,7 +313,7 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
               <th scope="col">Remito</th>
               <th scope="col">Origen</th>
               <th scope="col">Destino</th>
-              <th scope="col">Importe</th>
+              <th scope="col" className="text-right">Importe</th>
             </tr>
           </thead>
           <tbody>
@@ -297,7 +326,7 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
                 <td>{viaje.numeroRemito ?? '—'}</td>
                 <td>{viaje.origen}</td>
                 <td>{viaje.destino}</td>
-                <td>{formatearPesos(viaje.importe)}</td>
+                <td className="text-right font-medium">{formatearPesos(viaje.importe)}</td>
               </tr>
             ))}
           </tbody>
@@ -398,31 +427,6 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
         </table>
       </section>
 
-      <div className="acciones">
-        {puedeGestionar && admiteCorreccion && (
-          <button type="button" onClick={() => navegar(`/facturas/${factura.id}/editar`)}>
-            Corregir datos
-          </button>
-        )}
-
-        {puedeGestionar && admiteCobroYAnulacion && (
-          <button type="button" onClick={() => setCobrando(true)}>
-            Registrar cobro
-          </button>
-        )}
-
-        {/* Permiso propio: quien gestiona sin `facturacion.anular` no ve este botón (FR-067). */}
-        {puedeAnular && admiteCobroYAnulacion && (
-          <button type="button" onClick={() => setAnulando(true)}>
-            Anular
-          </button>
-        )}
-
-        <button type="button" onClick={() => navegar('/facturas')}>
-          Volver al listado
-        </button>
-      </div>
-
       {cobrando && (
         <RegistrarCobro
           numero={factura.numeroComprobante}
@@ -442,7 +446,7 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
           onCancelar={() => setAnulando(false)}
         />
       )}
-    </main>
+    </section>
   )
 }
 

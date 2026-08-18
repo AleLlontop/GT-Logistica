@@ -1,3 +1,5 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -218,10 +220,10 @@ export function FormularioChofer() {
 
   if (transportistas === null || cargandoChofer) {
     return (
-      <main>
-        <h1>{titulo}</h1>
+      <section>
+        <EncabezadoDePantalla titulo={titulo} />
         <p role="status">Cargando…</p>
-      </main>
+      </section>
     )
   }
 
@@ -229,17 +231,17 @@ export function FormularioChofer() {
   // enlace a la pantalla que lo resuelve.
   if (transportistas.length === 0) {
     return (
-      <main>
-        <h1>{titulo}</h1>
+      <section>
+        <EncabezadoDePantalla titulo={titulo} />
         <p role="alert">{MENSAJE_SIN_TRANSPORTISTAS_ACTIVOS}</p>
         <Link to="/transportistas/nuevo">Registrar un transportista</Link>
-      </main>
+      </section>
     )
   }
 
   return (
-    <main>
-      <h1>{titulo}</h1>
+    <section>
+      <EncabezadoDePantalla titulo={titulo} />
 
       {registrado !== null && (
         <div role="status">
@@ -252,7 +254,7 @@ export function FormularioChofer() {
         </div>
       )}
 
-      <form onSubmit={alEnviar} noValidate>
+      <form onSubmit={alEnviar} noValidate className={clasesDeFormulario}>
         {errorGeneral !== null && (
           <p className="formulario__error" role="alert">
             {errorGeneral}
@@ -427,6 +429,6 @@ export function FormularioChofer() {
           {enviando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Guardar chofer'}
         </button>
       </form>
-    </main>
+    </section>
   )
 }

@@ -1,3 +1,7 @@
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -83,24 +87,43 @@ export function ListadoTransportistas() {
   const filtrando = filtros.texto.trim() !== '' || filtros.soloActivos
 
   return (
-    <main>
-      <h1>Transportistas</h1>
-
-      <Link to="/transportistas/nuevo">Nuevo transportista</Link>
-
+    <section>
+      <EncabezadoDePantalla
+        titulo="Transportistas"
+        accionPrincipal={
+          <>
+            <Link to="/transportistas/nuevo">Nuevo transportista</Link>
+          </>
+        }
+      />
       <FiltrosTransportistas valor={filtros} onCambio={setFiltros} />
 
-      {error !== null && <p role="alert">{error}</p>}
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
+      )}
       {aviso !== null && <p role="status">{aviso}</p>}
 
-      {transportistas === null && error === null && <p role="status">Cargando transportistas…</p>}
+      {transportistas === null && error === null && (
+        <EstadoVacio caso="cargando" className="border-0 shadow-none">
+          Cargando transportistas…
+        </EstadoVacio>
+      )}
 
       {transportistas !== null && transportistas.length === 0 && (
-        <p role="status">{filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_PADRON_VACIO}</p>
+        <EstadoVacio
+          caso={filtrando ? 'sinCoincidencias' : 'vacio'}
+          className="border-0 shadow-none"
+        >
+          {filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_PADRON_VACIO}
+        </EstadoVacio>
       )}
 
       {transportistas !== null && transportistas.length > 0 && (
-        <table>
+        <Listado>
+          <TablaDesplazable>
+            <table>
           <caption>Padrón de transportistas</caption>
           <thead>
             <tr>
@@ -145,6 +168,8 @@ export function ListadoTransportistas() {
             ))}
           </tbody>
         </table>
+          </TablaDesplazable>
+        </Listado>
       )}
 
       {aBajar !== null && (
@@ -154,6 +179,6 @@ export function ListadoTransportistas() {
           onCancelar={() => setABajar(null)}
         />
       )}
-    </main>
+    </section>
   )
 }

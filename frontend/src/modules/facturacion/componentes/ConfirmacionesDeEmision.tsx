@@ -1,3 +1,4 @@
+import { Dialogo } from '../../../compartido/ui/Dialogo'
 import type { MotivoConfirmacion } from '../servicios/api'
 
 interface Props {
@@ -35,8 +36,7 @@ export function ConfirmacionesDeEmision({
   onConfirmar,
 }: Props) {
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="titulo-confirmacion">
-      <h2 id="titulo-confirmacion">{TITULOS[motivo]}</h2>
+    <Dialogo titulo={`${TITULOS[motivo]}`} onCerrar={onCancelar}>
 
       <p>{mensaje}</p>
 
@@ -48,6 +48,6 @@ export function ConfirmacionesDeEmision({
           Emitir igual
         </button>
       </div>
-    </div>
+    </Dialogo>
   )
 }

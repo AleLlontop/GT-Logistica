@@ -1,3 +1,5 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -111,18 +113,18 @@ export function FormularioTransportista() {
 
   if (cargando) {
     return (
-      <main>
-        <h1>{titulo}</h1>
+      <section>
+        <EncabezadoDePantalla titulo={titulo} />
         <p role="status">Cargando…</p>
-      </main>
+      </section>
     )
   }
 
   return (
-    <main>
-      <h1>{titulo}</h1>
+    <section>
+      <EncabezadoDePantalla titulo={titulo} />
 
-      <form onSubmit={guardar} noValidate>
+      <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
         {errorGlobal && <p role="alert">{errorGlobal}</p>}
 
         <div className={classNameCampo('nombre')}>
@@ -206,6 +208,6 @@ export function FormularioTransportista() {
           </button>
         </div>
       </form>
-    </main>
+    </section>
   )
 }

@@ -1,3 +1,5 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -96,15 +98,15 @@ export function PanelRoles() {
 
   if (cargando) {
     return (
-      <main>
+      <section>
         <p role="status">Cargando roles…</p>
-      </main>
+      </section>
     )
   }
 
   return (
-    <main>
-      <h1>Roles de {username}</h1>
+    <section>
+      <EncabezadoDePantalla titulo={`Roles de ${username}`} />
 
       {error !== null && (
         <p className="formulario__error" role="alert">
@@ -112,7 +114,7 @@ export function PanelRoles() {
         </p>
       )}
 
-      <form onSubmit={alGuardar} noValidate>
+      <form onSubmit={alGuardar} noValidate className={clasesDeFormulario}>
         <fieldset>
           <legend>Roles del sistema</legend>
 
@@ -143,6 +145,6 @@ export function PanelRoles() {
       {verPermisosDe !== null && (
         <PermisosDelRol rol={verPermisosDe} onCerrar={() => setVerPermisosDe(null)} />
       )}
-    </main>
+    </section>
   )
 }

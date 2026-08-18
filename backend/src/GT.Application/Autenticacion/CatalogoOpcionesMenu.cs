@@ -34,6 +34,13 @@ public static class CatalogoOpcionesMenu
         (CodigosPermiso.ChoferesGestionar,
             new OpcionMenuDto("tipos-documentacion", "Tipos de documentación", "/tipos-documentacion")),
 
+        // Módulo 7. El panel de vencimientos de choferes existe desde el Módulo 3 y era alcanzable
+        // sólo por dirección o desde adentro del módulo: no figuraba en ningún menú. Va con el mismo
+        // permiso que ya exige, así que no cambia quién puede verlo — cambia que ahora se encuentra
+        // (FR-013, research §7).
+        (CodigosPermiso.ChoferesGestionar,
+            new OpcionMenuDto("vencimientos-choferes", "Vencimientos de choferes", "/choferes/vencimientos")),
+
         // Módulo 4. Las dos entradas van atadas a permisos **distintos**: es el primer módulo que
         // distingue niveles de acceso adentro, y el catálogo de tipos de vehículo es sólo del
         // administrador. Tráfico ve *Flota* y no ve *Tipos de vehículo* (FR-039, research §7).
@@ -41,6 +48,13 @@ public static class CatalogoOpcionesMenu
             new OpcionMenuDto("flota", "Flota", "/flota")),
         (CodigosPermiso.FlotaTiposGestionar,
             new OpcionMenuDto("tipos-vehiculo", "Tipos de vehículo", "/tipos-vehiculo")),
+
+        // Módulo 7. El mismo caso que el de choferes: la pantalla existe desde el Módulo 4 y no
+        // estaba en el menú. Va con `flota.gestionar`, que es el permiso que ya exige — y no con
+        // `flota.tipos.gestionar`, que es el del catálogo de tipos y sólo lo tiene el administrador
+        // (FR-013).
+        (CodigosPermiso.FlotaGestionar,
+            new OpcionMenuDto("vencimientos-flota", "Vencimientos de flota", "/flota/vencimientos")),
 
         // Módulo 5. Las tres entradas van atadas a `viajes.consultar` —el permiso **de lectura**— y
         // no a `viajes.gestionar`: las tres pantallas se pueden mirar sin poder tocar nada, y quien

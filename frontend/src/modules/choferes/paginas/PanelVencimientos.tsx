@@ -1,6 +1,11 @@
+import { Estado } from '../../../compartido/ui/Estado'
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { claseDeEstado, formatearFecha, TEXTO_ESTADO_DOCUMENTO, textoDelPlazo } from '../servicios/estados'
+import { formatearFecha, TEXTO_ESTADO_DOCUMENTO, textoDelPlazo } from '../servicios/estados'
 import { listarVencimientos, type AlertaVencimiento } from '../servicios/servicioChoferes'
 
 const MENSAJE_SIN_VENCIMIENTOS = 'No hay documentación próxima a vencer ni vencida.'
@@ -31,20 +36,36 @@ export function PanelVencimientos() {
   }, [])
 
   return (
-    <main>
-      <h1>Vencimientos</h1>
+    <section>
+      <EncabezadoDePantalla
+        titulo="Vencimientos"
+        accionPrincipal={
+          <>
+            <Link to="/choferes">Volver al listado de choferes</Link>
+          </>
+        }
+      />
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
+      )}
 
-      <Link to="/choferes">Volver al listado de choferes</Link>
-
-      {error !== null && <p role="alert">{error}</p>}
-
-      {alertas === null && error === null && <p role="status">Cargando vencimientos…</p>}
+      {alertas === null && error === null && (
+        <EstadoVacio caso="cargando" className="border-0 shadow-none">
+          Cargando vencimientos…
+        </EstadoVacio>
+      )}
 
       {/* Una lista vacía es una buena noticia, y se dice: no se muestra una tabla vacía. */}
-      {alertas !== null && alertas.length === 0 && <p role="status">{MENSAJE_SIN_VENCIMIENTOS}</p>}
+      {alertas !== null && alertas.length === 0 && <EstadoVacio caso="vacio" className="border-0 shadow-none">
+          {MENSAJE_SIN_VENCIMIENTOS}
+        </EstadoVacio>}
 
       {alertas !== null && alertas.length > 0 && (
-        <table>
+        <Listado>
+          <TablaDesplazable>
+            <table>
           <caption>Documentación próxima a vencer o vencida</caption>
           <thead>
             <tr>
@@ -69,15 +90,17 @@ export function PanelVencimientos() {
                   {alerta.documento.tipo.nombre} N° {alerta.documento.numero}
                 </td>
                 <td>{formatearFecha(alerta.documento.fechaVencimiento)}</td>
-                <td className={claseDeEstado(alerta.documento.estado)}>
-                  {TEXTO_ESTADO_DOCUMENTO[alerta.documento.estado]} —{' '}
+                <td>
+                  <Estado valor={alerta.documento.estado} texto={TEXTO_ESTADO_DOCUMENTO[alerta.documento.estado]} /> —{' '}
                   {textoDelPlazo(alerta.documento.diasHastaVencimiento)}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+          </TablaDesplazable>
+        </Listado>
       )}
-    </main>
+    </section>
   )
 }

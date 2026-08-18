@@ -1,8 +1,12 @@
+import { Aviso } from '../../../../compartido/ui/Aviso'
+import { EstadoVacio } from '../../../../compartido/ui/EstadoVacio'
+import { Listado, TablaDesplazable } from '../../../../compartido/ui/Listado'
+import { EncabezadoDePantalla } from '../../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ErrorHttp } from '../../../../compartido/clienteHttp'
 import type { Persona } from '../../../../compartido/tipos'
-import { DialogoConfirmacion } from '../../componentes/DialogoConfirmacion'
+import { DialogoConfirmacion } from '../../../../compartido/ui/DialogoConfirmacion'
 import { formatearFecha, NOMBRE_DE_TIPO_INTEGRANTE } from '../../servicios/formato'
 import { darDeBajaPersona, listarPersonas } from '../servicios/personas'
 
@@ -62,11 +66,15 @@ export function ListadoPersonas() {
   const buscando = texto.trim() !== ''
 
   return (
-    <main>
-      <h1>Personas</h1>
-
-      <Link to="/personas/nueva">Nueva persona</Link>
-
+    <section>
+      <EncabezadoDePantalla
+        titulo="Personas"
+        accionPrincipal={
+          <>
+            <Link to="/personas/nueva">Nueva persona</Link>
+          </>
+        }
+      />
       <div className="campo">
         <label htmlFor="busqueda">Buscar por nombre, apellido o DNI</label>
         <input
@@ -77,16 +85,26 @@ export function ListadoPersonas() {
         />
       </div>
 
-      {error !== null && <p role="alert">{error}</p>}
+      {error !== null && (
+        <Aviso tono="error" rol="alert" className="mb-4">
+          {error}
+        </Aviso>
+      )}
 
-      {personas === null && error === null && <p role="status">Cargando personas…</p>}
+      {personas === null && error === null && (
+        <EstadoVacio caso="cargando" className="border-0 shadow-none">
+          Cargando personas…
+        </EstadoVacio>
+      )}
 
       {personas !== null && personas.length === 0 && (
         <p role="status">{buscando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_PADRON_VACIO}</p>
       )}
 
       {personas !== null && personas.length > 0 && (
-        <table>
+        <Listado>
+          <TablaDesplazable>
+            <table>
           <caption>Padrón de personas</caption>
           <thead>
             <tr>
@@ -124,6 +142,8 @@ export function ListadoPersonas() {
             ))}
           </tbody>
         </table>
+          </TablaDesplazable>
+        </Listado>
       )}
 
       {aBajar !== null && (
@@ -134,6 +154,6 @@ export function ListadoPersonas() {
           onCancelar={() => setABajar(null)}
         />
       )}
-    </main>
+    </section>
   )
 }

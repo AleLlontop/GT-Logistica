@@ -1,3 +1,5 @@
+import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { formatearFecha } from '../../../compartido/fechas'
@@ -260,21 +262,22 @@ export function AltaFactura() {
 
   if (clientes.length === 0 && errorGlobal === null) {
     return (
-      <main>
-        <h1>Nueva factura</h1>
+      <section>
+        <EncabezadoDePantalla titulo="Nueva factura" />
         <p role="status">{MENSAJE_SIN_CLIENTES_ACTIVOS}</p>
-      </main>
+      </section>
     )
   }
 
   return (
-    <main>
-      <h1>Nueva factura</h1>
+    <section>
+      <EncabezadoDePantalla titulo="Nueva factura" />
 
       {avisoDeEmisora !== null && <p role="alert">{avisoDeEmisora}</p>}
       {errorGlobal !== null && <p role="alert">{errorGlobal}</p>}
 
       <form
+        className={clasesDeFormulario}
         onSubmit={(evento: FormEvent) => {
           evento.preventDefault()
           emitir(false)
@@ -548,7 +551,7 @@ export function AltaFactura() {
           }}
         />
       )}
-    </main>
+    </section>
   )
 }
 
