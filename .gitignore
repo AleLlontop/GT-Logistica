@@ -52,3 +52,7 @@ GEMINI.md
 # El volumen vive fuera del repositorio a propósito: un psicofísico o una licencia son datos
 # personales sensibles y no se versionan (FR-024, research §3).
 archivos/
+
+# `podman machine ssh` escribe acá su known_hosts: pasa NUL como dispositivo nulo de
+# Windows y Git Bash lo crea como archivo. Git no puede indexar un nombre reservado.
+NUL

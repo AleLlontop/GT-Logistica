@@ -20,6 +20,23 @@ cd backend && dotnet test   # GT.UnitTests + GT.IntegrationTests
 cd frontend && npm test     # tests de frontend
 ```
 
+### Si un build falla resolviendo nombres
+Síntoma: `apt-get` o `npm` mueren con *"Temporary failure resolving 'archive.ubuntu.com'"*. La
+máquina WSL de Podman hereda del host resolvers que no responden. `podman compose up -d` a secas
+**no falla** —reusa las imágenes ya construidas—, así que el error sólo aparece al reconstruir.
+
+Se arregla una vez, con un drop-in dentro de la máquina (`podman machine ssh`):
+
+```toml
+# /etc/containers/containers.conf.d/50-dns.conf
+[containers]
+dns_servers = ["1.1.1.1", "8.8.8.8"]
+```
+
+Va como archivo aparte para no pisar el `99-podman-machine-provider.conf` que ya está. **Escribirlo
+no alcanza**: el servicio del lado Windows carga la config al arrancar, así que hay que
+`podman machine stop && podman machine start`.
+
 ## Convenciones
 - Todo el producto (UI, mensajes, docs) en español argentino; moneda en pesos (ARS)
 - Frontend por módulo de negocio en `frontend/src/modules/<modulo>/`, no por tipo de archivo
