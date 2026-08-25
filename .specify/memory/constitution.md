@@ -1,6 +1,24 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 2.0.0 → 2.1.0
+Modified principles: ninguno (los 5 principios existentes quedan sin cambios)
+Added sections:
+  - VI. Interfaz Gobernada por el Sistema de Diseño — nuevo principio core. Se clasifica como MINOR
+    porque agrega gobernanza sin redefinir ni eliminar la existente.
+Removed sections: ninguna
+Other changes:
+  - Governance: "los cinco principios" → "los seis principios" (consistencia con el Principio VI).
+Templates updated:
+  - .specify/templates/plan-template.md — ✅ agregada la sección "UI Design Check", con puerta propia
+    y las dos tablas que el Principio VI exige: acción primaria por pantalla y estados de campo
+    (reposo, foco, error, vacío). Se llena solo si la feature toca UI.
+Follow-up TODOs: ninguno
+-->
+
+<!--
+Sync Impact Report (histórico)
+==================
 Version change: 1.0.0 → 2.0.0
 Modified principles: ninguno (los 5 principios core quedan sin cambios)
 Removed sections:
@@ -79,6 +97,21 @@ mediante variables de entorno o mecanismos de configuración externos al código
 **Rationale**: reduce la superficie de riesgo de seguridad y respeta la privacidad de los usuarios
 y de la empresa.
 
+### VI. Interfaz Gobernada por el Sistema de Diseño
+Toda interfaz DEBE seguir el sistema de diseño documentado en `.claude/skills/gt-ui/SKILL.md` y sus
+referencias. Ningún plan que toque UI se considera completo si no cumple las dos condiciones
+siguientes:
+- **Estados de campo declarados**: para cada campo de entrada de la pantalla, el plan DEBE declarar
+  explícitamente su comportamiento en reposo, foco, error y vacío.
+- **Un único botón primario por pantalla**: cada pantalla DEBE tener a lo sumo una acción primaria.
+  Si la pantalla es de solo lectura y no hay ninguna acción accionable, NO se inventa un primario.
+
+Un plan que toque UI sin ambas condiciones declaradas DEBE devolverse a planificación antes de
+avanzar a implementación.
+**Rationale**: los estados de campo y la acción primaria son las dos decisiones que, omitidas, no
+fallan en ningún lado —compilan, pasan los tests— y solo se descubren operando la pantalla; exigir
+que estén escritas en el plan las vuelve revisables antes de escribir código.
+
 ## Estructura del Repositorio
 
 La estructura de carpetas del repositorio es fija y todo módulo nuevo DEBE respetarla. NO se
@@ -95,7 +128,7 @@ crean carpetas ad-hoc fuera de este esquema sin antes actualizar esta constituci
 ## Governance
 
 Esta constitución tiene precedencia sobre cualquier otra práctica, convención o preferencia
-individual del equipo. Toda Pull Request DEBE verificar cumplimiento de los cinco principios y de
+individual del equipo. Toda Pull Request DEBE verificar cumplimiento de los seis principios y de
 las restricciones técnicas antes de ser aprobada; cualquier complejidad que se aparte del
 Principio I DEBE justificarse explícitamente en la descripción de la PR o en la spec.
 
@@ -114,4 +147,4 @@ inicio del archivo.
 y sus plantillas heredan y deben respetar estos principios; toda spec, plan o tarea que los
 contradiga DEBE corregirse antes de avanzar a implementación.
 
-**Version**: 2.0.0 | **Ratified**: 2026-08-04 | **Last Amended**: 2026-08-04
+**Version**: 2.1.0 | **Ratified**: 2026-08-04 | **Last Amended**: 2026-08-25

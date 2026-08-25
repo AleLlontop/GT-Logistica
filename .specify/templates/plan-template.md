@@ -42,6 +42,35 @@
 
 [Gates determined based on constitution file]
 
+## UI Design Check
+
+*GATE (Principio VI): obligatorio si la feature toca UI. Re-evaluar después de Phase 1. Si la feature
+no toca interfaz, escribir `N/A — la feature no toca interfaz` y borrar las dos tablas.*
+
+Toda interfaz sigue el sistema de diseño de `.claude/skills/gt-ui/SKILL.md`. Antes de completar esta
+sección, leer `references/tokens.md` —siempre— más la referencia que corresponda al tipo de pantalla
+(`componentes.md`, `contenido.md`, y la imagen del patrón: formulario, listado o ficha).
+
+### Acción primaria por pantalla
+
+Una sola acción primaria por pantalla. En una pantalla de solo lectura la primaria es la que quede
+accionable (exportar, imprimir); si de verdad no hay ninguna, escribir `ninguna` — no se inventa un
+primario para llenar la celda.
+
+| Pantalla | Acción primaria (una) | Secundarias / terciarias | Destructiva |
+|---|---|---|---|
+| [ruta o nombre] | [etiqueta, o `ninguna`] | [Cancelar, Volver, …] | [Eliminar, o `—`] |
+
+### Estados de campo
+
+Para cada campo de entrada de cada pantalla: reposo, foco, error y vacío. El anillo de foco tiene que
+ser visible por sí solo, no un cambio de color de borde. El error aparece recién después de que el
+campo perdió el foco habiendo sido tocado, nunca en el primer render.
+
+| Pantalla | Campo | Reposo | Foco | Error | Vacío |
+|---|---|---|---|---|---|
+| [pantalla] | [campo] | [ancho proporcional al dato + token] | [anillo] | [mensaje y cuándo aparece] | [placeholder o qué se muestra] |
+
 ## Project Structure
 
 ### Documentation (this feature)
