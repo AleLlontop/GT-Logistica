@@ -1,4 +1,7 @@
-import { clasesDeFormulario } from '../../../../compartido/ui/clases'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../../compartido/ui/iconos'
+import { clasesDeFormularioSimple } from '../../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -175,7 +178,7 @@ export function FormularioPersona() {
     <section>
       <EncabezadoDePantalla titulo={esEdicion ? 'Editar persona' : 'Nueva persona'} />
 
-      <form onSubmit={alEnviar} noValidate className={clasesDeFormulario}>
+      <form onSubmit={alEnviar} noValidate className={clasesDeFormularioSimple}>
         {errorGeneral !== null && (
           <p className="formulario__error" role="alert">
             {errorGeneral}
@@ -248,9 +251,16 @@ export function FormularioPersona() {
           onCambio={(valor) => actualizar('fechaNacimiento', valor)}
         />
 
-        <button type="submit" disabled={enviando}>
-          {enviando ? 'Guardando…' : 'Guardar'}
-        </button>
+        <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={enviando}
+            icono={<IconoEnRegla className="size-3" />}
+          >
+            {enviando ? 'Guardando…' : 'Guardar'}
+          </Boton>
+        </BarraDeAcciones>
       </form>
     </section>
   )

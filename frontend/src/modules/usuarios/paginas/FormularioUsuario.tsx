@@ -1,4 +1,8 @@
-import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -195,131 +199,151 @@ export function FormularioUsuario() {
     <section>
       <EncabezadoDePantalla titulo={esEdicion ? 'Editar usuario' : 'Nuevo usuario'} />
 
-      <form onSubmit={alEnviar} noValidate className={clasesDeFormulario}>
+      <form onSubmit={alEnviar} noValidate className={clasesDeFormularioAgrupado}>
         {errorGeneral !== null && (
           <p className="formulario__error" role="alert">
             {errorGeneral}
           </p>
         )}
 
-        <div className="campo">
-          <label htmlFor="username">Nombre de usuario</label>
-          <input
-            id="username"
-            name="username"
-            type="text"
-            value={username}
-            onChange={(evento) => setUsername(evento.target.value)}
-            autoComplete="off"
-            required
-            aria-required="true"
-            aria-invalid={errores.username !== undefined}
-            aria-describedby={errores.username !== undefined ? 'error-username' : undefined}
-          />
-          {errores.username !== undefined && (
-            <p className="campo__error" id="error-username" role="alert">
-              {errores.username}
-            </p>
-          )}
-        </div>
-
-        <div className="campo">
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            value={email}
-            onChange={(evento) => setEmail(evento.target.value)}
-            autoComplete="off"
-            required
-            aria-required="true"
-            aria-invalid={errores.email !== undefined}
-            aria-describedby={errores.email !== undefined ? 'error-email' : undefined}
-          />
-          {errores.email !== undefined && (
-            <p className="campo__error" id="error-email" role="alert">
-              {errores.email}
-            </p>
-          )}
-        </div>
-
-        {/* FR-014: en edición no aparece ningún campo de contraseña. */}
-        {!esEdicion && (
-          <div className="campo">
-            <label htmlFor="password">Contraseña inicial</label>
-            {/* Siempre enmascarada, sin botón de "ver" (FR-004). */}
+        <SeccionNumerada
+          numero={1}
+          titulo="Acceso"
+          explicacion="Con qué entra al sistema. La contraseña inicial se cambia al primer ingreso."
+        >
+          <div className="campo max-w-campo-medio">
+            <label htmlFor="username">Nombre de usuario</label>
             <input
-              id="password"
-              name="password"
-              type="password"
-              value={password}
-              onChange={(evento) => setPassword(evento.target.value)}
-              autoComplete="new-password"
+              id="username"
+              name="username"
+              type="text"
+              value={username}
+              onChange={(evento) => setUsername(evento.target.value)}
+              autoComplete="off"
               required
               aria-required="true"
-              aria-invalid={errores.password !== undefined}
-              aria-describedby={errores.password !== undefined ? 'error-password' : undefined}
+              aria-invalid={errores.username !== undefined}
+              aria-describedby={errores.username !== undefined ? 'error-username' : undefined}
             />
-            {errores.password !== undefined && (
-              <p className="campo__error" id="error-password" role="alert">
-                {errores.password}
+            {errores.username !== undefined && (
+              <p className="campo__error" id="error-username" role="alert">
+                {errores.username}
               </p>
             )}
           </div>
-        )}
 
-        <div className="campo">
-          <label htmlFor="estado">Estado</label>
-          <select
-            id="estado"
-            name="estado"
-            value={estado}
-            onChange={(evento) => setEstado(evento.target.value as EstadoUsuario)}
-          >
-            {ESTADOS_DE_USUARIO.map((opcion) => (
-              <option key={opcion.codigo} value={opcion.codigo}>
-                {opcion.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <SelectorPersona valor={personaId} onCambio={setPersonaId} deshabilitado={enviando} />
-
-        {!esEdicion && (
-          <fieldset
-            className="campo"
-            aria-invalid={errores.roles !== undefined}
-            aria-describedby={errores.roles !== undefined ? 'error-roles' : undefined}
-          >
-            <legend>Roles</legend>
-
-            {ROLES_DEL_SISTEMA.map((rol) => (
-              <div key={rol.codigo}>
-                <input
-                  id={`rol-${rol.codigo}`}
-                  name="roles"
-                  type="checkbox"
-                  value={rol.codigo}
-                  checked={roles.includes(rol.codigo)}
-                  onChange={() => alternarRol(rol.codigo)}
-                />
-                <label htmlFor={`rol-${rol.codigo}`}>{rol.nombre}</label>
-              </div>
-            ))}
-
-            {errores.roles !== undefined && (
-              <p className="campo__error" id="error-roles" role="alert">
-                {errores.roles}
+          <div className="campo max-w-campo-medio">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              placeholder="nombre@empresa.com.ar"
+              name="email"
+              type="email"
+              value={email}
+              onChange={(evento) => setEmail(evento.target.value)}
+              autoComplete="off"
+              required
+              aria-required="true"
+              aria-invalid={errores.email !== undefined}
+              aria-describedby={errores.email !== undefined ? 'error-email' : undefined}
+            />
+            {errores.email !== undefined && (
+              <p className="campo__error" id="error-email" role="alert">
+                {errores.email}
               </p>
             )}
-          </fieldset>
-        )}
+          </div>
 
-        <button type="submit" disabled={enviando}>
-          {enviando ? 'Guardando…' : 'Guardar'}
-        </button>
+          {/* FR-014: en edición no aparece ningún campo de contraseña. */}
+          {!esEdicion && (
+            <div className="campo max-w-campo-medio">
+              <label htmlFor="password">Contraseña inicial</label>
+              {/* Siempre enmascarada, sin botón de "ver" (FR-004). */}
+              <input
+                id="password"
+                name="password"
+                type="password"
+                value={password}
+                onChange={(evento) => setPassword(evento.target.value)}
+                autoComplete="new-password"
+                required
+                aria-required="true"
+                aria-invalid={errores.password !== undefined}
+                aria-describedby={errores.password !== undefined ? 'error-password' : undefined}
+              />
+              {errores.password !== undefined && (
+                <p className="campo__error" id="error-password" role="alert">
+                  {errores.password}
+                </p>
+              )}
+            </div>
+          )}
+        </SeccionNumerada>
+
+        <SeccionNumerada
+          numero={2}
+          titulo="Estado y permisos"
+          explicacion="Qué puede hacer, y a qué persona del padrón corresponde la cuenta."
+        >
+          <div className="campo max-w-campo-corto">
+            <label htmlFor="estado">Estado</label>
+            <select
+              id="estado"
+              name="estado"
+              value={estado}
+              onChange={(evento) => setEstado(evento.target.value as EstadoUsuario)}
+            >
+              {ESTADOS_DE_USUARIO.map((opcion) => (
+                <option key={opcion.codigo} value={opcion.codigo}>
+                  {opcion.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <SelectorPersona valor={personaId} onCambio={setPersonaId} deshabilitado={enviando} />
+
+          {!esEdicion && (
+            <fieldset
+              className="campo"
+              aria-invalid={errores.roles !== undefined}
+              aria-describedby={errores.roles !== undefined ? 'error-roles' : undefined}
+            >
+              <legend>Roles</legend>
+
+              {ROLES_DEL_SISTEMA.map((rol) => (
+                <div key={rol.codigo}>
+                  <input
+                    id={`rol-${rol.codigo}`}
+                    name="roles"
+                    type="checkbox"
+                    value={rol.codigo}
+                    checked={roles.includes(rol.codigo)}
+                    onChange={() => alternarRol(rol.codigo)}
+                  />
+                  <label htmlFor={`rol-${rol.codigo}`}>{rol.nombre}</label>
+                </div>
+              ))}
+
+              {errores.roles !== undefined && (
+                <p className="campo__error" id="error-roles" role="alert">
+                  {errores.roles}
+                </p>
+              )}
+            </fieldset>
+          )}
+        </SeccionNumerada>
+
+        <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={enviando}
+            icono={<IconoEnRegla className="size-3" />}
+          >
+            {enviando ? 'Guardando…' : 'Guardar'}
+          </Boton>
+        </BarraDeAcciones>
       </form>
     </section>
   )

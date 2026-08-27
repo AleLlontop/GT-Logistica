@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
 import { Campo } from '../../../compartido/ui/Campo'
 import { clasesDeControl } from '../../../compartido/ui/clases'
 import { Aviso } from '../../../compartido/ui/Aviso'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
 import { iniciarSesion, type Sesion } from '../servicios/sesion'
 import { rutaInternaSegura } from '../servicios/rutaSegura'
 
@@ -90,11 +92,26 @@ export function PantallaIngreso({ onIngreso }: Props) {
   const faltanDatos = username.trim() === '' || password === ''
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-sm flex-col justify-center px-6 py-12">
-      <h1 className="text-2xl font-semibold text-texto">Sistema Integral de Gestión</h1>
-      <p className="mt-1 mb-8 text-sm text-texto-suave">G&amp;T Logística</p>
+    <main className="mx-auto flex min-h-screen w-full max-w-[380px] flex-col justify-center px-6 py-12">
+      {/*
+        La pantalla sin sesión comparte el mismo lienzo, la misma tipografía y el mismo vocabulario
+        de componentes que el resto del sistema (FR-014). Lo único que no tiene es navegación:
+        todavía no hay permisos con los que calcularla.
 
-      <form onSubmit={alEnviar} noValidate className="flex flex-col gap-4">
+        **No monta su propio `Lienzo`**: el de `App` va adentro del `BrowserRouter` y afuera de
+        `Routes`, así que ya cubre esta ruta. Montar uno acá dibujaba los orbes dos veces y duplicaba
+        su alfa — FR-002 dice *una sola vez* y ésta es la razón.
+      */}
+      <h1 className="m-0 text-[34px] leading-[1.15] font-extrabold tracking-[-0.04em] text-ink">
+        Sistema Integral de Gestión
+      </h1>
+      <p className="mt-1.5 mb-7 text-[13px] text-ink-soft">G&amp;T Logística</p>
+
+      <form
+        onSubmit={alEnviar}
+        noValidate
+        className="flex flex-col gap-[18px] rounded-card border border-line bg-surface p-[26px] shadow-card"
+      >
         {/* El mensaje va arriba del formulario y no borra lo escrito, para poder reintentar de
             inmediato. `role="alert"` hace que un lector de pantalla lo lea al aparecer (FR-025). */}
         {error !== null && (
@@ -103,7 +120,7 @@ export function PantallaIngreso({ onIngreso }: Props) {
           </Aviso>
         )}
 
-        <Campo id="username" etiqueta="Nombre de usuario" ancho="completo">
+        <Campo id="username" etiqueta="Nombre de usuario" obligatorio ancho="completo">
           <input
             id="username"
             name="username"
@@ -120,7 +137,7 @@ export function PantallaIngreso({ onIngreso }: Props) {
           />
         </Campo>
 
-        <Campo id="password" etiqueta="Contraseña" ancho="completo">
+        <Campo id="password" etiqueta="Contraseña" obligatorio ancho="completo">
           {/* type="password" siempre: la contraseña nunca se muestra, ni con un botón de ver
               (FR-018). Al viajar en el cuerpo de un POST tampoco queda en la URL. */}
           <input
@@ -138,9 +155,21 @@ export function PantallaIngreso({ onIngreso }: Props) {
           />
         </Campo>
 
-        <Boton type="submit" variante="primario" disabled={enviando || faltanDatos} className="mt-2">
-          {enviando ? 'Ingresando…' : 'Ingresar'}
-        </Boton>
+        {/*
+          Anclaje `contenedor` y no `viewport`: la tarjeta de ingreso entra entera en la ventana, así
+          que fijar la barra al pie de la pantalla la separaría del formulario sin ganar nada
+          (FR-030).
+        */}
+        <BarraDeAcciones anclaje="contenedor" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={enviando || faltanDatos}
+            icono={<IconoEnRegla className="size-3" />}
+          >
+            {enviando ? 'Ingresando…' : 'Ingresar'}
+          </Boton>
+        </BarraDeAcciones>
       </form>
     </main>
   )

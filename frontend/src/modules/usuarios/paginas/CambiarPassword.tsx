@@ -1,5 +1,8 @@
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
 import { clasesDeFormulario } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
 import { useState, type FormEvent } from 'react'
 import { ErrorHttp, peticion } from '../../../compartido/clienteHttp'
 
@@ -100,7 +103,11 @@ export function CambiarPassword() {
     <section>
       <EncabezadoDePantalla titulo="Cambiar contraseña" />
 
-      <form onSubmit={alEnviar} noValidate className={clasesDeFormulario}>
+      <form
+        onSubmit={alEnviar}
+        noValidate
+        className={`${clasesDeFormulario} rounded-card border border-line bg-surface p-[26px] shadow-card`}
+      >
         {errorGeneral !== null && (
           <p className="formulario__error" role="alert">
             {errorGeneral}
@@ -109,7 +116,7 @@ export function CambiarPassword() {
 
         {exito && <p role="status">{MENSAJE_EXITO}</p>}
 
-        <div className="campo">
+        <div className="campo max-w-campo-medio">
           <label htmlFor="passwordActual">Contraseña actual</label>
           <input
             id="passwordActual"
@@ -132,7 +139,7 @@ export function CambiarPassword() {
           )}
         </div>
 
-        <div className="campo">
+        <div className="campo max-w-campo-medio">
           <label htmlFor="passwordNueva">Contraseña nueva</label>
           <input
             id="passwordNueva"
@@ -155,7 +162,7 @@ export function CambiarPassword() {
           )}
         </div>
 
-        <div className="campo">
+        <div className="campo max-w-campo-medio">
           <label htmlFor="repeticion">Repetir contraseña nueva</label>
           <input
             id="repeticion"
@@ -176,9 +183,18 @@ export function CambiarPassword() {
           )}
         </div>
 
-        <button type="submit" disabled={enviando}>
-          {enviando ? 'Guardando…' : 'Cambiar contraseña'}
-        </button>
+        {/* Anclaje `contenedor`: el formulario entra entero, no hace falta fijar la barra al pie
+            de la ventana (FR-030). */}
+        <BarraDeAcciones anclaje="contenedor" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={enviando}
+            icono={<IconoEnRegla className="size-3" />}
+          >
+            {enviando ? 'Guardando…' : 'Cambiar contraseña'}
+          </Boton>
+        </BarraDeAcciones>
       </form>
     </section>
   )

@@ -1,8 +1,18 @@
 import { Estado } from '../../../compartido/ui/Estado'
 import { Aviso } from '../../../compartido/ui/Aviso'
+import { Boton } from '../../../compartido/ui/Boton'
+import { EnlaceDeFila } from '../../../compartido/ui/EnlaceDeFila'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { EncabezadoDeChevron, FilaNavegable } from '../../../compartido/ui/FilaNavegable'
+import { Filtros, FranjaDeBusqueda, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
+import {
+  clasesDeBoton,
+  clasesDeEtiquetaDeFiltro,
+  clasesDeFiltro,
+} from '../../../compartido/ui/clases'
+import { IconoNuevo } from '../../../compartido/ui/iconos'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Paginacion } from '../../../compartido/ui/Paginacion'
@@ -84,167 +94,243 @@ export function ListadoChoferes() {
         titulo="Choferes"
         accionPrincipal={
           <>
-            <Link to="/choferes/nuevo">Nuevo chofer</Link>
-            <Link to="/choferes/vencimientos">Ver vencimientos</Link>
+            {/*
+              Las dos son enlaces porque navegan (FR-023). *Ver vencimientos* es una de las **dos
+              acciones secundarias reales** del sistema —la otra es la de flota—: acompaña al
+              primario sin competir con él (FR-019).
+            */}
+            <Link to="/choferes/vencimientos" className={clasesDeBoton('secundario')}>
+              Ver vencimientos
+            </Link>
+            <Link to="/choferes/nuevo" className={clasesDeBoton('primario')}>
+              Nuevo chofer
+              <span
+                aria-hidden="true"
+                className="flex size-8 shrink-0 items-center justify-center rounded-pastilla bg-white/[0.14] transition-transform duration-200 ease-gt group-hover:translate-x-0.5"
+              >
+                <IconoNuevo className="size-3" />
+              </span>
+            </Link>
           </>
         }
       />
-      <section aria-label="Filtros" className="flex flex-wrap items-end gap-4 border-b border-borde bg-superficie-hundida px-4 py-3 [&_.campo]:flex [&_.campo]:flex-col [&_.campo]:gap-1 [&_label]:text-xs [&_label]:font-medium [&_label]:text-texto-suave [&_select]:rounded-chico [&_select]:border [&_select]:border-borde-fuerte [&_select]:bg-superficie [&_select]:px-2 [&_select]:py-1.5 [&_select]:text-sm [&_select]:text-texto [&_input]:rounded-chico [&_input]:border [&_input]:border-borde-fuerte [&_input]:bg-superficie [&_input]:px-2 [&_input]:py-1.5 [&_input]:text-sm [&_input]:text-texto [&_button]:rounded-chico [&_button]:border [&_button]:border-borde-fuerte [&_button]:bg-superficie [&_button]:px-3 [&_button]:py-1.5 [&_button]:text-sm">
-        <div className="campo">
-          <label htmlFor="filtro-apellido">Apellido</label>
-          <input
-            id="filtro-apellido"
-            type="search"
-            value={filtros.apellido}
-            onChange={(evento) => actualizarFiltro('apellido', evento.target.value)}
-          />
-        </div>
-
-        <div className="campo">
-          <label htmlFor="filtro-dni">DNI</label>
-          <input
-            id="filtro-dni"
-            type="search"
-            value={filtros.dni}
-            onChange={(evento) => actualizarFiltro('dni', evento.target.value)}
-          />
-        </div>
-
-        <div className="campo">
-          <label htmlFor="filtro-transportista">Transportista</label>
-          <select
-            id="filtro-transportista"
-            value={filtros.transportistaId}
-            onChange={(evento) =>
-              actualizarFiltro(
-                'transportistaId',
-                evento.target.value === '' ? '' : Number(evento.target.value),
-              )
-            }
-          >
-            <option value="">Todos</option>
-            {transportistas.map((transportista) => (
-              <option key={transportista.id} value={transportista.id}>
-                {transportista.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="campo">
-          <label htmlFor="filtro-estado">Estado</label>
-          <select
-            id="filtro-estado"
-            value={filtros.estado}
-            onChange={(evento) =>
-              actualizarFiltro('estado', evento.target.value as FiltrosChoferes['estado'])
-            }
-          >
-            <option value="activo">Activo</option>
-            <option value="inactivo">Inactivo</option>
-          </select>
-        </div>
-
-        <div className="campo">
-          <label htmlFor="filtro-estado-documentacion">Estado de documentación</label>
-          <select
-            id="filtro-estado-documentacion"
-            value={filtros.estadoDocumentacion}
-            onChange={(evento) =>
-              actualizarFiltro(
-                'estadoDocumentacion',
-                evento.target.value as FiltrosChoferes['estadoDocumentacion'],
-              )
-            }
-          >
-            <option value="">Todos</option>
-            {ESTADOS_DE_DOCUMENTACION.map((estado) => (
-              <option key={estado.valor} value={estado.valor}>
-                {estado.etiqueta}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            setFiltros(FILTROS_CHOFERES_INICIALES)
-            setPagina(1)
-          }}
-        >
-          Limpiar filtros
-        </button>
-      </section>
 
       {error !== null && (
-        <Aviso tono="error" rol="alert" className="mb-4">
+        <Aviso tono="error" rol="alert" className="mb-[18px]">
           {error}
         </Aviso>
       )}
 
-      {resultado === null && error === null && (
-        <EstadoVacio caso="cargando" className="border-0 shadow-none">
-          Cargando choferes…
-        </EstadoVacio>
-      )}
-
-      {resultado !== null && resultado.items.length === 0 && (
-        <EstadoVacio
-          caso={filtrando ? 'sinCoincidencias' : 'vacio'}
-          className="border-0 shadow-none"
+      {/*
+        Los filtros viven **adentro** de la isla del listado, no como un formulario suelto encima de
+        la tabla (FR-032). Y la isla se dibuja siempre, también cuando no hay filas: si los filtros
+        desaparecieran junto con la tabla, no habría forma de limpiarlos.
+      */}
+      <Listado>
+        <Filtros
+          resumen={
+            resultado !== null && (
+              <>
+                <span>
+                  {resultado.total} {resultado.total === 1 ? 'chofer' : 'choferes'}
+                </span>
+                <span>Ordenado por apellido y nombre</span>
+              </>
+            )
+          }
         >
-          {filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_SIN_CHOFERES}
-        </EstadoVacio>
-      )}
+          {/* El buscador primero y a todo el ancho. Acá son dos: apellido y DNI (FR-033). */}
+          <FranjaDeBusqueda>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="filtro-apellido" className={clasesDeEtiquetaDeFiltro}>
+                Apellido
+              </label>
+              <input
+                id="filtro-apellido"
+                type="search"
+                placeholder="Gómez"
+                value={filtros.apellido}
+                onChange={(evento) => actualizarFiltro('apellido', evento.target.value)}
+                className={clasesDeFiltro(filtros.apellido.trim() !== '')}
+              />
+            </div>
 
-      {resultado !== null && resultado.items.length > 0 && (
-        <>
-          <Listado>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="filtro-dni" className={clasesDeEtiquetaDeFiltro}>
+                DNI
+              </label>
+              <input
+                id="filtro-dni"
+                type="search"
+                placeholder="30.123.456"
+                value={filtros.dni}
+                onChange={(evento) => actualizarFiltro('dni', evento.target.value)}
+                className={clasesDeFiltro(filtros.dni.trim() !== '')}
+              />
+            </div>
+          </FranjaDeBusqueda>
+
+          <FranjaDeFiltros>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="filtro-transportista" className={clasesDeEtiquetaDeFiltro}>
+                Transportista
+              </label>
+              <select
+                id="filtro-transportista"
+                value={filtros.transportistaId}
+                onChange={(evento) =>
+                  actualizarFiltro(
+                    'transportistaId',
+                    evento.target.value === '' ? '' : Number(evento.target.value),
+                  )
+                }
+                className={clasesDeFiltro(filtros.transportistaId !== '')}
+              >
+                <option value="">Todos</option>
+                {transportistas.map((transportista) => (
+                  <option key={transportista.id} value={transportista.id}>
+                    {transportista.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="filtro-estado" className={clasesDeEtiquetaDeFiltro}>
+                Estado
+              </label>
+              {/*
+                Arranca en `Activo`, **a la vista**: un listado que oculta choferes sin decirlo se
+                lee como un error de datos (FR-022 del Módulo 3, convención [003]).
+              */}
+              <select
+                id="filtro-estado"
+                value={filtros.estado}
+                onChange={(evento) =>
+                  actualizarFiltro('estado', evento.target.value as FiltrosChoferes['estado'])
+                }
+                className={clasesDeFiltro(filtros.estado !== 'activo')}
+              >
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="filtro-estado-documentacion" className={clasesDeEtiquetaDeFiltro}>
+                Estado de documentación
+              </label>
+              <select
+                id="filtro-estado-documentacion"
+                value={filtros.estadoDocumentacion}
+                onChange={(evento) =>
+                  actualizarFiltro(
+                    'estadoDocumentacion',
+                    evento.target.value as FiltrosChoferes['estadoDocumentacion'],
+                  )
+                }
+                className={clasesDeFiltro(filtros.estadoDocumentacion !== '')}
+              >
+                <option value="">Todos</option>
+                {ESTADOS_DE_DOCUMENTACION.map((estado) => (
+                  <option key={estado.valor} value={estado.valor}>
+                    {estado.etiqueta}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Boton
+              variante="secundario"
+              tamanio="chico"
+              className="self-end"
+              onClick={() => {
+                setFiltros(FILTROS_CHOFERES_INICIALES)
+                setPagina(1)
+              }}
+            >
+              Limpiar filtros
+            </Boton>
+          </FranjaDeFiltros>
+        </Filtros>
+
+        {resultado === null && error === null && (
+          <EstadoVacio caso="cargando" className="border-0 shadow-none">
+            Cargando choferes…
+          </EstadoVacio>
+        )}
+
+        {resultado !== null && resultado.items.length === 0 && (
+          <EstadoVacio
+            caso={filtrando ? 'sinCoincidencias' : 'vacio'}
+            className="border-0 shadow-none"
+          >
+            {filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_SIN_CHOFERES}
+          </EstadoVacio>
+        )}
+
+        {resultado !== null && resultado.items.length > 0 && (
           <TablaDesplazable>
             <table>
-            <caption>Choferes</caption>
-            <thead>
-              <tr>
-                <th scope="col">Apellido y nombre</th>
-                <th scope="col">DNI</th>
-                <th scope="col">Transportista</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Documentación</th>
-                <th scope="col">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {resultado.items.map((chofer) => (
-                <tr key={chofer.id}>
-                  <td>
-                    {chofer.apellido}, {chofer.nombre}
-                  </td>
-                  <td>{chofer.dni}</td>
-                  <td>{chofer.transportista.nombre}</td>
-                  <td>{chofer.activo ? 'Activo' : 'Inactivo'}</td>
-                  {/* El estado nunca se comunica sólo por color: el texto siempre acompaña. */}
-                  <td>
-                    <Estado valor={chofer.estadoDocumentacion} texto={TEXTO_ESTADO_CHOFER[chofer.estadoDocumentacion]} />
-                  </td>
-                  <td>
-                    <Link to={`/choferes/${chofer.id}`}>Ver ficha</Link>
-                  </td>
+              <caption>Choferes</caption>
+              <thead>
+                <tr>
+                  {/* `Apellido y nombre` + `DNI` nombran un solo concepto: el chofer (FR-047). */}
+                  <th scope="col">Chofer</th>
+                  <th scope="col">Transportista</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Documentación</th>
+                  {/*
+                    La columna `Acciones` **desaparece y no deja ningún `···`**: contenía sólo
+                    *Ver ficha*, que es exactamente lo que pasa a ser el enlace de fila (FR-046).
+                  */}
+                  <EncabezadoDeChevron />
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {resultado.items.map((chofer) => (
+                  <FilaNavegable key={chofer.id} a={`/choferes/${chofer.id}`}>
+                    <td>
+                      <EnlaceDeFila a={`/choferes/${chofer.id}`} identificador={chofer.dni}>
+                        {chofer.apellido}, {chofer.nombre}
+                      </EnlaceDeFila>
+                    </td>
+                    <td>{chofer.transportista.nombre}</td>
+                    {/*
+                      Alta y baja **acompañan**: van como punto para no competir con el semáforo de
+                      documentación, que es el estado del que trata la pantalla (FR-055).
+                    */}
+                    <td>
+                      <Estado
+                        valor={chofer.activo ? 'activo' : 'inactivo'}
+                        texto={chofer.activo ? 'Activo' : 'Inactivo'}
+                        forma="punto"
+                      />
+                    </td>
+                    {/* El estado nunca se comunica sólo por color: el texto siempre acompaña. */}
+                    <td>
+                      <Estado
+                        valor={chofer.estadoDocumentacion}
+                        texto={TEXTO_ESTADO_CHOFER[chofer.estadoDocumentacion]}
+                        forma="pastilla"
+                      />
+                    </td>
+                  </FilaNavegable>
+                ))}
+              </tbody>
+            </table>
           </TablaDesplazable>
-        </Listado>
+        )}
+      </Listado>
 
-          <Paginacion
-            pagina={resultado.pagina}
-            total={resultado.total}
-            tamanioPagina={resultado.tamanioPagina}
-            onCambiarPagina={setPagina}
-            nombrePlural="choferes"
-          />
-        </>
+      {resultado !== null && resultado.items.length > 0 && (
+        <Paginacion
+          pagina={resultado.pagina}
+          total={resultado.total}
+          tamanioPagina={resultado.tamanioPagina}
+          onCambiarPagina={setPagina}
+          nombrePlural="choferes"
+        />
       )}
     </section>
   )

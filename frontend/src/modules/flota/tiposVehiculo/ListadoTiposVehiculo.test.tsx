@@ -120,6 +120,9 @@ describe('ListadoTiposVehiculo', () => {
 
     await screen.findByRole('table')
 
+    // FR-069: la acción vive ahora en el menú `···` de la fila. Se la abre y después se
+    // aprieta; ninguna aserción cambia.
+    await usuario.click(screen.getByRole('button', { name: 'Acciones de Tractor' }))
     await usuario.click(screen.getByRole('button', { name: 'Dar de baja' }))
     await usuario.click(screen.getByRole('button', { name: 'Confirmar' }))
 
@@ -135,6 +138,9 @@ describe('ListadoTiposVehiculo', () => {
 
     await screen.findByRole('table')
 
+    // FR-069: la acción vive ahora en el menú `···` de la fila. Se la abre y después se
+    // aprieta; ninguna aserción cambia.
+    await usuario.click(screen.getByRole('button', { name: 'Acciones de Tractor' }))
     await usuario.click(screen.getByRole('button', { name: 'Dar de baja' }))
     await usuario.click(screen.getByRole('button', { name: 'Cancelar' }))
 
@@ -157,6 +163,9 @@ describe('ListadoTiposVehiculo', () => {
     expect(screen.queryByRole('button', { name: 'Dar de alta' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Dar de baja' })).not.toBeInTheDocument()
 
+    // FR-069: la acción vive ahora en el menú `···` de la fila. Se la abre y después se
+    // aprieta; ninguna aserción cambia.
+    await usuario.click(screen.getByRole('button', { name: 'Acciones de Utilitario' }))
     await usuario.click(screen.getByRole('button', { name: 'Editar' }))
 
     expect(
@@ -183,6 +192,9 @@ describe('ListadoTiposVehiculo', () => {
 
     await screen.findByRole('table')
 
+    // FR-069: la acción vive ahora en el menú `···` de la fila. Se la abre y después se
+    // aprieta; ninguna aserción cambia.
+    await usuario.click(screen.getByRole('button', { name: 'Acciones de Tractor' }))
     await usuario.click(screen.getByRole('button', { name: 'Editar' }))
 
     expect(screen.queryByRole('button', { name: 'Dar de alta' })).not.toBeInTheDocument()

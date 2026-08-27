@@ -1,4 +1,7 @@
-import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { clasesDeFormularioSimple } from '../../../compartido/ui/clases'
 import { useEffect, useState, type FormEvent } from 'react'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import {
@@ -107,7 +110,7 @@ export function FormularioTipoVehiculo({ enEdicion, onGuardado, onCancelar }: Pr
   }
 
   return (
-    <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
+    <form onSubmit={guardar} noValidate className={clasesDeFormularioSimple}>
       <h2>{enEdicion !== null ? `Editar ${enEdicion.nombre}` : 'Nuevo tipo de vehículo'}</h2>
 
       {errorGeneral !== null && <p role="alert">{errorGeneral}</p>}
@@ -119,7 +122,7 @@ export function FormularioTipoVehiculo({ enEdicion, onGuardado, onCancelar }: Pr
         </p>
       )}
 
-      <div className="campo">
+      <div className="campo max-w-campo-medio">
         <label htmlFor="nombre">Nombre</label>
         <input
           id="nombre"
@@ -137,21 +140,26 @@ export function FormularioTipoVehiculo({ enEdicion, onGuardado, onCancelar }: Pr
         )}
       </div>
 
-      <div className="acciones">
-        <button type="submit" disabled={guardando}>
-          {enEdicion !== null ? 'Guardar cambios' : 'Cargar tipo'}
-        </button>
+      <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
         {enEdicion !== null && !enEdicion.activo && (
-          <button type="button" onClick={darDeAlta} disabled={guardando}>
+          <Boton variante="secundario" onClick={darDeAlta} disabled={guardando}>
             Dar de alta
-          </button>
+          </Boton>
         )}
         {enEdicion !== null && (
-          <button type="button" onClick={onCancelar} disabled={guardando}>
+          <Boton variante="secundario" onClick={onCancelar} disabled={guardando}>
             Cancelar
-          </button>
+          </Boton>
         )}
-      </div>
+        <Boton
+          type="submit"
+          variante="primario"
+          disabled={guardando}
+          icono={<IconoEnRegla className="size-3" />}
+        >
+          {enEdicion !== null ? 'Guardar cambios' : 'Cargar tipo'}
+        </Boton>
+      </BarraDeAcciones>
     </form>
   )
 }

@@ -1,10 +1,11 @@
+import { EnlaceDeFila } from '../../../compartido/ui/EnlaceDeFila'
+import { EncabezadoDeChevron, FilaNavegable } from '../../../compartido/ui/FilaNavegable'
 import { Estado } from '../../../compartido/ui/Estado'
 import { Aviso } from '../../../compartido/ui/Aviso'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { formatearFecha, TEXTO_ESTADO_DOCUMENTO, textoDelPlazo } from '../servicios/estados'
 import { listarVencimientos, type AlertaVencimiento } from '../servicios/servicioChoferes'
 
@@ -37,13 +38,15 @@ export function PanelVencimientos() {
 
   return (
     <section>
+      {/*
+        El *volver* pasa de `accionPrincipal` a `volverA` (FR-022): es una **salida**, no una
+        alternativa a la acción principal, y va arriba a la izquierda, fuera de la línea de decisión.
+        El texto, el rol y la etiqueta accesible no cambian. Este panel es de solo lectura y **no
+        lleva acción principal**: no se le inventa una para llenar el lugar (FR-017).
+      */}
       <EncabezadoDePantalla
         titulo="Vencimientos"
-        accionPrincipal={
-          <>
-            <Link to="/choferes">Volver al listado de choferes</Link>
-          </>
-        }
+        volverA={{ ruta: '/choferes', etiqueta: 'Volver al listado de choferes' }}
       />
       {error !== null && (
         <Aviso tono="error" rol="alert" className="mb-4">
@@ -71,30 +74,43 @@ export function PanelVencimientos() {
             <tr>
               <th scope="col">Chofer</th>
               <th scope="col">Transportista</th>
+              {/* `Documento` + `Vencimiento` nombran un solo concepto (FR-047): el nombre arriba
+                  y la fecha debajo, en menor jerarquía. */}
               <th scope="col">Documento</th>
-              <th scope="col">Vencimiento</th>
               <th scope="col">Estado</th>
+              <EncabezadoDeChevron />
             </tr>
           </thead>
           <tbody>
             {/* Ordenadas por urgencia desde el servidor: primero lo vencido hace más tiempo. */}
             {alertas.map((alerta) => (
-              <tr key={alerta.documento.id}>
+              <FilaNavegable key={alerta.documento.id} a={`/choferes/${alerta.choferId}`}>
                 <td>
-                  <Link to={`/choferes/${alerta.choferId}`}>
+                  <EnlaceDeFila a={`/choferes/${alerta.choferId}`}>
                     {alerta.apellido}, {alerta.nombre}
-                  </Link>
+                  </EnlaceDeFila>
                 </td>
                 <td>{alerta.transportista.nombre}</td>
                 <td>
-                  {alerta.documento.tipo.nombre} N° {alerta.documento.numero}
+                  <span className="flex flex-col gap-0.5">
+                    <span>
+                      {alerta.documento.tipo.nombre} N°{' '}
+                      <span className="font-mono">{alerta.documento.numero}</span>
+                    </span>
+                    <span className="text-[11.5px] text-faint">
+                      Vence el {formatearFecha(alerta.documento.fechaVencimiento)}
+                    </span>
+                  </span>
                 </td>
-                <td>{formatearFecha(alerta.documento.fechaVencimiento)}</td>
                 <td>
-                  <Estado valor={alerta.documento.estado} texto={TEXTO_ESTADO_DOCUMENTO[alerta.documento.estado]} /> —{' '}
-                  {textoDelPlazo(alerta.documento.diasHastaVencimiento)}
+                  <Estado
+                    valor={alerta.documento.estado}
+                    texto={TEXTO_ESTADO_DOCUMENTO[alerta.documento.estado]}
+                    forma="pastilla"
+                    detalle={textoDelPlazo(alerta.documento.diasHastaVencimiento)}
+                  />
                 </td>
-              </tr>
+              </FilaNavegable>
             ))}
           </tbody>
         </table>

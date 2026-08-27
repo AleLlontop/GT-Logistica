@@ -1,4 +1,9 @@
-import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { Estado } from '../../../compartido/ui/Estado'
+import { MenuDeFila } from '../../../compartido/ui/MenuDeFila'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { clasesDeFormularioSimple } from '../../../compartido/ui/clases'
 import { Aviso } from '../../../compartido/ui/Aviso'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
@@ -167,7 +172,7 @@ export function TiposDocumentacion() {
       )}
       {aviso !== null && <p role="status">{aviso}</p>}
 
-      <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
+      <form onSubmit={guardar} noValidate className={clasesDeFormularioSimple}>
         <h2>{enEdicion !== null ? `Editar ${enEdicion.nombre}` : 'Nuevo tipo'}</h2>
 
         <div className="campo">
@@ -239,16 +244,21 @@ export function TiposDocumentacion() {
           )}
         </div>
 
-        <div className="acciones">
-          <button type="submit" disabled={guardando}>
-            {enEdicion !== null ? 'Guardar cambios' : 'Cargar tipo'}
-          </button>
+        <BarraDeAcciones anclaje="contenedor" leyenda={LEYENDA_DE_OBLIGATORIOS}>
           {enEdicion !== null && (
-            <button type="button" onClick={limpiarFormulario} disabled={guardando}>
+            <Boton variante="secundario" onClick={limpiarFormulario} disabled={guardando}>
               Cancelar
-            </button>
+            </Boton>
           )}
-        </div>
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={guardando}
+            icono={<IconoEnRegla className="size-3" />}
+          >
+            {enEdicion !== null ? 'Guardar cambios' : 'Cargar tipo'}
+          </Boton>
+        </BarraDeAcciones>
       </form>
 
       {tipos === null && error === null && (
@@ -297,7 +307,7 @@ export function TiposDocumentacion() {
               <th scope="col">Ámbito</th>
               <th scope="col">Estado</th>
               <th scope="col">Documentos que lo usan</th>
-              <th scope="col">Acciones</th>
+              <th scope="col" className="w-8" aria-hidden="true" />
             </tr>
           </thead>
           <tbody>
@@ -308,19 +318,32 @@ export function TiposDocumentacion() {
                 <td>{tipo.nombre}</td>
                 <td>{tipo.diasAvisoVencimiento}</td>
                 <td>{TEXTO_AMBITO[tipo.ambito]}</td>
-                <td>{tipo.activo ? 'Activo' : 'Inactivo'}</td>
+                <td>
+                  <Estado
+                    valor={tipo.activo ? 'activo' : 'inactivo'}
+                    texto={tipo.activo ? 'Activo' : 'Inactivo'}
+                    forma="punto"
+                  />
+                </td>
                 {/* Es lo que explica por qué algunos no se pueden dar de baja ni cambiar de ámbito
                     (FR-014, FR-017d). Suma los de choferes y los de vehículos (FR-017b). */}
                 <td>{tipo.documentosAsociados}</td>
-                <td>
-                  <button type="button" onClick={() => editar(tipo)}>
-                    Editar
-                  </button>
-                  {tipo.activo && (
-                    <button type="button" onClick={() => setABajar(tipo)}>
-                      Dar de baja
-                    </button>
-                  )}
+                <td className="w-8">
+                  <MenuDeFila
+                    etiqueta={`Acciones de ${tipo.nombre}`}
+                    items={[
+                      { etiqueta: 'Editar', onSeleccionar: () => editar(tipo) },
+                      ...(tipo.activo
+                        ? [
+                            {
+                              etiqueta: 'Dar de baja',
+                              onSeleccionar: () => setABajar(tipo),
+                              destructivo: true,
+                            },
+                          ]
+                        : []),
+                    ]}
+                  />
                 </td>
               </tr>
             ))}

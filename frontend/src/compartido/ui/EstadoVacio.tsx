@@ -21,10 +21,18 @@ const ICONOS: Record<Caso, typeof IconoDocumento> = {
 }
 
 const TONOS: Record<Caso, string> = {
-  vacio: 'text-texto-suave',
-  sinCoincidencias: 'text-texto-suave',
-  cargando: 'text-texto-tenue',
-  error: 'text-error',
+  vacio: 'text-ink-soft',
+  sinCoincidencias: 'text-ink-soft',
+  cargando: 'text-faint',
+  error: 'text-danger-text',
+}
+
+/** El chip del ícono. `dim` acá es relleno decorativo, no texto (FR-007a). */
+const CHIPS: Record<Caso, string> = {
+  vacio: 'bg-surface-mute text-dim',
+  sinCoincidencias: 'bg-surface-mute text-dim',
+  cargando: 'bg-surface-mute text-dim',
+  error: 'bg-danger-bg text-danger',
 }
 
 interface Props {
@@ -42,13 +50,20 @@ export function EstadoVacio({ caso, children, accion, className }: Props) {
     <div
       role={caso === 'error' ? 'alert' : 'status'}
       className={cn(
-        'flex flex-col items-center gap-3 rounded-medio border border-dashed border-borde',
-        'bg-superficie px-6 py-12 text-center',
+        'flex flex-col items-center gap-3.5 rounded-card border border-line',
+        'bg-surface px-6 py-12 text-center',
         className,
       )}
     >
-      <Icono aria-hidden="true" className={cn('size-8', TONOS[caso])} />
-      <p className={cn('max-w-prose text-sm', TONOS[caso])}>{children}</p>
+      <span
+        className={cn(
+          'flex size-[38px] items-center justify-center rounded-chip',
+          CHIPS[caso],
+        )}
+      >
+        <Icono aria-hidden="true" className="size-4" />
+      </span>
+      <p className={cn('m-0 max-w-prose text-[13px] leading-[19px]', TONOS[caso])}>{children}</p>
       {accion}
     </div>
   )

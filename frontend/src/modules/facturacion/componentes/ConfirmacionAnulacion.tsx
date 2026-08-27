@@ -1,3 +1,6 @@
+import { BarraDeAcciones } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoAnulado } from '../../../compartido/ui/iconos'
 import { Dialogo } from '../../../compartido/ui/Dialogo'
 import { useState } from 'react'
 
@@ -58,20 +61,22 @@ export function ConfirmacionAnulacion({
         />
       </div>
 
-      <div className="acciones">
-        <button type="button" onClick={onCancelar} disabled={trabajando}>
+      <BarraDeAcciones anclaje="contenedor">
+        <Boton variante="secundario" onClick={onCancelar} disabled={trabajando}>
           Cancelar
-        </button>
+        </Boton>
 
-        {/* Deshabilitado sin motivo, que es el requisito y no una cortesía (FR-046). */}
-        <button
-          type="button"
+        {/* Deshabilitado sin motivo, que es el requisito y no una cortesía (FR-046). Va como
+            `destructivo` porque anular no se deshace: es el único uso del rojo (FR-020). */}
+        <Boton
+          variante="destructivo"
           onClick={() => onConfirmar(motivo.trim())}
           disabled={trabajando || !puedeAnular}
+          icono={<IconoAnulado className="size-3" />}
         >
           Anular factura
-        </button>
-      </div>
+        </Boton>
+      </BarraDeAcciones>
     </Dialogo>
   )
 }

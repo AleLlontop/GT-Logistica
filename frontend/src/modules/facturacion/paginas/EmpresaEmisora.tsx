@@ -1,4 +1,8 @@
-import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -154,175 +158,202 @@ export function EmpresaEmisora() {
       {/* Arriba del formulario vacío, con las palabras exactas del contrato (US1 esc. 1). */}
       {empresa !== null && !empresa.configurada && <p role="status">{MENSAJE_SIN_CONFIGURAR}</p>}
 
-      <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
+      <form onSubmit={guardar} noValidate className={clasesDeFormularioAgrupado}>
         {/* El guardado no cambia de pantalla, así que se anuncia acá (convención [003]). */}
         {aviso !== null && <p role="status">{aviso}</p>}
         {errorGlobal !== null && <p role="alert">{errorGlobal}</p>}
 
-        <div className={classNameCampo('razonSocial')}>
-          <label htmlFor="razonSocial">Razón social</label>
-          <input
-            id="razonSocial"
-            type="text"
-            required
-            maxLength={200}
-            value={razonSocial}
-            onChange={(evento) => setRazonSocial(evento.target.value)}
-            aria-invalid={erroresDeCampo.razonSocial !== undefined}
-          />
-          {erroresDeCampo.razonSocial && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.razonSocial}
-            </p>
-          )}
-        </div>
+        <SeccionNumerada
+          numero={1}
+          titulo="Identidad fiscal"
+          explicacion="Encabeza todos los comprobantes que emitís."
+        >
+          <div className={`${classNameCampo('razonSocial')} max-w-campo-largo`}>
+            <label htmlFor="razonSocial">Razón social</label>
+            <input
+              id="razonSocial"
+              type="text"
+              required
+              maxLength={200}
+              value={razonSocial}
+              onChange={(evento) => setRazonSocial(evento.target.value)}
+              aria-invalid={erroresDeCampo.razonSocial !== undefined}
+            />
+            {erroresDeCampo.razonSocial && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.razonSocial}
+              </p>
+            )}
+          </div>
 
-        <div className={classNameCampo('cuit')}>
-          {/* Se normaliza a sólo dígitos antes de validar: `30-71234567-1` es válido (FR-002). */}
-          <label htmlFor="cuit">CUIT (con o sin guiones)</label>
-          <input
-            id="cuit"
-            type="text"
-            required
-            maxLength={20}
-            value={cuit}
-            onChange={(evento) => setCuit(evento.target.value)}
-            aria-invalid={erroresDeCampo.cuit !== undefined}
-          />
-          {erroresDeCampo.cuit && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.cuit}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('cuit')} max-w-campo-corto`}>
+            {/* Se normaliza a sólo dígitos antes de validar: `30-71234567-1` es válido (FR-002). */}
+            <label htmlFor="cuit">CUIT (con o sin guiones)</label>
+            <input
+              id="cuit"
+              placeholder="30-71234567-8"
+              type="text"
+              required
+              maxLength={20}
+              value={cuit}
+              onChange={(evento) => setCuit(evento.target.value)}
+              aria-invalid={erroresDeCampo.cuit !== undefined}
+            />
+            {erroresDeCampo.cuit && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.cuit}
+              </p>
+            )}
+          </div>
 
-        <div className={classNameCampo('domicilio')}>
-          <label htmlFor="domicilio">Domicilio</label>
-          <input
-            id="domicilio"
-            type="text"
-            required
-            maxLength={200}
-            value={domicilio}
-            onChange={(evento) => setDomicilio(evento.target.value)}
-            aria-invalid={erroresDeCampo.domicilio !== undefined}
-          />
-          {erroresDeCampo.domicilio && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.domicilio}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('domicilio')} max-w-campo-largo`}>
+            <label htmlFor="domicilio">Domicilio</label>
+            <input
+              id="domicilio"
+              type="text"
+              required
+              maxLength={200}
+              value={domicilio}
+              onChange={(evento) => setDomicilio(evento.target.value)}
+              aria-invalid={erroresDeCampo.domicilio !== undefined}
+            />
+            {erroresDeCampo.domicilio && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.domicilio}
+              </p>
+            )}
+          </div>
 
-        <div className={classNameCampo('condicionIva')}>
-          {/* Texto libre: la spec no enumera opciones para el emisor, a diferencia del cliente. */}
-          <label htmlFor="condicionIva">Condición de IVA</label>
-          <input
-            id="condicionIva"
-            type="text"
-            required
-            maxLength={100}
-            value={condicionIva}
-            onChange={(evento) => setCondicionIva(evento.target.value)}
-            aria-invalid={erroresDeCampo.condicionIva !== undefined}
-          />
-          {erroresDeCampo.condicionIva && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.condicionIva}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('condicionIva')} max-w-campo-medio`}>
+            {/* Texto libre: la spec no enumera opciones para el emisor, a diferencia del cliente. */}
+            <label htmlFor="condicionIva">Condición de IVA</label>
+            <input
+              id="condicionIva"
+              type="text"
+              required
+              maxLength={100}
+              value={condicionIva}
+              onChange={(evento) => setCondicionIva(evento.target.value)}
+              aria-invalid={erroresDeCampo.condicionIva !== undefined}
+            />
+            {erroresDeCampo.condicionIva && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.condicionIva}
+              </p>
+            )}
+          </div>
 
-        {/* Los seis opcionales. Se piden porque los seis salen impresos en el comprobante, y ninguno
-            "por las dudas" (Principio V). */}
-        <div className={classNameCampo('ingresosBrutos')}>
-          <label htmlFor="ingresosBrutos">Número de ingresos brutos (opcional)</label>
-          <input
-            id="ingresosBrutos"
-            type="text"
-            maxLength={50}
-            value={ingresosBrutos}
-            onChange={(evento) => setIngresosBrutos(evento.target.value)}
-            aria-invalid={erroresDeCampo.ingresosBrutos !== undefined}
-          />
-        </div>
+          {/* Los seis opcionales. Se piden porque los seis salen impresos en el comprobante, y ninguno
+              "por las dudas" (Principio V). */}
+        </SeccionNumerada>
 
-        <div className={classNameCampo('inicioActividades')}>
-          <label htmlFor="inicioActividades">Inicio de actividades (opcional)</label>
-          <input
-            id="inicioActividades"
-            type="date"
-            value={inicioActividades}
-            onChange={(evento) => setInicioActividades(evento.target.value)}
-            aria-invalid={erroresDeCampo.inicioActividades !== undefined}
-          />
-        </div>
+        <SeccionNumerada
+          numero={2}
+          titulo="Datos de facturación"
+        >
+          <div className={`${classNameCampo('ingresosBrutos')} max-w-campo-medio`}>
+            <label htmlFor="ingresosBrutos">Número de ingresos brutos (opcional)</label>
+            <input
+              id="ingresosBrutos"
+              type="text"
+              maxLength={50}
+              value={ingresosBrutos}
+              onChange={(evento) => setIngresosBrutos(evento.target.value)}
+              aria-invalid={erroresDeCampo.ingresosBrutos !== undefined}
+            />
+          </div>
 
-        <div className={classNameCampo('puntoDeVenta')}>
-          {/* Se propone en el alta de factura para armar el número de comprobante (FR-027). */}
-          <label htmlFor="puntoDeVenta">Punto de venta (opcional, 4 dígitos)</label>
-          <input
-            id="puntoDeVenta"
-            type="text"
-            maxLength={4}
-            value={puntoDeVenta}
-            onChange={(evento) => setPuntoDeVenta(evento.target.value)}
-            aria-invalid={erroresDeCampo.puntoDeVenta !== undefined}
-          />
-          {erroresDeCampo.puntoDeVenta && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.puntoDeVenta}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('inicioActividades')} max-w-campo-corto`}>
+            <label htmlFor="inicioActividades">Inicio de actividades (opcional)</label>
+            <input
+              id="inicioActividades"
+              type="date"
+              value={inicioActividades}
+              onChange={(evento) => setInicioActividades(evento.target.value)}
+              aria-invalid={erroresDeCampo.inicioActividades !== undefined}
+            />
+          </div>
 
-        <div className={classNameCampo('cbu')}>
-          {/* Vacío ⇒ la banda de CBU no sale impresa en el documento (FR-031). */}
-          <label htmlFor="cbu">CBU (opcional)</label>
-          <input
-            id="cbu"
-            type="text"
-            maxLength={22}
-            value={cbu}
-            onChange={(evento) => setCbu(evento.target.value)}
-            aria-invalid={erroresDeCampo.cbu !== undefined}
-          />
-        </div>
+          <div className={`${classNameCampo('puntoDeVenta')} max-w-campo-corto`}>
+            {/* Se propone en el alta de factura para armar el número de comprobante (FR-027). */}
+            <label htmlFor="puntoDeVenta">Punto de venta (opcional, 4 dígitos)</label>
+            <input
+              id="puntoDeVenta"
+              placeholder="0001"
+              type="text"
+              maxLength={4}
+              value={puntoDeVenta}
+              onChange={(evento) => setPuntoDeVenta(evento.target.value)}
+              aria-invalid={erroresDeCampo.puntoDeVenta !== undefined}
+            />
+            {erroresDeCampo.puntoDeVenta && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.puntoDeVenta}
+              </p>
+            )}
+          </div>
+        </SeccionNumerada>
 
-        <div className={classNameCampo('telefono')}>
-          <label htmlFor="telefono">Teléfono (opcional)</label>
-          <input
-            id="telefono"
-            type="tel"
-            maxLength={50}
-            value={telefono}
-            onChange={(evento) => setTelefono(evento.target.value)}
-            aria-invalid={erroresDeCampo.telefono !== undefined}
-          />
-        </div>
+        <SeccionNumerada
+          numero={3}
+          titulo="Contacto y cobro"
+        >
+          <div className={`${classNameCampo('cbu')} max-w-campo-medio`}>
+            {/* Vacío ⇒ la banda de CBU no sale impresa en el documento (FR-031). */}
 
-        <div className={classNameCampo('email')}>
-          <label htmlFor="email">Email (opcional)</label>
-          <input
-            id="email"
-            type="email"
-            maxLength={254}
-            value={email}
-            onChange={(evento) => setEmail(evento.target.value)}
-            aria-invalid={erroresDeCampo.email !== undefined}
-          />
-          {erroresDeCampo.email && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.email}
-            </p>
-          )}
-        </div>
+            <label htmlFor="cbu">CBU (opcional)</label>
+            <input
+              id="cbu"
+              type="text"
+              maxLength={22}
+              value={cbu}
+              onChange={(evento) => setCbu(evento.target.value)}
+              aria-invalid={erroresDeCampo.cbu !== undefined}
+            />
+          </div>
 
-        <div className="acciones">
-          <button type="submit" disabled={guardando}>
+          <div className={`${classNameCampo('telefono')} max-w-campo-medio`}>
+            <label htmlFor="telefono">Teléfono (opcional)</label>
+            <input
+              id="telefono"
+              placeholder="+54 9 221 555-0148"
+              type="tel"
+              maxLength={50}
+              value={telefono}
+              onChange={(evento) => setTelefono(evento.target.value)}
+              aria-invalid={erroresDeCampo.telefono !== undefined}
+            />
+          </div>
+
+          <div className={`${classNameCampo('email')} max-w-campo-medio`}>
+            <label htmlFor="email">Email (opcional)</label>
+            <input
+              id="email"
+              placeholder="nombre@empresa.com.ar"
+              type="email"
+              maxLength={254}
+              value={email}
+              onChange={(evento) => setEmail(evento.target.value)}
+              aria-invalid={erroresDeCampo.email !== undefined}
+            />
+            {erroresDeCampo.email && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.email}
+              </p>
+            )}
+          </div>
+        </SeccionNumerada>
+
+        <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={guardando}
+            icono={<IconoEnRegla className="size-3" />}
+          >
             Guardar
-          </button>
-        </div>
+          </Boton>
+        </BarraDeAcciones>
       </form>
 
       {empresa !== null && (

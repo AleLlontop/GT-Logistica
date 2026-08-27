@@ -36,9 +36,9 @@ export function Paginacion({
   return (
     <nav
       aria-label="Paginación"
-      className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-medio border border-borde bg-superficie px-4 py-3"
+      className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-surface-soft px-5 py-3.5"
     >
-      <p role="status" className="text-sm text-texto-suave">
+      <p role="status" className="m-0 text-[12.5px] text-ink-soft">
         Página {pagina} de {paginas}, mostrando {desde} a {hasta} de {total} {nombrePlural}
       </p>
 

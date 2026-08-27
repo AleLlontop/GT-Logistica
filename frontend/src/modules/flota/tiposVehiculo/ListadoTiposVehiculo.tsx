@@ -1,9 +1,10 @@
+import { Estado } from '../../../compartido/ui/Estado'
+import { MenuDeFila } from '../../../compartido/ui/MenuDeFila'
 import { Aviso } from '../../../compartido/ui/Aviso'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import { DialogoConfirmacion } from '../../../compartido/ui/DialogoConfirmacion'
 import { FormularioTipoVehiculo } from './FormularioTipoVehiculo'
@@ -69,13 +70,11 @@ export function ListadoTiposVehiculo() {
 
   return (
     <section>
+      {/* El *volver* pasa de `accionPrincipal` a `volverA`, que es donde va una salida (FR-022).
+          La prop ya existía y no la usaba nadie. */}
       <EncabezadoDePantalla
         titulo="Tipos de vehículo"
-        accionPrincipal={
-          <>
-            <Link to="/flota">Volver a la flota</Link>
-          </>
-        }
+        volverA={{ ruta: '/flota', etiqueta: 'Volver a la flota' }}
       />
       {error !== null && (
         <Aviso tono="error" rol="alert" className="mb-4">
@@ -115,26 +114,40 @@ export function ListadoTiposVehiculo() {
               <th scope="col">Nombre</th>
               <th scope="col">Estado</th>
               <th scope="col">Vehículos que lo usan</th>
-              <th scope="col">Acciones</th>
+              <th scope="col" className="w-8" aria-hidden="true" />
             </tr>
           </thead>
           <tbody>
+            {/* **Sin enlace de fila**: edita en la misma pantalla, no navega a ningún lado. */}
             {tipos.map((tipo) => (
               <tr key={tipo.id}>
                 <td>{tipo.nombre}</td>
                 {/* El estado va con su palabra, nunca sólo con un color (convención [003]). */}
-                <td>{tipo.activo ? 'Activo' : 'Inactivo'}</td>
+                <td>
+                  <Estado
+                    valor={tipo.activo ? 'activo' : 'inactivo'}
+                    texto={tipo.activo ? 'Activo' : 'Inactivo'}
+                    forma="punto"
+                  />
+                </td>
                 {/* Es lo que explica por qué algunos no se pueden dar de baja (FR-010). */}
                 <td>{tipo.cantidadVehiculos}</td>
-                <td>
-                  <button type="button" onClick={() => setEnEdicion(tipo)}>
-                    Editar
-                  </button>
-                  {tipo.activo && (
-                    <button type="button" onClick={() => setABajar(tipo)}>
-                      Dar de baja
-                    </button>
-                  )}
+                <td className="w-8">
+                  <MenuDeFila
+                    etiqueta={`Acciones de ${tipo.nombre}`}
+                    items={[
+                      { etiqueta: 'Editar', onSeleccionar: () => setEnEdicion(tipo) },
+                      ...(tipo.activo
+                        ? [
+                            {
+                              etiqueta: 'Dar de baja',
+                              onSeleccionar: () => setABajar(tipo),
+                              destructivo: true,
+                            },
+                          ]
+                        : []),
+                    ]}
+                  />
                 </td>
               </tr>
             ))}

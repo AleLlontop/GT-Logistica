@@ -1,10 +1,20 @@
 import { Aviso } from '../../../compartido/ui/Aviso'
+import { EnlaceDeFila } from '../../../compartido/ui/EnlaceDeFila'
+import { Estado } from '../../../compartido/ui/Estado'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { EncabezadoDeChevron, FilaNavegable } from '../../../compartido/ui/FilaNavegable'
+import { Filtros, FranjaDeBusqueda, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
-import { clasesDeEnlaceDeFila } from '../../../compartido/ui/clases'
+import { MenuDeFila } from '../../../compartido/ui/MenuDeFila'
+import {
+  clasesDeBoton,
+  clasesDeEtiquetaDeFiltro,
+  clasesDeFiltro,
+} from '../../../compartido/ui/clases'
+import { IconoNuevo } from '../../../compartido/ui/iconos'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import { ConfirmacionBajaCliente } from '../componentes/ConfirmacionBajaCliente'
 import { Paginacion } from '../../../compartido/ui/Paginacion'
@@ -43,7 +53,6 @@ interface Props {
  * social: ningún estado se comunica sólo por color (FR-049).
  */
 export function ListadoClientes({ puedeGestionar }: Props) {
-  const navegar = useNavigate()
   const ubicacion = useLocation()
 
   const [filtros, setFiltros] = useState(FILTROS_CLIENTES_INICIALES)
@@ -113,114 +122,182 @@ export function ListadoClientes({ puedeGestionar }: Props) {
       <EncabezadoDePantalla
         titulo="Clientes"
         accionPrincipal={
-          <>
-            {puedeGestionar && <Link to="/clientes/nuevo">Nuevo cliente</Link>}
-          </>
+          puedeGestionar ? (
+            <Link to="/clientes/nuevo" className={clasesDeBoton('primario')}>
+              Nuevo cliente
+              <span
+                aria-hidden="true"
+                className="flex size-8 shrink-0 items-center justify-center rounded-pastilla bg-white/[0.14] transition-transform duration-200 ease-gt group-hover:translate-x-0.5"
+              >
+                <IconoNuevo className="size-3" />
+              </span>
+            </Link>
+          ) : undefined
         }
       />
-      <form
-        className="flex flex-wrap items-end gap-4 border-b border-borde bg-superficie-hundida px-4 py-3 [&_.campo]:flex [&_.campo]:flex-col [&_.campo]:gap-1 [&_label]:text-xs [&_label]:font-medium [&_label]:text-texto-suave [&_input]:rounded-chico [&_input]:border [&_input]:border-borde-fuerte [&_input]:bg-superficie [&_input]:px-2 [&_input]:py-1.5 [&_input]:text-sm [&_button]:rounded-chico [&_button]:border [&_button]:border-borde-fuerte [&_button]:bg-superficie [&_button]:px-3 [&_button]:py-1.5 [&_button]:text-sm"
-        onSubmit={(evento) => {
-          evento.preventDefault()
-          setPagina(1)
-        }}
-      >
-        <label htmlFor="busqueda-clientes">Buscar por razón social</label>
-        <input
-          id="busqueda-clientes"
-          type="search"
-          value={filtros.busqueda}
-          onChange={(evento) => {
-            setFiltros({ ...filtros, busqueda: evento.target.value })
-            setPagina(1)
-          }}
-        />
-
-        <label htmlFor="solo-activos">Mostrar sólo los activos</label>
-        <input
-          id="solo-activos"
-          type="checkbox"
-          checked={filtros.soloActivos}
-          onChange={(evento) => {
-            setFiltros({ ...filtros, soloActivos: evento.target.checked })
-            setPagina(1)
-          }}
-        />
-      </form>
 
       {error !== null && (
-        <Aviso tono="error" rol="alert" className="mb-4">
+        <Aviso tono="error" rol="alert" className="mb-[18px]">
           {error}
         </Aviso>
       )}
-      {aviso !== null && <p role="status">{aviso}</p>}
-
-      {resultado === null && error === null && (
-        <EstadoVacio caso="cargando" className="border-0 shadow-none">
-          Cargando clientes…
-        </EstadoVacio>
+      {aviso !== null && (
+        <p role="status" className="mb-[18px] text-[13px] text-ink-soft">
+          {aviso}
+        </p>
       )}
 
-      {resultado !== null && resultado.items.length === 0 && (
-        <EstadoVacio
-          caso={filtrando ? 'sinCoincidencias' : 'vacio'}
-          className="border-0 shadow-none"
+      <Listado>
+        {/*
+          Los filtros estaban sueltos en la pantalla, con el mismo blob de selectores por
+          descendiente que [007] prohíbe. Pasan a la primitiva: el buscador **primero y a todo el
+          ancho** y la casilla debajo (FR-032, FR-033). Los dos textos se conservan tal cual: los
+          consulta la suite (FR-066).
+        */}
+        <Filtros
+          resumen={
+            resultado !== null && (
+              <>
+                <span>
+                  {resultado.total} {resultado.total === 1 ? 'cliente' : 'clientes'}
+                </span>
+                <span>Ordenado por razón social</span>
+              </>
+            )
+          }
         >
-          {filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_PADRON_VACIO}
-        </EstadoVacio>
-      )}
+          <FranjaDeBusqueda>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="busqueda-clientes" className={clasesDeEtiquetaDeFiltro}>
+                Buscar por razón social
+              </label>
+              <input
+                id="busqueda-clientes"
+                type="search"
+                placeholder="Distribuidora del Litoral"
+                value={filtros.busqueda}
+                onChange={(evento) => {
+                  setFiltros({ ...filtros, busqueda: evento.target.value })
+                  setPagina(1)
+                }}
+                className={clasesDeFiltro(filtros.busqueda.trim() !== '')}
+              />
+            </div>
+          </FranjaDeBusqueda>
 
-      {resultado !== null && resultado.items.length > 0 && (
-        <Listado>
+          <FranjaDeFiltros>
+            <label
+              htmlFor="solo-activos"
+              className="flex items-center gap-2 text-[12.5px] font-medium text-ink-soft"
+            >
+              <input
+                id="solo-activos"
+                type="checkbox"
+                checked={filtros.soloActivos}
+                onChange={(evento) => {
+                  setFiltros({ ...filtros, soloActivos: evento.target.checked })
+                  setPagina(1)
+                }}
+                className="size-4"
+              />
+              Mostrar sólo los activos
+            </label>
+          </FranjaDeFiltros>
+        </Filtros>
+
+        {resultado === null && error === null && (
+          <EstadoVacio caso="cargando" className="border-0 shadow-none">
+            Cargando clientes…
+          </EstadoVacio>
+        )}
+
+        {resultado !== null && resultado.items.length === 0 && (
+          <EstadoVacio
+            caso={filtrando ? 'sinCoincidencias' : 'vacio'}
+            className="border-0 shadow-none"
+          >
+            {filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_PADRON_VACIO}
+          </EstadoVacio>
+        )}
+
+        {resultado !== null && resultado.items.length > 0 && (
           <TablaDesplazable>
             <table>
-          <caption>Padrón de clientes</caption>
-          <thead>
-            <tr>
-              <th scope="col">Razón social</th>
-              <th scope="col">CUIT</th>
-              <th scope="col">Teléfono</th>
-              <th scope="col">Email</th>
-              <th scope="col">Estado</th>
-              {puedeGestionar && <th scope="col">Acciones</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {resultado.items.map((cliente) => (
-              <tr key={cliente.id} className={cliente.activo ? undefined : 'atenuado'}>
-                <td>
-                  {cliente.razonSocial}
-                  {/* Atenuar es una señal visual; la palabra es la que lo explica (FR-049). */}
-                  {!cliente.activo && ' (inactivo)'}
-                </td>
-                <td>{formatearCuit(cliente.cuit)}</td>
-                <td>{cliente.telefono}</td>
-                <td>{cliente.email}</td>
-                <td>{cliente.activo ? 'Activo' : 'Inactivo'}</td>
-                {puedeGestionar && (
-                  <td>
-                    <button type="button" onClick={() => navegar(`/clientes/${cliente.id}`)} className={clasesDeEnlaceDeFila()}>
-                      Editar
-                    </button>
-
-                    {cliente.activo ? (
-                      <button type="button" onClick={() => setABajar(cliente)}>
-                        Dar de baja
-                      </button>
-                    ) : (
-                      <button type="button" onClick={() => darDeAlta(cliente)}>
-                        Dar de alta
-                      </button>
-                    )}
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              <caption>Padrón de clientes</caption>
+              <thead>
+                <tr>
+                  {/* `Razón social` + `CUIT` nombran un solo concepto: el cliente (FR-047). */}
+                  <th scope="col">Cliente</th>
+                  {/* `Teléfono` + `Email` nombran un solo concepto: el contacto (FR-047). */}
+                  <th scope="col">Contacto</th>
+                  <th scope="col">Estado</th>
+                  <EncabezadoDeChevron />
+                </tr>
+              </thead>
+              <tbody>
+                {resultado.items.map((cliente) => (
+                  <FilaNavegable
+                    key={cliente.id}
+                    a={`/clientes/${cliente.id}`}
+                    className={cliente.activo ? undefined : 'atenuado'}
+                  >
+                    <td>
+                      <EnlaceDeFila
+                        a={`/clientes/${cliente.id}`}
+                        identificador={formatearCuit(cliente.cuit)}
+                      >
+                        {cliente.razonSocial}
+                        {/* Atenuar es una señal visual; la palabra es la que lo explica (FR-060). */}
+                        {!cliente.activo && ' (inactivo)'}
+                      </EnlaceDeFila>
+                    </td>
+                    <td>
+                      <span className="flex flex-col gap-0.5">
+                        <span>{cliente.telefono}</span>
+                        <span className="text-[11.5px] text-faint">{cliente.email}</span>
+                      </span>
+                    </td>
+                    {/* Alta y baja: van como punto (FR-055). */}
+                    <td>
+                      <Estado
+                        valor={cliente.activo ? 'activo' : 'inactivo'}
+                        texto={cliente.activo ? 'Activo' : 'Inactivo'}
+                        forma="punto"
+                      />
+                    </td>
+                    <td className="w-8">
+                      {/*
+                        Sin permiso de gestión **el `···` no se dibuja**: `items` vacío no dibuja
+                        nada (FR-045). Ocultarlo es cortesía; la restricción sigue siendo el `403`.
+                      */}
+                      <MenuDeFila
+                        etiqueta={`Acciones de ${cliente.razonSocial}`}
+                        items={
+                          puedeGestionar
+                            ? [
+                                { etiqueta: 'Editar', a: `/clientes/${cliente.id}` },
+                                cliente.activo
+                                  ? {
+                                      etiqueta: 'Dar de baja',
+                                      onSeleccionar: () => setABajar(cliente),
+                                      destructivo: true,
+                                    }
+                                  : {
+                                      etiqueta: 'Dar de alta',
+                                      onSeleccionar: () => darDeAlta(cliente),
+                                    },
+                              ]
+                            : []
+                        }
+                      />
+                    </td>
+                  </FilaNavegable>
+                ))}
+              </tbody>
+            </table>
           </TablaDesplazable>
-        </Listado>
-      )}
+        )}
+      </Listado>
 
       {resultado !== null && (
         <Paginacion

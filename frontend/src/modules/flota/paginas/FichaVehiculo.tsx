@@ -1,3 +1,10 @@
+import { AsideDeFicha, BloqueDeAside } from '../../../compartido/ui/AsideDeFicha'
+import { Boton } from '../../../compartido/ui/Boton'
+import { FichaCuerpo, FichaSeccion } from '../../../compartido/ui/Ficha'
+import { MenuDeFila } from '../../../compartido/ui/MenuDeFila'
+import { TablaDesplazable } from '../../../compartido/ui/Listado'
+import { IconoAnulado, IconoDocumento } from '../../../compartido/ui/iconos'
+import { TokenDeIdentificador } from '../../../compartido/ui/TokenDeIdentificador'
 import { Estado } from '../../../compartido/ui/Estado'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
@@ -142,65 +149,91 @@ export function FichaVehiculo() {
   }
 
   return (
-    <section className="flex flex-col gap-4 [&>section]:rounded-medio [&>section]:border [&>section]:border-borde [&>section]:bg-superficie [&>section]:shadow-tarjeta [&>section>h2]:m-0 [&>section>h2]:border-b [&>section>h2]:border-borde [&>section>h2]:px-5 [&>section>h2]:py-3 [&>section>h2]:text-sm [&>section>h2]:font-semibold [&>section>h2]:uppercase [&>section>h2]:tracking-wide [&>section>h2]:text-texto-suave [&_dl]:m-0 [&_dl]:grid [&_dl]:grid-cols-[minmax(10rem,auto)_1fr] [&_dl]:gap-x-6 [&_dl]:gap-y-2 [&_dl]:px-5 [&_dl]:py-4 [&_dt]:text-sm [&_dt]:text-texto-suave [&_dd]:m-0 [&_dd]:text-sm [&_dd]:font-medium [&_dd]:text-texto [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm [&_caption]:sr-only [&_thead]:bg-superficie-hundida [&_th]:border-b [&_th]:border-borde-fuerte [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_th]:whitespace-nowrap [&_tbody_tr]:border-b [&_tbody_tr]:border-borde [&_td]:px-4 [&_td]:py-2.5 [&_td]:align-top">
+    <section>
       <EncabezadoDePantalla
         titulo={vehiculo.patente}
+        volverA={{ ruta: '/flota', etiqueta: 'Volver al listado' }}
+        resumen={
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>
+              {vehiculo.marca} {vehiculo.modelo}
+            </span>
+            <span aria-hidden="true">
+              ·
+            </span>
+            <span>{vehiculo.tipo.nombre}</span>
+            <span aria-hidden="true">
+              ·
+            </span>
+            <span>{vehiculo.transportista.nombre}</span>
+            {!vehiculo.activo && (
+              <>
+                <span aria-hidden="true">
+                  ·
+                </span>
+                {/* La unidad dada de baja lleva la palabra que lo explica (FR-060). */}
+                <span className="atenuada">Dada de baja</span>
+              </>
+            )}
+          </span>
+        }
         accionPrincipal={
           <>
-            <button type="button" onClick={() => navegar(`/flota/${vehiculo.id}/editar`)}>
+            {/*
+              **La acción principal es *Agregar documento*** (FR-019). El verbo es el que ya está en
+              pantalla y **no es el mismo que el de choferes** —ahí dice *Cargar documento*—: los dos
+              quedan como estaban (FR-066).
+            */}
+            <Boton variante="secundario" onClick={() => navegar(`/flota/${vehiculo.id}/editar`)}>
               Editar
-            </button>
+            </Boton>
 
-            {/* Si está dada de baja, en lugar de Dar de baja aparece Reactivar (FR-008e). */}
+            {/* Si está dada de baja, en lugar de Dar de baja aparece Reactivar (FR-008e del
+                Módulo 4): no conviven. */}
             {vehiculo.activo ? (
-              <button
-                type="button"
+              <Boton
+                variante="destructivo"
+                icono={<IconoAnulado className="size-3" />}
                 onClick={() => setAConfirmar({ tipo: 'baja', patente: vehiculo.patente })}
               >
                 Dar de baja
-              </button>
+              </Boton>
             ) : (
-              <button
-                type="button"
+              <Boton
+                variante="secundario"
                 onClick={() => setAConfirmar({ tipo: 'reactivacion', patente: vehiculo.patente })}
               >
                 Reactivar
-              </button>
+              </Boton>
             )}
 
-            <button type="button" onClick={() => setCargandoDocumento(true)}>
+            <Boton
+              variante="primario"
+              onClick={() => setCargandoDocumento(true)}
+              icono={<IconoDocumento className="size-3" />}
+            >
               Agregar documento
-            </button>
+            </Boton>
           </>
         }
       />
 
-      {error !== null && <p role="alert">{error}</p>}
-      {aviso !== null && <p role="status">{aviso}</p>}
-
-      <section aria-label="Datos de la unidad">
-        <h2>Datos de la unidad</h2>
-        <dl>
-          <dt>Marca</dt>
-          <dd>{vehiculo.marca}</dd>
-          <dt>Modelo</dt>
-          <dd>{vehiculo.modelo}</dd>
-          <dt>Tipo</dt>
-          <dd>{vehiculo.tipo.nombre}</dd>
-          <dt>Transportista</dt>
-          <dd>{vehiculo.transportista.nombre}</dd>
-          <dt>Estado</dt>
-          {/* El **derivado**, que es el que responde si la unidad puede salir a la ruta (FR-014). */}
-          <dd>
-            <Estado valor={vehiculo.estado} texto={TEXTO_ESTADO_VEHICULO[vehiculo.estado]} />
-            {!vehiculo.activo && ' — Dada de baja'}
-          </dd>
-          <dt>Documentación</dt>
-          <dd>
-            <Estado valor={vehiculo.estadoDocumentacion} texto={TEXTO_ESTADO_DOCUMENTACION[vehiculo.estadoDocumentacion]} />
-          </dd>
-        </dl>
-      </section>
+      {error !== null && (
+        <p
+          role="alert"
+          className="mb-[18px] rounded-card border border-line bg-danger-bg px-[18px] py-4 text-[13px] leading-5 font-medium text-danger-text"
+        >
+          {error}
+        </p>
+      )}
+      {aviso !== null && (
+        <p
+          role="status"
+          className="mb-[18px] rounded-card border border-line bg-estado-rendido-bg px-[18px] py-4 text-[13px] leading-5 font-medium text-estado-rendido"
+        >
+          {aviso}
+        </p>
+      )}
 
       {cargandoDocumento && (
         <FormularioDocumentoVehiculo
@@ -229,74 +262,136 @@ export function FichaVehiculo() {
         />
       )}
 
-      <section aria-label="Documentación">
-        <h2>Documentación</h2>
+      <FichaCuerpo
+        aside={
+          <AsideDeFicha
+            /* El dato de más valor de una unidad es su estado operativo **derivado**: es el que
+               responde si puede salir a la ruta (data-model §8, FR-014 del Módulo 4). */
+            destacado={
+              <div className="flex flex-col gap-2.5">
+                <span className="text-[9.5px] font-bold tracking-[0.14em] text-encabezado uppercase">
+                  Estado operativo
+                </span>
+                <Estado
+                  valor={vehiculo.estado}
+                  texto={TEXTO_ESTADO_VEHICULO[vehiculo.estado]}
+                  forma="pastilla"
+                  className="text-[14px]"
+                />
+                <TokenDeIdentificador numero={vehiculo.patente} />
+              </div>
+            }
+          >
+            <BloqueDeAside titulo="Documentación">
+              <Estado
+                valor={vehiculo.estadoDocumentacion}
+                texto={TEXTO_ESTADO_DOCUMENTACION[vehiculo.estadoDocumentacion]}
+                forma="pastilla"
+              />
+            </BloqueDeAside>
 
-        {vehiculo.documentos.length === 0 && <p role="status">{MENSAJE_SIN_DOCUMENTACION}</p>}
+            <BloqueDeAside titulo="Dependencia">
+              <p className="m-0">{vehiculo.transportista.nombre}</p>
+            </BloqueDeAside>
+          </AsideDeFicha>
+        }
+      >
+        <FichaSeccion titulo="Datos de la unidad" id="titulo-datos-vehiculo">
+          <dl>
+            <dt>Marca</dt>
+            <dd>{vehiculo.marca}</dd>
+            <dt>Modelo</dt>
+            <dd>{vehiculo.modelo}</dd>
+            <dt>Tipo</dt>
+            <dd>{vehiculo.tipo.nombre}</dd>
+            <dt>Transportista</dt>
+            <dd>{vehiculo.transportista.nombre}</dd>
+          </dl>
+        </FichaSeccion>
 
-        {vehiculo.documentos.length > 0 && (
-          <table>
-            <caption>Documentos de la unidad</caption>
-            <thead>
-              <tr>
-                <th scope="col">Tipo</th>
-                <th scope="col">Número</th>
-                <th scope="col">Emisión</th>
-                <th scope="col">Vencimiento</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Archivo</th>
-                <th scope="col">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vehiculo.documentos.map((documento) => (
-                <tr
-                  key={documento.id}
-                  className={documento.esVigenteDelTipo ? undefined : 'documento--historico'}
-                >
-                  <td>{documento.tipo.nombre}</td>
-                  <td>{documento.numero}</td>
-                  <td>{formatearFecha(documento.fechaEmision)}</td>
-                  <td>{formatearFecha(documento.fechaVencimiento)}</td>
-                  <td>
-                    <Estado valor={documento.estado} texto={TEXTO_ESTADO_DOCUMENTO[documento.estado]} />
-                    {/* El histórico lleva la palabra, no nada más el gris (convención [003]). */}
-                    {!documento.esVigenteDelTipo && ' — Histórico'}
-                    {documento.esVigenteDelTipo && (
-                      <> — {textoDelPlazo(documento.diasHastaVencimiento)}</>
-                    )}
-                  </td>
-                  <td>
-                    {documento.tieneArchivo ? (
-                      <a
-                        href={rutaDelArchivoDeFlota(documento.id)}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Abrir archivo
-                      </a>
-                    ) : (
-                      // Ni un enlace roto ni un espacio en blanco: la leyenda que lo explica
-                      // (FR-016a).
-                      'Sin archivo adjunto'
-                    )}
-                  </td>
-                  <td>
-                    <button type="button" onClick={() => setCorrigiendo(documento)}>
-                      Corregir
-                    </button>
-                    <button type="button" onClick={() => setDocumentoAEliminar(documento)}>
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </section>
+        <FichaSeccion titulo="Documentación" id="titulo-documentacion-vehiculo">
+          {vehiculo.documentos.length === 0 && (
+            <p role="status" className="m-0 px-[22px] py-5 text-[13px] leading-5 text-ink-soft">
+              {MENSAJE_SIN_DOCUMENTACION}
+            </p>
+          )}
 
-      <Link to="/flota">Volver al listado</Link>
+          {vehiculo.documentos.length > 0 && (
+            <TablaDesplazable>
+              <table className="w-full border-collapse text-[13px]">
+                <caption className="sr-only">Documentos de la unidad</caption>
+                <thead className="bg-surface-soft">
+                  <tr className="[&>th]:border-b [&>th]:border-line [&>th]:px-5 [&>th]:py-2.5 [&>th]:text-left [&>th]:text-[9.5px] [&>th]:font-bold [&>th]:tracking-[0.14em] [&>th]:text-encabezado [&>th]:uppercase">
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Número</th>
+                    <th scope="col">Emisión</th>
+                    <th scope="col">Vencimiento</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Archivo</th>
+                    {/* La columna `Acciones` desaparece: sus acciones pasan al `···` (FR-046). */}
+                    <th scope="col" className="w-8" aria-hidden="true" />
+                  </tr>
+                </thead>
+                <tbody className="[&>tr]:border-b [&>tr]:border-line [&>tr:last-child]:border-b-0 [&_td]:px-5 [&_td]:py-[13px]">
+                  {vehiculo.documentos.map((documento) => (
+                    <tr
+                      key={documento.id}
+                      className={documento.esVigenteDelTipo ? undefined : 'atenuada'}
+                    >
+                      <td>{documento.tipo.nombre}</td>
+                      <td className="font-mono">{documento.numero}</td>
+                      <td>{formatearFecha(documento.fechaEmision)}</td>
+                      <td>{formatearFecha(documento.fechaVencimiento)}</td>
+                      <td>
+                        <Estado
+                          valor={documento.estado}
+                          texto={TEXTO_ESTADO_DOCUMENTO[documento.estado]}
+                          forma="pastilla"
+                          detalle={
+                            /* El histórico lleva la palabra, no nada más el gris ([003], FR-060). */
+                            documento.esVigenteDelTipo
+                              ? textoDelPlazo(documento.diasHastaVencimiento)
+                              : 'Histórico'
+                          }
+                        />
+                      </td>
+                      <td>
+                        {documento.tieneArchivo ? (
+                          <a
+                            href={rutaDelArchivoDeFlota(documento.id)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-brand underline underline-offset-2"
+                          >
+                            Abrir archivo
+                          </a>
+                        ) : (
+                          // Ni un enlace roto ni un espacio en blanco: la leyenda que lo explica
+                          // (FR-016a del Módulo 4).
+                          <span className="atenuada">Sin archivo adjunto</span>
+                        )}
+                      </td>
+                      <td className="w-8">
+                        <MenuDeFila
+                          etiqueta={`Acciones de ${documento.tipo.nombre} N° ${documento.numero}`}
+                          items={[
+                            { etiqueta: 'Corregir', onSeleccionar: () => setCorrigiendo(documento) },
+                            {
+                              etiqueta: 'Eliminar',
+                              destructivo: true,
+                              onSeleccionar: () => setDocumentoAEliminar(documento),
+                            },
+                          ]}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </TablaDesplazable>
+          )}
+        </FichaSeccion>
+      </FichaCuerpo>
 
       {aConfirmar !== null && (
         <ConfirmacionBajaVehiculo

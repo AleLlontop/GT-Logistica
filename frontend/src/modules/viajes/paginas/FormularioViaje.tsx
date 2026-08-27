@@ -1,4 +1,8 @@
-import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -174,146 +178,172 @@ export function FormularioViaje() {
         </div>
       )}
 
-      <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
-        <div className={classNameCampo('clienteId')}>
-          <label htmlFor="clienteId">Cliente</label>
-          <select
-            id="clienteId"
-            required
-            value={clienteId}
-            onChange={(evento) => setClienteId(Number(evento.target.value))}
-            aria-invalid={erroresDeCampo.clienteId !== undefined}
-          >
-            <option value="" disabled>
-              Seleccioná un cliente
-            </option>
-            {(clientes ?? []).map((cliente) => (
-              <option key={cliente.id} value={cliente.id}>
-                {cliente.razonSocial}
+      <form onSubmit={guardar} noValidate className={clasesDeFormularioAgrupado}>
+        <SeccionNumerada
+          numero={1}
+          titulo="Cliente y fecha"
+        >
+          <div className={`${classNameCampo('clienteId')} max-w-campo-largo`}>
+            <label htmlFor="clienteId">Cliente</label>
+            <select
+              id="clienteId"
+              required
+              value={clienteId}
+              onChange={(evento) => setClienteId(Number(evento.target.value))}
+              aria-invalid={erroresDeCampo.clienteId !== undefined}
+            >
+              <option value="" disabled>
+                Seleccioná un cliente
               </option>
-            ))}
-          </select>
-          {erroresDeCampo.clienteId && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.clienteId}
-            </p>
-          )}
-        </div>
+              {(clientes ?? []).map((cliente) => (
+                <option key={cliente.id} value={cliente.id}>
+                  {cliente.razonSocial}
+                </option>
+              ))}
+            </select>
+            {erroresDeCampo.clienteId && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.clienteId}
+              </p>
+            )}
+          </div>
 
-        <div className={classNameCampo('fecha')}>
-          {/* Sin límite de antigüedad ni de anticipación: pasado y futuro son válidos (FR-016). */}
-          <label htmlFor="fecha">Fecha del viaje</label>
-          <input
-            id="fecha"
-            type="date"
-            required
-            value={fecha}
-            onChange={(evento) => setFecha(evento.target.value)}
-            aria-invalid={erroresDeCampo.fecha !== undefined}
-          />
-          {erroresDeCampo.fecha && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.fecha}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('fecha')} max-w-campo-corto`}>
+            {/* Sin límite de antigüedad ni de anticipación: pasado y futuro son válidos (FR-016). */}
+            <label htmlFor="fecha">Fecha del viaje</label>
+            <input
+              id="fecha"
+              type="date"
+              required
+              value={fecha}
+              onChange={(evento) => setFecha(evento.target.value)}
+              aria-invalid={erroresDeCampo.fecha !== undefined}
+            />
+            {erroresDeCampo.fecha && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.fecha}
+              </p>
+            )}
+          </div>
+        </SeccionNumerada>
 
-        <div className={classNameCampo('origen')}>
-          <label htmlFor="origen">Origen</label>
-          <input
-            id="origen"
-            type="text"
-            required
-            maxLength={100}
-            value={origen}
-            onChange={(evento) => setOrigen(evento.target.value)}
-            aria-invalid={erroresDeCampo.origen !== undefined}
-          />
-          {erroresDeCampo.origen && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.origen}
-            </p>
-          )}
-        </div>
+        <SeccionNumerada
+          numero={2}
+          titulo="Recorrido"
+          explicacion="De dónde a dónde va la carga."
+        >
+          <div className={`${classNameCampo('origen')} max-w-campo-largo`}>
+            <label htmlFor="origen">Origen</label>
+            <input
+              id="origen"
+              placeholder="Rosario"
+              type="text"
+              required
+              maxLength={100}
+              value={origen}
+              onChange={(evento) => setOrigen(evento.target.value)}
+              aria-invalid={erroresDeCampo.origen !== undefined}
+            />
+            {erroresDeCampo.origen && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.origen}
+              </p>
+            )}
+          </div>
 
-        <div className={classNameCampo('destino')}>
-          <label htmlFor="destino">Destino</label>
-          <input
-            id="destino"
-            type="text"
-            required
-            maxLength={100}
-            value={destino}
-            onChange={(evento) => setDestino(evento.target.value)}
-            aria-invalid={erroresDeCampo.destino !== undefined}
-          />
-          {erroresDeCampo.destino && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.destino}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('destino')} max-w-campo-largo`}>
+            <label htmlFor="destino">Destino</label>
+            <input
+              id="destino"
+              placeholder="Córdoba"
+              type="text"
+              required
+              maxLength={100}
+              value={destino}
+              onChange={(evento) => setDestino(evento.target.value)}
+              aria-invalid={erroresDeCampo.destino !== undefined}
+            />
+            {erroresDeCampo.destino && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.destino}
+              </p>
+            )}
+          </div>
 
-        <div className={classNameCampo('numeroRemito')}>
-          <label htmlFor="numeroRemito">Número de remito (opcional)</label>
-          <input
-            id="numeroRemito"
-            type="text"
-            maxLength={50}
-            value={numeroRemito}
-            onChange={(evento) => setNumeroRemito(evento.target.value)}
-            aria-invalid={erroresDeCampo.numeroRemito !== undefined}
-          />
-          {erroresDeCampo.numeroRemito && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.numeroRemito}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('numeroRemito')} max-w-campo-medio`}>
+            <label htmlFor="numeroRemito">Número de remito (opcional)</label>
+            <input
+              id="numeroRemito"
+              type="text"
+              maxLength={50}
+              value={numeroRemito}
+              onChange={(evento) => setNumeroRemito(evento.target.value)}
+              aria-invalid={erroresDeCampo.numeroRemito !== undefined}
+            />
+            {erroresDeCampo.numeroRemito && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.numeroRemito}
+              </p>
+            )}
+          </div>
 
-        <div className={classNameCampo('detalleCarga')}>
-          <label htmlFor="detalleCarga">Detalle de la carga (opcional)</label>
-          <textarea
-            id="detalleCarga"
-            maxLength={500}
-            value={detalleCarga}
-            onChange={(evento) => setDetalleCarga(evento.target.value)}
-            aria-invalid={erroresDeCampo.detalleCarga !== undefined}
-          />
-          {erroresDeCampo.detalleCarga && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.detalleCarga}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('detalleCarga')} w-full`}>
+            <label htmlFor="detalleCarga">Detalle de la carga (opcional)</label>
+            <textarea
+              id="detalleCarga"
+              maxLength={500}
+              value={detalleCarga}
+              onChange={(evento) => setDetalleCarga(evento.target.value)}
+              aria-invalid={erroresDeCampo.detalleCarga !== undefined}
+            />
+            {erroresDeCampo.detalleCarga && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.detalleCarga}
+              </p>
+            )}
+          </div>
+        </SeccionNumerada>
 
-        <div className={classNameCampo('importe')}>
-          {/* El cero es válido: viaje sin cargo o con el importe todavía sin definir (FR-013). */}
-          <label htmlFor="importe">Importe en pesos</label>
-          <input
-            id="importe"
-            type="number"
-            min={0}
-            step="0.01"
-            value={importe}
-            onChange={(evento) => setImporte(evento.target.value)}
-            aria-invalid={erroresDeCampo.importe !== undefined}
-          />
-          {erroresDeCampo.importe && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.importe}
-            </p>
-          )}
-        </div>
+        <SeccionNumerada
+          numero={3}
+          titulo="Importe"
+          explicacion="Lo que se le factura al cliente por este viaje."
+        >
+          <div className={`${classNameCampo('importe')} max-w-campo-corto`}>
+            {/* El cero es válido: viaje sin cargo o con el importe todavía sin definir (FR-013). */}
 
-        <div className="acciones">
-          <button type="submit" disabled={guardando || sinClientesActivos}>
-            {editando ? 'Guardar cambios' : 'Guardar viaje'}
-          </button>
-          <button type="button" onClick={() => navegar('/viajes')} disabled={guardando}>
+            <label htmlFor="importe">Importe en pesos</label>
+            <input
+              id="importe"
+              placeholder="22644,63"
+              type="number"
+              min={0}
+              step="0.01"
+              value={importe}
+              onChange={(evento) => setImporte(evento.target.value)}
+              aria-invalid={erroresDeCampo.importe !== undefined}
+            />
+            {erroresDeCampo.importe && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.importe}
+              </p>
+            )}
+          </div>
+        </SeccionNumerada>
+
+        <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+          <Boton variante="secundario" onClick={() => navegar('/viajes')} disabled={guardando}>
             Cancelar
-          </button>
-        </div>
+          </Boton>
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={guardando || sinClientesActivos}
+            icono={<IconoEnRegla className="size-3" />}
+          >
+            {editando ? 'Guardar cambios' : 'Guardar viaje'}
+          </Boton>
+        </BarraDeAcciones>
       </form>
     </section>
   )

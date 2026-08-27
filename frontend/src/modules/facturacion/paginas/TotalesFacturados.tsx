@@ -1,3 +1,5 @@
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoBuscar } from '../../../compartido/ui/iconos'
 import { clasesDeFormulario } from '../../../compartido/ui/clases'
 import { Aviso } from '../../../compartido/ui/Aviso'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
@@ -60,10 +62,19 @@ export function TotalesFacturados() {
 
   return (
     <section>
+      {/*
+        **Esta pantalla sí tiene acción principal, y es su asimetría con `/viajes/totales`**: acá la
+        consulta la dispara *Ver totales*, allá se dispara sola al completar el rango. Las dos son
+        paneles de solo lectura y sólo una lleva primario (FR-017, FR-020).
+      */}
       <EncabezadoDePantalla titulo="Totales facturados" />
 
-      <form onSubmit={consultar} noValidate className={clasesDeFormulario}>
-        <div className="campo">
+      <form
+        onSubmit={consultar}
+        noValidate
+        className={`${clasesDeFormulario} mb-[18px] flex-row flex-wrap items-end gap-3.5 rounded-card border border-line bg-surface p-[22px] shadow-card`}
+      >
+        <div className="campo max-w-campo-corto">
           <label htmlFor="totales-desde">Desde</label>
           <input
             id="totales-desde"
@@ -74,7 +85,7 @@ export function TotalesFacturados() {
           />
         </div>
 
-        <div className="campo">
+        <div className="campo max-w-campo-corto">
           <label htmlFor="totales-hasta">Hasta</label>
           <input
             id="totales-hasta"
@@ -85,9 +96,14 @@ export function TotalesFacturados() {
           />
         </div>
 
-        <button type="submit" disabled={consultando || !rangoCompleto}>
+        <Boton
+          type="submit"
+          variante="primario"
+          disabled={consultando || !rangoCompleto}
+          icono={<IconoBuscar className="size-3" />}
+        >
           Ver totales
-        </button>
+        </Boton>
       </form>
 
       {error !== null && (
@@ -117,7 +133,9 @@ export function TotalesFacturados() {
             <thead>
               <tr>
                 <th scope="col">Cliente</th>
-                <th scope="col">Cantidad de facturas</th>
+                <th scope="col" className="text-right">
+                  Cantidad de facturas
+                </th>
                 <th scope="col" className="text-right">Facturado</th>
                 <th scope="col" className="text-right">Cobrado</th>
                 <th scope="col" className="text-right">Pendiente de cobro</th>
@@ -126,11 +144,18 @@ export function TotalesFacturados() {
             <tbody>
               {totales.map((fila) => (
                 <tr key={fila.clienteId}>
+                  {/* **Sin enlace de fila**: es un panel de totales (data-model §5). */}
                   <td>{fila.razonSocial}</td>
-                  <td>{fila.cantidad}</td>
-                  <td className="text-right font-medium">{formatearPesos(fila.facturado)}</td>
-                  <td className="text-right font-medium">{formatearPesos(fila.cobrado)}</td>
-                  <td className="text-right font-medium">{formatearPesos(fila.pendiente)}</td>
+                  <td className="text-right">{fila.cantidad}</td>
+                  <td className="text-right font-bold whitespace-nowrap">
+                    {formatearPesos(fila.facturado)}
+                  </td>
+                  <td className="text-right font-bold whitespace-nowrap">
+                    {formatearPesos(fila.cobrado)}
+                  </td>
+                  <td className="text-right font-bold whitespace-nowrap">
+                    {formatearPesos(fila.pendiente)}
+                  </td>
                 </tr>
               ))}
             </tbody>

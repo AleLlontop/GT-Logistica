@@ -1,4 +1,8 @@
-import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -254,180 +258,208 @@ export function FormularioChofer() {
         </div>
       )}
 
-      <form onSubmit={alEnviar} noValidate className={clasesDeFormulario}>
+      <form onSubmit={alEnviar} noValidate className={clasesDeFormularioAgrupado}>
         {errorGeneral !== null && (
           <p className="formulario__error" role="alert">
             {errorGeneral}
           </p>
         )}
 
-        <div className="campo">
-          <label htmlFor="dni">DNI</label>
-          <input
-            id="dni"
-            name="dni"
-            type="text"
-            value={datos.dni}
-            onChange={(evento) => actualizar('dni', evento.target.value)}
-            autoComplete="off"
-            required
-            aria-invalid={errores.dni !== undefined}
-            aria-describedby={errores.dni !== undefined ? 'error-dni' : undefined}
-          />
-          {errores.dni !== undefined && (
-            <p className="campo__error" id="error-dni" role="alert">
-              {errores.dni}
-            </p>
-          )}
-        </div>
+        <SeccionNumerada
+          numero={1}
+          titulo="Identidad"
+          explicacion="El CUIL tiene que coincidir con el DNI."
+        >
+          <div className="campo max-w-campo-corto">
+            <label htmlFor="dni">DNI</label>
+            <input
+              id="dni"
+              placeholder="30.123.456"
+              name="dni"
+              type="text"
+              value={datos.dni}
+              onChange={(evento) => actualizar('dni', evento.target.value)}
+              autoComplete="off"
+              required
+              aria-invalid={errores.dni !== undefined}
+              aria-describedby={errores.dni !== undefined ? 'error-dni' : undefined}
+            />
+            {errores.dni !== undefined && (
+              <p className="campo__error" id="error-dni" role="alert">
+                {errores.dni}
+              </p>
+            )}
+          </div>
 
-        <div className="campo">
-          <label htmlFor="nombre">Nombre</label>
-          <input
-            id="nombre"
-            name="nombre"
-            type="text"
-            value={datos.nombre}
-            onChange={(evento) => actualizar('nombre', evento.target.value)}
-            required
-            aria-invalid={errores.nombre !== undefined}
-            aria-describedby={errores.nombre !== undefined ? 'error-nombre' : undefined}
-          />
-          {errores.nombre !== undefined && (
-            <p className="campo__error" id="error-nombre" role="alert">
-              {errores.nombre}
-            </p>
-          )}
-        </div>
+          <div className="campo max-w-campo-medio">
+            <label htmlFor="nombre">Nombre</label>
+            <input
+              id="nombre"
+              name="nombre"
+              type="text"
+              value={datos.nombre}
+              onChange={(evento) => actualizar('nombre', evento.target.value)}
+              required
+              aria-invalid={errores.nombre !== undefined}
+              aria-describedby={errores.nombre !== undefined ? 'error-nombre' : undefined}
+            />
+            {errores.nombre !== undefined && (
+              <p className="campo__error" id="error-nombre" role="alert">
+                {errores.nombre}
+              </p>
+            )}
+          </div>
 
-        <div className="campo">
-          <label htmlFor="apellido">Apellido</label>
-          <input
-            id="apellido"
-            name="apellido"
-            type="text"
-            value={datos.apellido}
-            onChange={(evento) => actualizar('apellido', evento.target.value)}
-            required
-            aria-invalid={errores.apellido !== undefined}
-            aria-describedby={errores.apellido !== undefined ? 'error-apellido' : undefined}
-          />
-          {errores.apellido !== undefined && (
-            <p className="campo__error" id="error-apellido" role="alert">
-              {errores.apellido}
-            </p>
-          )}
-        </div>
+          <div className="campo max-w-campo-medio">
+            <label htmlFor="apellido">Apellido</label>
+            <input
+              id="apellido"
+              name="apellido"
+              type="text"
+              value={datos.apellido}
+              onChange={(evento) => actualizar('apellido', evento.target.value)}
+              required
+              aria-invalid={errores.apellido !== undefined}
+              aria-describedby={errores.apellido !== undefined ? 'error-apellido' : undefined}
+            />
+            {errores.apellido !== undefined && (
+              <p className="campo__error" id="error-apellido" role="alert">
+                {errores.apellido}
+              </p>
+            )}
+          </div>
 
-        <div className="campo">
-          <label htmlFor="fechaNacimiento">Fecha de nacimiento</label>
-          <input
-            id="fechaNacimiento"
-            name="fechaNacimiento"
-            type="date"
-            value={datos.fechaNacimiento}
-            onChange={(evento) => actualizar('fechaNacimiento', evento.target.value)}
-            required
-            aria-invalid={errores.fechaNacimiento !== undefined}
-            aria-describedby={
-              errores.fechaNacimiento !== undefined ? 'error-fechaNacimiento' : undefined
-            }
-          />
-          {errores.fechaNacimiento !== undefined && (
-            <p className="campo__error" id="error-fechaNacimiento" role="alert">
-              {errores.fechaNacimiento}
-            </p>
-          )}
-        </div>
+          <div className="campo max-w-campo-corto">
+            <label htmlFor="fechaNacimiento">Fecha de nacimiento</label>
+            <input
+              id="fechaNacimiento"
+              name="fechaNacimiento"
+              type="date"
+              value={datos.fechaNacimiento}
+              onChange={(evento) => actualizar('fechaNacimiento', evento.target.value)}
+              required
+              aria-invalid={errores.fechaNacimiento !== undefined}
+              aria-describedby={
+                errores.fechaNacimiento !== undefined ? 'error-fechaNacimiento' : undefined
+              }
+            />
+            {errores.fechaNacimiento !== undefined && (
+              <p className="campo__error" id="error-fechaNacimiento" role="alert">
+                {errores.fechaNacimiento}
+              </p>
+            )}
+          </div>
 
-        <div className="campo">
-          <label htmlFor="cuil">CUIL</label>
-          <input
-            id="cuil"
-            name="cuil"
-            type="text"
-            value={datos.cuil}
-            onChange={(evento) => actualizar('cuil', evento.target.value)}
-            required
-            aria-invalid={errores.cuil !== undefined}
-            aria-describedby={errores.cuil !== undefined ? 'error-cuil' : undefined}
-          />
-          {errores.cuil !== undefined && (
-            <p className="campo__error" id="error-cuil" role="alert">
-              {errores.cuil}
-            </p>
-          )}
-        </div>
+          <div className="campo max-w-campo-corto">
+            <label htmlFor="cuil">CUIL</label>
+            <input
+              id="cuil"
+              placeholder="20-30123456-4"
+              name="cuil"
+              type="text"
+              value={datos.cuil}
+              onChange={(evento) => actualizar('cuil', evento.target.value)}
+              required
+              aria-invalid={errores.cuil !== undefined}
+              aria-describedby={errores.cuil !== undefined ? 'error-cuil' : undefined}
+            />
+            {errores.cuil !== undefined && (
+              <p className="campo__error" id="error-cuil" role="alert">
+                {errores.cuil}
+              </p>
+            )}
+          </div>
+        </SeccionNumerada>
 
-        <div className="campo">
-          <label htmlFor="telefono">Teléfono</label>
-          <input
-            id="telefono"
-            name="telefono"
-            type="text"
-            value={datos.telefono}
-            onChange={(evento) => actualizar('telefono', evento.target.value)}
-            required
-            aria-invalid={errores.telefono !== undefined}
-            aria-describedby={errores.telefono !== undefined ? 'error-telefono' : undefined}
-          />
-          {errores.telefono !== undefined && (
-            <p className="campo__error" id="error-telefono" role="alert">
-              {errores.telefono}
-            </p>
-          )}
-        </div>
+        <SeccionNumerada
+          numero={2}
+          titulo="Contacto"
+        >
+          <div className="campo max-w-campo-medio">
+            <label htmlFor="telefono">Teléfono</label>
+            <input
+              id="telefono"
+              placeholder="+54 9 221 555-0148"
+              name="telefono"
+              type="text"
+              value={datos.telefono}
+              onChange={(evento) => actualizar('telefono', evento.target.value)}
+              required
+              aria-invalid={errores.telefono !== undefined}
+              aria-describedby={errores.telefono !== undefined ? 'error-telefono' : undefined}
+            />
+            {errores.telefono !== undefined && (
+              <p className="campo__error" id="error-telefono" role="alert">
+                {errores.telefono}
+              </p>
+            )}
+          </div>
 
-        <div className="campo">
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            value={datos.email}
-            onChange={(evento) => actualizar('email', evento.target.value)}
-            required
-            aria-invalid={errores.email !== undefined}
-            aria-describedby={errores.email !== undefined ? 'error-email' : undefined}
-          />
-          {errores.email !== undefined && (
-            <p className="campo__error" id="error-email" role="alert">
-              {errores.email}
-            </p>
-          )}
-        </div>
+          <div className="campo max-w-campo-medio">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              placeholder="nombre@empresa.com.ar"
+              name="email"
+              type="email"
+              value={datos.email}
+              onChange={(evento) => actualizar('email', evento.target.value)}
+              required
+              aria-invalid={errores.email !== undefined}
+              aria-describedby={errores.email !== undefined ? 'error-email' : undefined}
+            />
+            {errores.email !== undefined && (
+              <p className="campo__error" id="error-email" role="alert">
+                {errores.email}
+              </p>
+            )}
+          </div>
+        </SeccionNumerada>
 
-        <div className="campo">
-          <label htmlFor="transportistaId">Transportista</label>
-          <select
-            id="transportistaId"
-            name="transportistaId"
-            value={transportistaId}
-            onChange={(evento) =>
-              setTransportistaId(evento.target.value === '' ? '' : Number(evento.target.value))
-            }
-            required
-            aria-invalid={errores.transportistaId !== undefined}
-            aria-describedby={
-              errores.transportistaId !== undefined ? 'error-transportistaId' : undefined
-            }
+        <SeccionNumerada
+          numero={3}
+          titulo="Dependencia"
+          explicacion="De qué transportista depende."
+        >
+          <div className="campo max-w-campo-largo">
+            <label htmlFor="transportistaId">Transportista</label>
+            <select
+              id="transportistaId"
+              name="transportistaId"
+              value={transportistaId}
+              onChange={(evento) =>
+                setTransportistaId(evento.target.value === '' ? '' : Number(evento.target.value))
+              }
+              required
+              aria-invalid={errores.transportistaId !== undefined}
+              aria-describedby={
+                errores.transportistaId !== undefined ? 'error-transportistaId' : undefined
+              }
+            >
+              {transportistas.map((transportista) => (
+                <option key={transportista.id} value={transportista.id}>
+                  {transportista.nombre}
+                </option>
+              ))}
+            </select>
+            {errores.transportistaId !== undefined && (
+              <p className="campo__error" id="error-transportistaId" role="alert">
+                {errores.transportistaId}
+              </p>
+            )}
+          </div>
+        </SeccionNumerada>
+
+        <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={enviando}
+            icono={<IconoEnRegla className="size-3" />}
           >
-            {transportistas.map((transportista) => (
-              <option key={transportista.id} value={transportista.id}>
-                {transportista.nombre}
-              </option>
-            ))}
-          </select>
-          {errores.transportistaId !== undefined && (
-            <p className="campo__error" id="error-transportistaId" role="alert">
-              {errores.transportistaId}
-            </p>
-          )}
-        </div>
-
-        <button type="submit" disabled={enviando}>
-          {enviando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Guardar chofer'}
-        </button>
+            {enviando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Guardar chofer'}
+          </Boton>
+        </BarraDeAcciones>
       </form>
     </section>
   )

@@ -1,4 +1,8 @@
-import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -277,7 +281,7 @@ export function AltaFactura() {
       {errorGlobal !== null && <p role="alert">{errorGlobal}</p>}
 
       <form
-        className={clasesDeFormulario}
+        className={clasesDeFormularioAgrupado}
         onSubmit={(evento: FormEvent) => {
           evento.preventDefault()
           emitir(false)
@@ -285,234 +289,249 @@ export function AltaFactura() {
         noValidate
       >
         {/* ── Bloque 1 ────────────────────────────────────────────────────────────────────────── */}
-        <section aria-labelledby="titulo-comprobante">
-          <h2 id="titulo-comprobante">Datos del comprobante</h2>
-
-          <div className={classNameCampo('clienteId')}>
-            <label htmlFor="clienteId">Cliente</label>
-            <select
-              id="clienteId"
-              required
-              value={clienteId}
-              onChange={(evento) =>
-                setClienteId(evento.target.value === '' ? '' : Number(evento.target.value))
-              }
-              aria-invalid={erroresDeCampo.clienteId !== undefined}
-            >
-              <option value="">Elegí un cliente</option>
-              {clientes.map((cliente) => (
-                <option key={cliente.id} value={cliente.id}>
-                  {cliente.razonSocial} — {cliente.cuit}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={classNameCampo('tipoComprobante')}>
-            <label htmlFor="tipoComprobante">Tipo de comprobante</label>
-            <select
-              id="tipoComprobante"
-              value={tipoComprobante}
-              onChange={(evento) => setTipoComprobante(evento.target.value as TipoComprobante)}
-            >
-              {Object.entries(NOMBRES_DE_TIPO_COMPROBANTE).map(([valor, nombre]) => (
-                <option key={valor} value={valor}>
-                  {nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={classNameCampo('tipoFacturacion')}>
-            <label htmlFor="tipoFacturacion">Tipo de facturación</label>
-            <select
-              id="tipoFacturacion"
-              value={tipoFacturacion}
-              onChange={(evento) => setTipoFacturacion(evento.target.value as TipoFacturacion)}
-            >
-              {Object.entries(NOMBRES_DE_TIPO_FACTURACION).map(([valor, nombre]) => (
-                <option key={valor} value={valor}>
-                  {nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Sólo con `Refacturación`. Con `Original` no aparece: una Original no reemplaza a nadie
-              (FR-049). */}
-          {tipoFacturacion === 'refacturacion' && (
-            <div className={classNameCampo('facturaReemplazadaId')}>
-              <label htmlFor="facturaReemplazadaId">Factura que reemplaza</label>
+        <SeccionNumerada
+            numero={1}
+            titulo="Cliente y comprobante"
+          >
+            <div className={`${classNameCampo('clienteId')} max-w-campo-largo`}>
+              <label htmlFor="clienteId">Cliente</label>
               <select
-                id="facturaReemplazadaId"
+                id="clienteId"
                 required
-                value={facturaReemplazadaId}
+                value={clienteId}
                 onChange={(evento) =>
-                  setFacturaReemplazadaId(
-                    evento.target.value === '' ? '' : Number(evento.target.value),
-                  )
+                  setClienteId(evento.target.value === '' ? '' : Number(evento.target.value))
                 }
-                aria-invalid={erroresDeCampo.facturaReemplazadaId !== undefined}
+                aria-invalid={erroresDeCampo.clienteId !== undefined}
               >
-                <option value="">Elegí la factura anulada que reemplaza</option>
-                {anuladas.map((anulada) => (
-                  <option key={anulada.id} value={anulada.id}>
-                    {anulada.numeroComprobante} — {formatearFecha(anulada.fecha)}
+                <option value="">Elegí un cliente</option>
+                {clientes.map((cliente) => (
+                  <option key={cliente.id} value={cliente.id}>
+                    {cliente.razonSocial} — {cliente.cuit}
                   </option>
                 ))}
               </select>
+            </div>
 
-              {anuladas.length === 0 && clienteId !== '' && (
-                <p role="status">
-                  Ese cliente no tiene facturas anuladas sin refacturar. Una Refacturación reemplaza a
-                  una factura anulada.
+            <div className={`${classNameCampo('tipoComprobante')} max-w-campo-corto`}>
+              <label htmlFor="tipoComprobante">Tipo de comprobante</label>
+              <select
+                id="tipoComprobante"
+                value={tipoComprobante}
+                onChange={(evento) => setTipoComprobante(evento.target.value as TipoComprobante)}
+              >
+                {Object.entries(NOMBRES_DE_TIPO_COMPROBANTE).map(([valor, nombre]) => (
+                  <option key={valor} value={valor}>
+                    {nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={`${classNameCampo('tipoFacturacion')} max-w-campo-medio`}>
+              <label htmlFor="tipoFacturacion">Tipo de facturación</label>
+              <select
+                id="tipoFacturacion"
+                value={tipoFacturacion}
+                onChange={(evento) => setTipoFacturacion(evento.target.value as TipoFacturacion)}
+              >
+                {Object.entries(NOMBRES_DE_TIPO_FACTURACION).map(([valor, nombre]) => (
+                  <option key={valor} value={valor}>
+                    {nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sólo con `Refacturación`. Con `Original` no aparece: una Original no reemplaza a nadie
+                (FR-049). */}
+            {tipoFacturacion === 'refacturacion' && (
+              <div className={`${classNameCampo('facturaReemplazadaId')} max-w-campo-largo`}>
+                <label htmlFor="facturaReemplazadaId">Factura que reemplaza</label>
+                <select
+                  id="facturaReemplazadaId"
+                  required
+                  value={facturaReemplazadaId}
+                  onChange={(evento) =>
+                    setFacturaReemplazadaId(
+                      evento.target.value === '' ? '' : Number(evento.target.value),
+                    )
+                  }
+                  aria-invalid={erroresDeCampo.facturaReemplazadaId !== undefined}
+                >
+                  <option value="">Elegí la factura anulada que reemplaza</option>
+                  {anuladas.map((anulada) => (
+                    <option key={anulada.id} value={anulada.id}>
+                      {anulada.numeroComprobante} — {formatearFecha(anulada.fecha)}
+                    </option>
+                  ))}
+                </select>
+
+                {anuladas.length === 0 && clienteId !== '' && (
+                  <p role="status">
+                    Ese cliente no tiene facturas anuladas sin refacturar. Una Refacturación reemplaza a
+                    una factura anulada.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className={`${classNameCampo('condicionDeVenta')} max-w-campo-medio`}>
+              <label htmlFor="condicionDeVenta">Condición de venta</label>
+              <select
+                id="condicionDeVenta"
+                value={condicionDeVenta}
+                onChange={(evento) => setCondicionDeVenta(evento.target.value as CondicionDeVenta)}
+              >
+                {Object.entries(NOMBRES_DE_CONDICION_DE_VENTA).map(([valor, nombre]) => (
+                  <option key={valor} value={valor}>
+                    {nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </SeccionNumerada>
+
+          <SeccionNumerada
+            numero={2}
+            titulo="Período"
+            explicacion="Qué mes se factura."
+          >
+            <div className={`${classNameCampo('mes')} max-w-campo-corto`}>
+              <label htmlFor="mes">Mes</label>
+              <select id="mes" value={mes} onChange={(evento) => setMes(Number(evento.target.value))}>
+                {MESES.map((numero) => (
+                  <option key={numero} value={numero}>
+                    {String(numero).padStart(2, '0')}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={`${classNameCampo('anio')} max-w-campo-corto`}>
+              <label htmlFor="anio">Año</label>
+              <select
+                id="anio"
+                value={anio}
+                onChange={(evento) => setAnio(Number(evento.target.value))}
+              >
+                {ANIOS.map((numero) => (
+                  <option key={numero} value={numero}>
+                    {numero}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </SeccionNumerada>
+
+          <SeccionNumerada
+            numero={4}
+            titulo="Datos del comprobante"
+            explicacion="Los que devuelve AFIP al autorizarlo."
+          >
+            <div className={`${classNameCampo('fecha')} max-w-campo-corto`}>
+              {/* Propuesta en hoy y modificable (FR-012). */}
+
+              <label htmlFor="fecha">Fecha de facturación</label>
+              <input
+                id="fecha"
+                type="date"
+                required
+                value={fecha}
+                onChange={(evento) => {
+                  setFecha(evento.target.value)
+
+                  // El vencimiento de pago se propone en fecha + 30 días, y sigue a la fecha mientras no
+                  // se lo haya tocado a mano (spec §Assumptions).
+                  if (evento.target.value !== '') {
+                    setVencimientoPago(sumarDias(evento.target.value, 30))
+                  }
+                }}
+                aria-invalid={erroresDeCampo.fecha !== undefined}
+              />
+            </div>
+
+            <div className={`${classNameCampo('numeroComprobante')} max-w-campo-medio`}>
+              <label htmlFor="numeroComprobante">Número de comprobante</label>
+              <input
+                id="numeroComprobante"
+                type="text"
+                required
+                maxLength={13}
+                placeholder="0000-00000000"
+                value={numeroComprobante}
+                onChange={(evento) => setNumeroComprobante(evento.target.value)}
+                aria-invalid={erroresDeCampo.numeroComprobante !== undefined}
+                aria-describedby="ayuda-numero"
+              />
+              <p id="ayuda-numero">Formato 0000-00000000.</p>
+              {erroresDeCampo.numeroComprobante && (
+                <p className="campo__error" role="alert">
+                  {erroresDeCampo.numeroComprobante}
                 </p>
               )}
             </div>
-          )}
 
-          <div className={classNameCampo('condicionDeVenta')}>
-            <label htmlFor="condicionDeVenta">Condición de venta</label>
-            <select
-              id="condicionDeVenta"
-              value={condicionDeVenta}
-              onChange={(evento) => setCondicionDeVenta(evento.target.value as CondicionDeVenta)}
-            >
-              {Object.entries(NOMBRES_DE_CONDICION_DE_VENTA).map(([valor, nombre]) => (
-                <option key={valor} value={valor}>
-                  {nombre}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className={`${classNameCampo('cae')} max-w-campo-medio`}>
+              <label htmlFor="cae">CAE</label>
+              <input
+                id="cae"
+                placeholder="71234567890123"
+                type="text"
+                required
+                maxLength={20}
+                value={cae}
+                onChange={(evento) => setCae(evento.target.value)}
+                aria-invalid={erroresDeCampo.cae !== undefined}
+              />
+            </div>
 
-          <div className={classNameCampo('mes')}>
-            <label htmlFor="mes">Mes</label>
-            <select id="mes" value={mes} onChange={(evento) => setMes(Number(evento.target.value))}>
-              {MESES.map((numero) => (
-                <option key={numero} value={numero}>
-                  {String(numero).padStart(2, '0')}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className={`${classNameCampo('caeVencimiento')} max-w-campo-corto`}>
+              <label htmlFor="caeVencimiento">Vencimiento del CAE</label>
+              <input
+                id="caeVencimiento"
+                type="date"
+                required
+                value={caeVencimiento}
+                onChange={(evento) => setCaeVencimiento(evento.target.value)}
+                aria-invalid={erroresDeCampo.caeVencimiento !== undefined}
+              />
+              {erroresDeCampo.caeVencimiento && (
+                <p className="campo__error" role="alert">
+                  {erroresDeCampo.caeVencimiento}
+                </p>
+              )}
+            </div>
 
-          <div className={classNameCampo('anio')}>
-            <label htmlFor="anio">Año</label>
-            <select
-              id="anio"
-              value={anio}
-              onChange={(evento) => setAnio(Number(evento.target.value))}
-            >
-              {ANIOS.map((numero) => (
-                <option key={numero} value={numero}>
-                  {numero}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className={`${classNameCampo('vencimientoPago')} max-w-campo-corto`}>
+              <label htmlFor="vencimientoPago">Vencimiento de pago</label>
+              <input
+                id="vencimientoPago"
+                type="date"
+                required
+                value={vencimientoPago}
+                onChange={(evento) => setVencimientoPago(evento.target.value)}
+                aria-invalid={erroresDeCampo.vencimientoPago !== undefined}
+              />
+              {erroresDeCampo.vencimientoPago && (
+                <p className="campo__error" role="alert">
+                  {erroresDeCampo.vencimientoPago}
+                </p>
+              )}
+            </div>
 
-          <div className={classNameCampo('fecha')}>
-            {/* Propuesta en hoy y modificable (FR-012). */}
-            <label htmlFor="fecha">Fecha de facturación</label>
-            <input
-              id="fecha"
-              type="date"
-              required
-              value={fecha}
-              onChange={(evento) => {
-                setFecha(evento.target.value)
+            <div className={`${classNameCampo('detalle')} w-full`}>
+              <label htmlFor="detalle">Detalle (opcional)</label>
+              <textarea
+                id="detalle"
+                maxLength={500}
+                value={detalle}
+                onChange={(evento) => setDetalle(evento.target.value)}
+              />
+            </div>
+        </SeccionNumerada>
 
-                // El vencimiento de pago se propone en fecha + 30 días, y sigue a la fecha mientras no
-                // se lo haya tocado a mano (spec §Assumptions).
-                if (evento.target.value !== '') {
-                  setVencimientoPago(sumarDias(evento.target.value, 30))
-                }
-              }}
-              aria-invalid={erroresDeCampo.fecha !== undefined}
-            />
-          </div>
-
-          <div className={classNameCampo('numeroComprobante')}>
-            <label htmlFor="numeroComprobante">Número de comprobante</label>
-            <input
-              id="numeroComprobante"
-              type="text"
-              required
-              maxLength={13}
-              placeholder="0000-00000000"
-              value={numeroComprobante}
-              onChange={(evento) => setNumeroComprobante(evento.target.value)}
-              aria-invalid={erroresDeCampo.numeroComprobante !== undefined}
-              aria-describedby="ayuda-numero"
-            />
-            <p id="ayuda-numero">Formato 0000-00000000.</p>
-            {erroresDeCampo.numeroComprobante && (
-              <p className="campo__error" role="alert">
-                {erroresDeCampo.numeroComprobante}
-              </p>
-            )}
-          </div>
-
-          <div className={classNameCampo('cae')}>
-            <label htmlFor="cae">CAE</label>
-            <input
-              id="cae"
-              type="text"
-              required
-              maxLength={20}
-              value={cae}
-              onChange={(evento) => setCae(evento.target.value)}
-              aria-invalid={erroresDeCampo.cae !== undefined}
-            />
-          </div>
-
-          <div className={classNameCampo('caeVencimiento')}>
-            <label htmlFor="caeVencimiento">Vencimiento del CAE</label>
-            <input
-              id="caeVencimiento"
-              type="date"
-              required
-              value={caeVencimiento}
-              onChange={(evento) => setCaeVencimiento(evento.target.value)}
-              aria-invalid={erroresDeCampo.caeVencimiento !== undefined}
-            />
-            {erroresDeCampo.caeVencimiento && (
-              <p className="campo__error" role="alert">
-                {erroresDeCampo.caeVencimiento}
-              </p>
-            )}
-          </div>
-
-          <div className={classNameCampo('vencimientoPago')}>
-            <label htmlFor="vencimientoPago">Vencimiento de pago</label>
-            <input
-              id="vencimientoPago"
-              type="date"
-              required
-              value={vencimientoPago}
-              onChange={(evento) => setVencimientoPago(evento.target.value)}
-              aria-invalid={erroresDeCampo.vencimientoPago !== undefined}
-            />
-            {erroresDeCampo.vencimientoPago && (
-              <p className="campo__error" role="alert">
-                {erroresDeCampo.vencimientoPago}
-              </p>
-            )}
-          </div>
-
-          <div className={classNameCampo('detalle')}>
-            <label htmlFor="detalle">Detalle (opcional)</label>
-            <textarea
-              id="detalle"
-              maxLength={500}
-              value={detalle}
-              onChange={(evento) => setDetalle(evento.target.value)}
-            />
-          </div>
-        </section>
-
-        {/* ── Bloque 2 ────────────────────────────────────────────────────────────────────────── */}
+        {/* ── Bloque 2: la tercera sección numerada es el selector, que trae su propia tabla ──── */}
         <SelectorDeViajes
           viajes={viajes}
           seleccionados={seleccionados}
@@ -529,14 +548,19 @@ export function AltaFactura() {
         {/* ── Bloque 4 ────────────────────────────────────────────────────────────────────────── */}
         <VistaPreviaDocumento peticion={peticion} />
 
-        <div className="acciones">
-          <button type="submit" disabled={emitiendo || peticion === null}>
-            Emitir factura
-          </button>
-          <button type="button" onClick={() => navegar('/facturas')} disabled={emitiendo}>
+        <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+          <Boton variante="secundario" onClick={() => navegar('/facturas')} disabled={emitiendo}>
             Cancelar
-          </button>
-        </div>
+          </Boton>
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={emitiendo || peticion === null}
+            icono={<IconoEnRegla className="size-3" />}
+          >
+            Emitir factura
+          </Boton>
+        </BarraDeAcciones>
       </form>
 
       {confirmacion !== null && (

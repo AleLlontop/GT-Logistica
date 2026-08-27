@@ -1,4 +1,11 @@
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
+import { AsideDeFicha, BloqueDeAside, CifraDestacada } from '../../../compartido/ui/AsideDeFicha'
+import { Boton } from '../../../compartido/ui/Boton'
+import { Callout } from '../../../compartido/ui/Callout'
+import { Estado } from '../../../compartido/ui/Estado'
+import { FichaCuerpo, FichaSeccion } from '../../../compartido/ui/Ficha'
+import { EntradaDeLineaDeTiempo, LineaDeTiempo } from '../../../compartido/ui/LineaDeTiempo'
+import { IconoAnulado, IconoEditar } from '../../../compartido/ui/iconos'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -190,176 +197,274 @@ export function FichaViaje({ puedeGestionar }: Props) {
   const enCurso = viaje.estado === 'pendiente' || viaje.estado === 'enCurso'
   const faltaAsignar = viaje.chofer === null || viaje.vehiculo === null
 
+  /**
+   * Los tres estados terminales dejan la ficha **sin acción principal**, y el callout es lo que lo
+   * explica: dice qué pasa **y ofrece la salida** (FR-058). Sin él, la pantalla se lee como una
+   * ficha a la que le faltan botones.
+   */
+  const bloqueo =
+    viaje.estado === 'rendido'
+      ? {
+          tono: 'rendido' as const,
+          titulo: 'Viaje rendido — cerrado para edición',
+          mensaje: MENSAJE_VIAJE_RENDIDO,
+        }
+      : viaje.estado === 'anulado'
+        ? { tono: 'anulado' as const, titulo: 'Viaje anulado', mensaje: MENSAJE_VIAJE_ANULADO }
+        : viaje.estado === 'facturado'
+          ? {
+              tono: 'facturado' as const,
+              titulo: 'Viaje facturado',
+              mensaje: MENSAJE_VIAJE_FACTURADO,
+            }
+          : null
+
   return (
-    <section className="flex flex-col gap-4 [&>section]:rounded-medio [&>section]:border [&>section]:border-borde [&>section]:bg-superficie [&>section]:shadow-tarjeta [&>section>h2]:m-0 [&>section>h2]:border-b [&>section>h2]:border-borde [&>section>h2]:px-5 [&>section>h2]:py-3 [&>section>h2]:text-sm [&>section>h2]:font-semibold [&>section>h2]:uppercase [&>section>h2]:tracking-wide [&>section>h2]:text-texto-suave [&_dl]:m-0 [&_dl]:grid [&_dl]:grid-cols-[minmax(10rem,auto)_1fr] [&_dl]:gap-x-6 [&_dl]:gap-y-2 [&_dl]:px-5 [&_dl]:py-4 [&_dt]:text-sm [&_dt]:text-texto-suave [&_dd]:m-0 [&_dd]:text-sm [&_dd]:font-medium [&_dd]:text-texto [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm [&_caption]:sr-only [&_thead]:bg-superficie-hundida [&_th]:border-b [&_th]:border-borde-fuerte [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_th]:whitespace-nowrap [&_tbody_tr]:border-b [&_tbody_tr]:border-borde [&_td]:px-4 [&_td]:py-2.5 [&_td]:align-top">
+    <section>
       <EncabezadoDePantalla
         titulo={`Viaje ${viaje.numero}`}
+        volverA={{ ruta: '/viajes', etiqueta: 'Volver al listado' }}
+        resumen={
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>{nombreConEstado(viaje.cliente)}</span>
+            <span aria-hidden="true">
+              ·
+            </span>
+            <span>
+              {viaje.origen}{' '}
+              <span aria-hidden="true">
+                →
+              </span>{' '}
+              {viaje.destino}
+            </span>
+            <span aria-hidden="true">
+              ·
+            </span>
+            <span>{formatearFecha(viaje.fecha)}</span>
+          </span>
+        }
         accionPrincipal={
-          <>
-            {puedeGestionar && enCurso && (
-              <>
-                <button type="button" onClick={() => navegar(`/viajes/${viaje.id}/editar`)}>
-                  Editar
-                </button>
+          puedeGestionar && enCurso ? (
+            <>
+              {/*
+                **La acción principal de la ficha hay que designarla, no revestirla** (FR-019): sus
+                botones eran todos `type="button"` y el encabezado los estilaba por descendiente, así
+                que *Editar*, *Anular* y la asignación se dibujaban idénticas. La principal es la
+                asignación —es lo que destraba el viaje—, lo demás es secundario y anular es
+                destructivo. **Ningún verbo se reescribe** (FR-066).
+              */}
+              <Boton variante="secundario" onClick={() => navegar(`/viajes/${viaje.id}/editar`)}>
+                Editar
+              </Boton>
 
-                <button type="button" onClick={() => navegar(`/viajes/${viaje.id}/asignacion`)}>
-                  {viaje.chofer === null
-                    ? 'Asignar chofer y vehículo'
-                    : 'Reasignar chofer y vehículo'}
-                </button>
+              {viaje.estado === 'pendiente' && (
+                <Boton variante="secundario" onClick={ponerEnCurso} disabled={faltaAsignar}>
+                  Poner en curso
+                </Boton>
+              )}
 
-                {viaje.estado === 'pendiente' && (
-                  <>
-                    {/* Deshabilitado **con el motivo a la vista**, no en silencio (FR-025). */}
-                    <button type="button" onClick={ponerEnCurso} disabled={faltaAsignar}>
-                      Poner en curso
-                    </button>
-                    {faltaAsignar && <p role="status">{MENSAJE_FALTA_ASIGNAR}</p>}
-                  </>
-                )}
+              {viaje.estado === 'enCurso' && (
+                <Boton variante="secundario" onClick={() => rendir()}>
+                  Rendir
+                </Boton>
+              )}
 
-                {viaje.estado === 'enCurso' && (
-                  <>
-                    <button type="button" onClick={() => rendir()}>
-                      Rendir
-                    </button>
+              {faltaRemito && (
+                <Boton variante="secundario" onClick={() => navegar(`/viajes/${viaje.id}/editar`)}>
+                  Cargar el remito
+                </Boton>
+              )}
 
-                    {/* Módulo 6, FR-055a. El mensaje del rechazo ya se muestra arriba; acá va el camino
-                        para resolverlo, porque el remito se carga en la pantalla de edición y no en la
-                        ficha. */}
-                    {faltaRemito && (
-                      <p role="status">
-                        {MENSAJE_REMITO_REQUERIDO}{' '}
-                        <button type="button" onClick={() => navegar(`/viajes/${viaje.id}/editar`)}>
-                          Cargar el remito
-                        </button>
-                      </p>
-                    )}
-                  </>
-                )}
+              <Boton
+                variante="destructivo"
+                onClick={() => setConfirmandoAnulacion(true)}
+                icono={<IconoAnulado className="size-3" />}
+              >
+                Anular
+              </Boton>
 
-                <button type="button" onClick={() => setConfirmandoAnulacion(true)}>
-                  Anular
-                </button>
-              </>
-            )}
-
-            <button type="button" onClick={() => navegar('/viajes')}>
-              Volver al listado
-            </button>
-          </>
+              <Boton
+                variante="primario"
+                onClick={() => navegar(`/viajes/${viaje.id}/asignacion`)}
+                icono={<IconoEditar className="size-3" />}
+              >
+                {viaje.chofer === null
+                  ? 'Asignar chofer y vehículo'
+                  : 'Reasignar chofer y vehículo'}
+              </Boton>
+            </>
+          ) : undefined
         }
       />
 
-      {error !== null && <p role="alert">{error}</p>}
-      {aviso !== null && <p role="status">{aviso}</p>}
+      {error !== null && (
+        <p
+          role="alert"
+          className="mb-[18px] rounded-card border border-line bg-danger-bg px-[18px] py-4 text-[13px] leading-5 font-medium text-danger-text"
+        >
+          {error}
+        </p>
+      )}
+      {/*
+        El anuncio va en el `<p>` que **contiene** el texto y no en un envoltorio: es lo que hace
+        que quien usa lector de pantalla escuche exactamente el mensaje que apareció, y es lo que la
+        suite verifica sobre el elemento del texto (convención [003]).
+      */}
+      {aviso !== null && (
+        <p
+          role="status"
+          className="mb-[18px] rounded-card border border-line bg-estado-rendido-bg px-[18px] py-4 text-[13px] leading-5 font-medium text-estado-rendido"
+        >
+          {aviso}
+        </p>
+      )}
 
       {advertencias.map((advertencia) => (
-        <p key={advertencia.codigo} role="status">
+        <p
+          key={advertencia.codigo}
+          role="status"
+          className="mb-[18px] rounded-card border border-line bg-estado-pendiente-bg px-[18px] py-4 text-[13px] leading-5 font-medium text-estado-pendiente"
+        >
           {advertencia.mensaje}
         </p>
       ))}
 
-      {/* En los dos estados terminales la ficha lo dice, para que no parezca que faltan botones
-          (FR-018, contracts/README.md). */}
-      {viaje.estado === 'rendido' && <p role="status">{MENSAJE_VIAJE_RENDIDO}</p>}
-      {viaje.estado === 'anulado' && <p role="status">{MENSAJE_VIAJE_ANULADO}</p>}
-      {viaje.estado === 'facturado' && <p role="status">{MENSAJE_VIAJE_FACTURADO}</p>}
+      {/* Deshabilitado **con el motivo a la vista**, no en silencio (FR-025 del Módulo 5). */}
+      {faltaAsignar && viaje.estado === 'pendiente' && (
+        <p role="status" className="mb-[18px] text-[12.5px] text-ink-soft">
+          {MENSAJE_FALTA_ASIGNAR}
+        </p>
+      )}
+      {faltaRemito && (
+        <p role="status" className="mb-[18px] text-[12.5px] text-ink-soft">
+          {MENSAJE_REMITO_REQUERIDO}
+        </p>
+      )}
 
-      <dl>
-        <dt>Cliente</dt>
-        <dd>{nombreConEstado(viaje.cliente)}</dd>
+      {bloqueo !== null && (
+        <div className="mb-[18px]">
+          <Callout tono={bloqueo.tono} titulo={bloqueo.titulo}>
+            <span role="status">{bloqueo.mensaje}</span>
+          </Callout>
+        </div>
+      )}
 
-        <dt>Fecha</dt>
-        <dd>
-          {formatearFecha(viaje.fecha)}
-          {/* La señal lleva la palabra que la explica, no sólo un color (FR-016, FR-049). */}
-          {viaje.esRetroactivo && ' — Carga retroactiva'}
-        </dd>
+      <FichaCuerpo
+        aside={
+          <AsideDeFicha
+            /* El dato de más valor de un viaje es su importe (data-model §8). */
+            destacado={
+              <CifraDestacada rotulo="Importe del viaje" valor={formatearPesos(viaje.importe)} />
+            }
+          >
+            <BloqueDeAside titulo="Asignación">
+              <p className="m-0">{nombreConEstado(viaje.chofer)}</p>
+              <p className="m-0 font-mono text-[12.5px] text-faint">
+                {nombreConEstado(viaje.vehiculo)}
+              </p>
+              <p className="m-0 text-[12.5px] text-faint">
+                {nombreConEstado(viaje.transportista)}
+              </p>
+            </BloqueDeAside>
 
-        <dt>Origen</dt>
-        <dd>{viaje.origen}</dd>
+            <BloqueDeAside titulo="Facturación">
+              {viaje.factura ? (
+                <Link
+                  to={`/facturas/${viaje.factura.id}`}
+                  className="text-brand underline underline-offset-2"
+                >
+                  {leyendaDeFactura(viaje.factura, formatearFecha(viaje.factura.fecha))}
+                </Link>
+              ) : (
+                /* El vacío se escribe: dice qué falta, nunca un guión (FR-038). */
+                <p className="atenuada m-0">Todavía no se facturó</p>
+              )}
+            </BloqueDeAside>
+          </AsideDeFicha>
+        }
+      >
+        <FichaSeccion titulo="Datos del viaje" id="titulo-datos-viaje">
+          <dl>
+            <dt>Cliente</dt>
+            <dd>{nombreConEstado(viaje.cliente)}</dd>
 
-        <dt>Destino</dt>
-        <dd>{viaje.destino}</dd>
-
-        <dt>Número de remito</dt>
-        <dd>{viaje.numeroRemito ?? '—'}</dd>
-
-        <dt>Detalle de la carga</dt>
-        <dd>{viaje.detalleCarga ?? '—'}</dd>
-
-        <dt>Importe</dt>
-        <dd>{formatearPesos(viaje.importe)}</dd>
-
-        <dt>Estado</dt>
-        <dd>
-          {NOMBRES_DE_ESTADO[viaje.estado]}
-          {viaje.demorado && ' — Demorado'}
-        </dd>
-
-        <dt>Chofer</dt>
-        <dd>{nombreConEstado(viaje.chofer)}</dd>
-
-        <dt>Vehículo</dt>
-        <dd>{nombreConEstado(viaje.vehiculo)}</dd>
-
-        <dt>Transportista</dt>
-        <dd>{nombreConEstado(viaje.transportista)}</dd>
-
-        {/* Módulo 6, FR-055: el número y la fecha de la factura, con enlace a su ficha. Sale de la
-            navegación del backend, no de columnas copiadas al viaje. */}
-        {viaje.factura && (
-          <>
-            <dt>Factura</dt>
+            <dt>Fecha</dt>
             <dd>
-              <Link to={`/facturas/${viaje.factura.id}`}>
-                {leyendaDeFactura(viaje.factura, formatearFecha(viaje.factura.fecha))}
-              </Link>
+              {formatearFecha(viaje.fecha)}
+              {/* La señal lleva la palabra que la explica, no sólo un color (FR-060). */}
+              {viaje.esRetroactivo && ' — Carga retroactiva'}
             </dd>
-          </>
-        )}
 
-        {viaje.motivoAnulacion !== null && (
-          <>
-            <dt>Motivo de la anulación</dt>
-            <dd>{viaje.motivoAnulacion}</dd>
-          </>
-        )}
-      </dl>
+            <dt>Recorrido</dt>
+            <dd>
+              {viaje.origen}{' '}
+              <span aria-hidden="true" className="text-dim">
+                →
+              </span>{' '}
+              {viaje.destino}
+            </dd>
 
-      <section>
-        <h2>Historial</h2>
+            <dt>Número de remito</dt>
+            <dd className="font-mono">
+              {viaje.numeroRemito ?? <span className="atenuada font-sans">Sin remito cargado</span>}
+            </dd>
 
-        <table>
-          <caption>Cambios de estado del viaje {viaje.numero}</caption>
-          <thead>
-            <tr>
-              <th scope="col">Estado anterior</th>
-              <th scope="col">Estado nuevo</th>
-              <th scope="col">Usuario</th>
-              <th scope="col">Cuándo</th>
-            </tr>
-          </thead>
-          <tbody>
-            {viaje.historial.map((cambio, indice) => (
-              <tr key={`${cambio.ocurridoEn}-${indice}`}>
-                <td>
-                  {cambio.estadoAnterior === null
-                    ? 'Alta'
-                    : NOMBRES_DE_ESTADO[cambio.estadoAnterior]}
-                </td>
-                <td>{NOMBRES_DE_ESTADO[cambio.estadoNuevo]}</td>
-                <td>{cambio.usuario}</td>
-                <td>{formatearInstante(cambio.ocurridoEn)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+            <dt>Detalle de la carga</dt>
+            <dd>{viaje.detalleCarga ?? <span className="atenuada">Sin detalle cargado</span>}</dd>
 
-      {/* La pantalla ofrece exactamente las acciones que el estado admite y ninguna más: en
-          `rendido` y en `anulado` no hay ninguna (contracts/README.md). */}
+            <dt>Estado</dt>
+            <dd>
+              <Estado
+                valor={viaje.estado}
+                texto={NOMBRES_DE_ESTADO[viaje.estado]}
+                forma="pastilla"
+                detalle={viaje.demorado ? 'Demorado' : undefined}
+              />
+            </dd>
+
+            {viaje.motivoAnulacion !== null && (
+              <>
+                <dt>Motivo de la anulación</dt>
+                <dd>{viaje.motivoAnulacion}</dd>
+              </>
+            )}
+          </dl>
+        </FichaSeccion>
+
+        <FichaSeccion titulo="Historial" id="titulo-historial-viaje">
+          {/*
+            El historial deja de ser una tabla de cuatro columnas (FR-054): el par `Estado anterior`
+            + `Estado nuevo` nombraba una sola cosa —la transición— y obligaba a leer en horizontal
+            algo que se lee en vertical. Ahora va completa en una línea, y el paso actual va marcado,
+            que es lo que una tabla no podía decir.
+          */}
+          <div className="px-[22px] py-5">
+            <LineaDeTiempo>
+              {viaje.historial.map((cambio, indice) => (
+                <EntradaDeLineaDeTiempo
+                  key={`${cambio.ocurridoEn}-${indice}`}
+                  actual={indice === viaje.historial.length - 1}
+                  cuando={formatearInstante(cambio.ocurridoEn)}
+                  quien={cambio.usuario}
+                  que={
+                    cambio.estadoAnterior === null ? (
+                      'Alta'
+                    ) : (
+                      <>
+                        {NOMBRES_DE_ESTADO[cambio.estadoAnterior]}{' '}
+                        <span aria-hidden="true" className="text-dim">
+                          →
+                        </span>{' '}
+                        {NOMBRES_DE_ESTADO[cambio.estadoNuevo]}
+                      </>
+                    )
+                  }
+                />
+              ))}
+            </LineaDeTiempo>
+          </div>
+        </FichaSeccion>
+      </FichaCuerpo>
 
       {confirmandoRendicion && (
         <ConfirmacionRendicion

@@ -101,7 +101,10 @@ describe('ListadoUsuarios', () => {
     const usuario = userEvent.setup()
     renderizar()
 
-    await usuario.click(await screen.findByRole('button', { name: 'Dar de baja' }))
+    // FR-069: *Dar de baja* vive ahora en el menú `···` de la fila. Se lo abre y después se
+    // aprieta; la aserción de más abajo no cambia.
+    await usuario.click(await screen.findByRole('button', { name: 'Acciones de jperez' }))
+    await usuario.click(screen.getByRole('button', { name: 'Dar de baja' }))
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
     expect(screen.getByText(/¿Confirmás la baja de jperez\?/)).toBeInTheDocument()
@@ -115,7 +118,10 @@ describe('ListadoUsuarios', () => {
     const usuario = userEvent.setup()
     renderizar()
 
-    await usuario.click(await screen.findByRole('button', { name: 'Dar de baja' }))
+    // FR-069: *Dar de baja* vive ahora en el menú `···` de la fila. Se lo abre y después se
+    // aprieta; la aserción de más abajo no cambia.
+    await usuario.click(await screen.findByRole('button', { name: 'Acciones de jperez' }))
+    await usuario.click(screen.getByRole('button', { name: 'Dar de baja' }))
     await screen.findByRole('dialog')
 
     await usuario.keyboard('{Escape}')
@@ -136,7 +142,10 @@ describe('ListadoUsuarios', () => {
     const usuario = userEvent.setup()
     renderizar()
 
-    await usuario.click(await screen.findByRole('button', { name: 'Dar de baja' }))
+    // FR-069: *Dar de baja* vive ahora en el menú `···` de la fila. Se lo abre y después se
+    // aprieta; la aserción de más abajo no cambia.
+    await usuario.click(await screen.findByRole('button', { name: 'Acciones de jperez' }))
+    await usuario.click(screen.getByRole('button', { name: 'Dar de baja' }))
     await usuario.click(screen.getByRole('button', { name: 'Confirmar' }))
 
     expect(await screen.findByText(/al menos un usuario activo con el rol/)).toBeInTheDocument()

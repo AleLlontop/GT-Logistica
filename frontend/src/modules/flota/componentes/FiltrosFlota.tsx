@@ -1,14 +1,20 @@
+import { Boton } from '../../../compartido/ui/Boton'
+import { Filtros, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
+import { clasesDeEtiquetaDeFiltro, clasesDeFiltro } from '../../../compartido/ui/clases'
 import type { Transportista } from '../../choferes/transportistas/servicioTransportistas'
 import type { TipoVehiculo } from '../tiposVehiculo/servicioTiposVehiculo'
 import { TEXTO_ESTADO_DOCUMENTACION, TEXTO_FILTRO_ESTADO } from '../servicios/estados'
-import type { FiltrosFlota as Filtros } from '../servicios/servicioFlota'
+import type { FiltrosFlota as Filtros_ } from '../servicios/servicioFlota'
+import type { ReactNode } from 'react'
 
 interface Props {
-  filtros: Filtros
+  filtros: Filtros_
   transportistas: Transportista[]
   tipos: TipoVehiculo[]
-  onCambiar: <C extends keyof Filtros>(campo: C, valor: Filtros[C]) => void
+  onCambiar: <C extends keyof Filtros_>(campo: C, valor: Filtros_[C]) => void
   onLimpiar: () => void
+  /** La franja de resumen del listado: cantidad y criterio de orden (FR-035). */
+  resumen?: ReactNode
 }
 
 const ESTADOS_DEL_VEHICULO = ['disponible', 'fueraDeServicio', 'dadoDeBaja'] as const
@@ -21,108 +27,144 @@ const ESTADOS_DE_DOCUMENTACION = [
 ] as const
 
 /**
- * Los cuatro filtros del listado, los cuatro por selección exacta entre lo ya cargado (FR-030).
+ * Los cuatro filtros del listado, los cuatro por selección exacta entre lo ya cargado (FR-030 del
+ * Módulo 4).
  *
  * El de estado del vehículo es un **control único con tres valores excluyentes** (FR-030a). Sus dos
  * valores operativos son complementarios dentro de los activos, y las combinaciones que se pierden
  * —"dados de baja que además estaban disponibles"— no tienen sentido operativo: una unidad fuera de
- * la flota no está disponible para nada (research §5).
+ * la flota no está disponible para nada.
  *
- * **El control siempre dice qué está filtrando** (FR-037): "Todos" significa sólo los activos, y el
- * texto lo aclara. Ninguna fila queda oculta en silencio.
+ * **El control siempre dice qué está filtrando** (FR-037 del Módulo 4): "Todos" significa sólo los
+ * activos, y el texto lo aclara. Ninguna fila queda oculta en silencio.
+ *
+ * **Esta pantalla no tiene búsqueda por texto**: son cuatro desplegables, así que la franja de
+ * arriba no se dibuja. **No se le inventa un buscador** que la pantalla no tiene (Principio III).
+ * Lo que sí se cumple acá es FR-034: el desplegable que está filtrando se distingue del que no.
  */
-export function FiltrosFlota({ filtros, transportistas, tipos, onCambiar, onLimpiar }: Props) {
+export function FiltrosFlota({
+  filtros,
+  transportistas,
+  tipos,
+  onCambiar,
+  onLimpiar,
+  resumen,
+}: Props) {
   return (
-    <section aria-label="Filtros" className="flex flex-wrap items-end gap-4 border-b border-borde bg-superficie-hundida px-4 py-3 [&_.campo]:flex [&_.campo]:flex-col [&_.campo]:gap-1 [&_label]:text-xs [&_label]:font-medium [&_label]:text-texto-suave [&_select]:rounded-chico [&_select]:border [&_select]:border-borde-fuerte [&_select]:bg-superficie [&_select]:px-2 [&_select]:py-1.5 [&_select]:text-sm [&_select]:text-texto [&_input]:rounded-chico [&_input]:border [&_input]:border-borde-fuerte [&_input]:bg-superficie [&_input]:px-2 [&_input]:py-1.5 [&_input]:text-sm [&_input]:text-texto [&_button]:rounded-chico [&_button]:border [&_button]:border-borde-fuerte [&_button]:bg-superficie [&_button]:px-3 [&_button]:py-1.5 [&_button]:text-sm">
-      <div className="campo">
-        <label htmlFor="filtro-transportista">Transportista</label>
-        <select
-          id="filtro-transportista"
-          value={filtros.transportistaId}
-          onChange={(evento) =>
-            onCambiar('transportistaId', evento.target.value === '' ? '' : Number(evento.target.value))
-          }
-        >
-          <option value="">Todos</option>
-          {transportistas.map((transportista) => (
-            <option key={transportista.id} value={transportista.id}>
-              {transportista.nombre}
-            </option>
-          ))}
-        </select>
-      </div>
+    <Filtros resumen={resumen}>
+      <FranjaDeFiltros>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filtro-transportista" className={clasesDeEtiquetaDeFiltro}>
+            Transportista
+          </label>
+          <select
+            id="filtro-transportista"
+            value={filtros.transportistaId}
+            onChange={(evento) =>
+              onCambiar(
+                'transportistaId',
+                evento.target.value === '' ? '' : Number(evento.target.value),
+              )
+            }
+            className={clasesDeFiltro(filtros.transportistaId !== '')}
+          >
+            <option value="">Todos</option>
+            {transportistas.map((transportista) => (
+              <option key={transportista.id} value={transportista.id}>
+                {transportista.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div className="campo">
-        <label htmlFor="filtro-tipo">Tipo de vehículo</label>
-        <select
-          id="filtro-tipo"
-          value={filtros.tipoVehiculoId}
-          onChange={(evento) =>
-            onCambiar('tipoVehiculoId', evento.target.value === '' ? '' : Number(evento.target.value))
-          }
-        >
-          <option value="">Todos</option>
-          {tipos.map((tipo) => (
-            <option key={tipo.id} value={tipo.id}>
-              {tipo.nombre}
-            </option>
-          ))}
-        </select>
-      </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filtro-tipo" className={clasesDeEtiquetaDeFiltro}>
+            Tipo de vehículo
+          </label>
+          <select
+            id="filtro-tipo"
+            value={filtros.tipoVehiculoId}
+            onChange={(evento) =>
+              onCambiar(
+                'tipoVehiculoId',
+                evento.target.value === '' ? '' : Number(evento.target.value),
+              )
+            }
+            className={clasesDeFiltro(filtros.tipoVehiculoId !== '')}
+          >
+            <option value="">Todos</option>
+            {tipos.map((tipo) => (
+              <option key={tipo.id} value={tipo.id}>
+                {tipo.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div className="campo">
-        <label htmlFor="filtro-estado">Estado del vehículo</label>
-        <select
-          id="filtro-estado"
-          value={filtros.estado}
-          onChange={(evento) => onCambiar('estado', evento.target.value as Filtros['estado'])}
-          aria-describedby="ayuda-filtro-estado"
-        >
-          <option value="">Todos</option>
-          {ESTADOS_DEL_VEHICULO.map((estado) => (
-            <option key={estado} value={estado}>
-              {TEXTO_FILTRO_ESTADO[estado]}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filtro-estado" className={clasesDeEtiquetaDeFiltro}>
+            Estado del vehículo
+          </label>
+          <select
+            id="filtro-estado"
+            value={filtros.estado}
+            onChange={(evento) => onCambiar('estado', evento.target.value as Filtros_['estado'])}
+            aria-describedby="ayuda-filtro-estado"
+            className={clasesDeFiltro(filtros.estado !== '')}
+          >
+            <option value="">Todos</option>
+            {ESTADOS_DEL_VEHICULO.map((estado) => (
+              <option key={estado} value={estado}>
+                {TEXTO_FILTRO_ESTADO[estado]}
+              </option>
+            ))}
+          </select>
 
-        {/* FR-037: el control dice qué está filtrando. "Todos" no incluye los dados de baja, y
-            callárselo haría leer el listado como un error de datos (FR-031). */}
-        <small id="ayuda-filtro-estado" role="status">
-          {filtros.estado === ''
-            ? 'Mostrando sólo las unidades activas. Elegí "Dado de baja" para ver las que salieron de la flota.'
-            : `Mostrando sólo: ${TEXTO_FILTRO_ESTADO[filtros.estado]}.`}
-        </small>
-      </div>
+          {/* El control dice qué está filtrando. "Todos" no incluye los dados de baja, y
+              callárselo haría leer el listado como un error de datos (convención [003]). */}
+          <small id="ayuda-filtro-estado" role="status" className="max-w-xs text-[11.5px] text-faint">
+            {filtros.estado === ''
+              ? 'Mostrando sólo las unidades activas. Elegí "Dado de baja" para ver las que salieron de la flota.'
+              : `Mostrando sólo: ${TEXTO_FILTRO_ESTADO[filtros.estado]}.`}
+          </small>
+        </div>
 
-      <div className="campo">
-        <label htmlFor="filtro-estado-documentacion">Estado de documentación</label>
-        <select
-          id="filtro-estado-documentacion"
-          value={filtros.estadoDocumentacion}
-          onChange={(evento) =>
-            onCambiar('estadoDocumentacion', evento.target.value as Filtros['estadoDocumentacion'])
-          }
-          aria-describedby="ayuda-filtro-documentacion"
-        >
-          <option value="">Todos</option>
-          {ESTADOS_DE_DOCUMENTACION.map((estado) => (
-            <option key={estado} value={estado}>
-              {TEXTO_ESTADO_DOCUMENTACION[estado]}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filtro-estado-documentacion" className={clasesDeEtiquetaDeFiltro}>
+            Estado de documentación
+          </label>
+          <select
+            id="filtro-estado-documentacion"
+            value={filtros.estadoDocumentacion}
+            onChange={(evento) =>
+              onCambiar('estadoDocumentacion', evento.target.value as Filtros_['estadoDocumentacion'])
+            }
+            aria-describedby="ayuda-filtro-documentacion"
+            className={clasesDeFiltro(filtros.estadoDocumentacion !== '')}
+          >
+            <option value="">Todos</option>
+            {ESTADOS_DE_DOCUMENTACION.map((estado) => (
+              <option key={estado} value={estado}>
+                {TEXTO_ESTADO_DOCUMENTACION[estado]}
+              </option>
+            ))}
+          </select>
 
-        <small id="ayuda-filtro-documentacion" role="status">
-          {filtros.estadoDocumentacion === ''
-            ? 'Mostrando todos los estados de documentación.'
-            : `Mostrando sólo: ${TEXTO_ESTADO_DOCUMENTACION[filtros.estadoDocumentacion]}.`}
-        </small>
-      </div>
+          <small
+            id="ayuda-filtro-documentacion"
+            role="status"
+            className="max-w-xs text-[11.5px] text-faint"
+          >
+            {filtros.estadoDocumentacion === ''
+              ? 'Mostrando todos los estados de documentación.'
+              : `Mostrando sólo: ${TEXTO_ESTADO_DOCUMENTACION[filtros.estadoDocumentacion]}.`}
+          </small>
+        </div>
 
-      <button type="button" onClick={onLimpiar}>
-        Limpiar filtros
-      </button>
-    </section>
+        <Boton variante="secundario" tamanio="chico" className="self-end" onClick={onLimpiar}>
+          Limpiar filtros
+        </Boton>
+      </FranjaDeFiltros>
+    </Filtros>
   )
 }

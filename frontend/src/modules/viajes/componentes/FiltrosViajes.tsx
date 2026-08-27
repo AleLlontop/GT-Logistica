@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { Filtros as ContenedorDeFiltros, FranjaDeBusqueda, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
+import { clasesDeEtiquetaDeFiltro, clasesDeFiltro } from '../../../compartido/ui/clases'
 import {
   listarTransportistas,
   type Transportista,
@@ -9,20 +11,29 @@ import { NOMBRES_DE_ESTADO, type FiltrosViajes as Filtros } from '../servicios/s
 interface Props {
   valor: Filtros
   onCambio: (filtros: Filtros) => void
+  /** Lo que declara qué se está mostrando. Un listado nunca oculta filas en silencio ([003]). */
+  declaracion?: ReactNode
+  /** Cantidad, total del período y criterio de orden (FR-035). */
+  resumen?: ReactNode
 }
 
 /**
- * Los cuatro filtros del listado más la búsqueda (FR-041, FR-042).
+ * Los cuatro filtros del listado más la búsqueda (FR-041, FR-042 del Módulo 5).
+ *
+ * **El buscador sube a la primera franja y va a todo el ancho** (FR-033). Estaba **último**, después
+ * de tres desplegables y dos fechas: el control con el que más se entra a la pantalla era el que
+ * había que ir a buscar. Los demás quedan debajo como desplegables compactos, y **el que está
+ * filtrando se distingue** por borde y fondo propios (FR-034).
  *
  * **La opción por defecto del estado se llama `Todos menos anulados`**, y ése es todo el punto: sin
  * filtro los anulados no se muestran, y un listado que oculta filas en silencio se lee como un error
- * de datos. El control dice qué está mostrando (FR-044, FR-049, convención [003]).
+ * de datos. El control dice qué está mostrando (convención [003]).
  *
  * **El filtro por cliente ofrece también los inactivos**, y el de transportista lo mismo: un cliente
  * dado de baja conserva sus viajes históricos, y no poder filtrarlos haría inalcanzable justo la
- * consulta que SC-010 y SC-011 piden.
+ * consulta que el Módulo 5 pedía.
  */
-export function FiltrosViajes({ valor, onCambio }: Props) {
+export function FiltrosViajes({ valor, onCambio, declaracion, resumen }: Props) {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [transportistas, setTransportistas] = useState<Transportista[]>([])
 
@@ -41,97 +52,118 @@ export function FiltrosViajes({ valor, onCambio }: Props) {
   }
 
   return (
-    <form onSubmit={(evento) => evento.preventDefault()} className="flex flex-wrap items-end gap-4 border-b border-borde bg-superficie-hundida px-4 py-3 [&_.campo]:flex [&_.campo]:flex-col [&_.campo]:gap-1 [&_label]:text-xs [&_label]:font-medium [&_label]:text-texto-suave [&_select]:rounded-chico [&_select]:border [&_select]:border-borde-fuerte [&_select]:bg-superficie [&_select]:px-2 [&_select]:py-1.5 [&_select]:text-sm [&_select]:text-texto [&_input]:rounded-chico [&_input]:border [&_input]:border-borde-fuerte [&_input]:bg-superficie [&_input]:px-2 [&_input]:py-1.5 [&_input]:text-sm [&_input]:text-texto [&_button]:rounded-chico [&_button]:border [&_button]:border-borde-fuerte [&_button]:bg-superficie [&_button]:px-3 [&_button]:py-1.5 [&_button]:text-sm">
-      <div className="campo">
-        <label htmlFor="filtro-cliente">Cliente</label>
-        <select
-          id="filtro-cliente"
-          value={valor.clienteId}
-          onChange={(evento) =>
-            cambiar({ clienteId: evento.target.value === '' ? '' : Number(evento.target.value) })
-          }
-        >
-          <option value="">Todos los clientes</option>
-          {clientes.map((cliente) => (
-            <option key={cliente.id} value={cliente.id}>
-              {cliente.activo ? cliente.razonSocial : `${cliente.razonSocial} (inactivo)`}
-            </option>
-          ))}
-        </select>
-      </div>
+    <ContenedorDeFiltros declaracion={declaracion} resumen={resumen}>
+      <FranjaDeBusqueda>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filtro-busqueda" className={clasesDeEtiquetaDeFiltro}>
+            Buscar por origen, destino o cliente
+          </label>
+          <input
+            id="filtro-busqueda"
+            type="search"
+            placeholder="Rosario"
+            value={valor.busqueda}
+            onChange={(evento) => cambiar({ busqueda: evento.target.value })}
+            className={clasesDeFiltro(valor.busqueda.trim() !== '')}
+          />
+        </div>
+      </FranjaDeBusqueda>
 
-      <div className="campo">
-        <label htmlFor="filtro-transportista">Transportista</label>
-        <select
-          id="filtro-transportista"
-          value={valor.transportistaId}
-          onChange={(evento) =>
-            cambiar({
-              transportistaId: evento.target.value === '' ? '' : Number(evento.target.value),
-            })
-          }
-        >
-          <option value="">Todos los transportistas</option>
-          {transportistas.map((transportista) => (
-            <option key={transportista.id} value={transportista.id}>
-              {transportista.activo
-                ? transportista.nombre
-                : `${transportista.nombre} (inactivo)`}
-            </option>
-          ))}
-        </select>
-      </div>
+      <FranjaDeFiltros>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filtro-cliente" className={clasesDeEtiquetaDeFiltro}>
+            Cliente
+          </label>
+          <select
+            id="filtro-cliente"
+            value={valor.clienteId}
+            onChange={(evento) =>
+              cambiar({ clienteId: evento.target.value === '' ? '' : Number(evento.target.value) })
+            }
+            className={clasesDeFiltro(valor.clienteId !== '')}
+          >
+            <option value="">Todos los clientes</option>
+            {clientes.map((cliente) => (
+              <option key={cliente.id} value={cliente.id}>
+                {cliente.activo ? cliente.razonSocial : `${cliente.razonSocial} (inactivo)`}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div className="campo">
-        <label htmlFor="filtro-estado">Estado</label>
-        <select
-          id="filtro-estado"
-          value={valor.estado}
-          onChange={(evento) =>
-            cambiar({ estado: evento.target.value as Filtros['estado'] })
-          }
-        >
-          {/* El nombre de la opción por defecto es el requisito: ningún listado oculta filas en
-              silencio (FR-044, FR-049). */}
-          <option value="">Todos menos anulados</option>
-          <option value="pendiente">{NOMBRES_DE_ESTADO.pendiente}</option>
-          <option value="enCurso">{NOMBRES_DE_ESTADO.enCurso}</option>
-          <option value="rendido">{NOMBRES_DE_ESTADO.rendido}</option>
-          {/* Módulo 6, FR-055. Va después de `rendido` porque es el estado que le sigue. */}
-          <option value="facturado">{NOMBRES_DE_ESTADO.facturado}</option>
-          <option value="anulado">{NOMBRES_DE_ESTADO.anulado}</option>
-        </select>
-      </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filtro-transportista" className={clasesDeEtiquetaDeFiltro}>
+            Transportista
+          </label>
+          <select
+            id="filtro-transportista"
+            value={valor.transportistaId}
+            onChange={(evento) =>
+              cambiar({
+                transportistaId: evento.target.value === '' ? '' : Number(evento.target.value),
+              })
+            }
+            className={clasesDeFiltro(valor.transportistaId !== '')}
+          >
+            <option value="">Todos los transportistas</option>
+            {transportistas.map((transportista) => (
+              <option key={transportista.id} value={transportista.id}>
+                {transportista.activo
+                  ? transportista.nombre
+                  : `${transportista.nombre} (inactivo)`}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div className="campo">
-        <label htmlFor="filtro-desde">Desde</label>
-        <input
-          id="filtro-desde"
-          type="date"
-          value={valor.desde}
-          onChange={(evento) => cambiar({ desde: evento.target.value })}
-        />
-      </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filtro-estado" className={clasesDeEtiquetaDeFiltro}>
+            Estado
+          </label>
+          <select
+            id="filtro-estado"
+            value={valor.estado}
+            onChange={(evento) => cambiar({ estado: evento.target.value as Filtros['estado'] })}
+            className={clasesDeFiltro(valor.estado !== '')}
+          >
+            {/* El nombre de la opción por defecto es el requisito: ningún listado oculta filas en
+                silencio (convención [003]). */}
+            <option value="">Todos menos anulados</option>
+            <option value="pendiente">{NOMBRES_DE_ESTADO.pendiente}</option>
+            <option value="enCurso">{NOMBRES_DE_ESTADO.enCurso}</option>
+            <option value="rendido">{NOMBRES_DE_ESTADO.rendido}</option>
+            {/* Módulo 6, FR-055. Va después de `rendido` porque es el estado que le sigue. */}
+            <option value="facturado">{NOMBRES_DE_ESTADO.facturado}</option>
+            <option value="anulado">{NOMBRES_DE_ESTADO.anulado}</option>
+          </select>
+        </div>
 
-      <div className="campo">
-        <label htmlFor="filtro-hasta">Hasta</label>
-        <input
-          id="filtro-hasta"
-          type="date"
-          value={valor.hasta}
-          onChange={(evento) => cambiar({ hasta: evento.target.value })}
-        />
-      </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filtro-desde" className={clasesDeEtiquetaDeFiltro}>
+            Desde
+          </label>
+          <input
+            id="filtro-desde"
+            type="date"
+            value={valor.desde}
+            onChange={(evento) => cambiar({ desde: evento.target.value })}
+            className={clasesDeFiltro(valor.desde !== '')}
+          />
+        </div>
 
-      <div className="campo">
-        <label htmlFor="filtro-busqueda">Buscar por origen, destino o cliente</label>
-        <input
-          id="filtro-busqueda"
-          type="search"
-          value={valor.busqueda}
-          onChange={(evento) => cambiar({ busqueda: evento.target.value })}
-        />
-      </div>
-    </form>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="filtro-hasta" className={clasesDeEtiquetaDeFiltro}>
+            Hasta
+          </label>
+          <input
+            id="filtro-hasta"
+            type="date"
+            value={valor.hasta}
+            onChange={(evento) => cambiar({ hasta: evento.target.value })}
+            className={clasesDeFiltro(valor.hasta !== '')}
+          />
+        </div>
+      </FranjaDeFiltros>
+    </ContenedorDeFiltros>
   )
 }

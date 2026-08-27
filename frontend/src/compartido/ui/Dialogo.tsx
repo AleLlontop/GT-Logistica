@@ -34,7 +34,7 @@ export function Dialogo({ titulo, onCerrar, children, className }: Props) {
       }}
     >
       <Radix.Portal>
-        <Radix.Overlay className="fixed inset-0 z-40 bg-texto/40" />
+        <Radix.Overlay className="fixed inset-0 z-40 bg-ink/40" />
 
         <Radix.Content
           ref={contenido}
@@ -52,11 +52,13 @@ export function Dialogo({ titulo, onCerrar, children, className }: Props) {
             'fixed top-1/2 left-1/2 z-50 w-[min(32rem,calc(100vw-2rem))]',
             '-translate-x-1/2 -translate-y-1/2',
             'max-h-[calc(100vh-2rem)] overflow-y-auto',
-            'rounded-grande border border-borde bg-superficie p-6 shadow-dialogo',
+            'rounded-card border border-line bg-white/95 p-[26px] shadow-island',
             className,
           )}
         >
-          <Radix.Title className="text-lg font-semibold text-texto">{titulo}</Radix.Title>
+          <Radix.Title className="m-0 text-[17px] font-bold tracking-[-0.02em] text-ink">
+            {titulo}
+          </Radix.Title>
 
           {children}
         </Radix.Content>
@@ -67,5 +69,5 @@ export function Dialogo({ titulo, onCerrar, children, className }: Props) {
 
 /** El pie del diálogo: la acción que confirma y la que cancela, siempre en el mismo lugar. */
 export function DialogoAcciones({ children }: { children: ReactNode }) {
-  return <div className="mt-6 flex flex-wrap justify-end gap-2">{children}</div>
+  return <div className="mt-6 flex flex-wrap justify-end gap-2.5">{children}</div>
 }

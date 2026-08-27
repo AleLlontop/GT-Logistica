@@ -1,3 +1,6 @@
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
 import { Dialogo } from '../../../compartido/ui/Dialogo'
 import { clasesDeFormulario } from '../../../compartido/ui/clases'
 import { useState, type FormEvent } from 'react'
@@ -46,7 +49,7 @@ export function RegistrarCobro({
       <p>{ADVERTENCIA_COBRO}</p>
 
       <form onSubmit={enviar} noValidate className={clasesDeFormulario}>
-        <div className="campo">
+        <div className="campo max-w-campo-corto">
           <label htmlFor="fechaCobro">Fecha de cobro</label>
           <input
             id="fechaCobro"
@@ -57,14 +60,20 @@ export function RegistrarCobro({
           />
         </div>
 
-        <div className="acciones">
-          <button type="button" onClick={onCancelar} disabled={trabajando}>
+        {/* Diálogo: la barra va al pie de su contenedor, que ya está anclado (FR-030). */}
+        <BarraDeAcciones anclaje="contenedor" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+          <Boton variante="secundario" onClick={onCancelar} disabled={trabajando}>
             Cancelar
-          </button>
-          <button type="submit" disabled={trabajando || fechaCobro === ''}>
+          </Boton>
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={trabajando || fechaCobro === ''}
+            icono={<IconoEnRegla className="size-3" />}
+          >
             Registrar cobro
-          </button>
-        </div>
+          </Boton>
+        </BarraDeAcciones>
       </form>
     </Dialogo>
   )

@@ -1,4 +1,7 @@
-import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { clasesDeFormularioSimple } from '../../../compartido/ui/clases'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -163,12 +166,12 @@ export function FormularioDocumento({
     corrigiendo && fechaVencimiento !== '' && fechaVencimiento !== documento.fechaVencimiento
 
   return (
-    <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
+    <form onSubmit={guardar} noValidate className={clasesDeFormularioSimple}>
       <h2>{corrigiendo ? 'Corregir documento' : 'Cargar documento'}</h2>
 
       {errorGeneral !== null && <p role="alert">{errorGeneral}</p>}
 
-      <div className="campo">
+      <div className="campo max-w-campo-medio">
         <label htmlFor="documentacionTipoId">Tipo de documentación</label>
         <select
           id="documentacionTipoId"
@@ -197,7 +200,7 @@ export function FormularioDocumento({
         </p>
       )}
 
-      <div className="campo">
+      <div className="campo max-w-campo-medio">
         <label htmlFor="numero">Número</label>
         <input
           id="numero"
@@ -215,7 +218,7 @@ export function FormularioDocumento({
         )}
       </div>
 
-      <div className="campo">
+      <div className="campo max-w-campo-corto">
         <label htmlFor="fechaEmision">Fecha de emisión</label>
         <input
           id="fechaEmision"
@@ -232,7 +235,7 @@ export function FormularioDocumento({
         )}
       </div>
 
-      <div className="campo">
+      <div className="campo max-w-campo-corto">
         <label htmlFor="fechaVencimiento">Fecha de vencimiento</label>
         <input
           id="fechaVencimiento"
@@ -282,14 +285,19 @@ export function FormularioDocumento({
         )}
       </div>
 
-      <div className="acciones">
-        <button type="submit" disabled={guardando}>
-          {guardando ? 'Guardando…' : corrigiendo ? 'Guardar cambios' : 'Cargar documento'}
-        </button>
-        <button type="button" onClick={onCancelar} disabled={guardando}>
+      <BarraDeAcciones anclaje="contenedor" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+        <Boton variante="secundario" onClick={onCancelar} disabled={guardando}>
           Cancelar
-        </button>
-      </div>
+        </Boton>
+        <Boton
+          type="submit"
+          variante="primario"
+          disabled={guardando}
+          icono={<IconoEnRegla className="size-3" />}
+        >
+          {guardando ? 'Guardando…' : corrigiendo ? 'Guardar cambios' : 'Cargar documento'}
+        </Boton>
+      </BarraDeAcciones>
     </form>
   )
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './compartido/Layout'
+import { Lienzo } from './compartido/ui/Lienzo'
 import { registrarManejadorDeSesionExpirada } from './compartido/clienteHttp'
 import { RutaProtegida } from './modules/autenticacion/componentes/RutaProtegida'
 import { PantallaIngreso } from './modules/autenticacion/paginas/PantallaIngreso'
@@ -85,6 +86,12 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      {/*
+        El lienzo va **una sola vez y en la raíz**, fuera de todo contenedor con desplazamiento
+        (FR-002). Las 42 rutas de abajo no cambian (FR-067).
+      */}
+      <Lienzo />
+
       <Routes>
         <Route
           path="/ingresar"

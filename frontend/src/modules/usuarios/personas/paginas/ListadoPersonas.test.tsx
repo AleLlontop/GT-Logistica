@@ -91,7 +91,10 @@ describe('ListadoPersonas', () => {
     const usuario = userEvent.setup()
     renderizar()
 
-    await usuario.click(await screen.findByRole('button', { name: 'Dar de baja' }))
+    // FR-069: *Dar de baja* vive ahora en el menú `···` de la fila. Se lo abre y después se
+    // aprieta; la aserción de más abajo no cambia.
+    await usuario.click(await screen.findByRole('button', { name: 'Acciones de Gómez, Marta' }))
+    await usuario.click(screen.getByRole('button', { name: 'Dar de baja' }))
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
 
@@ -111,7 +114,10 @@ describe('ListadoPersonas', () => {
     const usuario = userEvent.setup()
     renderizar()
 
-    await usuario.click(await screen.findByRole('button', { name: 'Dar de baja' }))
+    // FR-069: *Dar de baja* vive ahora en el menú `···` de la fila. Se lo abre y después se
+    // aprieta; la aserción de más abajo no cambia.
+    await usuario.click(await screen.findByRole('button', { name: 'Acciones de Gómez, Marta' }))
+    await usuario.click(screen.getByRole('button', { name: 'Dar de baja' }))
     await usuario.click(screen.getByRole('button', { name: 'Confirmar' }))
 
     await waitFor(() => expect(darDeBajaPersona).toHaveBeenCalledWith(marta.id))

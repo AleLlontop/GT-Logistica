@@ -17,10 +17,18 @@ import { IconoEnRegla, IconoProximoAvencer, IconoVencido, IconoDocumento } from 
 type Tono = 'exito' | 'advertencia' | 'error' | 'nota'
 
 const TONOS: Record<Tono, string> = {
-  exito: 'bg-exito-fondo text-exito border-exito',
-  advertencia: 'bg-advertencia-fondo text-advertencia border-advertencia',
-  error: 'bg-error-fondo text-error border-error',
-  nota: 'bg-superficie-hundida text-texto-suave border-borde-fuerte',
+  exito: 'bg-estado-rendido-bg text-estado-rendido',
+  advertencia: 'bg-estado-pendiente-bg text-estado-pendiente',
+  error: 'bg-danger-bg text-danger-text',
+  nota: 'bg-surface-mute text-ink-soft',
+}
+
+/** El chip del ícono: el mismo tono, un punto más saturado, para que se lea como una pieza. */
+const CHIPS: Record<Tono, string> = {
+  exito: 'bg-estado-rendido/10',
+  advertencia: 'bg-estado-pendiente/10',
+  error: 'bg-danger/10',
+  nota: 'bg-white/70',
 }
 
 const ICONOS: Record<Tono, typeof IconoEnRegla> = {
@@ -44,13 +52,21 @@ export function Aviso({ tono, rol, children, className }: Props) {
     <div
       role={rol}
       className={cn(
-        'flex items-start gap-2 rounded-medio border-l-4 px-4 py-3 text-sm font-medium',
+        'flex items-start gap-3.5 rounded-card border border-line px-[18px] py-4',
+        'text-[13px] leading-5 font-medium',
         TONOS[tono],
         className,
       )}
     >
-      <Icono aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-      <div className="min-w-0">{children}</div>
+      <span
+        className={cn(
+          'flex size-8 shrink-0 items-center justify-center rounded-chip',
+          CHIPS[tono],
+        )}
+      >
+        <Icono aria-hidden="true" className="size-3.5" />
+      </span>
+      <div className="min-w-0 self-center">{children}</div>
     </div>
   )
 }

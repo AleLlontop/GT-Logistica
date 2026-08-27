@@ -16,6 +16,7 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 | [005 — Gestión de viajes](005-gestion-viajes/) | Implementado y validado | 134 / 134 |
 | [006 — Gestión de facturación](006-gestion-facturacion/) | Implementado y validado | 125 / 125 |
 | [007 — Rediseño de la aplicación](007-diseno-interfaz/) | Implementado, **falta la validación manual** | 110 / 126 |
+| [008 — Adopción del sistema de diseño gt-ui](008-diseno-gt-ui/) | Implementado, **falta la validación manual** | 132 / 144 |
 
 ## Qué queda abierto
 
@@ -74,6 +75,37 @@ Tres cosas anotadas, ninguna bloqueante:
 - **`DialogoConfirmacion` acepta la etiqueta del botón.** `contracts/README.md` fija el verbo de cada
   confirmación —`Dar de baja`, `Rendir sin importe`— y el diálogo compartido del Módulo 2 tenía
   `Confirmar` fijo. Es un parámetro opcional: ningún llamador anterior cambió.
+
+**Módulo 8.** La adopción de gt-ui está implementada y la suite entera en verde —**285 tests en 43
+archivos**, build y lint limpios—, pero **falta el recorrido manual**, que en esta feature es la
+prueba principal por la misma razón que en el Módulo 7: lo que cambió es cómo se ve, y eso no lo mide
+un test. Quedan 12 tareas, todas de verificación con la aplicación andando:
+
+- **Los seis quickstarts anteriores con las tres cuentas (T107)** y el **recorrido completo sólo con
+  teclado (T108)**: es lo único que puede descubrir que el rediseño se llevó puesto algo que la suite
+  no ve — en particular todo lo que vivía en las diez columnas `Acciones`.
+- **Lo que sólo se ve mirando**: las 42 pantallas contra las cuatro imágenes de referencia (T027), la
+  salida visible en los 19 formularios (T055), los importes alineados en vertical (T091), lo atenuado
+  con su palabra (T113a) y los bordes del quickstart a 1280 px (T120).
+- **Lo que pide herramienta**: el contraste sobre las pantallas reales (T110) y el filtro de escala de
+  grises sobre un listado (T113). La paleta ya está medida —los 18 pares de tokens y los 8 colores
+  literales que quedan fuera de `@theme`, entre 4,51:1 y 18,88:1—; lo que falta es medirla compuesta.
+- **Reducir movimiento** activado en el sistema operativo (T114), y el recorrido con teclado del `···`
+  de una fila (T090).
+- **Las 16 validaciones manuales que el Módulo 7 dejó pendientes (T122)**, ahora sobre el resultado de
+  este módulo y no sobre el anterior.
+
+Dos cosas que la medición con herramienta ya encontró y quedaron corregidas, anotadas porque son la
+clase de defecto que sólo aparece midiendo:
+
+- **El relleno del botón destructivo no llegaba al piso de contraste.** `componentes.md` decía
+  *"idéntico al primario pero `bg-danger`"*, y `#E5484D` con la etiqueta en blanco encima mide
+  **3,91:1** contra un piso de 4,5:1. Se pasó al rojo oscuro que la paleta ya tenía, `#C13A3E`
+  (**5,33:1**): no cambia ningún valor, elige entre los dos rojos del sistema el que la medición
+  admite. Volvió a la skill, en `componentes.md` y en `tokens.md`.
+- **El lienzo se dibujaba dos veces en `/ingresar`.** `App` lo monta en la raíz, afuera de `Routes`, y
+  la pantalla de ingreso montaba otro encima: los dos orbes se superponían y su alfa se duplicaba. Se
+  ve como un fondo apenas más saturado y nada más — lo destapó contar los nodos, no mirar.
 
 **Módulo 7.** El rediseño está implementado y la suite entera en verde —285 tests de frontend, 301 de
 backend, build y lint limpios—, pero **falta el recorrido manual**, que en esta feature no es un
@@ -182,6 +214,15 @@ Decisiones que exceden a su módulo y que conviene conocer antes de empezar el s
   encabezado y se migró el diálogo a Radix sin una sola regresión. También el primero que **incorpora
   dependencias de interfaz** —Tailwind, Radix, Lucide— con un límite escrito: ninguna puede
   reemplazar un control nativo que los tests operan.
+- **Módulo 8** — primer módulo que **adopta un sistema de diseño ya escrito** en vez de inventar el
+  suyo, y el que descubrió que un sistema de diseño **escrito mirando** no sobrevive a medirlo: la
+  rampa de cinco grises tiene lugar para dos tonos de texto por debajo del secundario, no para cuatro,
+  y el rojo que la skill daba como relleno del botón destructivo no llega al piso con su propia
+  etiqueta encima. Su regla transferible es que **la skill que es fuente de un sistema de diseño
+  también es su destino**: los cinco valores que la medición corrigió volvieron a `tokens.md` y a
+  `componentes.md` con su medición y su fondo de medición al lado, porque una corrección que vive sólo
+  en el código deja a la skill diciendo una cosa y a la aplicación haciendo otra.
+
 - **Módulo 6** — primer módulo que **genera un artefacto**: el documento de la factura se arma con el
   mismo armador que la vista previa y sobre la misma entidad, y es **función de sus datos y de nada
   más** —ni siquiera del reloj—, así que dos armados del mismo comprobante dan los mismos bytes.

@@ -1,8 +1,12 @@
 import { Estado } from '../../../compartido/ui/Estado'
 import { Aviso } from '../../../compartido/ui/Aviso'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { EncabezadoDeChevron, FilaNavegable } from '../../../compartido/ui/FilaNavegable'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { TokenDeIdentificador } from '../../../compartido/ui/TokenDeIdentificador'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
+import { clasesDeBoton } from '../../../compartido/ui/clases'
+import { IconoNuevo } from '../../../compartido/ui/iconos'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -85,96 +89,137 @@ export function ListadoFlota() {
         titulo="Flota"
         accionPrincipal={
           <>
-            <Link to="/flota/nuevo">Registrar unidad</Link>
-            <Link to="/flota/vencimientos">Ver vencimientos</Link>
+            {/* La segunda de las dos acciones secundarias reales del sistema (FR-019). */}
+            <Link to="/flota/vencimientos" className={clasesDeBoton('secundario')}>
+              Ver vencimientos
+            </Link>
+            <Link to="/flota/nuevo" className={clasesDeBoton('primario')}>
+              Registrar unidad
+              <span
+                aria-hidden="true"
+                className="flex size-8 shrink-0 items-center justify-center rounded-pastilla bg-white/[0.14] transition-transform duration-200 ease-gt group-hover:translate-x-0.5"
+              >
+                <IconoNuevo className="size-3" />
+              </span>
+            </Link>
           </>
         }
       />
-      <FiltrosFlota
-        filtros={filtros}
-        transportistas={transportistas}
-        tipos={tipos}
-        onCambiar={actualizarFiltro}
-        onLimpiar={() => {
-          setFiltros(FILTROS_FLOTA_INICIALES)
-          setPagina(1)
-        }}
-      />
 
       {error !== null && (
-        <Aviso tono="error" rol="alert" className="mb-4">
+        <Aviso tono="error" rol="alert" className="mb-[18px]">
           {error}
         </Aviso>
       )}
 
-      {resultado === null && error === null && (
-        <EstadoVacio caso="cargando" className="border-0 shadow-none">
-          Cargando la flota…
-        </EstadoVacio>
-      )}
+      <Listado>
+        <FiltrosFlota
+          filtros={filtros}
+          transportistas={transportistas}
+          tipos={tipos}
+          onCambiar={actualizarFiltro}
+          onLimpiar={() => {
+            setFiltros(FILTROS_FLOTA_INICIALES)
+            setPagina(1)
+          }}
+          resumen={
+            resultado !== null && (
+              <>
+                <span>
+                  {resultado.total} {resultado.total === 1 ? 'unidad' : 'unidades'}
+                </span>
+                <span>Ordenado por patente</span>
+              </>
+            )
+          }
+        />
 
-      {resultado !== null && resultado.items.length === 0 && (
-        <EstadoVacio
-          caso={filtrando ? 'sinCoincidencias' : 'vacio'}
-          className="border-0 shadow-none"
-        >
-          {filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_SIN_VEHICULOS}
-        </EstadoVacio>
-      )}
+        {resultado === null && error === null && (
+          <EstadoVacio caso="cargando" className="border-0 shadow-none">
+            Cargando la flota…
+          </EstadoVacio>
+        )}
 
-      {resultado !== null && resultado.items.length > 0 && (
-        <>
-          <Listado>
+        {resultado !== null && resultado.items.length === 0 && (
+          <EstadoVacio
+            caso={filtrando ? 'sinCoincidencias' : 'vacio'}
+            className="border-0 shadow-none"
+          >
+            {filtrando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_SIN_VEHICULOS}
+          </EstadoVacio>
+        )}
+
+        {resultado !== null && resultado.items.length > 0 && (
           <TablaDesplazable>
             <table>
-            <caption>Unidades de la flota</caption>
-            <thead>
-              <tr>
-                <th scope="col">Patente</th>
-                <th scope="col">Marca</th>
-                <th scope="col">Modelo</th>
-                <th scope="col">Tipo</th>
-                <th scope="col">Transportista</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Documentación</th>
-                <th scope="col">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {resultado.items.map((vehiculo) => (
-                <tr key={vehiculo.id}>
-                  <td>{vehiculo.patente}</td>
-                  <td>{vehiculo.marca}</td>
-                  <td>{vehiculo.modelo}</td>
-                  <td>{vehiculo.tipo.nombre}</td>
-                  <td>{vehiculo.transportista.nombre}</td>
-                  {/* El estado nunca se comunica sólo por color: el texto siempre acompaña. */}
-                  <td>
-                    <Estado valor={vehiculo.estado} texto={TEXTO_ESTADO_VEHICULO[vehiculo.estado]} />
-                    {/* Una unidad dada de baja lleva la palabra que lo explica (convención [003]). */}
-                    {!vehiculo.activo && ' — Dada de baja'}
-                  </td>
-                  <td>
-                    <Estado valor={vehiculo.estadoDocumentacion} texto={TEXTO_ESTADO_DOCUMENTACION[vehiculo.estadoDocumentacion]} />
-                  </td>
-                  <td>
-                    <Link to={`/flota/${vehiculo.id}`}>Ver ficha</Link>
-                  </td>
+              <caption>Unidades de la flota</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Patente</th>
+                  {/* `Marca` + `Modelo` nombran un solo concepto: el vehículo (FR-047). */}
+                  <th scope="col">Vehículo</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Transportista</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Documentación</th>
+                  {/*
+                    La columna `Acciones` **desaparece y no deja ningún `···`**: contenía sólo
+                    *Ver ficha*, que es ahora la patente como enlace de fila (FR-046).
+                  */}
+                  <EncabezadoDeChevron />
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {resultado.items.map((vehiculo) => (
+                  <FilaNavegable key={vehiculo.id} a={`/flota/${vehiculo.id}`}>
+                    {/* La patente es el identificador con el que se busca una unidad: va en mono
+                        y es el enlace de la fila (FR-040, FR-041). */}
+                    <td>
+                      <TokenDeIdentificador
+                        a={`/flota/${vehiculo.id}`}
+                        numero={vehiculo.patente}
+                      />
+                    </td>
+                    <td>
+                      {vehiculo.marca} {vehiculo.modelo}
+                    </td>
+                    <td>{vehiculo.tipo.nombre}</td>
+                    <td>{vehiculo.transportista.nombre}</td>
+                    {/* El estado nunca se comunica sólo por color: el texto siempre acompaña. */}
+                    <td>
+                      <Estado
+                        valor={vehiculo.estado}
+                        texto={TEXTO_ESTADO_VEHICULO[vehiculo.estado]}
+                        forma="pastilla"
+                      />
+                      {/* Una unidad dada de baja lleva la palabra que lo explica ([003], FR-060). */}
+                      {!vehiculo.activo && (
+                        <span className="atenuada ml-1.5 text-[11.5px]">— Dada de baja</span>
+                      )}
+                    </td>
+                    <td>
+                      <Estado
+                        valor={vehiculo.estadoDocumentacion}
+                        texto={TEXTO_ESTADO_DOCUMENTACION[vehiculo.estadoDocumentacion]}
+                        forma="pastilla"
+                      />
+                    </td>
+                  </FilaNavegable>
+                ))}
+              </tbody>
+            </table>
           </TablaDesplazable>
-        </Listado>
+        )}
+      </Listado>
 
-          <Paginacion
-            nombrePlural="vehículos"
-            pagina={resultado.pagina}
-            total={resultado.total}
-            tamanioPagina={resultado.tamanioPagina}
-            onCambiarPagina={setPagina}
-          />
-        </>
+      {resultado !== null && resultado.items.length > 0 && (
+        <Paginacion
+          nombrePlural="vehículos"
+          pagina={resultado.pagina}
+          total={resultado.total}
+          tamanioPagina={resultado.tamanioPagina}
+          onCambiarPagina={setPagina}
+        />
       )}
     </section>
   )

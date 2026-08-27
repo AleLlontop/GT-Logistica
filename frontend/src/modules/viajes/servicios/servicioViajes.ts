@@ -262,7 +262,8 @@ export function leyendaDeFactura(factura: FacturaDelViaje, fechaFormateada: stri
 /** El nombre con `(inactivo)` cuando corresponde. Nunca sólo un color (FR-049). */
 export function nombreConEstado(resumen: Resumen | null): string {
   if (resumen === null) {
-    return '—'
+    // El vacío se escribe: una celda dice **qué falta**, nunca un guión (FR-038).
+    return 'Sin asignar'
   }
 
   return resumen.activo ? resumen.nombre : `${resumen.nombre} (inactivo)`

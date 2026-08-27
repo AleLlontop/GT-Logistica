@@ -1,4 +1,8 @@
-import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -204,85 +208,97 @@ export function CorreccionFactura() {
         </dl>
       </section>
 
-      <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
+      <form onSubmit={guardar} noValidate className={clasesDeFormularioAgrupado}>
         {/* El guardado no cambia de pantalla, así que se anuncia acá (convención [003]). */}
         {aviso !== null && <p role="status">{aviso}</p>}
         {errorGlobal !== null && <p role="alert">{errorGlobal}</p>}
 
-        <div className={classNameCampo('detalle')}>
-          <label htmlFor="detalle-correccion">Detalle</label>
-          <textarea
-            id="detalle-correccion"
-            maxLength={500}
-            value={detalle}
-            onChange={(evento) => setDetalle(evento.target.value)}
-          />
-        </div>
+        <SeccionNumerada
+          numero={2}
+          titulo="Datos corregibles"
+          explicacion="Es lo único que una corrección puede tocar."
+        >
+          <div className={`${classNameCampo('detalle')} w-full`}>
+            <label htmlFor="detalle-correccion">Detalle</label>
+            <textarea
+              id="detalle-correccion"
+              maxLength={500}
+              value={detalle}
+              onChange={(evento) => setDetalle(evento.target.value)}
+            />
+          </div>
 
-        <div className={classNameCampo('cae')}>
-          <label htmlFor="cae-correccion">CAE</label>
-          <input
-            id="cae-correccion"
-            type="text"
-            required
-            maxLength={20}
-            value={cae}
-            onChange={(evento) => setCae(evento.target.value)}
-            aria-invalid={erroresDeCampo.cae !== undefined}
-          />
-          {erroresDeCampo.cae && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.cae}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('cae')} max-w-campo-medio`}>
+            <label htmlFor="cae-correccion">CAE</label>
+            <input
+              id="cae-correccion"
+              placeholder="71234567890123"
+              type="text"
+              required
+              maxLength={20}
+              value={cae}
+              onChange={(evento) => setCae(evento.target.value)}
+              aria-invalid={erroresDeCampo.cae !== undefined}
+            />
+            {erroresDeCampo.cae && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.cae}
+              </p>
+            )}
+          </div>
 
-        <div className={classNameCampo('caeVencimiento')}>
-          <label htmlFor="caeVencimiento-correccion">Vencimiento del CAE</label>
-          <input
-            id="caeVencimiento-correccion"
-            type="date"
-            required
-            value={caeVencimiento}
-            onChange={(evento) => setCaeVencimiento(evento.target.value)}
-            aria-invalid={erroresDeCampo.caeVencimiento !== undefined}
-          />
-          {erroresDeCampo.caeVencimiento && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.caeVencimiento}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('caeVencimiento')} max-w-campo-corto`}>
+            <label htmlFor="caeVencimiento-correccion">Vencimiento del CAE</label>
+            <input
+              id="caeVencimiento-correccion"
+              type="date"
+              required
+              value={caeVencimiento}
+              onChange={(evento) => setCaeVencimiento(evento.target.value)}
+              aria-invalid={erroresDeCampo.caeVencimiento !== undefined}
+            />
+            {erroresDeCampo.caeVencimiento && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.caeVencimiento}
+              </p>
+            )}
+          </div>
 
-        <div className={classNameCampo('vencimientoPago')}>
-          <label htmlFor="vencimientoPago-correccion">Vencimiento de pago</label>
-          <input
-            id="vencimientoPago-correccion"
-            type="date"
-            required
-            value={vencimientoPago}
-            onChange={(evento) => setVencimientoPago(evento.target.value)}
-            aria-invalid={erroresDeCampo.vencimientoPago !== undefined}
-          />
-          {erroresDeCampo.vencimientoPago && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.vencimientoPago}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('vencimientoPago')} max-w-campo-corto`}>
+            <label htmlFor="vencimientoPago-correccion">Vencimiento de pago</label>
+            <input
+              id="vencimientoPago-correccion"
+              type="date"
+              required
+              value={vencimientoPago}
+              onChange={(evento) => setVencimientoPago(evento.target.value)}
+              aria-invalid={erroresDeCampo.vencimientoPago !== undefined}
+            />
+            {erroresDeCampo.vencimientoPago && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.vencimientoPago}
+              </p>
+            )}
+          </div>
+        </SeccionNumerada>
 
-        <div className="acciones">
-          <button type="submit" disabled={guardando}>
-            Guardar cambios
-          </button>
-          <button
-            type="button"
+        <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+          <Boton
+            variante="secundario"
             onClick={() => navegar(`/facturas/${factura.id}`)}
             disabled={guardando}
           >
             Volver a la ficha
-          </button>
-        </div>
+          </Boton>
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={guardando}
+            icono={<IconoEnRegla className="size-3" />}
+          >
+            Guardar cambios
+          </Boton>
+        </BarraDeAcciones>
       </form>
     </section>
   )

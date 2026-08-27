@@ -39,16 +39,18 @@ export function PantallaInicio({ sesion }: Props) {
       {/* El menú vacío es un caso válido: un usuario cuyos roles todavía no habilitan ninguna
           funcionalidad implementada igual inicia sesión y llega acá (FR-020). */}
       {sinOpciones && (
-        <p className="max-w-prose text-sm text-texto-suave">
+        <p className="max-w-prose text-[13px] leading-5 text-ink-soft">
           Por ahora no tenés funcionalidades disponibles. Se irán agregando a medida que se
           implementen.
         </p>
       )}
 
-      <div className="flex flex-col gap-8">
+      {/* La pantalla de inicio **no tiene acción principal** y no se le inventa ninguna (FR-017):
+          es un tablero de accesos, y el primario sería el más importante de los catorce. */}
+      <div className="flex flex-col gap-7">
         {secciones.map((seccion) => (
           <div key={seccion.nombre}>
-            <h2 className="mb-3 text-xs font-semibold tracking-wide text-texto-suave uppercase">
+            <h2 className="m-0 mb-3 text-[9.5px] font-bold tracking-[0.14em] text-ink-soft uppercase">
               {seccion.nombre}
             </h2>
 
@@ -57,7 +59,7 @@ export function PantallaInicio({ sesion }: Props) {
                 <li key={opcion.codigo}>
                   <Link
                     to={opcion.ruta}
-                    className="block rounded-medio border border-borde bg-superficie px-4 py-3 text-sm font-medium text-texto no-underline shadow-tarjeta hover:border-acento hover:text-acento"
+                    className="block rounded-card border border-line bg-surface px-[18px] py-3.5 text-[13px] font-semibold tracking-tight text-ink no-underline shadow-card transition-colors duration-200 ease-gt hover:border-brand/30 hover:text-brand"
                   >
                     {opcion.etiqueta}
                   </Link>

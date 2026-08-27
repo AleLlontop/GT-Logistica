@@ -35,7 +35,7 @@ export function DialogoConfirmacion({
 }: Props) {
   return (
     <Dialogo titulo={titulo} onCerrar={onCancelar}>
-      <p className="mt-2 text-sm text-texto-suave">{mensaje}</p>
+      <p className="mt-2.5 text-[13px] leading-5 text-ink-soft">{mensaje}</p>
 
       <DialogoAcciones>
         <Boton variante="secundario" onClick={onCancelar}>

@@ -67,10 +67,19 @@ export function TotalesPeriodo() {
 
   return (
     <section>
+      {/*
+        Panel de solo lectura: **sin acción principal**, y no se le inventa una (FR-017) — la
+        consulta se dispara sola al completar el rango. **Tampoco lleva volver**: T035c enumera las
+        seis pantallas que mudan el suyo de prop y T035d las tres que hay que crear, y ésta no está
+        en ninguna de las dos listas. Se alcanza desde el menú.
+      */}
       <EncabezadoDePantalla titulo="Totales por período" />
 
-      <form onSubmit={(evento) => evento.preventDefault()} className={clasesDeFormulario}>
-        <div className="campo">
+      <form
+        onSubmit={(evento) => evento.preventDefault()}
+        className={`${clasesDeFormulario} mb-[18px] flex-row flex-wrap items-end gap-3.5 rounded-card border border-line bg-surface p-[22px] shadow-card`}
+      >
+        <div className="campo max-w-campo-corto">
           <label htmlFor="totales-desde">Desde</label>
           <input
             id="totales-desde"
@@ -80,7 +89,7 @@ export function TotalesPeriodo() {
           />
         </div>
 
-        <div className="campo">
+        <div className="campo max-w-campo-corto">
           <label htmlFor="totales-hasta">Hasta</label>
           <input
             id="totales-hasta"
@@ -144,16 +153,23 @@ function Cuadro({
         <thead>
           <tr>
             <th scope="col">{encabezado}</th>
-            <th scope="col">Viajes</th>
-            <th scope="col" className="text-right">Importe</th>
+            <th scope="col" className="text-right">
+              Viajes
+            </th>
+            <th scope="col" className="text-right">
+              Importe
+            </th>
           </tr>
         </thead>
         <tbody>
           {filas.map((fila) => (
             <tr key={fila.id}>
+              {/* **Sin enlace de fila**: es un panel de totales, no un índice (data-model §5). */}
               <td>{fila.nombre}</td>
-              <td>{fila.cantidadViajes}</td>
-              <td className="text-right font-medium">{formatearPesos(fila.importeTotal)}</td>
+              <td className="text-right">{fila.cantidadViajes}</td>
+              <td className="text-right font-bold whitespace-nowrap">
+                {formatearPesos(fila.importeTotal)}
+              </td>
             </tr>
           ))}
         </tbody>

@@ -1,4 +1,8 @@
-import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { clasesDeBoton } from '../../../compartido/ui/clases'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { clasesDeFormularioSimple } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -114,7 +118,7 @@ export function PanelRoles() {
         </p>
       )}
 
-      <form onSubmit={alGuardar} noValidate className={clasesDeFormulario}>
+      <form onSubmit={alGuardar} noValidate className={clasesDeFormularioSimple}>
         <fieldset>
           <legend>Roles del sistema</legend>
 
@@ -135,11 +139,20 @@ export function PanelRoles() {
           ))}
         </fieldset>
 
-        <button type="submit" disabled={enviando}>
-          {enviando ? 'Guardando…' : 'Guardar'}
-        </button>
-
-        <Link to={`/usuarios/${idUsuario}`}>Volver al detalle</Link>
+        <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+          {/* Navega, así que sigue siendo un `<a>` aunque se vea como un botón (FR-023). */}
+          <Link to={`/usuarios/${idUsuario}`} className={clasesDeBoton('secundario')}>
+            Volver al detalle
+          </Link>
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={enviando}
+            icono={<IconoEnRegla className="size-3" />}
+          >
+            {enviando ? 'Guardando…' : 'Guardar'}
+          </Boton>
+        </BarraDeAcciones>
       </form>
 
       {verPermisosDe !== null && (

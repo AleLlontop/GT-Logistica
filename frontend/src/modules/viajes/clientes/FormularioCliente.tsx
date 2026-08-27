@@ -1,4 +1,8 @@
-import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -134,108 +138,128 @@ export function FormularioCliente() {
     <section>
       <EncabezadoDePantalla titulo={titulo} />
 
-      <form onSubmit={guardar} noValidate className={clasesDeFormulario}>
+      <form onSubmit={guardar} noValidate className={clasesDeFormularioAgrupado}>
         {errorGlobal && <p role="alert">{errorGlobal}</p>}
 
-        <div className={classNameCampo('razonSocial')}>
-          <label htmlFor="razonSocial">Razón social</label>
-          <input
-            id="razonSocial"
-            type="text"
-            required
-            maxLength={100}
-            value={razonSocial}
-            onChange={(evento) => setRazonSocial(evento.target.value)}
-            aria-invalid={erroresDeCampo.razonSocial !== undefined}
-          />
-          {erroresDeCampo.razonSocial && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.razonSocial}
-            </p>
-          )}
-        </div>
+        <SeccionNumerada
+          numero={1}
+          titulo="Identidad fiscal"
+          explicacion="Los dos salen impresos en el comprobante."
+        >
+          <div className={`${classNameCampo('razonSocial')} max-w-campo-largo`}>
+            <label htmlFor="razonSocial">Razón social</label>
+            <input
+              id="razonSocial"
+              placeholder="Distribuidora del Litoral"
+              type="text"
+              required
+              maxLength={100}
+              value={razonSocial}
+              onChange={(evento) => setRazonSocial(evento.target.value)}
+              aria-invalid={erroresDeCampo.razonSocial !== undefined}
+            />
+            {erroresDeCampo.razonSocial && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.razonSocial}
+              </p>
+            )}
+          </div>
 
-        <div className={classNameCampo('cuit')}>
-          {/* Se normaliza a sólo dígitos antes de validar: `30-71234567-8` es válido (FR-004). */}
-          <label htmlFor="cuit">CUIT (con o sin guiones)</label>
-          <input
-            id="cuit"
-            type="text"
-            required
-            maxLength={20}
-            value={cuit}
-            onChange={(evento) => setCuit(evento.target.value)}
-            aria-invalid={erroresDeCampo.cuit !== undefined}
-          />
-          {erroresDeCampo.cuit && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.cuit}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('cuit')} max-w-campo-corto`}>
+            {/* Se normaliza a sólo dígitos antes de validar: `30-71234567-8` es válido (FR-004). */}
+            <label htmlFor="cuit">CUIT (con o sin guiones)</label>
+            <input
+              id="cuit"
+              placeholder="30-71234567-8"
+              type="text"
+              required
+              maxLength={20}
+              value={cuit}
+              onChange={(evento) => setCuit(evento.target.value)}
+              aria-invalid={erroresDeCampo.cuit !== undefined}
+            />
+            {erroresDeCampo.cuit && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.cuit}
+              </p>
+            )}
+          </div>
+        </SeccionNumerada>
 
-        <div className={classNameCampo('telefono')}>
-          <label htmlFor="telefono">Teléfono</label>
-          <input
-            id="telefono"
-            type="tel"
-            required
-            maxLength={30}
-            value={telefono}
-            onChange={(evento) => setTelefono(evento.target.value)}
-            aria-invalid={erroresDeCampo.telefono !== undefined}
-          />
-          {erroresDeCampo.telefono && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.telefono}
-            </p>
-          )}
-        </div>
+        <SeccionNumerada
+          numero={2}
+          titulo="Contacto"
+        >
+          <div className={`${classNameCampo('telefono')} max-w-campo-medio`}>
+            <label htmlFor="telefono">Teléfono</label>
+            <input
+              id="telefono"
+              placeholder="+54 9 221 555-0148"
+              type="tel"
+              required
+              maxLength={30}
+              value={telefono}
+              onChange={(evento) => setTelefono(evento.target.value)}
+              aria-invalid={erroresDeCampo.telefono !== undefined}
+            />
+            {erroresDeCampo.telefono && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.telefono}
+              </p>
+            )}
+          </div>
 
-        <div className={classNameCampo('email')}>
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            required
-            maxLength={254}
-            value={email}
-            onChange={(evento) => setEmail(evento.target.value)}
-            aria-invalid={erroresDeCampo.email !== undefined}
-          />
-          {erroresDeCampo.email && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.email}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('email')} max-w-campo-medio`}>
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              placeholder="nombre@empresa.com.ar"
+              type="email"
+              required
+              maxLength={254}
+              value={email}
+              onChange={(evento) => setEmail(evento.target.value)}
+              aria-invalid={erroresDeCampo.email !== undefined}
+            />
+            {erroresDeCampo.email && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.email}
+              </p>
+            )}
+          </div>
 
-        <div className={classNameCampo('direccion')}>
-          {/* Opcional: el módulo no la usa para operar y no se pide por las dudas (Principio V). */}
-          <label htmlFor="direccion">Dirección (opcional)</label>
-          <input
-            id="direccion"
-            type="text"
-            maxLength={200}
-            value={direccion}
-            onChange={(evento) => setDireccion(evento.target.value)}
-            aria-invalid={erroresDeCampo.direccion !== undefined}
-          />
-          {erroresDeCampo.direccion && (
-            <p className="campo__error" role="alert">
-              {erroresDeCampo.direccion}
-            </p>
-          )}
-        </div>
+          <div className={`${classNameCampo('direccion')} max-w-campo-largo`}>
+            {/* Opcional: el módulo no la usa para operar y no se pide por las dudas (Principio V). */}
+            <label htmlFor="direccion">Dirección (opcional)</label>
+            <input
+              id="direccion"
+              type="text"
+              maxLength={200}
+              value={direccion}
+              onChange={(evento) => setDireccion(evento.target.value)}
+              aria-invalid={erroresDeCampo.direccion !== undefined}
+            />
+            {erroresDeCampo.direccion && (
+              <p className="campo__error" role="alert">
+                {erroresDeCampo.direccion}
+              </p>
+            )}
+          </div>
+        </SeccionNumerada>
 
-        <div className="acciones">
-          <button type="submit" disabled={guardando}>
-            {editando ? 'Guardar cambios' : 'Guardar cliente'}
-          </button>
-          <button type="button" onClick={() => navegar('/clientes')} disabled={guardando}>
+        <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+          <Boton variante="secundario" onClick={() => navegar('/clientes')} disabled={guardando}>
             Cancelar
-          </button>
-        </div>
+          </Boton>
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={guardando}
+            icono={<IconoEnRegla className="size-3" />}
+          >
+            {editando ? 'Guardar cambios' : 'Guardar cliente'}
+          </Boton>
+        </BarraDeAcciones>
       </form>
     </section>
   )

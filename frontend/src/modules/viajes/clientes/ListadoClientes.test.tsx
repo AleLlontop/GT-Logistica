@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ListadoClientes } from './ListadoClientes'
@@ -83,11 +84,17 @@ describe('ListadoClientes', () => {
       pagina([cliente(1, 'Activa S.A.'), cliente(2, 'La que se fue', false)]),
     )
 
+    const usuario = userEvent.setup()
     renderizar()
 
     await screen.findByRole('table')
 
+    // FR-069: las dos acciones viven ahora en el `···` de su fila. Se abre el de cada una y se
+    // comprueba lo mismo que antes: las aserciones no cambian.
+    await usuario.click(screen.getByRole('button', { name: 'Acciones de Activa S.A.' }))
     expect(screen.getByRole('button', { name: 'Dar de baja' })).toBeInTheDocument()
+
+    await usuario.click(screen.getByRole('button', { name: 'Acciones de La que se fue' }))
     expect(screen.getByRole('button', { name: 'Dar de alta' })).toBeInTheDocument()
   })
 

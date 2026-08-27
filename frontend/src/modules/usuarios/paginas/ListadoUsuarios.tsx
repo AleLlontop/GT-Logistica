@@ -1,7 +1,13 @@
 import { Aviso } from '../../../compartido/ui/Aviso'
+import { EnlaceDeFila } from '../../../compartido/ui/EnlaceDeFila'
+import { Estado } from '../../../compartido/ui/Estado'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { EncabezadoDeChevron, FilaNavegable } from '../../../compartido/ui/FilaNavegable'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import { MenuDeFila } from '../../../compartido/ui/MenuDeFila'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
+import { clasesDeBoton } from '../../../compartido/ui/clases'
+import { IconoNuevo } from '../../../compartido/ui/iconos'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -20,10 +26,16 @@ import { darDeBajaUsuario, listarUsuarios } from '../servicios/usuarios'
 const MENSAJE_SIN_RESULTADOS = 'No hay usuarios que coincidan con los filtros aplicados.'
 
 /**
- * Listado de usuarios (User Story 2).
+ * Listado de usuarios (User Story 2 del Módulo 2).
  *
  * Muestra las seis columnas que exige FR-011 y, cuando ningún usuario coincide, un mensaje explícito
  * en vez de una tabla vacía sin explicación (FR-012).
+ *
+ * **La columna `Acciones` desaparece** (FR-046): *Editar*, *Roles* y *Dar de baja* pasan al menú
+ * `···` del final de la fila, y *Ver* deja de existir como enlace aparte porque el nombre de
+ * usuario **es** el enlace de la fila (FR-040). Los tres conservan su texto y su rol: lo único que
+ * cambia es que hay que abrir el menú para llegar a ellos, y ése es el único cambio de esta clase
+ * que una suite que consulta por rol y texto puede notar (FR-069).
  */
 export function ListadoUsuarios() {
   const [filtros, setFiltros] = useState<Filtros>(FILTROS_VACIOS)
@@ -71,73 +83,111 @@ export function ListadoUsuarios() {
       <EncabezadoDePantalla
         titulo="Gestión de usuarios"
         accionPrincipal={
-          <>
-            <Link to="/usuarios/nuevo">Nuevo usuario</Link>
-          </>
+          <Link to="/usuarios/nuevo" className={clasesDeBoton('primario')}>
+            Nuevo usuario
+            <span
+              aria-hidden="true"
+              className="flex size-8 shrink-0 items-center justify-center rounded-pastilla bg-white/[0.14] transition-transform duration-200 ease-gt group-hover:translate-x-0.5"
+            >
+              <IconoNuevo className="size-3" />
+            </span>
+          </Link>
         }
       />
-      <FiltrosUsuarios valor={filtros} onCambio={setFiltros} />
 
       {error !== null && (
-        <Aviso tono="error" rol="alert" className="mb-4">
+        <Aviso tono="error" rol="alert" className="mb-[18px]">
           {error}
         </Aviso>
       )}
 
-      {usuarios === null && error === null && (
-        <EstadoVacio caso="cargando" className="border-0 shadow-none">
-          Cargando usuarios…
-        </EstadoVacio>
-      )}
+      <Listado>
+        <FiltrosUsuarios
+          valor={filtros}
+          onCambio={setFiltros}
+          resumen={
+            usuarios !== null && (
+              <>
+                <span>
+                  {usuarios.length} {usuarios.length === 1 ? 'usuario' : 'usuarios'}
+                </span>
+                <span>Ordenado por nombre de usuario</span>
+              </>
+            )
+          }
+        />
 
-      {usuarios !== null && usuarios.length === 0 && (
-        <EstadoVacio caso="vacio" className="border-0 shadow-none">
-          {MENSAJE_SIN_RESULTADOS}
-        </EstadoVacio>
-      )}
+        {usuarios === null && error === null && (
+          <EstadoVacio caso="cargando" className="border-0 shadow-none">
+            Cargando usuarios…
+          </EstadoVacio>
+        )}
 
-      {usuarios !== null && usuarios.length > 0 && (
-        <Listado>
+        {usuarios !== null && usuarios.length === 0 && (
+          <EstadoVacio caso="vacio" className="border-0 shadow-none">
+            {MENSAJE_SIN_RESULTADOS}
+          </EstadoVacio>
+        )}
+
+        {usuarios !== null && usuarios.length > 0 && (
           <TablaDesplazable>
             <table>
-          <caption>Usuarios del sistema</caption>
-          <thead>
-            <tr>
-              <th scope="col">Nombre de usuario</th>
-              <th scope="col">Email</th>
-              <th scope="col">Estado</th>
-              <th scope="col">Roles</th>
-              <th scope="col">Fecha de alta</th>
-              <th scope="col">Último acceso</th>
-              <th scope="col">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map((usuario) => (
-              <tr key={usuario.id}>
-                <td>{usuario.username}</td>
-                <td>{usuario.email}</td>
-                <td>{NOMBRE_DE_ESTADO[usuario.estado]}</td>
-                <td>{usuario.roles.map((rol) => rol.nombre).join(', ')}</td>
-                <td>{formatearFecha(usuario.fechaAlta)}</td>
-                <td>{formatearUltimoAcceso(usuario.ultimoAcceso)}</td>
-                <td>
-                  <Link to={`/usuarios/${usuario.id}`}>Ver</Link>
-                  <Link to={`/usuarios/${usuario.id}/editar`}>Editar</Link>
-                  <Link to={`/usuarios/${usuario.id}/roles`}>Roles</Link>
-                  {usuario.estado !== 'inactivo' && (
-                    <button type="button" onClick={() => setABajar(usuario)}>
-                      Dar de baja
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              <caption>Usuarios del sistema</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Nombre de usuario</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Roles</th>
+                  <th scope="col">Fecha de alta</th>
+                  <th scope="col">Último acceso</th>
+                  <EncabezadoDeChevron />
+                </tr>
+              </thead>
+              <tbody>
+                {usuarios.map((usuario) => (
+                  <FilaNavegable key={usuario.id} a={`/usuarios/${usuario.id}`}>
+                    <td>
+                      <EnlaceDeFila a={`/usuarios/${usuario.id}`}>{usuario.username}</EnlaceDeFila>
+                    </td>
+                    <td>{usuario.email}</td>
+                    {/* Alta y baja: van como punto, no como pastilla (FR-055). */}
+                    <td>
+                      <Estado
+                        valor={usuario.estado}
+                        texto={NOMBRE_DE_ESTADO[usuario.estado]}
+                        forma="punto"
+                      />
+                    </td>
+                    <td>{usuario.roles.map((rol) => rol.nombre).join(', ')}</td>
+                    <td>{formatearFecha(usuario.fechaAlta)}</td>
+                    <td>{formatearUltimoAcceso(usuario.ultimoAcceso)}</td>
+                    <td className="w-8">
+                      {/* El nombre accesible nombra **la fila**, nunca sólo "Acciones" (FR-044). */}
+                      <MenuDeFila
+                        etiqueta={`Acciones de ${usuario.username}`}
+                        items={[
+                          { etiqueta: 'Editar', a: `/usuarios/${usuario.id}/editar` },
+                          { etiqueta: 'Roles', a: `/usuarios/${usuario.id}/roles` },
+                          ...(usuario.estado !== 'inactivo'
+                            ? [
+                                {
+                                  etiqueta: 'Dar de baja',
+                                  onSeleccionar: () => setABajar(usuario),
+                                  destructivo: true,
+                                },
+                              ]
+                            : []),
+                        ]}
+                      />
+                    </td>
+                  </FilaNavegable>
+                ))}
+              </tbody>
+            </table>
           </TablaDesplazable>
-        </Listado>
-      )}
+        )}
+      </Listado>
 
       {aBajar !== null && (
         <DialogoConfirmacion

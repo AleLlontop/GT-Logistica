@@ -1,4 +1,7 @@
-import { clasesDeFormulario } from '../../../compartido/ui/clases'
+import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { clasesDeFormularioSimple } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -147,8 +150,8 @@ export function AsignacionViaje() {
       {sinChoferes && <p role="status">{MENSAJE_SIN_CHOFERES}</p>}
       {sinVehiculos && <p role="status">{MENSAJE_SIN_VEHICULOS}</p>}
 
-      <form onSubmit={asignar} noValidate className={clasesDeFormulario}>
-        <div className="campo">
+      <form onSubmit={asignar} noValidate className={clasesDeFormularioSimple}>
+        <div className="campo max-w-campo-largo">
           <label htmlFor="choferId">Chofer</label>
           <select
             id="choferId"
@@ -167,7 +170,7 @@ export function AsignacionViaje() {
           </select>
         </div>
 
-        <div className="campo">
+        <div className="campo max-w-campo-largo">
           <label htmlFor="vehiculoId">Vehículo</label>
           <select
             id="vehiculoId"
@@ -186,15 +189,24 @@ export function AsignacionViaje() {
           </select>
         </div>
 
-        <div className="acciones">
-          {/* Deshabilitado con una sola unidad elegida: no hay asignación parcial (FR-019b). */}
-          <button type="submit" disabled={guardando || faltaElegir}>
-            Asignar
-          </button>
-          <button type="button" onClick={() => navegar(`/viajes/${viajeId}`)} disabled={guardando}>
+        <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+          <Boton
+            variante="secundario"
+            onClick={() => navegar(`/viajes/${viajeId}`)}
+            disabled={guardando}
+          >
             Volver al viaje
-          </button>
-        </div>
+          </Boton>
+          {/* Deshabilitado con una sola unidad elegida: no hay asignación parcial (FR-019b). */}
+          <Boton
+            type="submit"
+            variante="primario"
+            disabled={guardando || faltaElegir}
+            icono={<IconoEnRegla className="size-3" />}
+          >
+            Asignar
+          </Boton>
+        </BarraDeAcciones>
       </form>
     </section>
   )

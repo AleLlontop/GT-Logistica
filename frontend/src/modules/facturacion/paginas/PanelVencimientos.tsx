@@ -1,9 +1,10 @@
+import { TokenDeIdentificador } from '../../../compartido/ui/TokenDeIdentificador'
+import { EncabezadoDeChevron, FilaNavegable } from '../../../compartido/ui/FilaNavegable'
 import { Aviso } from '../../../compartido/ui/Aviso'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { formatearFecha } from '../../../compartido/fechas'
 import { formatearPesos } from '../../../compartido/moneda'
 import { situacion } from '../servicios/api'
@@ -49,7 +50,15 @@ export function PanelVencimientos() {
 
   return (
     <section>
-      <EncabezadoDePantalla titulo="Vencimientos" />
+      {/*
+        **Este panel no tenía ninguna acción de encabezado, ni siquiera un volver** (FR-022): era la
+        única de las cuatro pantallas de solo lectura sin salida visible. El texto es nuevo y lo
+        escribe esta feature, siguiendo la forma de los que ya existen en choferes y flota (FR-065).
+      */}
+      <EncabezadoDePantalla
+        titulo="Vencimientos"
+        volverA={{ ruta: '/facturas', etiqueta: 'Volver al listado de facturas' }}
+      />
 
       {error !== null && (
         <Aviso tono="error" rol="alert" className="mb-4">
@@ -79,20 +88,26 @@ export function PanelVencimientos() {
               <th scope="col" className="text-right">Importe</th>
               <th scope="col">Vencimiento</th>
               <th scope="col">Situación</th>
+              <EncabezadoDeChevron />
             </tr>
           </thead>
           <tbody>
             {filas.map((fila) => (
-              <tr key={fila.id}>
+              <FilaNavegable key={fila.id} a={`/facturas/${fila.id}`}>
                 <td>{fila.cliente}</td>
                 <td>
-                  <Link to={`/facturas/${fila.id}`}>{fila.numeroComprobante}</Link>
+                  <TokenDeIdentificador
+                    a={`/facturas/${fila.id}`}
+                    numero={fila.numeroComprobante}
+                  />
                 </td>
-                <td className="text-right font-medium">{formatearPesos(fila.total)}</td>
+                <td className="text-right font-bold whitespace-nowrap">
+                  {formatearPesos(fila.total)}
+                </td>
                 <td>{formatearFecha(fila.vencimientoPago)}</td>
-                {/* La palabra, no el color (FR-065). */}
+                {/* La palabra, no el color (FR-055). */}
                 <td>{situacion(fila.dias)}</td>
-              </tr>
+              </FilaNavegable>
             ))}
           </tbody>
         </table>

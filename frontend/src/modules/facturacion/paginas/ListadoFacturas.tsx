@@ -3,10 +3,12 @@ import { Aviso } from '../../../compartido/ui/Aviso'
 import { clasesDeBoton } from '../../../compartido/ui/clases'
 import { Estado } from '../../../compartido/ui/Estado'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { EncabezadoDeChevron, FilaNavegable } from '../../../compartido/ui/FilaNavegable'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
-import { clasesDeEnlaceDeFila } from '../../../compartido/ui/clases'
+import { TokenDeIdentificador } from '../../../compartido/ui/TokenDeIdentificador'
+import { IconoNuevo } from '../../../compartido/ui/iconos'
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { formatearFecha } from '../../../compartido/fechas'
 import { formatearPesos } from '../../../compartido/moneda'
 import { FiltrosFacturas } from '../componentes/FiltrosFacturas'
@@ -49,8 +51,6 @@ interface Props {
  * convenciones [003] y [005]).
  */
 export function ListadoFacturas({ puedeGestionar }: Props) {
-  const navegar = useNavigate()
-
   const [filtros, setFiltros] = useState(FILTROS_FACTURAS_INICIALES)
   const [pagina, setPagina] = useState(1)
   const [resultado, setResultado] = useState<PaginaDe<FacturaListado> | null>(null)
@@ -93,6 +93,12 @@ export function ListadoFacturas({ puedeGestionar }: Props) {
           puedeGestionar && (
             <Link to="/facturas/nueva" className={clasesDeBoton('primario')}>
               Nueva factura
+              <span
+                aria-hidden="true"
+                className="flex size-8 shrink-0 items-center justify-center rounded-pastilla bg-white/[0.14] transition-transform duration-200 ease-gt group-hover:translate-x-0.5"
+              >
+                <IconoNuevo className="size-3" />
+              </span>
             </Link>
           )
         }
@@ -105,15 +111,29 @@ export function ListadoFacturas({ puedeGestionar }: Props) {
       )}
 
       <Listado>
-        <FiltrosFacturas valor={filtros} onCambio={cambiarFiltros} />
-
-        {/* El control nunca oculta filas en silencio: si no se eligió estado, dice qué está mostrando
-            (FR-064). */}
-        <p role="status" className="border-b border-borde px-4 py-2 text-sm text-texto-suave">
-          {filtros.estado === ''
-            ? 'Mostrando todas las facturas, incluidas las anuladas.'
-            : `Mostrando sólo las facturas ${ESTADO_EN_ORACION[filtros.estado]}.`}
-        </p>
+        <FiltrosFacturas
+          valor={filtros}
+          onCambio={cambiarFiltros}
+          declaracion={
+            /* El control nunca oculta filas en silencio: si no se eligió estado, dice qué está
+               mostrando (FR-064 del Módulo 6, convención [003]). */
+            <span role="status">
+              {filtros.estado === ''
+                ? 'Mostrando todas las facturas, incluidas las anuladas.'
+                : `Mostrando sólo las facturas ${ESTADO_EN_ORACION[filtros.estado]}.`}
+            </span>
+          }
+          resumen={
+            resultado !== null && (
+              <>
+                <span>
+                  {resultado.total} {resultado.total === 1 ? 'factura' : 'facturas'}
+                </span>
+                <span>Ordenado por fecha, de la más reciente a la más vieja</span>
+              </>
+            )
+          }
+        />
 
         {resultado === null && error === null && (
           <EstadoVacio caso="cargando" className="border-0 shadow-none">
@@ -132,70 +152,82 @@ export function ListadoFacturas({ puedeGestionar }: Props) {
 
         {resultado !== null && resultado.items.length > 0 && (
           <TablaDesplazable>
-        <table>
-          <caption>Facturas emitidas</caption>
-          <thead>
-            <tr>
-              <th scope="col">Número</th>
-              <th scope="col">Fecha</th>
-              <th scope="col">Cliente</th>
-              <th scope="col">Tipo</th>
-              <th scope="col">Período</th>
-              <th scope="col" className="text-right">
-                Total
-              </th>
-              <th scope="col">Estado</th>
-              <th scope="col">Vencimiento de pago</th>
-            </tr>
-          </thead>
-          <tbody>
-            {resultado.items.map((factura) => (
-              // La fila anulada va atenuada **y** con la palabra que lo explica en la columna de
-              // estado: un elemento atenuado nunca comunica sólo con el color (FR-065).
-              <tr
-                key={factura.id}
-                className={factura.estado === 'anulada' ? 'atenuada' : undefined}
-              >
-                <td>
-                  <button
-                    type="button"
-                    onClick={() => navegar(`/facturas/${factura.id}`)}
-                    className={clasesDeEnlaceDeFila()}
+            <table>
+              <caption>Facturas emitidas</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Número</th>
+                  <th scope="col">Fecha</th>
+                  <th scope="col">Cliente</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Período</th>
+                  <th scope="col" className="text-right">
+                    Total
+                  </th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Vencimiento de pago</th>
+                  <EncabezadoDeChevron />
+                </tr>
+              </thead>
+              <tbody>
+                {resultado.items.map((factura) => (
+                  // La fila anulada va atenuada **y** con la palabra que lo explica en la columna de
+                  // estado: un elemento atenuado nunca comunica sólo con el color (FR-060).
+                  <FilaNavegable
+                    key={factura.id}
+                    a={`/facturas/${factura.id}`}
+                    className={factura.estado === 'anulada' ? 'atenuada' : undefined}
                   >
-                    {factura.numeroComprobante}
-                  </button>
-                </td>
-                <td>{formatearFecha(factura.fecha)}</td>
-                <td>{nombreDeCliente(factura.cliente)}</td>
-                <td>{NOMBRES_DE_TIPO_COMPROBANTE[factura.tipoComprobante]}</td>
-                <td>
-                  {String(factura.mes).padStart(2, '0')}/{factura.anio}
-                </td>
-                <td className="text-right font-medium">{formatearPesos(factura.total)}</td>
-                <td>
-                  <Estado valor={factura.estado} texto={NOMBRES_DE_ESTADO[factura.estado]} />
-                  {/* Cada estado suma el dato que lo explica (contracts/README §Listado). */}
-                  {factura.estado === 'vencida' && (
-                    <span className="block text-xs text-texto-suave">
-                      {' '}
-                      — Venció hace {diasDesde(factura.vencimientoPago)} días
-                    </span>
-                  )}
-                  {factura.estado === 'pagada' && factura.fechaCobro !== null && (
-                    <span className="block text-xs text-texto-suave">
-                      {' '}
-                      — Cobrada el {formatearFecha(factura.fechaCobro)}
-                    </span>
-                  )}
-                  {factura.estado === 'anulada' && factura.motivoAnulacion !== null && (
-                    <span className="block text-xs text-texto-suave"> — {factura.motivoAnulacion}</span>
-                  )}
-                </td>
-                <td>{formatearFecha(factura.vencimientoPago)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                    {/* El número de comprobante es el identificador con el que se busca una
+                        factura: token en mono y enlace de la fila (FR-040, FR-041). */}
+                    <td>
+                      <TokenDeIdentificador
+                        a={`/facturas/${factura.id}`}
+                        numero={factura.numeroComprobante}
+                      />
+                    </td>
+                    <td>
+                      {formatearFecha(factura.fecha)}
+                    </td>
+                    <td>
+                      {nombreDeCliente(factura.cliente)}
+                    </td>
+                    <td>
+                      {NOMBRES_DE_TIPO_COMPROBANTE[factura.tipoComprobante]}
+                    </td>
+                    <td>
+                      {String(factura.mes).padStart(2, '0')}/{factura.anio}
+                    </td>
+                    <td className="text-right font-bold whitespace-nowrap">
+                      {formatearPesos(factura.total)}
+                    </td>
+                    <td>
+                      {/*
+                        Cada estado suma el dato que lo explica, **debajo y sin repetir su palabra**
+                        (FR-057): la pastilla ya dice *Pagada*, así que el detalle es cuándo.
+                      */}
+                      <Estado
+                        valor={factura.estado}
+                        texto={NOMBRES_DE_ESTADO[factura.estado]}
+                        forma="pastilla"
+                        detalle={
+                          factura.estado === 'vencida' ? (
+                            `Venció hace ${diasDesde(factura.vencimientoPago)} días`
+                          ) : factura.estado === 'pagada' && factura.fechaCobro !== null ? (
+                            `Cobrada el ${formatearFecha(factura.fechaCobro)}`
+                          ) : factura.estado === 'anulada' && factura.motivoAnulacion !== null ? (
+                            factura.motivoAnulacion
+                          ) : undefined
+                        }
+                      />
+                    </td>
+                    <td>
+                      {formatearFecha(factura.vencimientoPago)}
+                    </td>
+                  </FilaNavegable>
+                ))}
+              </tbody>
+            </table>
           </TablaDesplazable>
         )}
       </Listado>

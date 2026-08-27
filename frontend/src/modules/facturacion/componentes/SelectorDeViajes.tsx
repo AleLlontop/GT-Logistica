@@ -81,9 +81,11 @@ export function SelectorDeViajes({
             <th scope="col">Número</th>
             <th scope="col">Fecha</th>
             <th scope="col">Remito</th>
-            <th scope="col">Origen</th>
-            <th scope="col">Destino</th>
-            <th scope="col" className="text-right">Importe</th>
+            {/* `Origen` + `Destino` nombran un solo concepto: la ruta (FR-047). */}
+            <th scope="col">Ruta</th>
+            <th scope="col" className="text-right">
+              Importe
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -100,17 +102,28 @@ export function SelectorDeViajes({
                 />
               </td>
               <td>
-                <label htmlFor={`viaje-${viaje.id}`}>{viaje.numero}</label>
+                {/* **Sin enlace de fila ni chevron**: sus filas llevan casilla, y el clic sobre la
+                    casilla no navega (data-model §5). El número queda como etiqueta de la casilla. */}
+                <label htmlFor={`viaje-${viaje.id}`} className="font-mono font-semibold">
+                  {viaje.numero}
+                </label>
               </td>
               <td>{formatearFecha(viaje.fecha)}</td>
               <td>
                 {/* La palabra que lo explica, no sólo la casilla apagada: un elemento atenuado lleva
                     además el texto que dice por qué (FR-065, convención [003]). */}
-                {viaje.puedeFacturarse ? viaje.numeroRemito : <span>{LEYENDA_SIN_REMITO}</span>}
+                {viaje.puedeFacturarse ? (
+                  <span className="font-mono">{viaje.numeroRemito}</span>
+                ) : (
+                  <span className="atenuada">{LEYENDA_SIN_REMITO}</span>
+                )}
               </td>
-              <td>{viaje.origen}</td>
-              <td>{viaje.destino}</td>
-              <td className="text-right font-medium">{formatearPesos(viaje.importe)}</td>
+              <td className="whitespace-nowrap">
+                {viaje.origen} <span className="text-dim">→</span> {viaje.destino}
+              </td>
+              <td className="text-right font-bold whitespace-nowrap">
+                {formatearPesos(viaje.importe)}
+              </td>
             </tr>
           ))}
         </tbody>

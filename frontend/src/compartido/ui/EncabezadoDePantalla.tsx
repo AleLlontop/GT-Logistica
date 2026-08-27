@@ -21,12 +21,24 @@ interface Props {
  * El encabezado que llevan **las 42 pantallas** del sistema.
  *
  * Además del título y la acción principal, fija el **título de la pestaña del navegador**. Va acá y
- * no en la tabla de rutas a propósito: como toda pantalla lleva encabezado (FR-016), poner el título
- * del documento en el mismo lugar donde se escribe el de la pantalla garantiza que las 42 lo tengan
- * y que la número 43 no se olvide (research §9).
+ * no en la tabla de rutas a propósito: como toda pantalla lleva encabezado, poner el título del
+ * documento en el mismo lugar donde se escribe el de la pantalla garantiza que las 42 lo tengan y
+ * que la número 43 no se olvide (FR-071).
  *
- * La jerarquía es la que pide FR-016: el título de la pantalla pesa más que las acciones de sesión
- * del encabezado del sistema, y *Cerrar sesión* deja de competir con lo que se vino a hacer.
+ * **El bloque de selectores por descendiente se retiró** (FR-019, FR-021). Estaba estilando las
+ * acciones por el **tipo** del botón —`[&_button]`, `[&_a]`, `[&_button[type=submit]]`— en vez de
+ * por una variante declarada, y como los botones de las cinco fichas son todos `type="button"`, el
+ * resultado era que *Editar*, *Dar de baja* y *Registrar cobro* se dibujaban idénticas: la ficha no
+ * tenía acción principal. Es el mismo antipatrón que la convención [007] resolvió en los formularios,
+ * sobreviviendo adentro de una primitiva. Ahora cada llamada declara su nivel con `<Boton variante>`,
+ * que es obligatoria y no compila sin ella. La firma de la primitiva no cambia.
+ *
+ * **El *volver* es terciario y va arriba a la izquierda** (FR-022), fuera de la línea donde se decide
+ * qué hacer con la pantalla: es una salida, no una alternativa a la acción principal. Y sigue siendo
+ * un `<a>` porque navega (FR-023).
+ *
+ * El título y su bajada quedan **directamente sobre el lienzo**, que es transparente desde FR-011.
+ * Por eso van en `ink` e `ink-soft` y no en `muted`: sobre el lienzo, `muted` mide 4,13:1 (FR-007b).
  */
 export function EncabezadoDePantalla({
   titulo,
@@ -40,50 +52,31 @@ export function EncabezadoDePantalla({
   }, [titulo])
 
   return (
-    <header className={cn('mb-6 flex flex-col gap-2', className)}>
+    <header className={cn('mb-6 flex flex-col gap-4', className)}>
       {volverA !== undefined && (
         <Link
           to={volverA.ruta}
-          className="inline-flex w-fit items-center gap-1 text-sm text-acento underline underline-offset-2 hover:text-acento-oscuro"
+          className="inline-flex w-fit items-center gap-2.5 rounded-pastilla border border-line bg-white/90 py-1.5 pr-[18px] pl-1.5 text-[12.5px] font-semibold tracking-tight text-ink-soft no-underline shadow-pill transition-colors duration-200 ease-gt hover:bg-white"
         >
-          <IconoVolver aria-hidden="true" className="size-4" />
+          <span className="flex size-7 items-center justify-center rounded-pastilla bg-surface-mute">
+            <IconoVolver aria-hidden="true" className="size-3 text-muted" />
+          </span>
           {volverA.etiqueta}
         </Link>
       )}
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold text-texto">{titulo}</h1>
+          <h1 className="m-0 text-[34px] leading-[1.15] font-extrabold tracking-[-0.04em] text-ink">
+            {titulo}
+          </h1>
           {resumen !== undefined && (
-            <div className="mt-1 text-sm text-texto-suave">{resumen}</div>
+            <div className="mt-1.5 text-[13px] text-ink-soft">{resumen}</div>
           )}
         </div>
 
         {accionPrincipal !== undefined && (
-          /*
-           * Los botones que llegan acá son los `<button>` nativos que las fichas tenían al pie.
-           * Se los estila por descendiente en vez de reescribir los cinco archivos: por defecto
-           * secundarios, y `submit` —el que guarda— destacado, que es el mismo criterio de
-           * `clasesDeFormulario` (FR-028).
-           */
-          <div
-            className={cn(
-              'flex flex-wrap items-center gap-2',
-              '[&_button]:rounded-chico [&_button]:border [&_button]:border-borde-fuerte',
-              '[&_button]:bg-superficie [&_button]:px-3 [&_button]:py-1.5',
-              '[&_button]:text-sm [&_button]:font-medium [&_button]:text-texto',
-              '[&_button:hover]:bg-superficie-hundida',
-              '[&_button[type=submit]]:border-acento [&_button[type=submit]]:bg-acento',
-              '[&_button[type=submit]]:text-white',
-              '[&_button:disabled]:border-borde [&_button:disabled]:bg-superficie-hundida',
-              '[&_button:disabled]:text-texto-tenue [&_button:disabled]:cursor-not-allowed',
-              '[&_a]:rounded-chico [&_a]:border [&_a]:border-borde-fuerte [&_a]:bg-superficie',
-              '[&_a]:px-3 [&_a]:py-1.5 [&_a]:text-sm [&_a]:font-medium [&_a]:text-texto',
-              '[&_a]:no-underline [&_a:hover]:bg-superficie-hundida',
-            )}
-          >
-            {accionPrincipal}
-          </div>
+          <div className="flex flex-wrap items-center gap-2.5">{accionPrincipal}</div>
         )}
       </div>
     </header>

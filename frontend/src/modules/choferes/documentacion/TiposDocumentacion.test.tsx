@@ -126,6 +126,9 @@ describe('TiposDocumentacion — el ámbito del Módulo 4', () => {
 
     await screen.findByRole('table')
 
+    // FR-069: la acción vive ahora en el menú `···` de la fila. Se la abre y después se
+    // aprieta; ninguna aserción cambia.
+    await usuario.click(screen.getByRole('button', { name: 'Acciones de Seguro' }))
     await usuario.click(screen.getByRole('button', { name: 'Editar' }))
     await usuario.selectOptions(screen.getByLabelText('Ámbito'), 'chofer')
     await usuario.click(screen.getByRole('button', { name: 'Guardar cambios' }))
@@ -146,6 +149,9 @@ describe('TiposDocumentacion — el ámbito del Módulo 4', () => {
 
     await screen.findByRole('table')
 
+    // FR-069: la acción vive ahora en el menú `···` de la fila. Se la abre y después se
+    // aprieta; ninguna aserción cambia.
+    await usuario.click(screen.getByRole('button', { name: 'Acciones de VTV' }))
     await usuario.click(screen.getByRole('button', { name: 'Editar' }))
 
     expect(screen.getByLabelText('Ámbito')).toHaveValue('vehiculo')

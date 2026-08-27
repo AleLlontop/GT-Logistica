@@ -1,70 +1,123 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/geist';
+@import '@fontsource-variable/plus-jakarta-sans';
+@import '@fontsource/geist-mono';
 
 /*
- * Sistema de diseño del Sistema Integral de Gestión (Módulo 7).
+ * Sistema de diseño del Sistema Integral de Gestión — los tokens de `gt-ui` (Módulo 8).
  *
- * Éste es el único archivo CSS del proyecto. Las primitivas de `compartido/ui/` llevan sus
- * utilidades adentro; ninguna pantalla define color, tamaño ni separación por su cuenta (FR-008).
+ * Éste es el único archivo CSS del proyecto y la **única** fuente de tokens: no hay
+ * `tailwind.config.js`, porque una segunda fuente es exactamente lo que FR-001 prohíbe. Las
+ * primitivas de `compartido/ui/` llevan sus utilidades adentro; ninguna pantalla define color,
+ * tamaño ni separación por su cuenta.
  *
- * Los valores de color están **medidos**, no estimados: cada uno cumple 4,5:1 para texto y 3:1 para
- * lo no textual que comunica, sobre los tres fondos del sistema (data-model §1.1).
+ * Los nombres son los de `.claude/skills/gt-ui/references/tokens.md`, no los del Módulo 7, y
+ * respetan los espacios de nombre de Tailwind v4 —`--color-*`, `--font-*`, `--radius-*`,
+ * `--shadow-*`, `--ease-*`, `--container-*`—: un token fuera de ellos queda como variable suelta y
+ * no genera ninguna utilidad.
  *
- * Los nombres respetan los espacios de nombre de Tailwind v4 —`--color-*`, `--font-*`, `--radius-*`,
- * `--shadow-*`, `--container-*`—: un token fuera de ellos queda como variable suelta y no genera
- * ninguna utilidad.
+ * ── Las dos reglas que la medición volvió obligatorias (FR-007a, FR-007b) ──────────────────────
+ *
+ * 1. **`dim` no pinta texto.** Donde `tokens.md` se lo asignaba —placeholders, *"Sin asignar"*,
+ *    metadata— manda `faint`, que es el único tono atenuado de texto del sistema. Recalibrar `dim`
+ *    y `faint` a 4,5:1 los deja a 0,0001 de luminancia uno del otro: son el mismo gris, y un
+ *    sistema con dos tokens indistinguibles es peor que uno con un tono bien definido.
+ *
+ * 2. **Sobre el lienzo (`canvas`) y sobre `surface-mute` sólo va texto en `ink` o `ink-soft`.**
+ *    `muted` cumple 4,5:1 sobre blanco y sobre `surface-soft`, y **no** lo cumple sobre esos dos
+ *    (4,13:1 sobre el lienzo). Como la columna principal es transparente (FR-011), el lienzo es un
+ *    fondo de texto real y hay que tratarlo como tal. `muted` no se recalibra: FR-007 nombra cuatro
+ *    valores y tocar un quinto sería alcance fantasma.
+ *
+ * Los valores marcados ⚠ están **recalibrados** respecto de `tokens.md`, y los cuatro volvieron a
+ * la skill con su medición y su fondo de medición al lado (FR-008).
  */
 
 @theme {
   /* ── Fondos y superficies ──────────────────────────────────────────────────────────────────── */
-  --color-pagina: #f4f6f9;
-  --color-superficie: #ffffff;
-  --color-superficie-alterna: #f7f9fb;
-  --color-superficie-hundida: #e9edf3;
+  --color-canvas: #edeef1; /* fondo de la app */
+  --color-surface: rgb(255 255 255 / 0.94); /* tarjetas e islas */
+  --color-surface-soft: #f7f8fa; /* campos en reposo, encabezado y pie de tabla */
+  --color-surface-mute: #f1f2f6; /* botón secundario, chips neutros */
 
   /* ── Texto ─────────────────────────────────────────────────────────────────────────────────── */
-  --color-texto: #141821; /* 15,12:1 en el peor fondo */
-  --color-texto-suave: #4e5666; /*  6,28:1 */
-  --color-texto-tenue: #5e6779; /*  4,84:1 — lo atenuado, calibrado al límite justo */
-
-  /* ── Acento ────────────────────────────────────────────────────────────────────────────────── */
-  --color-acento: #12507b; /* 7,27:1 · 8,54:1 con blanco encima */
-  --color-acento-oscuro: #0d3b5c; /* 11,68:1 con blanco encima */
-  --color-acento-fondo: #e6eef6; /* 7,29:1 con el acento encima */
-
-  /* ── Semánticos ────────────────────────────────────────────────────────────────────────────── */
-  --color-exito: #1b6b41;
-  --color-exito-fondo: #e6f2ea; /* 5,66:1 */
-  --color-advertencia: #7d5300;
-  --color-advertencia-fondo: #fbf0da; /* 5,98:1 */
-  --color-error: #a4262c;
-  --color-error-fondo: #fbeeef; /* 6,42:1 */
+  --color-ink: #101114; /* 16,27:1 sobre canvas — texto principal y relleno del primario */
+  --color-ink-soft: #3c4048; /*  8,96:1 sobre canvas — labels, texto del secundario */
+  --color-muted: #6e7280; /*  4,79:1 sobre blanco · 4,51:1 sobre surface-soft.
+                              *  NO sobre canvas (4,13:1) ni sobre surface-mute — ver regla 2 */
+  --color-faint: #6e7683; /* ⚠ 4,58:1 sobre blanco — metadata, ayudas, placeholders, TODO lo
+                              *  atenuado. Era #9AA0AA (2,58:1) */
+  --color-dim: #bfc4cd; /* decorativo — SÓLO no textual: separador `·`, relleno de ícono,
+                              *  el `#` del token de identificador. Ver regla 1 */
+  --color-dim-texto: #6b768a; /* ⚠ 4,58:1 sobre blanco — el valor de `dim` recalibrado, por si
+                              *  alguna vez hace falta como texto. Era #BFC4CD (1,90:1) */
 
   /* ── Bordes ────────────────────────────────────────────────────────────────────────────────── */
-  --color-borde: #c6cdd8; /* decorativo: separa sin comunicar */
-  --color-borde-fuerte: #7b8698; /* 3,13:1 — comunica: borde de campo, contorno de control */
+  /* Nunca un gris sólido: el negro con alfa se integra con el fondo y con las sombras. */
+  --color-line: rgb(16 17 20 / 0.06); /* bordes de tarjeta y divisores */
+  --color-line-strong: rgb(16 17 20 / 0.09); /* bordes de campo y chips */
+
+  /* ── Acento ────────────────────────────────────────────────────────────────────────────────── */
+  /* Índigo apagado. Sólo foco, enlaces de identificador y el punto del eyebrow: el relleno del
+   * botón primario es `ink`, deliberadamente, para no competir con las pastillas de estado. */
+  --color-brand: #4453a8; /* 7,66:1 sobre blanco */
+  --color-brand-deep: #333f84;
+  --color-brand-soft: #e9ecf7;
+
+  /* ── Estados ───────────────────────────────────────────────────────────────────────────────── */
+  --color-estado-rendido: #0b6350; /* 7,32:1 sobre su fondo */
+  --color-estado-rendido-bg: #e4f2ee;
+  --color-estado-pendiente: #8a5a0c; /* 5,29:1 sobre su fondo */
+  --color-estado-pendiente-bg: #fbf1e0;
+  --color-estado-facturado: #333f84; /* 8,04:1 sobre su fondo */
+  --color-estado-facturado-bg: #e9ecf7;
+  --color-estado-anulado: #6a6e7c; /* ⚠ 4,58:1 sobre #F2F3F6. Era #6E7280 (4,32:1) */
+  --color-estado-anulado-bg: #f2f3f6;
+
+  /* ── Feedback ──────────────────────────────────────────────────────────────────────────────── */
+  --color-danger: #e5484d; /* borde y punto de estado, NO relleno con texto encima:
+                                *  con blanco arriba mide 3,91:1 y el piso de texto es 4,5:1.
+                                *  Como borde sobre `danger-bg` mide 3,63:1, arriba del piso de 3:1 */
+  --color-danger-text: #c13a3e; /* 5,09:1 sobre `danger-bg` · 5,33:1 con blanco encima —
+                                *  es el relleno del botón destructivo (SC-009) */
+  --color-danger-bg: #fef4f4;
+
+  /* ── Encabezado de columna ─────────────────────────────────────────────────────────────────── */
+  --color-encabezado: #6b7181; /* ⚠ 4,59:1 sobre surface-soft. Era #8D93A1 (2,90:1) */
 
   /* ── Tipografía ────────────────────────────────────────────────────────────────────────────── */
-  --font-sans:
-    'Geist Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* `system-ui` resuelve a Segoe UI en Windows y taparía la familia propia en silencio: la familia
+   * efectiva se verifica en el panel *Computed → Rendered Fonts*, no a ojo (FR-003). */
+  --font-sans: 'Plus Jakarta Sans Variable', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
 
-  /* ── Radios y profundidad ──────────────────────────────────────────────────────────────────── */
-  --radius-chico: 0.25rem;
-  --radius-medio: 0.5rem;
-  --radius-grande: 0.75rem;
-  --shadow-tarjeta: 0 1px 2px rgb(20 24 33 / 0.06), 0 1px 3px rgb(20 24 33 / 0.08);
-  --shadow-dialogo: 0 10px 15px -3px rgb(20 24 33 / 0.15), 0 4px 6px -4px rgb(20 24 33 / 0.1);
+  /* ── Radios ────────────────────────────────────────────────────────────────────────────────── */
+  --radius-pastilla: 9999px; /* botones, pastillas, tags */
+  --radius-island: 26px; /* isla de navegación */
+  --radius-card: 20px; /* tarjeta */
+  --radius-field: 14px; /* campo, desplegable de filtro */
+  --radius-chip: 10px; /* chip numerado, avatar cuadrado */
+  --radius-token: 7px; /* token de identificador */
+
+  /* ── Sombras ───────────────────────────────────────────────────────────────────────────────── */
+  /* Siempre difusas, con spread negativo y alfa bajo. Nunca las duras de Tailwind. */
+  --shadow-card: 0 14px 34px -8px rgb(16 17 20 / 0.06);
+  --shadow-island: 0 16px 40px -8px rgb(16 17 20 / 0.06);
+  --shadow-pill: 0 4px 12px rgb(16 17 20 / 0.05);
+  --shadow-btn: 0 8px 18px -2px rgb(16 17 20 / 0.22);
+  --shadow-focus: 0 0 0 3px rgb(68 83 168 / 0.16);
+
+  /* ── Movimiento ────────────────────────────────────────────────────────────────────────────── */
+  /* Curva única. Nunca `linear` ni `ease-in-out`. Se anima sólo `transform` y `opacity`. */
+  --ease-gt: cubic-bezier(0.32, 0.72, 0, 1);
 
   /* ── Anchos ────────────────────────────────────────────────────────────────────────────────── */
-  --container-lectura: 90rem; /* FR-017: en un monitor ancho el texto no se estira */
+  --container-lectura: 90rem; /* en un monitor ancho el texto no se estira */
 
-  /*
-   * El ancho de un campo acompaña al dato que recibe (FR-030): un CUIT, una patente o un importe no
-   * ocupan lo mismo que una razón social o un domicilio.
-   */
-  --container-campo-corto: 10rem;
-  --container-campo-medio: 20rem;
-  --container-campo-largo: 36rem;
+  /* El ancho de un campo acompaña al dato que recibe (FR-026): un CUIT, una patente o un importe
+   * no ocupan lo mismo que una razón social o un domicilio. */
+  --container-campo-corto: 12rem; /* DNI, CUIT, patente, fecha, importe, punto de venta */
+  --container-campo-medio: 20rem; /* nombre, apellido, teléfono, email, marca, modelo */
+  --container-campo-largo: 36rem; /* razón social, domicilio, origen, destino, los `select` */
 }
 
 /*
@@ -73,15 +126,15 @@
  * palabra que lo explica"*. Se aplican a la fila de una factura o un viaje anulados, y a un registro
  * dado de baja.
  *
- * El color es `--color-texto-tenue`, que está calibrado en el límite justo —4,84:1 sobre el peor de
- * los tres fondos—: es el más claro que sigue siendo legible. Atenuado no es borroso (FR-021).
+ * El color es `--color-faint`, el único tono atenuado de texto del sistema, medido a 4,58:1 sobre
+ * blanco. Atenuado no es borroso (FR-060).
  */
 @utility atenuada {
-  color: var(--color-texto-tenue);
+  color: var(--color-faint);
 }
 
 @utility atenuado {
-  color: var(--color-texto-tenue);
+  color: var(--color-faint);
 }
 
 @layer base {
@@ -92,22 +145,22 @@
   body {
     margin: 0;
     min-height: 100vh;
-    background-color: var(--color-pagina);
-    color: var(--color-texto);
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
   }
 
   /*
-   * El foco tiene que verse siempre: es la mitad de poder operar con teclado (FR-039). Va acá y no
+   * El foco tiene que verse siempre: es la mitad de poder operar con teclado (FR-025). Va acá y no
    * en cada primitiva para que alcance también a los controles nativos, que esta feature estila
    * pero no reemplaza.
    */
   :focus-visible {
-    outline: 3px solid var(--color-acento);
+    outline: 3px solid var(--color-brand);
     outline-offset: 2px;
   }
 
   /*
-   * Cifras tabulares en todo el sistema. Es lo que sostiene FR-020: que los importes de una columna
+   * Cifras tabulares en todo el sistema. Es lo que sostiene FR-039: que los importes de una columna
    * se comparen en vertical con los separadores de miles y decimales en la misma línea. No depende
    * de que la fuente propia cargue.
    */
@@ -118,7 +171,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Si alguien pidió menos movimiento, no se lo damos (FR-041). */
+  /* Si alguien pidió menos movimiento, no se lo damos (FR-006). */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

@@ -1,41 +1,45 @@
+import type { ReactNode } from 'react'
 import { cn } from './cn'
-import {
-  IconoAnulado,
-  IconoEnRegla,
-  IconoPendiente,
-  IconoProximoAvencer,
-  IconoVencido,
-} from './iconos'
 
 /**
  * El indicador de estado, único para los cinco juegos de estados del sistema (data-model §3).
  *
- * **`texto` es obligatorio.** No es una comodidad: es la forma de que FR-040 —ninguna información
- * se comunica sólo por color— no dependa de que alguien se acuerde. La primitiva no se puede
- * dibujar sin la palabra, y esa palabra es siempre la que ya estaba en pantalla: sale de
- * `NombresDeEstado` y de los `TEXTO_ESTADO_*` de cada módulo, que FR-004 congela.
+ * **`texto` es obligatorio.** No es una comodidad: es la forma de que FR-055 —ninguna información se
+ * comunica sólo por color— no dependa de que alguien se acuerde. La primitiva no se puede dibujar sin
+ * la palabra, y esa palabra es siempre la que ya estaba en pantalla: sale de `NombresDeEstado` y de
+ * los `TEXTO_ESTADO_*` de cada módulo, que FR-066 congela.
  *
- * A la palabra se le suman un color **y una forma**, para que la distinción sobreviva a una
- * captura en escala de grises y a cualquier daltonismo (SC-012).
+ * **`forma` también es obligatoria** y sin valor por defecto, por la misma razón que `variante` en
+ * `Boton`: una forma que se elige sola es una decisión que nadie revisa. Distingue el estado **del
+ * que trata la pantalla** —`pastilla`— del estado de alta y baja que sólo acompaña —`punto`—, para
+ * que en una fila de chofer el semáforo de documentación no compita con *Activo*.
+ *
+ * A la palabra se le suman un color **y una forma**, para que la distinción sobreviva a una captura
+ * en escala de grises y a cualquier daltonismo (SC-014).
  */
 
-type Tono = 'neutro' | 'exito' | 'advertencia' | 'error' | 'acento' | 'atenuado'
+export type FormaDeEstado = 'pastilla' | 'punto'
 
-const TONOS: Record<Tono, string> = {
-  neutro: 'bg-superficie-hundida text-texto-suave border-borde-fuerte',
-  exito: 'bg-exito-fondo text-exito border-exito',
-  advertencia: 'bg-advertencia-fondo text-advertencia border-advertencia',
-  error: 'bg-error-fondo text-error border-error',
-  acento: 'bg-acento-fondo text-acento border-acento',
-  atenuado: 'bg-superficie-hundida text-texto-tenue border-borde-fuerte',
+type Tono = 'rendido' | 'pendiente' | 'facturado' | 'anulado' | 'danger' | 'neutro'
+
+/** El relleno y el texto de cada tono, para la forma de pastilla. */
+const PASTILLAS: Record<Tono, string> = {
+  rendido: 'bg-estado-rendido-bg text-estado-rendido',
+  pendiente: 'bg-estado-pendiente-bg text-estado-pendiente',
+  facturado: 'bg-estado-facturado-bg text-estado-facturado',
+  anulado: 'bg-estado-anulado-bg text-estado-anulado',
+  danger: 'bg-danger-bg text-danger-text',
+  neutro: 'bg-surface-mute text-ink-soft',
 }
 
-const ICONOS: Partial<Record<Tono, typeof IconoEnRegla>> = {
-  exito: IconoEnRegla,
-  advertencia: IconoProximoAvencer,
-  error: IconoVencido,
-  neutro: IconoPendiente,
-  atenuado: IconoAnulado,
+/** El color del punto, para la forma de punto. El texto va siempre en `ink-soft`. */
+const PUNTOS: Record<Tono, string> = {
+  rendido: 'bg-estado-rendido',
+  pendiente: 'bg-estado-pendiente',
+  facturado: 'bg-estado-facturado',
+  anulado: 'bg-estado-anulado',
+  danger: 'bg-danger',
+  neutro: 'bg-dim',
 }
 
 /**
@@ -44,57 +48,88 @@ const ICONOS: Partial<Record<Tono, typeof IconoEnRegla>> = {
  */
 const TONO_POR_VALOR: Record<string, Tono> = {
   // Documentación (Módulos 3 y 4)
-  enRegla: 'exito',
-  vigente: 'exito',
-  proximaAvencer: 'advertencia',
-  vencida: 'error',
+  enRegla: 'rendido',
+  vigente: 'rendido',
+  proximaAvencer: 'pendiente',
+  vencida: 'danger',
   sinDocumentacion: 'neutro',
 
   // Viaje (Módulo 5)
-  pendiente: 'neutro',
-  enCurso: 'acento',
-  rendido: 'exito',
-  anulado: 'atenuado',
-  facturado: 'exito',
+  pendiente: 'pendiente',
+  enCurso: 'facturado',
+  rendido: 'rendido',
+  facturado: 'facturado',
+  anulado: 'anulado',
 
   // Factura (Módulo 6)
-  pagada: 'exito',
-  anulada: 'atenuado',
+  pagada: 'rendido',
+  anulada: 'anulado',
 
   // Vehículo (Módulo 4)
-  disponible: 'exito',
-  enViaje: 'acento',
-  fueraDeServicio: 'advertencia',
+  disponible: 'rendido',
+  enViaje: 'facturado',
+  fueraDeServicio: 'pendiente',
 
   // Alta y baja
   activo: 'neutro',
-  inactivo: 'atenuado',
-  bloqueado: 'error',
-  dadoDeBaja: 'atenuado',
+  activa: 'neutro',
+  inactivo: 'anulado',
+  inactiva: 'anulado',
+  dadoDeBaja: 'anulado',
+  bloqueado: 'danger',
 }
 
 interface Props {
-  /** El valor tal como lo devuelve el API, en camelCase. */
+  /** El valor tal como lo devuelve el API, en camelCase. Un valor desconocido cae en neutro. */
   valor: string
-  /** La palabra que ya está en pantalla. Obligatoria. */
+  /** La palabra que ya está en pantalla. Obligatoria: el color nunca comunica solo (FR-055). */
   texto: string
+  /**
+   * `pastilla` para el estado **del que trata la pantalla**; `punto` para un estado de alta y baja
+   * que sólo acompaña y no debe competir con él (FR-055).
+   */
+  forma: FormaDeEstado
+  /**
+   * El dato accesorio del estado —comprobante, fecha, motivo—. Va **debajo**, en menor jerarquía, y
+   * nunca repite la palabra del estado (FR-057): la celda dice *Facturado* y debajo `0000-00000111`,
+   * no *Facturado en 0000-00000111*.
+   */
+  detalle?: ReactNode
   className?: string
 }
 
-export function Estado({ valor, texto, className }: Props) {
+export function Estado({ valor, texto, forma, detalle, className }: Props) {
   const tono = TONO_POR_VALOR[valor] ?? 'neutro'
-  const Icono = ICONOS[tono]
+
+  const indicador =
+    forma === 'pastilla' ? (
+      <span
+        className={cn(
+          'inline-flex w-fit items-center gap-1.5 rounded-pastilla px-2.5 py-1',
+          'text-[12.5px] font-semibold tracking-tight',
+          PASTILLAS[tono],
+        )}
+      >
+        <span aria-hidden="true" className="size-1.5 rounded-pastilla bg-current" />
+        {texto}
+      </span>
+    ) : (
+      <span className="inline-flex w-fit items-center gap-1.5 text-[12.5px] font-medium text-ink-soft">
+        <span aria-hidden="true" className={cn('size-1.5 rounded-pastilla', PUNTOS[tono])} />
+        {texto}
+      </span>
+    )
+
+  if (detalle === undefined) {
+    return <span className={cn('inline-flex', className)}>{indicador}</span>
+  }
 
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-chico border px-2 py-0.5 text-xs font-medium',
-        TONOS[tono],
-        className,
-      )}
-    >
-      {Icono !== undefined && <Icono aria-hidden="true" className="size-3.5 shrink-0" />}
-      {texto}
+    <span className={cn('flex flex-col gap-1', className)}>
+      {indicador}
+      {/* El detalle no lleva mono por defecto: lo lleva cuando **es** un identificador, y eso lo
+          decide quien lo pasa. Un "Cobrada el 01/09/2026" en mono no ayuda a nadie. */}
+      <span className="text-[11px] text-faint">{detalle}</span>
     </span>
   )
 }

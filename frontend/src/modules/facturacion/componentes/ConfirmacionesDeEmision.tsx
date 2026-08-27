@@ -1,3 +1,6 @@
+import { BarraDeAcciones } from '../../../compartido/ui/BarraDeAcciones'
+import { Boton } from '../../../compartido/ui/Boton'
+import { IconoEnRegla } from '../../../compartido/ui/iconos'
 import { Dialogo } from '../../../compartido/ui/Dialogo'
 import type { MotivoConfirmacion } from '../servicios/api'
 
@@ -40,14 +43,19 @@ export function ConfirmacionesDeEmision({
 
       <p>{mensaje}</p>
 
-      <div className="acciones">
-        <button type="button" onClick={onCancelar} disabled={trabajando}>
+      <BarraDeAcciones anclaje="contenedor">
+        <Boton variante="secundario" onClick={onCancelar} disabled={trabajando}>
           Cancelar
-        </button>
-        <button type="button" onClick={onConfirmar} disabled={trabajando}>
+        </Boton>
+        <Boton
+          variante="primario"
+          onClick={onConfirmar}
+          disabled={trabajando}
+          icono={<IconoEnRegla className="size-3" />}
+        >
           Emitir igual
-        </button>
-      </div>
+        </Boton>
+      </BarraDeAcciones>
     </Dialogo>
   )
 }

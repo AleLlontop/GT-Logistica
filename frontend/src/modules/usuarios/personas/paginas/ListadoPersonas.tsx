@@ -1,6 +1,15 @@
 import { Aviso } from '../../../../compartido/ui/Aviso'
+import { Estado } from '../../../../compartido/ui/Estado'
 import { EstadoVacio } from '../../../../compartido/ui/EstadoVacio'
+import { Filtros, FranjaDeBusqueda } from '../../../../compartido/ui/Filtros'
 import { Listado, TablaDesplazable } from '../../../../compartido/ui/Listado'
+import { MenuDeFila } from '../../../../compartido/ui/MenuDeFila'
+import {
+  clasesDeBoton,
+  clasesDeEtiquetaDeFiltro,
+  clasesDeFiltro,
+} from '../../../../compartido/ui/clases'
+import { IconoNuevo } from '../../../../compartido/ui/iconos'
 import { EncabezadoDePantalla } from '../../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -70,81 +79,137 @@ export function ListadoPersonas() {
       <EncabezadoDePantalla
         titulo="Personas"
         accionPrincipal={
-          <>
-            <Link to="/personas/nueva">Nueva persona</Link>
-          </>
+          <Link to="/personas/nueva" className={clasesDeBoton('primario')}>
+            Nueva persona
+            <span
+                aria-hidden="true"
+                className="flex size-8 shrink-0 items-center justify-center rounded-pastilla bg-white/[0.14] transition-transform duration-200 ease-gt group-hover:translate-x-0.5"
+              >
+                <IconoNuevo className="size-3" />
+              </span>
+          </Link>
         }
       />
-      <div className="campo">
-        <label htmlFor="busqueda">Buscar por nombre, apellido o DNI</label>
-        <input
-          id="busqueda"
-          type="search"
-          value={texto}
-          onChange={(evento) => setTexto(evento.target.value)}
-        />
-      </div>
 
       {error !== null && (
-        <Aviso tono="error" rol="alert" className="mb-4">
+        <Aviso tono="error" rol="alert" className="mb-[18px]">
           {error}
         </Aviso>
       )}
 
-      {personas === null && error === null && (
-        <EstadoVacio caso="cargando" className="border-0 shadow-none">
-          Cargando personas…
-        </EstadoVacio>
-      )}
+      <Listado>
+        {/* Su único buscador pasa a la franja de arriba, a todo el ancho (FR-033). */}
+        <Filtros
+          resumen={
+            personas !== null && (
+              <>
+                <span>
+                  {personas.length} {personas.length === 1 ? 'persona' : 'personas'}
+                </span>
+                <span>Ordenado por apellido y nombre</span>
+              </>
+            )
+          }
+        >
+          <FranjaDeBusqueda>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="busqueda" className={clasesDeEtiquetaDeFiltro}>
+                Buscar por nombre, apellido o DNI
+              </label>
+              <input
+                id="busqueda"
+                type="search"
+                value={texto}
+                onChange={(evento) => setTexto(evento.target.value)}
+                className={clasesDeFiltro(buscando)}
+              />
+            </div>
+          </FranjaDeBusqueda>
+        </Filtros>
 
-      {personas !== null && personas.length === 0 && (
-        <p role="status">{buscando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_PADRON_VACIO}</p>
-      )}
+        {personas === null && error === null && (
+          <EstadoVacio caso="cargando" className="border-0 shadow-none">
+            Cargando personas…
+          </EstadoVacio>
+        )}
 
-      {personas !== null && personas.length > 0 && (
-        <Listado>
+        {personas !== null && personas.length === 0 && (
+          <EstadoVacio
+            caso={buscando ? 'sinCoincidencias' : 'vacio'}
+            className="border-0 shadow-none"
+          >
+            {buscando ? MENSAJE_SIN_COINCIDENCIAS : MENSAJE_PADRON_VACIO}
+          </EstadoVacio>
+        )}
+
+        {personas !== null && personas.length > 0 && (
           <TablaDesplazable>
             <table>
-          <caption>Padrón de personas</caption>
-          <thead>
-            <tr>
-              <th scope="col">Nombre</th>
-              <th scope="col">Apellido</th>
-              <th scope="col">DNI</th>
-              <th scope="col">Tipo</th>
-              <th scope="col">Teléfono</th>
-              <th scope="col">Email</th>
-              <th scope="col">Fecha de nacimiento</th>
-              <th scope="col">Estado</th>
-              <th scope="col">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {personas.map((persona) => (
-              <tr key={persona.id}>
-                <td>{persona.nombre}</td>
-                <td>{persona.apellido}</td>
-                <td>{persona.dni}</td>
-                <td>{NOMBRE_DE_TIPO_INTEGRANTE[persona.tipo]}</td>
-                <td>{persona.telefono}</td>
-                <td>{persona.email}</td>
-                <td>{formatearFecha(persona.fechaNacimiento)}</td>
-                <td>{persona.activa ? 'Activa' : 'Dada de baja'}</td>
-                <td>
-                  <Link to={`/personas/${persona.id}/editar`}>Editar</Link>
-                  {persona.activa && (
-                    <button type="button" onClick={() => setABajar(persona)}>
-                      Dar de baja
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              <caption>Padrón de personas</caption>
+              <thead>
+                <tr>
+                  {/*
+                    **La fusión `Nombre` + `Apellido` + `DNI` → `Persona` no se aplica acá.** Es la
+                    única de las quince que no se puede hacer: `ListadoPersonas.test.tsx` consulta
+                    los tres encabezados por nombre —`getByRole('columnheader', …)`— y FR-069 sólo
+                    autoriza a agregarle pasos de interacción, no a cambiar una aserción. Entre
+                    FR-047 y FR-068 manda FR-068: la suite es la prueba de que el rediseño no cambió
+                    el comportamiento, y ése es el criterio de toda la feature.
+                  */}
+                  <th scope="col">Nombre</th>
+                  <th scope="col">Apellido</th>
+                  <th scope="col">DNI</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Teléfono</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Fecha de nacimiento</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col" className="w-8" aria-hidden="true" />
+                </tr>
+              </thead>
+              <tbody>
+                {/* **Sin enlace de fila**: su único destino es la edición, y editar es una acción
+                    secundaria que va al `···`. No se le inventa una ficha de solo lectura. */}
+                {personas.map((persona) => (
+                  <tr key={persona.id}>
+                    <td>{persona.nombre}</td>
+                    <td>{persona.apellido}</td>
+                    <td className="font-mono">{persona.dni}</td>
+                    <td>{NOMBRE_DE_TIPO_INTEGRANTE[persona.tipo]}</td>
+                    <td>{persona.telefono}</td>
+                    <td>{persona.email}</td>
+                    <td>{formatearFecha(persona.fechaNacimiento)}</td>
+                    <td>
+                      <Estado
+                        valor={persona.activa ? 'activa' : 'dadoDeBaja'}
+                        texto={persona.activa ? 'Activa' : 'Dada de baja'}
+                        forma="punto"
+                      />
+                    </td>
+                    <td className="w-8">
+                      <MenuDeFila
+                        etiqueta={`Acciones de ${persona.apellido}, ${persona.nombre}`}
+                        items={[
+                          { etiqueta: 'Editar', a: `/personas/${persona.id}/editar` },
+                          ...(persona.activa
+                            ? [
+                                {
+                                  etiqueta: 'Dar de baja',
+                                  onSeleccionar: () => setABajar(persona),
+                                  destructivo: true,
+                                },
+                              ]
+                            : []),
+                        ]}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </TablaDesplazable>
-        </Listado>
-      )}
+        )}
+      </Listado>
 
       {aBajar !== null && (
         <DialogoConfirmacion
