@@ -152,13 +152,13 @@ export function ListadoPersonas() {
                     **La fusión `Nombre` + `Apellido` + `DNI` → `Persona` no se aplica acá.** Es la
                     única de las quince que no se puede hacer: `ListadoPersonas.test.tsx` consulta
                     los tres encabezados por nombre —`getByRole('columnheader', …)`— y FR-069 sólo
-                    autoriza a agregarle pasos de interacción, no a cambiar una aserción. Entre
-                    FR-047 y FR-068 manda FR-068: la suite es la prueba de que el rediseño no cambió
-                    el comportamiento, y ése es el criterio de toda la feature.
+                    autoriza a agregarle pasos de interacción, no a cambiar una aserción.
+                    Para evitar el scroll horizontal sin romper la suite, acercamos visualmente
+                    estas tres columnas reduciendo su padding.
                   */}
-                  <th scope="col">Nombre</th>
-                  <th scope="col">Apellido</th>
-                  <th scope="col">DNI</th>
+                  <th scope="col" className="!pr-2">Nombre</th>
+                  <th scope="col" className="!px-2">Apellido</th>
+                  <th scope="col" className="!pl-2">DNI</th>
                   <th scope="col">Tipo</th>
                   <th scope="col">Teléfono</th>
                   <th scope="col">Email</th>
@@ -172,12 +172,12 @@ export function ListadoPersonas() {
                     secundaria que va al `···`. No se le inventa una ficha de solo lectura. */}
                 {personas.map((persona) => (
                   <tr key={persona.id}>
-                    <td>{persona.nombre}</td>
-                    <td>{persona.apellido}</td>
-                    <td className="font-mono">{persona.dni}</td>
+                    <td className="!pr-2">{persona.nombre}</td>
+                    <td className="!px-2">{persona.apellido}</td>
+                    <td className="!pl-2 font-mono">{persona.dni}</td>
                     <td>{NOMBRE_DE_TIPO_INTEGRANTE[persona.tipo]}</td>
                     <td>{persona.telefono}</td>
-                    <td>{persona.email}</td>
+                    <td className="max-w-[160px] truncate" title={persona.email}>{persona.email}</td>
                     <td>{formatearFecha(persona.fechaNacimiento)}</td>
                     <td>
                       <Estado

@@ -2,7 +2,6 @@ import { AsideDeFicha, BloqueDeAside } from '../../../compartido/ui/AsideDeFicha
 import { Boton } from '../../../compartido/ui/Boton'
 import { FichaCuerpo, FichaSeccion } from '../../../compartido/ui/Ficha'
 import { MenuDeFila } from '../../../compartido/ui/MenuDeFila'
-import { TablaDesplazable } from '../../../compartido/ui/Listado'
 import { IconoAnulado, IconoDocumento } from '../../../compartido/ui/iconos'
 import { Estado } from '../../../compartido/ui/Estado'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
@@ -307,84 +306,79 @@ export function FichaChofer() {
           )}
 
           {chofer.documentos.length > 0 && (
-            <TablaDesplazable>
-              <table className="w-full border-collapse text-[13px]">
-                <caption className="sr-only">Documentos del chofer</caption>
-                <thead className="bg-surface-soft">
-                  <tr className="[&>th]:border-b [&>th]:border-line [&>th]:px-5 [&>th]:py-2.5 [&>th]:text-left [&>th]:text-[9.5px] [&>th]:font-bold [&>th]:tracking-[0.14em] [&>th]:text-encabezado [&>th]:uppercase">
-                    <th scope="col">Tipo</th>
-                    <th scope="col">Número</th>
-                    <th scope="col">Emisión</th>
-                    <th scope="col">Vencimiento</th>
-                    <th scope="col">Estado</th>
-                    <th scope="col">Archivo</th>
-                    {/* La columna `Acciones` desaparece: *Corregir* y *Eliminar* pasan al `···`
-                        (FR-046). */}
-                    <th scope="col" className="w-8" aria-hidden="true" />
-                  </tr>
-                </thead>
-                <tbody className="[&>tr]:border-b [&>tr]:border-line [&>tr:last-child]:border-b-0 [&_td]:px-5 [&_td]:py-[13px]">
-                  {chofer.documentos.map((documento) => (
-                    <tr
-                      key={documento.id}
-                      className={documento.esVigenteDelTipo ? undefined : 'atenuada'}
-                    >
-                      <td>{documento.tipo.nombre}</td>
-                      <td className="font-mono">{documento.numero}</td>
-                      <td>{formatearFecha(documento.fechaEmision)}</td>
-                      <td>{formatearFecha(documento.fechaVencimiento)}</td>
-                      <td>
-                        <Estado
-                          valor={documento.estado}
-                          texto={TEXTO_ESTADO_DOCUMENTO[documento.estado]}
-                          forma="pastilla"
-                          detalle={
-                            /* El reemplazado lleva la palabra, no nada más el gris (FR-060). */
-                            documento.esVigenteDelTipo
-                              ? textoDelPlazo(documento.diasHastaVencimiento)
-                              : 'Reemplazado'
-                          }
-                        />
-                      </td>
-                      <td>
-                        {documento.tieneArchivo ? (
-                          <a
-                            href={rutaDelArchivo(documento.id)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-brand underline underline-offset-2"
-                          >
-                            Abrir archivo
-                          </a>
-                        ) : (
-                          <span className="atenuada">Sin respaldo</span>
-                        )}
-                      </td>
-                      <td className="w-8">
-                        <MenuDeFila
-                          etiqueta={`Acciones de ${documento.tipo.nombre} N° ${documento.numero}`}
-                          items={[
-                            { etiqueta: 'Corregir', onSeleccionar: () => setCorrigiendo(documento) },
-                            {
-                              etiqueta: 'Eliminar',
-                              destructivo: true,
-                              onSeleccionar: () => {
-                                setDocumentoAEliminar(documento)
-                                setAConfirmar({
-                                  tipo: 'documento',
-                                  tipoDocumento: documento.tipo.nombre,
-                                  numero: documento.numero,
-                                })
-                              },
+            <table className="w-full border-collapse text-[13px]">
+              <caption className="sr-only">Documentos del chofer</caption>
+              <thead className="bg-surface-soft">
+                <tr className="[&>th]:border-b [&>th]:border-line [&>th]:px-5 [&>th]:py-2.5 [&>th]:text-left [&>th]:text-[9.5px] [&>th]:font-bold [&>th]:tracking-[0.14em] [&>th]:text-encabezado [&>th]:uppercase">
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Número</th>
+                  <th scope="col">Emisión</th>
+                  <th scope="col">Vencimiento</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Archivo</th>
+                  <th scope="col" className="w-8" aria-hidden="true" />
+                </tr>
+              </thead>
+              <tbody className="[&>tr]:border-b [&>tr]:border-line [&>tr:last-child]:border-b-0 [&_td]:px-5 [&_td]:py-[13px]">
+                {chofer.documentos.map((documento) => (
+                  <tr
+                    key={documento.id}
+                    className={documento.esVigenteDelTipo ? undefined : 'atenuada'}
+                  >
+                    <td>{documento.tipo.nombre}</td>
+                    <td className="font-mono">{documento.numero}</td>
+                    <td>{formatearFecha(documento.fechaEmision)}</td>
+                    <td>{formatearFecha(documento.fechaVencimiento)}</td>
+                    <td>
+                      <Estado
+                        valor={documento.estado}
+                        texto={TEXTO_ESTADO_DOCUMENTO[documento.estado]}
+                        forma="pastilla"
+                        detalle={
+                          documento.esVigenteDelTipo
+                            ? textoDelPlazo(documento.diasHastaVencimiento)
+                            : 'Reemplazado'
+                        }
+                      />
+                    </td>
+                    <td>
+                      {documento.tieneArchivo ? (
+                        <a
+                          href={rutaDelArchivo(documento.id)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-brand underline underline-offset-2"
+                        >
+                          Abrir archivo
+                        </a>
+                      ) : (
+                        <span className="atenuada">Sin respaldo</span>
+                      )}
+                    </td>
+                    <td className="w-8">
+                      <MenuDeFila
+                        etiqueta={`Acciones de ${documento.tipo.nombre} N° ${documento.numero}`}
+                        items={[
+                          { etiqueta: 'Corregir', onSeleccionar: () => setCorrigiendo(documento) },
+                          {
+                            etiqueta: 'Eliminar',
+                            destructivo: true,
+                            onSeleccionar: () => {
+                              setDocumentoAEliminar(documento)
+                              setAConfirmar({
+                                tipo: 'documento',
+                                tipoDocumento: documento.tipo.nombre,
+                                numero: documento.numero,
+                              })
                             },
-                          ]}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </TablaDesplazable>
+                          },
+                        ]}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </FichaSeccion>
       </FichaCuerpo>

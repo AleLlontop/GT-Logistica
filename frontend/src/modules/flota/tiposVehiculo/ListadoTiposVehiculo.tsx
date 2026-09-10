@@ -105,7 +105,7 @@ export function ListadoTiposVehiculo() {
         </EstadoVacio>}
 
       {tipos !== null && tipos.length > 0 && (
-        <Listado>
+        <Listado className="mt-6">
           <TablaDesplazable>
             <table>
           <caption>Catálogo de tipos de vehículo</caption>

@@ -71,8 +71,8 @@ const TONO_POR_VALOR: Record<string, Tono> = {
   fueraDeServicio: 'pendiente',
 
   // Alta y baja
-  activo: 'neutro',
-  activa: 'neutro',
+  activo: 'rendido',
+  activa: 'rendido',
   inactivo: 'anulado',
   inactiva: 'anulado',
   dadoDeBaja: 'anulado',

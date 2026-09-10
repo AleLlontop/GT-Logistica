@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
+    watch: {
+      usePolling: true,
+    },
     // El backend sirve /api. Con este proxy el navegador ve todo en el mismo origen,
     // que es lo que permite que la cookie de sesión viaje con SameSite=Strict (FR-023).
     proxy: {

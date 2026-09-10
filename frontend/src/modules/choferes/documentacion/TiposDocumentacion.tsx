@@ -3,7 +3,7 @@ import { MenuDeFila } from '../../../compartido/ui/MenuDeFila'
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
-import { clasesDeFormularioSimple } from '../../../compartido/ui/clases'
+import { clasesDeFormularioSimple, clasesDeFiltro, clasesDeEtiquetaDeFiltro } from '../../../compartido/ui/clases'
 import { Aviso } from '../../../compartido/ui/Aviso'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
@@ -273,13 +273,14 @@ export function TiposDocumentacion() {
 
       {tipos !== null && tipos.length > 0 && (
         <>
-        <div className="campo">
-          <label htmlFor="filtro-ambito">Filtrar por ámbito</label>
+        <div className="mb-6 mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-line bg-surface-soft px-4 py-3">
+          <label htmlFor="filtro-ambito" className={clasesDeEtiquetaDeFiltro}>Filtrar por ámbito:</label>
           <select
             id="filtro-ambito"
             value={filtroAmbito}
             onChange={(evento) => setFiltroAmbito(evento.target.value as DocumentacionAmbito | '')}
             aria-describedby="ayuda-filtro-ambito"
+            className={clasesDeFiltro(filtroAmbito !== '')}
           >
             <option value="">Todos</option>
             {AMBITOS.map((valor) => (
@@ -289,7 +290,7 @@ export function TiposDocumentacion() {
             ))}
           </select>
           {/* Ninguna fila queda oculta en silencio: el control dice qué está filtrando. */}
-          <small id="ayuda-filtro-ambito" role="status">
+          <small id="ayuda-filtro-ambito" role="status" className="text-[12.5px] text-muted">
             {filtroAmbito === ''
               ? 'Mostrando los tipos de los dos ámbitos.'
               : `Mostrando sólo los de ámbito ${TEXTO_AMBITO[filtroAmbito]}.`}

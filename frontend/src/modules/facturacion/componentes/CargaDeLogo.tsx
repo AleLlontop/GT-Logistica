@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
+import { clasesDeBoton, clasesDeFormularioSimple } from '../../../compartido/ui/clases'
 import { quitarLogo, subirLogo, type EmpresaEmisora } from '../servicios/servicioEmpresaEmisora'
 
 const MENSAJE_SIN_LOGO =
@@ -88,45 +89,55 @@ export function CargaDeLogo({ empresa, configuracionCargada, onCambio }: Props) 
   }
 
   return (
-    <section aria-labelledby="titulo-logo">
-      <h2 id="titulo-logo">Logo</h2>
+    <section aria-labelledby="titulo-logo" className={`${clasesDeFormularioSimple} mt-6`}>
+      <h2 id="titulo-logo" className="m-0 text-[17px] font-bold tracking-[-0.02em] text-ink">Logo</h2>
 
       {/* El resultado aparece sin que la pantalla cambie, así que se anuncia (convención [003]). */}
-      {aviso !== null && <p role="status">{aviso}</p>}
-      {error !== null && <p role="alert">{error}</p>}
+      {aviso !== null && <p role="status" className="m-0 text-[13.5px] font-medium text-brand">{aviso}</p>}
+      {error !== null && <p role="alert" className="formulario__error">{error}</p>}
 
       {logo === null ? (
-        <p>{MENSAJE_SIN_LOGO}</p>
+        <p className="m-0 text-[13.5px] text-ink">{MENSAJE_SIN_LOGO}</p>
       ) : (
-        <div>
-          <img src={logo.url} alt={`Logo de la empresa emisora: ${logo.nombre}`} height={60} />
-          <p>{logo.nombre}</p>
+        <div className="flex flex-col gap-3 rounded-card border border-line bg-surface-soft p-4">
+          <img src={logo.url} alt={`Logo de la empresa emisora: ${logo.nombre}`} height={60} className="w-auto self-start" />
+          <p className="m-0 text-[12.5px] font-medium text-ink-soft">{logo.nombre}</p>
         </div>
       )}
 
-      <div className="campo">
+      <div className="campo max-w-campo-largo">
         <label htmlFor="logo">{logo === null ? 'Cargar logo' : 'Reemplazar logo'}</label>
-        <input
-          ref={entrada}
-          id="logo"
-          type="file"
-          accept="image/jpeg,image/png"
-          aria-describedby="ayuda-logo"
-          disabled={trabajando || !configuracionCargada}
-          onChange={(evento) => elegido(evento.target.files?.[0])}
-        />
-        <p id="ayuda-logo">{AYUDA}</p>
+        
+        <div className="flex flex-wrap items-center gap-4">
+          <input
+            ref={entrada}
+            id="logo"
+            type="file"
+            accept="image/jpeg,image/png"
+            aria-describedby="ayuda-logo"
+            disabled={trabajando || !configuracionCargada}
+            onChange={(evento) => elegido(evento.target.files?.[0])}
+            className="flex-1 cursor-pointer file:mr-4 file:cursor-pointer file:rounded-pastilla file:border-0 file:bg-surface-mute file:px-4 file:py-1.5 file:text-[12.5px] file:font-semibold file:text-ink-soft hover:file:bg-[#E9EAEF]"
+          />
+          
+          {logo !== null && (
+            <button 
+              type="button" 
+              onClick={quitar} 
+              disabled={trabajando}
+              className={clasesDeBoton('destructivo', 'chico')}
+            >
+              Quitar
+            </button>
+          )}
+        </div>
+
+        <p id="ayuda-logo" className="m-0 mt-1 text-[11.5px] text-faint">{AYUDA}</p>
 
         {!configuracionCargada && (
-          <p>Guardá primero los datos de la empresa emisora para poder cargar el logo.</p>
+          <p className="m-0 mt-2 text-[12.5px] font-semibold text-danger">Guardá primero los datos de la empresa emisora para poder cargar el logo.</p>
         )}
       </div>
-
-      {logo !== null && (
-        <button type="button" onClick={quitar} disabled={trabajando}>
-          Quitar
-        </button>
-      )}
     </section>
   )
 }

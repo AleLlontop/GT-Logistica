@@ -122,11 +122,11 @@ export function FiltrosFlota({
 
           {/* El control dice qué está filtrando. "Todos" no incluye los dados de baja, y
               callárselo haría leer el listado como un error de datos (convención [003]). */}
-          <small id="ayuda-filtro-estado" role="status" className="max-w-xs text-[11.5px] text-faint">
-            {filtros.estado === ''
-              ? 'Mostrando sólo las unidades activas. Elegí "Dado de baja" para ver las que salieron de la flota.'
-              : `Mostrando sólo: ${TEXTO_FILTRO_ESTADO[filtros.estado]}.`}
-          </small>
+          {filtros.estado !== '' && (
+            <small id="ayuda-filtro-estado" role="status" className="max-w-xs text-[11.5px] text-faint">
+              Mostrando sólo: {TEXTO_FILTRO_ESTADO[filtros.estado]}.
+            </small>
+          )}
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -150,15 +150,15 @@ export function FiltrosFlota({
             ))}
           </select>
 
-          <small
-            id="ayuda-filtro-documentacion"
-            role="status"
-            className="max-w-xs text-[11.5px] text-faint"
-          >
-            {filtros.estadoDocumentacion === ''
-              ? 'Mostrando todos los estados de documentación.'
-              : `Mostrando sólo: ${TEXTO_ESTADO_DOCUMENTACION[filtros.estadoDocumentacion]}.`}
-          </small>
+          {filtros.estadoDocumentacion !== '' && (
+            <small
+              id="ayuda-filtro-documentacion"
+              role="status"
+              className="max-w-xs text-[11.5px] text-faint"
+            >
+              Mostrando sólo: {TEXTO_ESTADO_DOCUMENTACION[filtros.estadoDocumentacion]}.
+            </small>
+          )}
         </div>
 
         <Boton variante="secundario" tamanio="chico" className="self-end" onClick={onLimpiar}>

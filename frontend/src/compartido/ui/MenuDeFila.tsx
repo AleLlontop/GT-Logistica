@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { cn } from './cn'
 
@@ -44,6 +45,8 @@ interface Props {
  */
 export function MenuDeFila({ etiqueta, items }: Props) {
   const [abierto, setAbierto] = useState(false)
+  const [coords, setCoords] = useState<{ top: number; right: number } | null>(null)
+  
   const contenedor = useRef<HTMLDivElement>(null)
   const disparador = useRef<HTMLButtonElement>(null)
   const lista = useRef<HTMLDivElement>(null)
@@ -53,6 +56,19 @@ export function MenuDeFila({ etiqueta, items }: Props) {
   useEffect(() => {
     if (abierto) {
       enfocables(lista.current)[0]?.focus()
+    }
+  }, [abierto])
+
+  // Cerrar si la pantalla se scrollea o redimensiona, para que el menú no quede flotando
+  // desfasado de su disparador.
+  useEffect(() => {
+    if (!abierto) return
+    const alMover = () => setAbierto(false)
+    window.addEventListener('scroll', alMover, { capture: true, passive: true })
+    window.addEventListener('resize', alMover, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', alMover, { capture: true })
+      window.removeEventListener('resize', alMover)
     }
   }, [abierto])
 
@@ -67,6 +83,21 @@ export function MenuDeFila({ etiqueta, items }: Props) {
     disparador.current?.focus()
   }
 
+  function alternar() {
+    if (abierto) {
+      setAbierto(false)
+    } else {
+      if (disparador.current) {
+        const rect = disparador.current.getBoundingClientRect()
+        setCoords({
+          top: rect.bottom + window.scrollY,
+          right: document.documentElement.clientWidth - rect.right - window.scrollX,
+        })
+      }
+      setAbierto(true)
+    }
+  }
+
   return (
     <div
       ref={contenedor}
@@ -74,9 +105,13 @@ export function MenuDeFila({ etiqueta, items }: Props) {
       // Regla 10: el clic no llega al `<tr>` que navega.
       onClick={(evento) => evento.stopPropagation()}
       // Regla 6: el foco que sale del menú lo cierra. `relatedTarget` es adónde va el foco; si
-      // sigue adentro del contenedor, no salió.
+      // sigue adentro del contenedor o de la lista portaled, no salió.
       onBlur={(evento) => {
-        if (!contenedor.current?.contains(evento.relatedTarget as Node | null)) {
+        const fueAfuera = 
+          !contenedor.current?.contains(evento.relatedTarget as Node | null) &&
+          !lista.current?.contains(evento.relatedTarget as Node | null)
+          
+        if (fueAfuera) {
           setAbierto(false)
         }
       }}
@@ -109,7 +144,7 @@ export function MenuDeFila({ etiqueta, items }: Props) {
         aria-haspopup="menu"
         aria-expanded={abierto}
         aria-controls={abierto ? idLista : undefined}
-        onClick={() => setAbierto((estaba) => !estaba)}
+        onClick={alternar}
         className={cn(
           'flex size-7 items-center justify-center rounded-pastilla text-[15px] leading-none',
           'text-muted transition-colors duration-200 ease-gt hover:bg-surface-mute hover:text-ink',
@@ -119,15 +154,16 @@ export function MenuDeFila({ etiqueta, items }: Props) {
         <span aria-hidden="true">···</span>
       </button>
 
-      {abierto && (
+      {abierto && coords !== null && createPortal(
         <div
           ref={lista}
           id={idLista}
+          style={{ top: coords.top, right: coords.right }}
           /*
            * Regla 7: no es un diálogo. No hay overlay, no hay `aria-modal` y el foco no queda
            * retenido — el fondo se sigue pudiendo usar, y salir del menú lo cierra.
            */
-          className="absolute top-full right-0 z-30 mt-1 flex min-w-[11rem] flex-col rounded-card border border-line bg-white/95 py-1.5 shadow-island"
+          className="absolute z-[60] mt-1 flex min-w-[11rem] flex-col rounded-card border border-line bg-white/95 py-1.5 shadow-island"
         >
           {items.map((item) => {
             const clases = cn(
@@ -165,7 +201,8 @@ export function MenuDeFila({ etiqueta, items }: Props) {
               </button>
             )
           })}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

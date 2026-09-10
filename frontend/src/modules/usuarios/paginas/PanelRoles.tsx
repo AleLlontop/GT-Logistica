@@ -1,4 +1,4 @@
-import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { BarraDeAcciones } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
 import { clasesDeBoton } from '../../../compartido/ui/clases'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
@@ -119,27 +119,33 @@ export function PanelRoles() {
       )}
 
       <form onSubmit={alGuardar} noValidate className={clasesDeFormularioSimple}>
-        <fieldset>
-          <legend>Roles del sistema</legend>
+        <fieldset className="flex flex-col gap-3">
+          <legend className="mb-4 font-semibold text-[13.5px] text-ink-soft">Roles del sistema</legend>
 
           {roles.map((rol) => (
-            <div key={rol.codigo}>
+            <div key={rol.codigo} className="flex items-center gap-2.5">
               <input
                 id={`rol-${rol.codigo}`}
                 type="checkbox"
                 checked={marcados.includes(rol.codigo)}
                 onChange={() => alternar(rol.codigo)}
               />
-              <label htmlFor={`rol-${rol.codigo}`}>{rol.nombre}</label>
+              <label htmlFor={`rol-${rol.codigo}`} className="text-[13.5px] font-medium text-ink cursor-pointer">
+                {rol.nombre}
+              </label>
 
-              <button type="button" onClick={() => setVerPermisosDe(rol)}>
+              <button 
+                type="button" 
+                className={clasesDeBoton('texto', 'chico')} 
+                onClick={() => setVerPermisosDe(rol)}
+              >
                 Ver permisos
               </button>
             </div>
           ))}
         </fieldset>
 
-        <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
+        <BarraDeAcciones anclaje="viewport">
           {/* Navega, así que sigue siendo un `<a>` aunque se vea como un botón (FR-023). */}
           <Link to={`/usuarios/${idUsuario}`} className={clasesDeBoton('secundario')}>
             Volver al detalle
