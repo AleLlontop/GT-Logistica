@@ -5,6 +5,7 @@ import { MenuDeFila } from '../../../compartido/ui/MenuDeFila'
 import { IconoAnulado, IconoDocumento } from '../../../compartido/ui/iconos'
 import { Estado } from '../../../compartido/ui/Estado'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
+import { Dialogo } from '../../../compartido/ui/Dialogo'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -222,30 +223,34 @@ export function FichaChofer() {
       )}
 
       {cargandoDocumento && (
-        <FormularioDocumento
-          choferId={chofer.id}
-          documentosDelChofer={chofer.documentos}
-          onGuardado={() => {
-            setCargandoDocumento(false)
-            setAviso('El documento se cargó correctamente.')
-            traer()
-          }}
-          onCancelar={() => setCargandoDocumento(false)}
-        />
+        <Dialogo titulo="Cargar documento" onCerrar={() => setCargandoDocumento(false)}>
+          <FormularioDocumento
+            choferId={chofer.id}
+            documentosDelChofer={chofer.documentos}
+            onGuardado={() => {
+              setCargandoDocumento(false)
+              setAviso('El documento se cargó correctamente.')
+              traer()
+            }}
+            onCancelar={() => setCargandoDocumento(false)}
+          />
+        </Dialogo>
       )}
 
       {corrigiendo !== null && (
-        <FormularioDocumento
-          choferId={chofer.id}
-          documento={corrigiendo}
-          documentosDelChofer={chofer.documentos}
-          onGuardado={() => {
-            setCorrigiendo(null)
-            setAviso('Los cambios se guardaron correctamente.')
-            traer()
-          }}
-          onCancelar={() => setCorrigiendo(null)}
-        />
+        <Dialogo titulo="Corregir documento" onCerrar={() => setCorrigiendo(null)}>
+          <FormularioDocumento
+            choferId={chofer.id}
+            documento={corrigiendo}
+            documentosDelChofer={chofer.documentos}
+            onGuardado={() => {
+              setCorrigiendo(null)
+              setAviso('Los cambios se guardaron correctamente.')
+              traer()
+            }}
+            onCancelar={() => setCorrigiendo(null)}
+          />
+        </Dialogo>
       )}
 
       <FichaCuerpo

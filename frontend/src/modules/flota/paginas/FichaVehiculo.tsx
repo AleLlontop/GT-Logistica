@@ -6,6 +6,7 @@ import { IconoAnulado, IconoDocumento } from '../../../compartido/ui/iconos'
 import { TokenDeIdentificador } from '../../../compartido/ui/TokenDeIdentificador'
 import { Estado } from '../../../compartido/ui/Estado'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
+import { Dialogo } from '../../../compartido/ui/Dialogo'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
@@ -235,30 +236,34 @@ export function FichaVehiculo() {
       )}
 
       {cargandoDocumento && (
-        <FormularioDocumentoVehiculo
-          vehiculoId={vehiculo.id}
-          documentosDelVehiculo={vehiculo.documentos}
-          onGuardado={(mensaje) => {
-            setCargandoDocumento(false)
-            setAviso(mensaje)
-            traer()
-          }}
-          onCancelar={() => setCargandoDocumento(false)}
-        />
+        <Dialogo titulo="Cargar documento" onCerrar={() => setCargandoDocumento(false)}>
+          <FormularioDocumentoVehiculo
+            vehiculoId={vehiculo.id}
+            documentosDelVehiculo={vehiculo.documentos}
+            onGuardado={(mensaje) => {
+              setCargandoDocumento(false)
+              setAviso(mensaje)
+              traer()
+            }}
+            onCancelar={() => setCargandoDocumento(false)}
+          />
+        </Dialogo>
       )}
 
       {corrigiendo !== null && (
-        <FormularioDocumentoVehiculo
-          vehiculoId={vehiculo.id}
-          documento={corrigiendo}
-          documentosDelVehiculo={vehiculo.documentos}
-          onGuardado={(mensaje) => {
-            setCorrigiendo(null)
-            setAviso(mensaje)
-            traer()
-          }}
-          onCancelar={() => setCorrigiendo(null)}
-        />
+        <Dialogo titulo="Corregir documento" onCerrar={() => setCorrigiendo(null)}>
+          <FormularioDocumentoVehiculo
+            vehiculoId={vehiculo.id}
+            documento={corrigiendo}
+            documentosDelVehiculo={vehiculo.documentos}
+            onGuardado={(mensaje) => {
+              setCorrigiendo(null)
+              setAviso(mensaje)
+              traer()
+            }}
+            onCancelar={() => setCorrigiendo(null)}
+          />
+        </Dialogo>
       )}
 
       <FichaCuerpo
