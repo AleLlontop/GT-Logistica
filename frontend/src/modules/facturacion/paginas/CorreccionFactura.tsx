@@ -1,6 +1,7 @@
 import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
+import { Aviso } from '../../../compartido/ui/Aviso'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
 import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
@@ -150,10 +151,14 @@ export function CorreccionFactura() {
     return (
       <section>
         <EncabezadoDePantalla titulo={`Corregir factura ${factura.numeroComprobante}`} />
-        <p role="alert">Una factura anulada no se puede corregir.</p>
-        <button type="button" onClick={() => navegar(`/facturas/${factura.id}`)}>
+
+        <Aviso tono="error" rol="alert" className="mb-[18px]">
+          Una factura anulada no se puede corregir.
+        </Aviso>
+
+        <Boton variante="secundario" onClick={() => navegar(`/facturas/${factura.id}`)}>
           Volver a la ficha
-        </button>
+        </Boton>
       </section>
     )
   }
@@ -162,56 +167,76 @@ export function CorreccionFactura() {
     <section>
       <EncabezadoDePantalla titulo={`Corregir factura ${factura.numeroComprobante}`} />
 
-      <p role="note">{AVISO_SOLO_LECTURA}</p>
-
-      {/* El resto, de sólo lectura: no son campos deshabilitados, son datos (FR-036). */}
-      <section aria-labelledby="titulo-no-editable">
-        <h2 id="titulo-no-editable">Datos que no se modifican</h2>
-
-        <dl>
-          <dt>Cliente</dt>
-          <dd>{nombreDeCliente(factura.cliente)}</dd>
-
-          <dt>Tipo de comprobante</dt>
-          <dd>{NOMBRES_DE_TIPO_COMPROBANTE[factura.tipoComprobante]}</dd>
-
-          <dt>Período</dt>
-          <dd>
-            {String(factura.mes).padStart(2, '0')}/{factura.anio}
-          </dd>
-
-          <dt>Fecha de facturación</dt>
-          <dd>{formatearFecha(factura.fecha)}</dd>
-
-          <dt>Viajes incluidos</dt>
-          <dd>{factura.viajes.map((viaje) => viaje.numero).join(', ')}</dd>
-
-          <dt>Neto</dt>
-          <dd>{formatearPesos(factura.neto)}</dd>
-
-          <dt>IVA ({factura.alicuota}%)</dt>
-          <dd>{formatearPesos(factura.iva)}</dd>
-
-          <dt>Total</dt>
-          <dd>{formatearPesos(factura.total)}</dd>
-
-          <dt>Estado</dt>
-          <dd>{NOMBRES_DE_ESTADO[factura.estado]}</dd>
-
-          {/* Corregir una factura pagada no le toca ni el estado ni esta fecha (US4 esc. 8). */}
-          {factura.fechaCobro !== null && (
-            <>
-              <dt>Fecha de cobro</dt>
-              <dd>{formatearFecha(factura.fechaCobro)}</dd>
-            </>
-          )}
-        </dl>
-      </section>
-
       <form onSubmit={guardar} noValidate className={clasesDeFormularioAgrupado}>
-        {/* El guardado no cambia de pantalla, así que se anuncia acá (convención [003]). */}
-        {aviso !== null && <p role="status">{aviso}</p>}
-        {errorGlobal !== null && <p role="alert">{errorGlobal}</p>}
+        {/*
+          El guardado no cambia de pantalla, así que se anuncia acá (convención [003]). Las dos
+          regiones **se dibujan siempre**: una que entra al DOM junto con su texto no se anuncia, y
+          vacías quedan `sr-only`, que sigue en el árbol accesible y, por ser absoluta, no ocupa un
+          hueco del formulario. El `role` va sobre el `<p>` del mensaje y no sobre una tarjeta que lo
+          enmarque, que es lo que fijó [008].
+        */}
+        <p role="status" className={aviso === null ? 'sr-only' : 'formulario__aviso'}>
+          {aviso}
+        </p>
+        <p role="alert" className={errorGlobal === null ? 'sr-only' : 'formulario__error'}>
+          {errorGlobal}
+        </p>
+
+        {/*
+          Sólo lectura: no son campos deshabilitados, son datos (FR-036). Va como sección 1 del mismo
+          formulario —ya venía numerada la 2— porque ése es el orden de lectura: primero lo que no se
+          puede tocar y por qué, después lo que sí.
+        */}
+        <SeccionNumerada
+          numero={1}
+          titulo="Datos que no se modifican"
+          explicacion={AVISO_SOLO_LECTURA}
+        >
+          <dl
+            className={[
+              'm-0 grid grid-cols-[minmax(9rem,auto)_1fr] gap-x-6 gap-y-2.5',
+              '[&>dt]:text-[12.5px] [&>dt]:text-faint',
+              '[&>dd]:m-0 [&>dd]:text-[13px] [&>dd]:font-medium [&>dd]:text-ink',
+            ].join(' ')}
+          >
+              <dt>Cliente</dt>
+              <dd>{nombreDeCliente(factura.cliente)}</dd>
+
+              <dt>Tipo de comprobante</dt>
+              <dd>{NOMBRES_DE_TIPO_COMPROBANTE[factura.tipoComprobante]}</dd>
+
+              <dt>Período</dt>
+              <dd>
+                {String(factura.mes).padStart(2, '0')}/{factura.anio}
+              </dd>
+
+              <dt>Fecha de facturación</dt>
+              <dd>{formatearFecha(factura.fecha)}</dd>
+
+              <dt>Viajes incluidos</dt>
+              <dd>{factura.viajes.map((viaje) => viaje.numero).join(', ')}</dd>
+
+              <dt>Neto</dt>
+              <dd>{formatearPesos(factura.neto)}</dd>
+
+              <dt>IVA ({factura.alicuota}%)</dt>
+              <dd>{formatearPesos(factura.iva)}</dd>
+
+              <dt>Total</dt>
+              <dd>{formatearPesos(factura.total)}</dd>
+
+              <dt>Estado</dt>
+              <dd>{NOMBRES_DE_ESTADO[factura.estado]}</dd>
+
+              {/* Corregir una factura pagada no le toca ni el estado ni esta fecha (US4 esc. 8). */}
+              {factura.fechaCobro !== null && (
+                <>
+                  <dt>Fecha de cobro</dt>
+                  <dd>{formatearFecha(factura.fechaCobro)}</dd>
+                </>
+              )}
+          </dl>
+        </SeccionNumerada>
 
         <SeccionNumerada
           numero={2}

@@ -215,6 +215,15 @@ export const clasesDeFormulario = cn(
   '[&_.formulario__error]:text-[13px] [&_.formulario__error]:font-medium',
   '[&_.formulario__error]:text-danger-text',
 
+  // Su par de éxito. Va como clase y no como `Aviso` porque el mensaje de nivel formulario es una
+  // **región viva**, y [008] pide que el `role` esté sobre el elemento que contiene el texto:
+  // `Aviso` lo pone en la tarjeta que lo enmarca, y ahí el anuncio deja de ser el texto.
+  '[&_.formulario__aviso]:rounded-card [&_.formulario__aviso]:border',
+  '[&_.formulario__aviso]:border-line [&_.formulario__aviso]:bg-estado-rendido-bg',
+  '[&_.formulario__aviso]:px-[18px] [&_.formulario__aviso]:py-4',
+  '[&_.formulario__aviso]:text-[13px] [&_.formulario__aviso]:font-medium',
+  '[&_.formulario__aviso]:text-estado-rendido',
+
   // Las acciones, siempre al pie y siempre en el mismo lugar. La jerarquía **ya no se decide acá**:
   // la declara cada botón con su variante, y `BarraDeAcciones` fija el lugar (FR-030).
   '[&_.acciones]:mt-2 [&_.acciones]:flex [&_.acciones]:flex-wrap [&_.acciones]:gap-2.5',
