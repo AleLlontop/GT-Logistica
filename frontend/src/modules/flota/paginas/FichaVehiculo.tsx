@@ -236,7 +236,11 @@ export function FichaVehiculo() {
       )}
 
       {cargandoDocumento && (
-        <Dialogo titulo="Cargar documento" onCerrar={() => setCargandoDocumento(false)}>
+        <Dialogo
+          titulo="Cargar documento"
+          onCerrar={() => setCargandoDocumento(false)}
+          className="w-[min(48rem,calc(100vw-2rem))]"
+        >
           <FormularioDocumentoVehiculo
             vehiculoId={vehiculo.id}
             documentosDelVehiculo={vehiculo.documentos}
@@ -251,7 +255,11 @@ export function FichaVehiculo() {
       )}
 
       {corrigiendo !== null && (
-        <Dialogo titulo="Corregir documento" onCerrar={() => setCorrigiendo(null)}>
+        <Dialogo
+          titulo="Corregir documento"
+          onCerrar={() => setCorrigiendo(null)}
+          className="w-[min(48rem,calc(100vw-2rem))]"
+        >
           <FormularioDocumentoVehiculo
             vehiculoId={vehiculo.id}
             documento={corrigiendo}

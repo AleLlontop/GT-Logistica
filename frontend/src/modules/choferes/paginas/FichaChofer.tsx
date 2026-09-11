@@ -223,7 +223,11 @@ export function FichaChofer() {
       )}
 
       {cargandoDocumento && (
-        <Dialogo titulo="Cargar documento" onCerrar={() => setCargandoDocumento(false)}>
+        <Dialogo
+          titulo="Cargar documento"
+          onCerrar={() => setCargandoDocumento(false)}
+          className="w-[min(48rem,calc(100vw-2rem))]"
+        >
           <FormularioDocumento
             choferId={chofer.id}
             documentosDelChofer={chofer.documentos}
@@ -238,7 +242,11 @@ export function FichaChofer() {
       )}
 
       {corrigiendo !== null && (
-        <Dialogo titulo="Corregir documento" onCerrar={() => setCorrigiendo(null)}>
+        <Dialogo
+          titulo="Corregir documento"
+          onCerrar={() => setCorrigiendo(null)}
+          className="w-[min(48rem,calc(100vw-2rem))]"
+        >
           <FormularioDocumento
             choferId={chofer.id}
             documento={corrigiendo}
