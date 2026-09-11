@@ -167,7 +167,7 @@ export function FormularioDocumento({
     corrigiendo && fechaVencimiento !== '' && fechaVencimiento !== documento.fechaVencimiento
 
   return (
-    <form onSubmit={guardar} noValidate className={`${clasesDeFormularioSimple} mt-6`}>
+    <form onSubmit={guardar} noValidate className={`${clasesDeFormularioSimple} mt-3`}>
 
       {errorGeneral !== null && <p role="alert">{errorGeneral}</p>}
 

@@ -174,7 +174,7 @@ export function FormularioDocumentoVehiculo({
     documentosDelVehiculo.some((otro) => otro.tipo.id === Number(tipoId))
 
   return (
-    <form onSubmit={guardar} noValidate className={`${clasesDeFormularioSimple} mt-6`}>
+    <form onSubmit={guardar} noValidate className={`${clasesDeFormularioSimple} mt-3`}>
 
       {errorGeneral !== null && <p role="alert">{errorGeneral}</p>}
 
