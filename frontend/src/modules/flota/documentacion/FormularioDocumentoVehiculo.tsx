@@ -1,6 +1,7 @@
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { Aviso } from '../../../compartido/ui/Aviso'
 import { clasesDeFormularioSimple } from '../../../compartido/ui/clases'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
@@ -173,7 +174,7 @@ export function FormularioDocumentoVehiculo({
     documentosDelVehiculo.some((otro) => otro.tipo.id === Number(tipoId))
 
   return (
-    <form onSubmit={guardar} noValidate className={`${clasesDeFormularioSimple} mb-6`}>
+    <form onSubmit={guardar} noValidate className={`${clasesDeFormularioSimple} mt-6`}>
 
       {errorGeneral !== null && <p role="alert">{errorGeneral}</p>}
 
@@ -200,10 +201,10 @@ export function FormularioDocumentoVehiculo({
       </div>
 
       {esRenovacion && (
-        <p role="status">
+        <Aviso tono="nota">
           Esta unidad ya tiene un documento de ese tipo. De todos ellos cuenta el de vencimiento más
           lejano, y los demás quedan como historial.
-        </p>
+        </Aviso>
       )}
 
       <div className="campo max-w-campo-medio">
