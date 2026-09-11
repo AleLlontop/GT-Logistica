@@ -163,7 +163,7 @@ export function TotalesFacturados() {
           </TablaDesplazable>
         </Listado>
 
-          <p role="note">{NOTA_DE_LOS_TOTALES}</p>
+          <Aviso tono="nota" rol="status" className="mt-4">{NOTA_DE_LOS_TOTALES}</Aviso>
         </>
       )}
     </section>
