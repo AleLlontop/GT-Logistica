@@ -81,7 +81,11 @@ export function ListadoTiposVehiculo() {
           {error}
         </Aviso>
       )}
-      {aviso !== null && <p role="status">{aviso}</p>}
+      {aviso !== null && (
+        <Aviso tono="exito" rol="status" className="mb-4">
+          {aviso}
+        </Aviso>
+      )}
 
       <FormularioTipoVehiculo
         enEdicion={enEdicion}
