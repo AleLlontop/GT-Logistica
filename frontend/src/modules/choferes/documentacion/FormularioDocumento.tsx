@@ -193,12 +193,14 @@ export function FormularioDocumento({
         )}
       </div>
 
-      {esRenovacion && (
-        <Aviso tono="nota">
-          Este chofer ya tiene un documento de ese tipo. De todos ellos cuenta el de vencimiento más
-          lejano, y los demás quedan como historial.
-        </Aviso>
-      )}
+      <Aviso tono="nota" rol="status">
+        {esRenovacion && (
+          <>
+            Este chofer ya tiene un documento de ese tipo. De todos ellos cuenta el de vencimiento
+            más lejano, y los demás quedan como historial.
+          </>
+        )}
+      </Aviso>
 
       <div className="campo max-w-campo-medio">
         <label htmlFor="numero">Número</label>
@@ -252,12 +254,14 @@ export function FormularioDocumento({
         )}
       </div>
 
-      {cambioElVencimiento && (
-        <Aviso tono="nota">
-          Cambiar la fecha de vencimiento puede cambiar cuál es el documento vigente de ese tipo y el
-          estado del chofer.
-        </Aviso>
-      )}
+      <Aviso tono="nota" rol="status">
+        {cambioElVencimiento && (
+          <>
+            Cambiar la fecha de vencimiento puede cambiar cuál es el documento vigente de ese tipo y
+            el estado del chofer.
+          </>
+        )}
+      </Aviso>
 
       <div className="campo">
         <label htmlFor="archivo">Archivo adjunto (opcional)</label>

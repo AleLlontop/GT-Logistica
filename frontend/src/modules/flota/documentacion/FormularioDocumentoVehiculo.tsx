@@ -200,12 +200,14 @@ export function FormularioDocumentoVehiculo({
         )}
       </div>
 
-      {esRenovacion && (
-        <Aviso tono="nota">
-          Esta unidad ya tiene un documento de ese tipo. De todos ellos cuenta el de vencimiento más
-          lejano, y los demás quedan como historial.
-        </Aviso>
-      )}
+      <Aviso tono="nota" rol="status">
+        {esRenovacion && (
+          <>
+            Esta unidad ya tiene un documento de ese tipo. De todos ellos cuenta el de vencimiento
+            más lejano, y los demás quedan como historial.
+          </>
+        )}
+      </Aviso>
 
       <div className="campo max-w-campo-medio">
         <label htmlFor="numero">Número</label>

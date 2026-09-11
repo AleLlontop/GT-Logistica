@@ -81,11 +81,11 @@ export function ListadoTiposVehiculo() {
           {error}
         </Aviso>
       )}
-      {aviso !== null && (
-        <Aviso tono="exito" rol="status" className="mb-4">
-          {aviso}
-        </Aviso>
-      )}
+      {/* Siempre dibujado: la región tiene que existir antes que el mensaje para que se anuncie
+          (convención [003]). Sin `aviso` se reduce a un contenedor `sr-only`. */}
+      <Aviso tono="exito" rol="status" className="mb-4">
+        {aviso}
+      </Aviso>
 
       <FormularioTipoVehiculo
         enEdicion={enEdicion}

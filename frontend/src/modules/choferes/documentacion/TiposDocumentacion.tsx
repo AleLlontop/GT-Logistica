@@ -170,11 +170,11 @@ export function TiposDocumentacion() {
           {error}
         </Aviso>
       )}
-      {aviso !== null && (
-        <Aviso tono="exito" rol="status" className="mb-4">
-          {aviso}
-        </Aviso>
-      )}
+      {/* Siempre dibujado: la región tiene que existir antes que el mensaje para que se anuncie
+          (convención [003]). Sin `aviso` se reduce a un contenedor `sr-only`. */}
+      <Aviso tono="exito" rol="status" className="mb-4">
+        {aviso}
+      </Aviso>
 
       <form onSubmit={guardar} noValidate className={clasesDeFormularioSimple}>
         <h2>{enEdicion !== null ? `Editar ${enEdicion.nombre}` : 'Nuevo tipo'}</h2>

@@ -147,7 +147,11 @@ export function MenuDeFila({ etiqueta, items }: Props) {
         onClick={alternar}
         className={cn(
           'flex size-7 items-center justify-center rounded-pastilla text-[15px] leading-none',
-          'text-muted transition-colors duration-200 ease-gt hover:bg-surface-mute hover:text-ink',
+          'transition-colors duration-200 ease-gt hover:bg-surface-mute hover:text-ink',
+          // El glifo es lo que sostiene el contraste del control: `ink-soft` da 8,96:1 sobre el
+          // lienzo y sobre la fila, contra los 4,13:1 de `muted` sobre `surface-mute` (regla 2 de
+          // `index.css`). El borde agrega el límite que lo hace leer como botón antes del hover.
+          'border border-line-strong text-ink-soft',
           abierto && 'bg-surface-mute text-ink',
         )}
       >

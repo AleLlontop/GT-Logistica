@@ -12,6 +12,16 @@ import { IconoEnRegla, IconoProximoAvencer, IconoVencido, IconoDocumento } from 
  * esta feature no la toca. Obligar a declararlo es lo que impide perderla por descuido.
  *
  * El tono y el ícono se suman a la palabra; ninguno de los dos reemplaza al texto (FR-037).
+ *
+ * **La región vive aunque el mensaje no.** Un `role` no anuncia nada si el nodo que lo lleva entra
+ * al DOM junto con su texto: el lector de pantalla necesita la región ya presente para notar que
+ * algo le entró después. Por eso el aviso no se monta condicionalmente desde afuera —
+ * `{condicion && <Aviso …>}` lo haría aparecer y desaparecer entero— sino que **siempre se dibuja y
+ * recibe el mensaje como hijo**; sin hijos se reduce a un contenedor `sr-only`, que sigue en el
+ * árbol accesible y, por ser absoluto, no ocupa un hueco del `gap` del formulario. Cuando el mensaje
+ * llega, React reusa ese mismo nodo y el anuncio sale.
+ *
+ * El `role` queda sobre el elemento que contiene el texto y no sobre una tarjeta que lo enmarque.
  */
 
 type Tono = 'exito' | 'advertencia' | 'error' | 'nota'
@@ -47,6 +57,12 @@ interface Props {
 
 export function Aviso({ tono, rol, children, className }: Props) {
   const Icono = ICONOS[tono]
+
+  // `false` es lo que deja un `{condicion && …}` del lado del que llama, y `null`/`undefined` lo que
+  // deja un ternario sin rama. Los tres son "todavía no hay mensaje".
+  if (children === false || children === null || children === undefined) {
+    return <div role={rol} className="sr-only" />
+  }
 
   return (
     <div
