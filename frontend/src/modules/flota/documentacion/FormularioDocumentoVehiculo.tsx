@@ -173,7 +173,7 @@ export function FormularioDocumentoVehiculo({
     documentosDelVehiculo.some((otro) => otro.tipo.id === Number(tipoId))
 
   return (
-    <form onSubmit={guardar} noValidate className={clasesDeFormularioSimple}>
+    <form onSubmit={guardar} noValidate className={`${clasesDeFormularioSimple} mb-6`}>
       <h2>{corrigiendo ? 'Corregir documento' : 'Cargar documento'}</h2>
 
       {errorGeneral !== null && <p role="alert">{errorGeneral}</p>}
