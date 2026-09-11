@@ -170,7 +170,11 @@ export function TiposDocumentacion() {
           {error}
         </Aviso>
       )}
-      {aviso !== null && <p role="status">{aviso}</p>}
+      {aviso !== null && (
+        <Aviso tono="exito" rol="status" className="mb-4">
+          {aviso}
+        </Aviso>
+      )}
 
       <form onSubmit={guardar} noValidate className={clasesDeFormularioSimple}>
         <h2>{enEdicion !== null ? `Editar ${enEdicion.nombre}` : 'Nuevo tipo'}</h2>
