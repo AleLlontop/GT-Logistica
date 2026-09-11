@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using GT.Domain.Usuarios;
 using GT.Infrastructure.DatosIniciales;
 using GT.IntegrationTests.Autenticacion;
@@ -51,8 +51,9 @@ public class AutorizacionTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
         var cliente = await app.CrearClienteAutenticadoAsync(usuario.Username, PasswordDeTrafico);
 
         // El menú de este usuario trae las tres entradas del Módulo 3 —el primer módulo abierto a un
-        // rol que no es el administrador (FR-027)—, la de flota del Módulo 4 y las tres del Módulo 5.
-        // Ninguna del Módulo 2.
+        // rol que no es el administrador (FR-027)—, la de flota del Módulo 4, las tres del Módulo 5
+        // y los dos paneles de vencimientos que el Módulo 7 sumó al catálogo bajo los permisos que
+        // esas pantallas ya exigían (FR-013). Ninguna del Módulo 2.
         var sesion = await cliente.GetFromJsonAsync<SesionDeRespuesta>("/api/auth/sesion");
 
         Assert.Equal(
@@ -60,7 +61,9 @@ public class AutorizacionTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
                 "choferes",
                 "transportistas",
                 "tipos-documentacion",
+                "vencimientos-choferes",
                 "flota",
+                "vencimientos-flota",
                 "viajes",
                 "clientes",
                 "totales",
