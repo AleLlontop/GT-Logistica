@@ -109,7 +109,7 @@ export function FiltrosFlota({
             id="filtro-estado"
             value={filtros.estado}
             onChange={(evento) => onCambiar('estado', evento.target.value as Filtros_['estado'])}
-            aria-describedby="ayuda-filtro-estado"
+            aria-describedby={filtros.estado !== '' ? 'ayuda-filtro-estado' : undefined}
             className={clasesDeFiltro(filtros.estado !== '')}
           >
             <option value="">Todos</option>
@@ -120,8 +120,9 @@ export function FiltrosFlota({
             ))}
           </select>
 
-          {/* El control dice qué está filtrando. "Todos" no incluye los dados de baja, y
-              callárselo haría leer el listado como un error de datos (convención [003]). */}
+          {/* Elegido un estado, el control dice cuál. Sin elegir ninguno no lleva cartel: que los
+              dados de baja se busquen pidiéndolos se da por sabido, y el texto permanente
+              descolocaba al resto de los filtros de la fila. */}
           {filtros.estado !== '' && (
             <small id="ayuda-filtro-estado" role="status" className="max-w-xs text-[11.5px] text-faint">
               Mostrando sólo: {TEXTO_FILTRO_ESTADO[filtros.estado]}.
@@ -139,7 +140,9 @@ export function FiltrosFlota({
             onChange={(evento) =>
               onCambiar('estadoDocumentacion', evento.target.value as Filtros_['estadoDocumentacion'])
             }
-            aria-describedby="ayuda-filtro-documentacion"
+            aria-describedby={
+              filtros.estadoDocumentacion !== '' ? 'ayuda-filtro-documentacion' : undefined
+            }
             className={clasesDeFiltro(filtros.estadoDocumentacion !== '')}
           >
             <option value="">Todos</option>

@@ -104,19 +104,18 @@ describe('ListadoFlota', () => {
   })
 
   /**
-   * FR-037: **el control siempre dice qué está filtrando**. Sin el parámetro se devuelven sólo los
-   * activos, y callárselo haría leer el listado como un error de datos (FR-031).
+   * FR-037 queda cubierto por el cartel que aparece **al elegir un estado** —el test que sigue—.
+   * Sin elegir ninguno el control no lleva cartel: que los dados de baja no figuren hasta que se
+   * los pida se da por sabido, y el texto permanente descolocaba al resto de los filtros de la fila.
+   *
+   * Se conserva como test para que el cartel no vuelva por descuido y rompa de nuevo la fila.
    */
-  it('el control de estado dice que está mostrando sólo los activos (FR-037)', async () => {
+  it('sin estado elegido el control no lleva cartel', async () => {
     renderizar()
 
     await screen.findByRole('table')
 
-    expect(
-      screen.getByText(
-        'Mostrando sólo las unidades activas. Elegí "Dado de baja" para ver las que salieron de la flota.',
-      ),
-    ).toBeInTheDocument()
+    expect(screen.queryByText(/^Mostrando sólo/)).not.toBeInTheDocument()
   })
 
   it('el control dice qué estado está filtrando al elegir uno (FR-037)', async () => {

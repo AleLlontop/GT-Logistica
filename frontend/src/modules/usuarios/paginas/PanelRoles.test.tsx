@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -136,15 +136,21 @@ describe('PanelRoles', () => {
     const botones = await screen.findAllByRole('button', { name: 'Ver permisos' })
     await persona.click(botones[3]) // Administrador del sistema
 
-    expect(await screen.findByRole('heading', { name: 'Usuarios' })).toBeInTheDocument()
+    const panel = await screen.findByRole('dialog')
+
+    expect(within(panel).getByRole('heading', { name: 'Usuarios' })).toBeInTheDocument()
 
     expect(
-      screen.getByText('Crear, consultar, modificar y dar de baja usuarios y sus roles'),
+      within(panel).getByText('Crear, consultar, modificar y dar de baja usuarios y sus roles'),
     ).toBeInTheDocument()
 
-    // Sólo lectura: el panel de permisos no agrega casillas.
-    const casillas = screen.getAllByRole('checkbox')
-    expect(casillas).toHaveLength(4) // las cuatro de los roles, ninguna de permisos
+    // Sólo lectura: el panel enumera los permisos y no agrega ningún control para tocarlos.
+    //
+    // Se verifica adentro del panel y no contando las casillas de toda la pantalla, como hacía
+    // este test cuando el panel era una sección en línea: siendo un diálogo modal, las cuatro
+    // casillas de roles quedan fuera del árbol accesible mientras está abierto —que es una
+    // garantía más fuerte que la de antes, no más débil—.
+    expect(within(panel).queryAllByRole('checkbox')).toHaveLength(0)
   })
 
   it('avisa cuando un rol todavía no habilita nada implementado', async () => {

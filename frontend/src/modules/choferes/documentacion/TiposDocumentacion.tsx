@@ -274,7 +274,7 @@ export function TiposDocumentacion() {
       {tipos !== null && tipos.length > 0 && (
         <>
         <div className="mb-6 mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-line bg-surface-soft px-4 py-3">
-          <label htmlFor="filtro-ambito" className={clasesDeEtiquetaDeFiltro}>Filtrar por ámbito:</label>
+          <label htmlFor="filtro-ambito" className={clasesDeEtiquetaDeFiltro}>Filtrar por ámbito</label>
           <select
             id="filtro-ambito"
             value={filtroAmbito}
