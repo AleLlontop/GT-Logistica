@@ -237,10 +237,11 @@ export function FormularioVehiculo() {
           titulo="Identificación"
           explicacion="La patente no se puede editar después de guardar."
         >
-          <div className="campo max-w-campo-corto">
+          <div className="campo">
             <label htmlFor="patente">Patente</label>
             <input
               id="patente"
+              className="max-w-campo-corto"
               placeholder="EF456GH"
               type="text"
               maxLength={10}
@@ -250,7 +251,9 @@ export function FormularioVehiculo() {
               aria-invalid={errores.patente !== undefined}
               aria-describedby="ayuda-patente"
             />
-            <small id="ayuda-patente">Formato ABC123 o AB123CD. Los espacios y guiones se ignoran.</small>
+            <small id="ayuda-patente" className="text-faint">
+              Formato ABC123 o AB123CD. Los espacios y guiones se ignoran.
+            </small>
             {errores.patente !== undefined && (
               <p className="campo__error" role="alert">
                 {errores.patente}
@@ -349,10 +352,11 @@ export function FormularioVehiculo() {
             )}
           </div>
 
-          <div className="campo max-w-campo-medio">
+          <div className="campo">
             <label htmlFor="estadoOperativo">Estado operativo</label>
             <select
               id="estadoOperativo"
+              className="max-w-campo-medio"
               value={estadoOperativo}
               onChange={(evento) => setEstadoOperativo(evento.target.value as VehiculoEstado)}
               required
@@ -365,7 +369,11 @@ export function FormularioVehiculo() {
               <option value="fueraDeServicio">{TEXTO_ESTADO_VEHICULO.fueraDeServicio}</option>
             </select>
 
-            {!editando && <small id="ayuda-estado">{EXPLICACION_ESTADO_EN_ALTA}</small>}
+            {!editando && (
+              <small id="ayuda-estado" className="text-faint">
+                {EXPLICACION_ESTADO_EN_ALTA}
+              </small>
+            )}
 
             {errores.estadoOperativo !== undefined && (
               <p className="campo__error" role="alert">
