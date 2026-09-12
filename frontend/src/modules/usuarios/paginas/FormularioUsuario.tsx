@@ -190,7 +190,7 @@ export function FormularioUsuario() {
   if (cargando) {
     return (
       <section>
-        <p role="status">Cargando usuario…</p>
+        <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando usuario…</p>
       </section>
     )
   }

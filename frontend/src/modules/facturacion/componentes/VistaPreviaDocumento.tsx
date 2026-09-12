@@ -89,9 +89,11 @@ export function VistaPreviaDocumento({ numero, peticion }: Props) {
       >
         {cargando ? 'Generando la vista previa…' : null}
       </p>
-      <p role="alert" className={error === null ? 'sr-only' : 'formulario__error'}>
-        {error}
-      </p>
+      {error !== null && (
+        <p role="alert" className="formulario__error">
+          {error}
+        </p>
+      )}
 
       {url !== null && (
         <>

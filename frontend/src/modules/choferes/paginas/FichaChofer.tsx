@@ -1,4 +1,5 @@
 import { AsideDeFicha, BloqueDeAside } from '../../../compartido/ui/AsideDeFicha'
+import { Aviso } from '../../../compartido/ui/Aviso'
 import { Boton } from '../../../compartido/ui/Boton'
 import { FichaCuerpo, FichaSeccion } from '../../../compartido/ui/Ficha'
 import { MenuDeFila } from '../../../compartido/ui/MenuDeFila'
@@ -107,7 +108,9 @@ export function FichaChofer() {
     return (
       <section>
         <EncabezadoDePantalla titulo="Ficha del chofer" />
-        <p role="alert">{error}</p>
+        <Aviso tono="error" rol="alert" className="mb-[18px]">
+          {error}
+        </Aviso>
         <Link to="/choferes">Volver al listado</Link>
       </section>
     )
@@ -116,7 +119,7 @@ export function FichaChofer() {
   if (chofer === null) {
     return (
       <section>
-        <p role="status">Cargando ficha…</p>
+        <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando ficha…</p>
       </section>
     )
   }

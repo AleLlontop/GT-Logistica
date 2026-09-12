@@ -103,7 +103,7 @@ export function PanelRoles() {
   if (cargando) {
     return (
       <section>
-        <p role="status">Cargando roles…</p>
+        <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando roles…</p>
       </section>
     )
   }

@@ -132,7 +132,7 @@ export function CorreccionFactura() {
     return (
       <section>
         <EncabezadoDePantalla titulo="Corregir factura" />
-        <p role="status">Cargando…</p>
+        <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando…</p>
       </section>
     )
   }
@@ -141,7 +141,9 @@ export function CorreccionFactura() {
     return (
       <section>
         <EncabezadoDePantalla titulo="Corregir factura" />
-        <p role="alert">{errorGlobal ?? 'No encontramos lo que buscabas.'}</p>
+        <Aviso tono="error" rol="alert">
+          {errorGlobal ?? 'No encontramos lo que buscabas.'}
+        </Aviso>
       </section>
     )
   }
@@ -178,9 +180,11 @@ export function CorreccionFactura() {
         <p role="status" className={aviso === null ? 'sr-only' : 'formulario__aviso'}>
           {aviso}
         </p>
-        <p role="alert" className={errorGlobal === null ? 'sr-only' : 'formulario__error'}>
-          {errorGlobal}
-        </p>
+        {errorGlobal !== null && (
+          <p role="alert" className="formulario__error">
+            {errorGlobal}
+          </p>
+        )}
 
         {/*
           Sólo lectura: no son campos deshabilitados, son datos (FR-036). Va como sección 1 del mismo

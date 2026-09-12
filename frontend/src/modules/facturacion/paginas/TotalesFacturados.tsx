@@ -1,4 +1,5 @@
 import { Boton } from '../../../compartido/ui/Boton'
+import { clasesDeAvisoDePantalla } from '../../../compartido/ui/clases'
 import { IconoBuscar } from '../../../compartido/ui/iconos'
 import { clasesDeFormulario } from '../../../compartido/ui/clases'
 import { Aviso } from '../../../compartido/ui/Aviso'
@@ -118,7 +119,7 @@ export function TotalesFacturados() {
         </EstadoVacio>}
 
       {totales !== null && totales.length === 0 && rangoConsultado !== null && (
-        <p role="status">
+        <p role="status" className={clasesDeAvisoDePantalla.nota}>
           No hay facturas emitidas entre el {formatearFecha(rangoConsultado.desde)} y el{' '}
           {formatearFecha(rangoConsultado.hasta)}.
         </p>

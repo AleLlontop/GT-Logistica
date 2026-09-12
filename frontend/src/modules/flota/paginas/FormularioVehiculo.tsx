@@ -1,4 +1,7 @@
 import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
+import { estilosDeBoton } from '../../../compartido/ui/clases'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { clasesDeAvisoDePantalla } from '../../../compartido/ui/clases'
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
@@ -175,7 +178,7 @@ export function FormularioVehiculo() {
   if (tipos === null || transportistas === null) {
     return (
       <section>
-        <p role="status">Cargando catálogos…</p>
+        <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando catálogos…</p>
       </section>
     )
   }
@@ -186,8 +189,16 @@ export function FormularioVehiculo() {
     return (
       <section>
         <EncabezadoDePantalla titulo="Registrar unidad" />
-        <p role="alert">{MENSAJE_SIN_TIPOS}</p>
-        <Link to="/tipos-vehiculo">Ir a Tipos de vehículo</Link>
+        <EstadoVacio
+          caso="vacio"
+          accion={
+            <Link to="/tipos-vehiculo" className={estilosDeBoton({ variante: 'secundario' })}>
+              Ir a Tipos de vehículo
+            </Link>
+          }
+        >
+          {MENSAJE_SIN_TIPOS}
+        </EstadoVacio>
       </section>
     )
   }
@@ -196,8 +207,16 @@ export function FormularioVehiculo() {
     return (
       <section>
         <EncabezadoDePantalla titulo="Registrar unidad" />
-        <p role="alert">{MENSAJE_SIN_TRANSPORTISTAS}</p>
-        <Link to="/transportistas">Ir a Transportistas</Link>
+        <EstadoVacio
+          caso="vacio"
+          accion={
+            <Link to="/transportistas" className={estilosDeBoton({ variante: 'secundario' })}>
+              Ir a Transportistas
+            </Link>
+          }
+        >
+          {MENSAJE_SIN_TRANSPORTISTAS}
+        </EstadoVacio>
       </section>
     )
   }
@@ -206,7 +225,11 @@ export function FormularioVehiculo() {
     <section>
       <EncabezadoDePantalla titulo={editando ? 'Editar unidad' : 'Registrar unidad'} />
 
-      {errorGeneral !== null && <p role="alert">{errorGeneral}</p>}
+      {errorGeneral !== null && (
+        <p role="alert" className={`${clasesDeAvisoDePantalla.error} mb-[18px]`}>
+          {errorGeneral}
+        </p>
+      )}
 
       <form onSubmit={guardar} noValidate className={clasesDeFormularioAgrupado}>
         <SeccionNumerada

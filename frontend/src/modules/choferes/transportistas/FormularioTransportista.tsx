@@ -119,7 +119,7 @@ export function FormularioTransportista() {
     return (
       <section>
         <EncabezadoDePantalla titulo={titulo} />
-        <p role="status">Cargando…</p>
+        <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando…</p>
       </section>
     )
   }
@@ -129,7 +129,11 @@ export function FormularioTransportista() {
       <EncabezadoDePantalla titulo={titulo} />
 
       <form onSubmit={guardar} noValidate className={clasesDeFormularioAgrupado}>
-        {errorGlobal && <p role="alert">{errorGlobal}</p>}
+        {errorGlobal && (
+          <p className="formulario__error" role="alert">
+            {errorGlobal}
+          </p>
+        )}
 
         <SeccionNumerada
           numero={1}

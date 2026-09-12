@@ -114,7 +114,11 @@ export function CambiarPassword() {
           </p>
         )}
 
-        {exito && <p role="status">{MENSAJE_EXITO}</p>}
+        {exito && (
+          <p className="formulario__aviso" role="status">
+            {MENSAJE_EXITO}
+          </p>
+        )}
 
         <div className="campo max-w-campo-medio">
           <label htmlFor="passwordActual">Contraseña actual</label>

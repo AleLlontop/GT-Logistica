@@ -1,4 +1,6 @@
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { estilosDeBoton } from '../../../compartido/ui/clases'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
 import { Boton } from '../../../compartido/ui/Boton'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
 import { Aviso } from '../../../compartido/ui/Aviso'
@@ -152,17 +154,23 @@ export function FormularioDocumentoVehiculo({
   }
 
   if (tipos === null) {
-    return <p role="status">Cargando tipos de documentación…</p>
+    return <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando tipos de documentación…</p>
   }
 
   // Sin tipos de ámbito vehículo no se puede cargar nada, y se dice por qué con el enlace que lo
   // resuelve (FR-017a, US2 esc. 6 y 7 aplicados a la documentación).
   if (tipos.length === 0) {
     return (
-      <div>
-        <p role="alert">{MENSAJE_SIN_TIPOS_DE_VEHICULO}</p>
-        <Link to="/tipos-documentacion">Ir a Tipos de documentación</Link>
-      </div>
+      <EstadoVacio
+        caso="vacio"
+        accion={
+          <Link to="/tipos-documentacion" className={estilosDeBoton({ variante: 'secundario' })}>
+            Ir a Tipos de documentación
+          </Link>
+        }
+      >
+        {MENSAJE_SIN_TIPOS_DE_VEHICULO}
+      </EstadoVacio>
     )
   }
 
@@ -176,7 +184,11 @@ export function FormularioDocumentoVehiculo({
   return (
     <form onSubmit={guardar} noValidate className={`${clasesDeFormularioSimple} mt-3`}>
 
-      {errorGeneral !== null && <p role="alert">{errorGeneral}</p>}
+      {errorGeneral !== null && (
+        <p className="formulario__error" role="alert">
+          {errorGeneral}
+        </p>
+      )}
 
       <div className="campo max-w-campo-medio">
         <label htmlFor="documentacionTipoId">Tipo de documentación</label>

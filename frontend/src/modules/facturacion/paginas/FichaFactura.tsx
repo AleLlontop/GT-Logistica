@@ -1,4 +1,5 @@
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
+import { Aviso } from '../../../compartido/ui/Aviso'
 import { AsideDeFicha, BloqueDeAside, CifraDestacada } from '../../../compartido/ui/AsideDeFicha'
 import { TablaDesplazable } from '../../../compartido/ui/Listado'
 import { Boton } from '../../../compartido/ui/Boton'
@@ -145,7 +146,11 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
     return (
       <section>
         <EncabezadoDePantalla titulo="Factura" />
-        {error !== null ? <p role="alert">{error}</p> : <p role="status">Cargando…</p>}
+        {error !== null ? (
+          <Aviso tono="error" rol="alert">{error}</Aviso>
+        ) : (
+          <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando…</p>
+        )}
       </section>
     )
   }

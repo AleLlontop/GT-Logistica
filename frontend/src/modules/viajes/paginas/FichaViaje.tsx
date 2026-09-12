@@ -1,4 +1,5 @@
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
+import { Aviso } from '../../../compartido/ui/Aviso'
 import { AsideDeFicha, BloqueDeAside, CifraDestacada } from '../../../compartido/ui/AsideDeFicha'
 import { Boton } from '../../../compartido/ui/Boton'
 import { Callout } from '../../../compartido/ui/Callout'
@@ -179,7 +180,9 @@ export function FichaViaje({ puedeGestionar }: Props) {
     return (
       <section>
         <EncabezadoDePantalla titulo="Viaje" />
-        <p role="alert">{error}</p>
+        <Aviso tono="error" rol="alert" className="mb-[18px]">
+          {error}
+        </Aviso>
       </section>
     )
   }
@@ -188,7 +191,7 @@ export function FichaViaje({ puedeGestionar }: Props) {
     return (
       <section>
         <EncabezadoDePantalla titulo="Viaje" />
-        <p role="status">Cargando…</p>
+        <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando…</p>
       </section>
     )
   }

@@ -1,4 +1,5 @@
 import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
+import { clasesDeAvisoDePantalla } from '../../../compartido/ui/clases'
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
@@ -146,7 +147,7 @@ export function EmpresaEmisora() {
     return (
       <section>
         <EncabezadoDePantalla titulo="Empresa emisora" />
-        <p role="status">Cargando…</p>
+        <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando…</p>
       </section>
     )
   }
@@ -156,12 +157,24 @@ export function EmpresaEmisora() {
       <EncabezadoDePantalla titulo="Empresa emisora" />
 
       {/* Arriba del formulario vacío, con las palabras exactas del contrato (US1 esc. 1). */}
-      {empresa !== null && !empresa.configurada && <p role="status">{MENSAJE_SIN_CONFIGURAR}</p>}
+      {empresa !== null && !empresa.configurada && (
+        <p role="status" className={`${clasesDeAvisoDePantalla.advertencia} mb-[18px]`}>
+          {MENSAJE_SIN_CONFIGURAR}
+        </p>
+      )}
 
       <form onSubmit={guardar} noValidate className={clasesDeFormularioAgrupado}>
         {/* El guardado no cambia de pantalla, así que se anuncia acá (convención [003]). */}
-        {aviso !== null && <p role="status">{aviso}</p>}
-        {errorGlobal !== null && <p role="alert">{errorGlobal}</p>}
+        {aviso !== null && (
+          <p className="formulario__aviso" role="status">
+            {aviso}
+          </p>
+        )}
+        {errorGlobal !== null && (
+          <p className="formulario__error" role="alert">
+            {errorGlobal}
+          </p>
+        )}
 
         <SeccionNumerada
           numero={1}

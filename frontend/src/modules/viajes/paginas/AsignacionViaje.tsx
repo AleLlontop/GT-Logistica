@@ -1,4 +1,6 @@
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { clasesDeAvisoDePantalla } from '../../../compartido/ui/clases'
+import { Aviso } from '../../../compartido/ui/Aviso'
 import { Boton } from '../../../compartido/ui/Boton'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
 import { clasesDeFormularioSimple } from '../../../compartido/ui/clases'
@@ -123,7 +125,11 @@ export function AsignacionViaje() {
     return (
       <section>
         <EncabezadoDePantalla titulo="Asignar chofer y vehículo" />
-        {error !== null ? <p role="alert">{error}</p> : <p role="status">Cargando…</p>}
+        {error !== null ? (
+          <Aviso tono="error" rol="alert">{error}</Aviso>
+        ) : (
+          <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando…</p>
+        )}
       </section>
     )
   }
@@ -138,17 +144,37 @@ export function AsignacionViaje() {
 
       <p>La documentación se valida contra la fecha del viaje: {formatearFecha(viaje.fecha)}.</p>
 
-      {error !== null && <p role="alert">{error}</p>}
-      {exito !== null && <p role="status">{exito}</p>}
+      {error !== null && (
+        <p role="alert" className={`${clasesDeAvisoDePantalla.error} mb-[18px]`}>
+          {error}
+        </p>
+      )}
+      {exito !== null && (
+        <p role="status" className={`${clasesDeAvisoDePantalla.exito} mb-[18px]`}>
+          {exito}
+        </p>
+      )}
 
       {advertencias.map((advertencia) => (
-        <p key={advertencia.mensaje} role="status">
+        <p
+          key={advertencia.mensaje}
+          role="status"
+          className={`${clasesDeAvisoDePantalla.advertencia} mb-[18px]`}
+        >
           {advertencia.mensaje}
         </p>
       ))}
 
-      {sinChoferes && <p role="status">{MENSAJE_SIN_CHOFERES}</p>}
-      {sinVehiculos && <p role="status">{MENSAJE_SIN_VEHICULOS}</p>}
+      {sinChoferes && (
+        <p role="status" className={`${clasesDeAvisoDePantalla.nota} mb-[18px]`}>
+          {MENSAJE_SIN_CHOFERES}
+        </p>
+      )}
+      {sinVehiculos && (
+        <p role="status" className={`${clasesDeAvisoDePantalla.nota} mb-[18px]`}>
+          {MENSAJE_SIN_VEHICULOS}
+        </p>
+      )}
 
       <form onSubmit={asignar} noValidate className={clasesDeFormularioSimple}>
         <div className="campo max-w-campo-largo">

@@ -47,7 +47,7 @@ export function SelectorPersona({ valor, onCambio, deshabilitado = false }: Prop
     return (
       <div className="campo">
         <span id="persona-etiqueta">Persona asociada</span>
-        <p role="status">Cargando personas…</p>
+        <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando personas…</p>
       </div>
     )
   }

@@ -253,3 +253,28 @@ export const clasesDeFormularioSimple = cn(
   clasesDeFormulario,
   'rounded-card border border-line bg-surface p-[26px] shadow-card',
 )
+
+/**
+ * El aviso de nivel **pantalla**: la misma tarjeta que dibuja `Aviso`, pero como clase sobre el
+ * propio `<p>` del mensaje.
+ *
+ * Existe por [008]: **una región viva anuncia el elemento que contiene el texto**. `Aviso` pone el
+ * `role` en la tarjeta que enmarca, y para un mensaje que se anuncia eso mueve el anuncio afuera del
+ * texto —tres suites lo afirman con `toHaveAttribute('role', …)` sobre el elemento del mensaje—.
+ * Donde el anuncio importa se usa esto; donde el aviso es contenido que ya estaba en pantalla al
+ * cargar, `Aviso`.
+ *
+ * Es el par de `formulario__error` y `formulario__aviso` para lo que vive **fuera** de un `<form>`,
+ * adonde aquellos no llegan: los define `clasesDeFormulario` por descendencia.
+ */
+const CAJA_DE_AVISO = 'm-0 rounded-card border border-line px-[18px] py-4 text-[13px] leading-5 font-medium'
+
+export const clasesDeAvisoDePantalla: Record<
+  'exito' | 'error' | 'advertencia' | 'nota',
+  string
+> = {
+  exito: cn(CAJA_DE_AVISO, 'bg-estado-rendido-bg text-estado-rendido'),
+  error: cn(CAJA_DE_AVISO, 'bg-danger-bg text-danger-text'),
+  advertencia: cn(CAJA_DE_AVISO, 'bg-estado-pendiente-bg text-estado-pendiente'),
+  nota: cn(CAJA_DE_AVISO, 'bg-surface-mute text-ink-soft'),
+}

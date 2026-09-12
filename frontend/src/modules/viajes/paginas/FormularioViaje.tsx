@@ -1,4 +1,7 @@
 import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
+import { estilosDeBoton } from '../../../compartido/ui/clases'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { clasesDeAvisoDePantalla } from '../../../compartido/ui/clases'
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
@@ -157,7 +160,7 @@ export function FormularioViaje() {
     return (
       <section>
         <EncabezadoDePantalla titulo={titulo} />
-        <p role="status">Cargando…</p>
+        <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando…</p>
       </section>
     )
   }
@@ -169,13 +172,24 @@ export function FormularioViaje() {
       {/* El número se muestra y no se edita: lo genera el sistema (FR-011, FR-017). */}
       {numero !== null && <p>Número de viaje: {numero}</p>}
 
-      {errorGlobal && <p role="alert">{errorGlobal}</p>}
+      {errorGlobal && (
+        <p role="alert" className={`${clasesDeAvisoDePantalla.error} mb-[18px]`}>
+          {errorGlobal}
+        </p>
+      )}
 
       {sinClientesActivos && (
-        <div>
-          <p role="status">{MENSAJE_SIN_CLIENTES_ACTIVOS}</p>
-          <Link to="/clientes/nuevo">Ir a Clientes</Link>
-        </div>
+        <EstadoVacio
+          caso="vacio"
+          className="mb-[18px]"
+          accion={
+            <Link to="/clientes/nuevo" className={estilosDeBoton({ variante: 'secundario' })}>
+              Ir a Clientes
+            </Link>
+          }
+        >
+          {MENSAJE_SIN_CLIENTES_ACTIVOS}
+        </EstadoVacio>
       )}
 
       <form onSubmit={guardar} noValidate className={clasesDeFormularioAgrupado}>

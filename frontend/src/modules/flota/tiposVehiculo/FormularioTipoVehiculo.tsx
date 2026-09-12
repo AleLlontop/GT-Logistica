@@ -1,4 +1,5 @@
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
+import { clasesDeAvisoDePantalla } from '../../../compartido/ui/clases'
 import { Boton } from '../../../compartido/ui/Boton'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
 import { clasesDeFormularioSimple } from '../../../compartido/ui/clases'
@@ -113,11 +114,15 @@ export function FormularioTipoVehiculo({ enEdicion, onGuardado, onCancelar }: Pr
     <form onSubmit={guardar} noValidate className={clasesDeFormularioSimple}>
       <h2>{enEdicion !== null ? `Editar ${enEdicion.nombre}` : 'Nuevo tipo de vehículo'}</h2>
 
-      {errorGeneral !== null && <p role="alert">{errorGeneral}</p>}
+      {errorGeneral !== null && (
+        <p className="formulario__error" role="alert">
+          {errorGeneral}
+        </p>
+      )}
 
       {/* El estado va con su palabra y no sólo con el botón que aparece (convención [003]). */}
       {enEdicion !== null && !enEdicion.activo && (
-        <p role="status">
+        <p role="status" className={clasesDeAvisoDePantalla.nota}>
           Este tipo está inactivo: no se ofrece al registrar vehículos. Podés darlo de alta de nuevo.
         </p>
       )}

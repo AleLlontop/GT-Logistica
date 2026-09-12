@@ -1,4 +1,6 @@
 import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
+import { estilosDeBoton } from '../../../compartido/ui/clases'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
@@ -226,7 +228,7 @@ export function FormularioChofer() {
     return (
       <section>
         <EncabezadoDePantalla titulo={titulo} />
-        <p role="status">Cargando…</p>
+        <p role="status" className="m-0 text-[13px] text-ink-soft">Cargando…</p>
       </section>
     )
   }
@@ -237,8 +239,19 @@ export function FormularioChofer() {
     return (
       <section>
         <EncabezadoDePantalla titulo={titulo} />
-        <p role="alert">{MENSAJE_SIN_TRANSPORTISTAS_ACTIVOS}</p>
-        <Link to="/transportistas/nuevo">Registrar un transportista</Link>
+        <EstadoVacio
+          caso="vacio"
+          accion={
+            <Link
+              to="/transportistas/nuevo"
+              className={estilosDeBoton({ variante: 'secundario' })}
+            >
+              Registrar un transportista
+            </Link>
+          }
+        >
+          {MENSAJE_SIN_TRANSPORTISTAS_ACTIVOS}
+        </EstadoVacio>
       </section>
     )
   }
