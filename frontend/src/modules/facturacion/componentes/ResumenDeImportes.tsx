@@ -1,3 +1,4 @@
+import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
 import { formatearPesos } from '../../../compartido/moneda'
 import type { TipoComprobante } from '../servicios/api'
 
@@ -17,6 +18,8 @@ const ALICUOTAS: Record<TipoComprobante, number> = {
 }
 
 interface Props {
+  /** Su lugar en el orden de lectura del alta. */
+  numero: number
   /** Los importes de los viajes seleccionados, en el orden que sea: se suman. */
   importes: number[]
   tipoComprobante: TipoComprobante
@@ -35,7 +38,7 @@ interface Props {
  * Los importes se formatean con `formatearPesos`, nunca con `toFixed(2)`: eso deja los miles sin separar
  * y el decimal con punto, que en una planilla argentina se lee como separador de miles (convención [005]).
  */
-export function ResumenDeImportes({ importes, tipoComprobante }: Props) {
+export function ResumenDeImportes({ numero, importes, tipoComprobante }: Props) {
   const alicuota = ALICUOTAS[tipoComprobante]
 
   // Redondeo comercial a dos decimales, el mismo criterio del backend: la mitad para arriba.
@@ -46,34 +49,39 @@ export function ResumenDeImportes({ importes, tipoComprobante }: Props) {
   const porcentaje = Math.round(alicuota * 100)
 
   return (
-    <section aria-labelledby="titulo-importes">
-      <h2 id="titulo-importes">Importes</h2>
-
+    <SeccionNumerada numero={numero} titulo="Importes">
       {/* Se actualiza sin que la pantalla cambie, así que se anuncia (convención [003]). */}
-      <p role="status">
-        <strong>
-          {importes.length} {importes.length === 1 ? 'viaje seleccionado' : 'viajes seleccionados'}
-        </strong>
+      <p role="status" className="m-0 text-[13px] font-bold text-ink">
+        {importes.length} {importes.length === 1 ? 'viaje seleccionado' : 'viajes seleccionados'}
       </p>
 
-      <dl>
-        <div>
-          <dt>Neto</dt>
-          <dd>{formatearPesos(neto)}</dd>
+      {/*
+        Los tres importes a la derecha y en negrita, en una sola línea: es lo que permite compararlos
+        en vertical contra una planilla (FR-039). El total se separa con un hairline porque es el que
+        se firma, no uno más de la lista.
+      */}
+      <dl className="m-0 flex max-w-campo-medio flex-col gap-2.5">
+        <div className="flex items-baseline justify-between gap-6">
+          <dt className="text-[12.5px] text-faint">Neto</dt>
+          <dd className="m-0 text-[13px] font-bold text-ink">{formatearPesos(neto)}</dd>
         </div>
-        <div>
-          <dt>IVA ({porcentaje}%)</dt>
-          <dd>{formatearPesos(iva)}</dd>
+        <div className="flex items-baseline justify-between gap-6">
+          <dt className="text-[12.5px] text-faint">IVA ({porcentaje}%)</dt>
+          <dd className="m-0 text-[13px] font-bold text-ink">{formatearPesos(iva)}</dd>
         </div>
-        <div>
-          <dt>Total</dt>
-          <dd>{formatearPesos(total)}</dd>
+        <div className="flex items-baseline justify-between gap-6 border-t border-line pt-2.5">
+          <dt className="text-[12.5px] font-semibold text-ink-soft">Total</dt>
+          <dd className="m-0 text-[15px] font-extrabold tracking-[-0.02em] text-ink">
+            {formatearPesos(total)}
+          </dd>
         </div>
       </dl>
 
       {tipoComprobante === 'facturaC' && (
-        <p>Una Factura C no lleva IVA: el total es igual al neto.</p>
+        <p className="m-0 text-[12.5px] text-faint">
+          Una Factura C no lleva IVA: el total es igual al neto.
+        </p>
       )}
-    </section>
+    </SeccionNumerada>
   )
 }

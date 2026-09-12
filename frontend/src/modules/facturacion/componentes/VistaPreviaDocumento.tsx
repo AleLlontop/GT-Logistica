@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { Boton } from '../../../compartido/ui/Boton'
+import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import { pedirVistaPrevia, type EmisionPeticion } from '../servicios/servicioFacturas'
 
@@ -7,6 +9,8 @@ export const ADVERTENCIA_VISTA_PREVIA =
   'los importes no se pueden cambiar.'
 
 interface Props {
+  /** Su lugar en el orden de lectura del alta. */
+  numero: number
   /** `null` mientras el formulario no esté completo: sin datos no hay nada que previsualizar. */
   peticion: EmisionPeticion | null
 }
@@ -24,7 +28,7 @@ interface Props {
  * Pedirla no crea la factura ni guarda ningún archivo; abandonar la pantalla no deja rastro
  * (US2 esc. 33).
  */
-export function VistaPreviaDocumento({ peticion }: Props) {
+export function VistaPreviaDocumento({ numero, peticion }: Props) {
   const [url, setUrl] = useState<string | null>(null)
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -61,32 +65,52 @@ export function VistaPreviaDocumento({ peticion }: Props) {
   }
 
   return (
-    <section aria-labelledby="titulo-vista-previa">
-      <h2 id="titulo-vista-previa">Vista previa</h2>
+    <SeccionNumerada numero={numero} titulo="Vista previa">
+      <div className="flex flex-wrap items-center gap-3">
+        <Boton variante="secundario" onClick={pedir} disabled={peticion === null || cargando}>
+          Ver vista previa
+        </Boton>
 
-      <button type="button" onClick={pedir} disabled={peticion === null || cargando}>
-        Ver vista previa
-      </button>
+        {peticion === null && (
+          <p className="m-0 text-[12.5px] text-faint">
+            Completá los datos del comprobante y elegí al menos un viaje para poder previsualizar.
+          </p>
+        )}
+      </div>
 
-      {peticion === null && (
-        <p>Completá los datos del comprobante y elegí al menos un viaje para poder previsualizar.</p>
-      )}
-
-      {cargando && <p role="status">Generando la vista previa…</p>}
-      {error !== null && <p role="alert">{error}</p>}
+      {/*
+        Las dos regiones se dibujan siempre: una que entra al DOM junto con su texto no se anuncia.
+        Vacías quedan `sr-only`, que sigue en el árbol accesible y, por ser absoluta, no ocupa un
+        hueco de la sección. El `role` va sobre el `<p>` del mensaje, no sobre lo que lo enmarque.
+      */}
+      <p
+        role="status"
+        className={cargando ? 'm-0 text-[13px] text-ink-soft' : 'sr-only'}
+      >
+        {cargando ? 'Generando la vista previa…' : null}
+      </p>
+      <p role="alert" className={error === null ? 'sr-only' : 'formulario__error'}>
+        {error}
+      </p>
 
       {url !== null && (
         <>
-          <p role="status">{ADVERTENCIA_VISTA_PREVIA}</p>
+          <p
+            role="status"
+            className="m-0 rounded-card border border-line bg-estado-pendiente-bg px-[18px] py-4 text-[13px] leading-5 font-medium text-estado-pendiente"
+          >
+            {ADVERTENCIA_VISTA_PREVIA}
+          </p>
 
           <iframe
             src={url}
             title="Vista previa del documento de la factura"
             width="100%"
             height="600"
+            className="rounded-card border border-line bg-surface-soft"
           />
         </>
       )}
-    </section>
+    </SeccionNumerada>
   )
 }

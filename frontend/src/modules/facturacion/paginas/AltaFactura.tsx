@@ -1,6 +1,7 @@
 import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
+import { Aviso } from '../../../compartido/ui/Aviso'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
 import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
@@ -268,7 +269,7 @@ export function AltaFactura() {
     return (
       <section>
         <EncabezadoDePantalla titulo="Nueva factura" />
-        <p role="status">{MENSAJE_SIN_CLIENTES_ACTIVOS}</p>
+        <Aviso tono="nota" rol="status">{MENSAJE_SIN_CLIENTES_ACTIVOS}</Aviso>
       </section>
     )
   }
@@ -277,8 +278,17 @@ export function AltaFactura() {
     <section>
       <EncabezadoDePantalla titulo="Nueva factura" />
 
-      {avisoDeEmisora !== null && <p role="alert">{avisoDeEmisora}</p>}
-      {errorGlobal !== null && <p role="alert">{errorGlobal}</p>}
+      {/* `alert` sí se anuncia al insertarse, así que estos dos no necesitan región permanente. */}
+      {avisoDeEmisora !== null && (
+        <Aviso tono="advertencia" rol="alert" className="mb-[18px]">
+          {avisoDeEmisora}
+        </Aviso>
+      )}
+      {errorGlobal !== null && (
+        <Aviso tono="error" rol="alert" className="mb-[18px]">
+          {errorGlobal}
+        </Aviso>
+      )}
 
       <form
         className={clasesDeFormularioAgrupado}
@@ -368,7 +378,7 @@ export function AltaFactura() {
                 </select>
 
                 {anuladas.length === 0 && clienteId !== '' && (
-                  <p role="status">
+                  <p role="status" className="m-0 text-[12.5px] leading-[18px] text-faint">
                     Ese cliente no tiene facturas anuladas sin refacturar. Una Refacturación reemplaza a
                     una factura anulada.
                   </p>
@@ -425,7 +435,7 @@ export function AltaFactura() {
           </SeccionNumerada>
 
           <SeccionNumerada
-            numero={4}
+            numero={3}
             titulo="Datos del comprobante"
             explicacion="Los que devuelve AFIP al autorizarlo."
           >
@@ -464,7 +474,9 @@ export function AltaFactura() {
                 aria-invalid={erroresDeCampo.numeroComprobante !== undefined}
                 aria-describedby="ayuda-numero"
               />
-              <p id="ayuda-numero">Formato 0000-00000000.</p>
+              <p id="ayuda-numero" className="m-0 text-[12.5px] text-faint">
+                Formato 0000-00000000.
+              </p>
               {erroresDeCampo.numeroComprobante && (
                 <p className="campo__error" role="alert">
                   {erroresDeCampo.numeroComprobante}
@@ -531,8 +543,9 @@ export function AltaFactura() {
             </div>
         </SeccionNumerada>
 
-        {/* ── Bloque 2: la tercera sección numerada es el selector, que trae su propia tabla ──── */}
+        {/* ── Bloque 2 ────────────────────────────────────────────────────────────────────────── */}
         <SelectorDeViajes
+          numero={4}
           viajes={viajes}
           seleccionados={seleccionados}
           cliente={clienteElegido?.razonSocial ?? 'el cliente elegido'}
@@ -543,10 +556,14 @@ export function AltaFactura() {
         />
 
         {/* ── Bloque 3 ────────────────────────────────────────────────────────────────────────── */}
-        <ResumenDeImportes importes={importesSeleccionados} tipoComprobante={tipoComprobante} />
+        <ResumenDeImportes
+          numero={5}
+          importes={importesSeleccionados}
+          tipoComprobante={tipoComprobante}
+        />
 
         {/* ── Bloque 4 ────────────────────────────────────────────────────────────────────────── */}
-        <VistaPreviaDocumento peticion={peticion} />
+        <VistaPreviaDocumento numero={6} peticion={peticion} />
 
         <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
           <Boton variante="secundario" onClick={() => navegar('/facturas')} disabled={emitiendo}>

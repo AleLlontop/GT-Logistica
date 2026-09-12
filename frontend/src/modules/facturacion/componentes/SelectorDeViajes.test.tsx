@@ -24,6 +24,7 @@ function renderizar(viajes: ViajeFacturable[], seleccionados = new Set<number>()
 
   render(
     <SelectorDeViajes
+      numero={4}
       viajes={viajes}
       seleccionados={seleccionados}
       cliente="Distribuidora del Litoral"
@@ -95,6 +96,7 @@ describe('ResumenDeImportes', () => {
   it('calcula el ejemplo de la spec con Factura A', () => {
     render(
       <ResumenDeImportes
+        numero={5}
         importes={[30_000, 30_000, 22_644.63]}
         tipoComprobante="facturaA"
       />,
@@ -111,7 +113,7 @@ describe('ResumenDeImportes', () => {
    * factura incompleta**, y la pantalla lo dice con palabras.
    */
   it('con Factura C muestra IVA cero y total igual al neto, y lo explica', () => {
-    render(<ResumenDeImportes importes={[52_644.63]} tipoComprobante="facturaC" />)
+    render(<ResumenDeImportes numero={5} importes={[52_644.63]} tipoComprobante="facturaC" />)
 
     expect(screen.getByText('IVA (0%)')).toBeInTheDocument()
     expect(screen.getByText('$ 0,00')).toBeInTheDocument()
@@ -126,7 +128,7 @@ describe('ResumenDeImportes', () => {
    * como campos. Es la diferencia entre "no podés editarlo" y "no es algo que se edite".
    */
   it('no ofrece ningún campo editable para los importes', () => {
-    render(<ResumenDeImportes importes={[100_000]} tipoComprobante="facturaA" />)
+    render(<ResumenDeImportes numero={5} importes={[100_000]} tipoComprobante="facturaA" />)
 
     expect(screen.queryAllByRole('textbox')).toHaveLength(0)
     expect(screen.queryAllByRole('spinbutton')).toHaveLength(0)
@@ -134,14 +136,14 @@ describe('ResumenDeImportes', () => {
 
   /** La cantidad seleccionada se anuncia: cambia sin que la pantalla cambie (convención [003]). */
   it('anuncia la cantidad de viajes seleccionados con role="status"', () => {
-    render(<ResumenDeImportes importes={[10_000, 20_000]} tipoComprobante="facturaA" />)
+    render(<ResumenDeImportes numero={5} importes={[10_000, 20_000]} tipoComprobante="facturaA" />)
 
     const anuncio = screen.getByText('2 viajes seleccionados')
     expect(anuncio.closest('[role="status"]')).not.toBeNull()
   })
 
   it('usa el singular con un solo viaje', () => {
-    render(<ResumenDeImportes importes={[10_000]} tipoComprobante="facturaA" />)
+    render(<ResumenDeImportes numero={5} importes={[10_000]} tipoComprobante="facturaA" />)
 
     expect(screen.getByText('1 viaje seleccionado')).toBeInTheDocument()
   })
