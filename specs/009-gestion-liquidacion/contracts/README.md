@@ -205,6 +205,7 @@ otro período`.
 | Situación | Primaria | Secundaria | Destructiva |
 |---|---|---|---|
 | `pendiente` sin órdenes de pago | `Registrar orden de pago` | `Editar liquidación` | `Anular liquidación` |
+| `pendiente` sin órdenes, con transportista dado de baja o que dejó de ser externo | `Registrar orden de pago` | — | `Anular liquidación` |
 | `pendiente` con órdenes de pago | `Registrar orden de pago` | — | — |
 | `pagada` | ninguna | — | — |
 | `anulada` | ninguna | — | — |
@@ -216,6 +217,7 @@ Van debajo del encabezado. Dicen qué pasa **y** qué hacer (principio 4 de `gt-
 | Situación | Texto |
 |---|---|
 | `pendiente` con órdenes de pago | **Tiene pagos registrados — ya no se edita ni se anula.** Registrá el resto del pago para cerrarla. |
+| `pendiente`, transportista dado de baja o que dejó de ser externo | **El transportista ya no se puede liquidar — la liquidación no se edita.** Se puede seguir pagando; si está mal armada, anulala. |
 | `pagada` | **Liquidación pagada — cerrada.** No se edita, no se anula y no admite más órdenes de pago. |
 | `anulada` | **Liquidación anulada.** Motivo: {motivo}. Sus viajes quedaron disponibles para liquidarse de nuevo desde *Generar liquidación*. |
 
@@ -253,6 +255,7 @@ Sin órdenes: `Todavía no se registró ninguna orden de pago.`
 | `generacion` | `Generada por Gómez, Ramona` |
 | `edicion` | `Editada por Gómez, Ramona` · debajo, `Quitó #13 · Agregó #21`, omitiendo la parte que no tenga viajes |
 | `anulacion` | `Anulada por Gómez, Ramona` · debajo, `Motivo: {motivo}` |
+| `pagada` | `Pagada por Gómez, Ramona` —quien registró la orden de pago que dejó el saldo en cero— |
 
 Cada entrada con `dd/mm/aaaa hh:mm` en metadata.
 
@@ -356,7 +359,8 @@ disponibles.`
 
 **Si al abrir ya no es editable** (FR-045): callout de bloqueo con el motivo y sin formulario —
 `La liquidación LQ-12 ya tiene órdenes de pago: no se puede editar.` · `…está pagada: …` · `…está
-anulada: …`— y el enlace `Volver a la liquidación`.
+anulada: …` · `El transportista de la liquidación LQ-12 se dio de baja o dejó de ser externo: no se
+puede editar.`— y el enlace `Volver a la liquidación`.
 
 ### Sección 1 — Transportista y período
 

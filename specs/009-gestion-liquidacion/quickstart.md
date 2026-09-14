@@ -73,7 +73,8 @@ Los CUIT de abajo **pasan la validación**: el dígito verificador está calcula
 
 ### US7 — Acceso
 
-1. **Sin sesión**, abrí `/liquidaciones` y `/liquidaciones/nueva`: las dos llevan a *Ingresar*.
+1. **Sin sesión**, abrí `/liquidaciones`, `/liquidaciones/nueva`, `/liquidaciones/1` y
+   `/liquidaciones/1/editar`: las cuatro llevan a *Ingresar*, aunque la liquidación 1 todavía no exista.
    ✅ FR-066, US7 esc. 1
 2. Entrá como `trafico`: el menú **no** tiene *Consultar liquidación* ni *Generar liquidación*.
    Escribí `/liquidaciones` en la barra: no entra. ✅ FR-065, US7 esc. 4
@@ -170,7 +171,9 @@ Los CUIT de abajo **pasan la validación**: el dígito verificador está calcula
     registrados. Escribí `/liquidaciones/{id}/editar`: la pantalla muestra el bloqueo y no el formulario.
     ✅ FR-045, FR-053, US5 esc. 7, US6 esc. 5
 36. Registrá otra orden por `140000` y confirmá: la confirmación ya decía que la liquidación **queda
-    pagada**. Pasa a `Pagada`, resta `$ 0,00`, y no queda ninguna acción. ✅ FR-030, FR-041, US4 esc. 2, 6
+    pagada**. Pasa a `Pagada`, resta `$ 0,00`, no queda ninguna acción y el historial suma
+    `Pagada por …`; los dos pagos parciales anteriores no agregaron entradas. ✅ FR-030, FR-033, FR-041,
+    US4 esc. 2, 6
 37. En las órdenes de pago **no hay** acción para modificar ni eliminar. ✅ FR-044, US4 esc. 8
 
 ### US2 — Listado y filtros
@@ -195,7 +198,7 @@ Los CUIT de abajo **pasan la validación**: el dígito verificador está calcula
 
 | Qué | Por qué no a mano | Test |
 |---|---|---|
-| Dos órdenes de pago simultáneas que juntas superan el total; una edición o anulación que se cruza con un pago | hace falta que las dos transacciones se crucen en el mismo instante; el paso 15 prueba la carrera de la generación porque ahí la ventana es de minutos, no de milisegundos | `PagoConcurrenteTests`, `GeneracionConcurrenteTests` |
+| Dos órdenes de pago simultáneas que juntas superan el total; una edición o anulación que se cruza con un pago | hace falta que las dos transacciones se crucen en el mismo instante; el paso 15 prueba la carrera de la generación porque ahí la ventana es de minutos, no de milisegundos | `PagoConcurrenteTests`, `EdicionConcurrenteTests`, `AnulacionConcurrenteTests`, `GeneracionConcurrenteTests` |
 | `ImporteTotal` e `ImportePagado` coinciden con las sumas; `Vigente` coincide con el estado | la pantalla muestra el total, no la fila contra la suma | `CoherenciaDeLiquidacionTests` |
 | El `CHECK` del estado rechaza filas inválidas | ninguna pantalla permite intentarlo | `RestriccionesDeLiquidacionTests` |
 | Una invocación directa sin `confirmado` no anula ni paga | la pantalla siempre manda la confirmación que corresponde | `AnulacionTests`, `OrdenDePagoTests` |

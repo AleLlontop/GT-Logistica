@@ -117,7 +117,8 @@ Evaluado contra `.specify/memory/constitution.md` v2.1.0.
 **dos**, numerados en *Assumptions*, y el diseño los enumera uno por uno en research §11b para que la
 revisión pueda contarlos (convención [006]). Los dos son el mismo refactor en dos pantallas —borrar una
 función local y usar la compartida— y **ninguno cambia lo que la pantalla muestra**: la prueba son sus
-suites existentes, que no se modifican. El resto de los archivos que se modifican son **puntos de
+suites existentes, sin modificar ningún caso; la de *Clientes* suma uno que busca el CUIT, porque
+ninguno lo miraba (research §11b). El resto de los archivos que se modifican son **puntos de
 extensión** que cada módulo toca para existir —el registro de servicios, el catálogo de menú, los códigos
 de permiso, el sembrador, el `DbContext`, las rutas de `App.tsx`, la sección del menú y la constante de
 permisos del frontend—.
@@ -168,6 +169,7 @@ Toda interfaz sigue `.claude/skills/gt-ui/SKILL.md`. Para esta sección se leyer
 | Generar liquidación | `Guardar liquidación` (habilitado con viajes y total > 0) | `Buscar viajes` (secundaria de sección), `Cancelar`, `Volver a liquidaciones` (terciaria) | — |
 | Generar liquidación — sin empresa emisora o sin transportistas | `ninguna` | enlace `Empresa emisora` / `Transportistas`, `Volver a liquidaciones` | — |
 | Detalle — `pendiente` sin pagos, con `gestionar` | `Registrar orden de pago` | `Editar liquidación`, `Volver a liquidaciones` | `Anular liquidación` |
+| Detalle — `pendiente` sin pagos, transportista dado de baja o no externo, con `gestionar` | `Registrar orden de pago` | `Volver a liquidaciones` | `Anular liquidación` |
 | Detalle — `pendiente` con pagos, con `gestionar` | `Registrar orden de pago` | `Volver a liquidaciones` | — |
 | Detalle — `pagada`, `anulada`, o sólo `consultar` | `ninguna` | `Volver a liquidaciones` | — |
 | Editar liquidación | `Guardar cambios` (habilitado con viajes, total > 0 y algún cambio) | `Quitar` / `Agregar` por fila, `Cancelar`, `Volver a la liquidación` | — |

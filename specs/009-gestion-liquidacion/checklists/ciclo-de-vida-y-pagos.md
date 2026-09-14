@@ -12,7 +12,7 @@
 
 - [ ] CHK001 ¿Está definida la precisión del importe de una orden de pago —cuántos decimales se admiten y qué pasa con un tercer decimal—, o sólo el formato con que se muestra? [Gap, Spec §FR-036, §FR-061]
 - [ ] CHK002 ¿Está especificado en qué zona horaria se evalúan "el día en curso" y "la fecha de generación" para validar la fecha de pago? La spec no lo dice y el criterio aparece recién en research §12.8. [Ambiguity, Spec §FR-017, §FR-038]
-- [ ] CHK003 ¿Está especificado si el paso a `pagada` queda registrado en el historial? FR-033 enumera generación, edición y anulación, y la ausencia del pago sólo se lee en data-model, no en la spec. [Gap, Spec §FR-033, §FR-041]
+- [x] CHK003 ¿Está especificado si el paso a `pagada` queda registrado en el historial? FR-033 enumera generación, edición y anulación, y la ausencia del pago sólo se lee en data-model, no en la spec. [Gap, Spec §FR-033, §FR-041]
 - [ ] CHK004 ¿Está definido el orden en que se listan las órdenes de pago y las entradas del historial en el detalle? El orden cronológico sólo figura en `contracts/README.md`. [Gap, Spec §FR-025, §FR-035]
 - [ ] CHK005 ¿Define la spec si el detalle de una liquidación anulada indica que alguno de los viajes que agrupaba ya está en otra liquidación? [Gap, Spec §FR-028]
 - [ ] CHK006 ¿Está especificado qué ve Gerencia para responder "cuánto se le debe a cada fletero por período" cuando un fletero tiene varias liquidaciones del mismo período? Leer la columna de cada fila no da un total por fletero. [Clarity, Spec §Usuarios, §Assumptions]
@@ -23,7 +23,7 @@
 - [ ] CHK008 ¿Queda definido qué cuenta como "confirmación explícita previa" cuando la anulación se invoca sin pasar por la pantalla, de modo que el requisito se pueda verificar? [Clarity, Spec §FR-056]
 - [ ] CHK009 ¿Distingue la spec entre "lo que resta pagar" de una `pendiente` sin pagos, de una con pago parcial y de una `pagada`, o el término se usa igual en los tres casos? [Clarity, Spec §FR-027, §FR-030]
 - [ ] CHK010 ¿Se usa "liquidación vigente" con la definición de FR-004 —no `anulada`— en todos los lugares donde aparece: FR-011, FR-014, *Relationships* y SC-002? [Clarity, Spec §FR-004]
-- [ ] CHK011 ¿Está claro que "sólo se agrupan viajes rendidos" incluye los `facturado` en todos los textos que la spec fija? El mensaje de FR-009 y el título de US1 siguen hablando sólo de "viajes rendidos". [Ambiguity, Spec §FR-004, §FR-009, §Clarifications]
+- [x] CHK011 ¿Está claro que "sólo se agrupan viajes rendidos" incluye los `facturado` en todos los textos que la spec fija? El mensaje de FR-009 y el título de US1 siguen hablando sólo de "viajes rendidos". [Ambiguity, Spec §FR-004, §FR-009, §Clarifications]
 - [ ] CHK012 ¿Está definido si una liquidación `pendiente` con pago parcial se distingue de una sin pagos en el listado, o las dos se muestran igual salvo por la columna *Resta pagar*? [Clarity, Spec §FR-021, §FR-029]
 
 ## Consistencia entre requisitos y diseño
@@ -51,7 +51,7 @@
 - [ ] CHK027 ¿Está definido qué pasa si el saldo cambia entre que se muestra la confirmación de la orden de pago y que se confirma, por ejemplo por otro pago en ese intervalo? [Gap, Exception Flow, Spec §FR-040, §FR-043]
 - [ ] CHK028 ¿Está definido qué pasa al abrir la edición de una liquidación que deja de ser editable mientras está abierta —otro usuario la anula o le registra un pago— antes de guardar? [Coverage, Spec §FR-048, §Edge Cases]
 - [ ] CHK029 ¿Cubren los requisitos quitar y volver a agregar el mismo viaje dentro de una misma edición antes de guardar? [Edge Case, Spec §FR-046, §FR-050]
-- [ ] CHK030 ¿Está definido si una liquidación de un transportista que dejó de ser externo —porque cambió el CUIT de la empresa emisora o el del padrón— se puede seguir editando, pagando y anulando? [Edge Case, Gap, Spec §FR-001, §FR-045]
+- [x] CHK030 ¿Está definido si una liquidación de un transportista que dejó de ser externo —porque cambió el CUIT de la empresa emisora o el del padrón— se puede seguir editando, pagando y anulando? [Edge Case, Gap, Spec §FR-001, §FR-045]
 
 ## Casos borde de importes
 
@@ -82,3 +82,12 @@
     (FR-008). Coincide con lo que research §6 ya diseñaba.
   - **CHK020** → cada edición registra los viajes quitados y agregados (FR-033), en
     `CambiosDeLiquidacionViajes` (research §3b).
+- **Resuelto tras `/speckit-analyze` (2026-09-14)**:
+  - **CHK030** → la liquidación de un transportista dado de baja o que dejó de ser externo se paga y se
+    anula, pero no se edita (FR-045).
+  - **CHK017** (no tildado, queda la parte del aviso de "queda pagada") → los valores propuestos de la
+    orden de pago ya están en FR-036.
+  - **CHK003** → el paso a `pagada` entra al historial con una entrada propia; los pagos parciales no
+    (FR-033, data-model §Pagar).
+  - **CHK011** → FR-004 aclara que en este módulo "viaje rendido" incluye a los `facturado`; los textos de
+    pantalla quedan como habla el negocio.

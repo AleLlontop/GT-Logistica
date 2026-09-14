@@ -245,6 +245,10 @@ es exacta sin transformar nada.
   nada.
 - **Al guardar** se verifica otra vez que el transportista sea externo y esté activo: la pantalla no es
   la garantía.
+- **La edición exige lo mismo** (FR-045, spec §Clarifications): una liquidación cuyo transportista se
+  dio de baja o dejó de ser externo se sigue pagando y anulando, pero no se edita. Por eso la consulta
+  de disponibles puede seguir validando externo y activo sin excepciones: nunca la llama la edición de
+  una liquidación de ese transportista, porque esa edición no abre.
 
 La consulta vive en el repositorio de este módulo, que **lee** `Transportistas` y `EmpresaEmisora` sin
 escribirles nada. No se agrega ningún método a los repositorios de los Módulos 3 y 6.
@@ -335,6 +339,7 @@ La regla [005] sin excepciones nuevas:
 | Motivo de anulación vacío (FR-055) | `400` | `motivo_requerido` |
 | **Viaje ya en otra liquidación vigente** (FR-011, FR-014) | `409` | `viaje_ya_liquidado`, con cada viaje y la liquidación que lo tiene |
 | **Liquidación pagada, anulada o con órdenes de pago** al editar o anular (FR-045, FR-054) | `409` | `liquidacion_no_editable` / `liquidacion_no_anulable`, con `motivo` (`pagada`, `anulada`, `conOrdenesDePago`) y, en el último caso, cantidad y suma |
+| **Transportista dado de baja o que dejó de ser externo** al editar (FR-045) | `409` | `liquidacion_no_editable` con `motivo: transportistaNoLiquidable` |
 | **Liquidación modificada por otra edición** desde que se abrió (FR-048) | `409` | `liquidacion_modificada` |
 | **Orden de pago sobre una liquidación pagada o anulada** (FR-042) | `409` | `liquidacion_no_pagable` |
 | **Confirmación pendiente** (FR-040, FR-056) | `409` | `pago_requiere_confirmacion` / `anulacion_requiere_confirmacion` |
@@ -458,6 +463,11 @@ cambiar el caso borde sería un cambio de comportamiento disfrazado de refactor.
 no se tocan**. Consultan por texto, así que si el CUIT saliera distinto fallarían: seguir en verde sin
 modificarlas es la prueba de que el comportamiento no cambió (convención [007]).
 
+**Salvedad encontrada en `/speckit-analyze`**: `ListadoTransportistas.test.tsx` busca el CUIT con
+guiones, pero `ListadoClientes.test.tsx` no lo mira en ningún caso. Para *Clientes* la red no existía:
+antes del refactor se le agrega un caso que lo busca, se lo ve en verde con la función local, y recién
+después se cambia la importación (T037). Agregar un caso no es modificar uno.
+
 **Por qué en este módulo y no después**: es la tercera vez que se necesita. Con dos copias todavía se
 podía discutir si era el mismo concepto; con tres, una copia más es la que deja al sistema con tres
 lugares donde cambiar el formato.
@@ -507,7 +517,7 @@ El Principio IV obliga a declararlo en vez de fingir que sí:
 |---|---|---|
 | Dos operadores generan a la vez liquidaciones con un viaje en común (SC-002) | hace falta que las dos transacciones se crucen en el mismo instante | `GeneracionConcurrenteTests` |
 | Dos órdenes de pago simultáneas que juntas superan el total (SC-007) | ídem | `PagoConcurrenteTests` |
-| Una edición o una anulación que se cruza con un pago | ídem | `PagoConcurrenteTests` |
+| Una edición o una anulación que se cruza con un pago | ídem | `EdicionConcurrenteTests`, `AnulacionConcurrenteTests` |
 | Que dos ediciones que se cruzan dentro de la misma transacción no dejen el total distinto de la suma | el recorrido prueba la segunda edición rechazada —guardando una después de la otra, paso 25—, pero no el cruce en el mismo instante | `EdicionConcurrenteTests` |
 | `ImporteTotal` e `ImportePagado` coinciden con las sumas, y `Vigente` con el estado | a mano se ve el total en pantalla, pero no la fila contra la suma | `CoherenciaDeLiquidacionTests` |
 | El `CHECK` del estado rechaza filas inválidas | no hay pantalla que permita intentarlo | `RestriccionesDeLiquidacionTests` |

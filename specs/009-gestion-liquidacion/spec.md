@@ -68,6 +68,25 @@
   Una edición cambia cuánto se le paga a un tercero, y con eso la composición de la liquidación se
   puede reconstruir en cualquier momento —que es lo que el objetivo pide trazar— sin copiar importes
   ni composiciones enteras (FR-033, SC-011).
+- Q: (tras `/speckit-analyze`) El diálogo de orden de pago propone la fecha de hoy y lo que resta
+  pagar, y ningún requisito lo pedía. ¿Se escribe en la spec o se quita? → A: **Se escribe en la
+  spec**: el formulario propone los dos valores y los dos se pueden cambiar. La confirmación previa del
+  backend ya muestra el saldo resultante antes de registrar, así que el valor propuesto no convierte un
+  pago parcial en total sin que nadie lo vea (FR-036).
+- Q: (tras `/speckit-analyze`) La liquidación de un fletero dado de baja —o que dejó de ser externo
+  porque cambió un CUIT— ¿se sigue pudiendo editar? → A: **No.** Se sigue viendo, pagando y anulando,
+  pero la edición se rechaza informando que el transportista ya no se puede liquidar. Agregar viajes a
+  un fletero que ya no opera con la empresa no tiene caso de uso, y una liquidación mal armada de ese
+  fletero se corrige anulándola (FR-045, US5 esc. 7).
+- Q: (tras `/speckit-analyze`) Si mientras alguien edita otro usuario registra un pago o anula la
+  liquidación, ¿la edición se rechaza con "cambió mientras tanto"? → A: **No, con su motivo propio.**
+  "Otro usuario guardó cambios" queda sólo para otra edición; un pago, una anulación o un transportista
+  que ya no se puede liquidar informan el motivo de FR-045, que es lo que le dice a quien edita qué
+  hacer (FR-048).
+- Q: (tras `/speckit-analyze`) ¿El paso a `pagada` queda registrado en el historial? → A: **Sí**, con
+  una entrada propia: quién registró la orden de pago que dejó el saldo en cero y cuándo, escrita en la
+  misma operación. Las órdenes parciales no agregan entradas, porque ya las lista su propia sección del
+  detalle (FR-033, FR-041).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -211,7 +230,7 @@ y un resto a pagar igual al total menos lo pagado.
    detalle, **Then** la sección de órdenes de pago lista esa orden con su número, fecha e importe, y el
    detalle muestra $200.000 pagados y $155.000 por pagar.
 5. **Given** una liquidación editada o anulada, **When** se abre su detalle, **Then** el historial
-   muestra cada generación, edición y anulación con el usuario que la hizo y el instante en que
+   muestra cada generación, edición, anulación y paso a `pagada` con el usuario que la hizo y el instante en que
    ocurrió, y la anulación con su motivo.
 6. **Given** una liquidación `anulada`, **When** se abre su detalle, **Then** muestra el motivo de la
    anulación y los viajes que agrupaba, no muestra importe por pagar y no ofrece ninguna acción.
@@ -240,7 +259,7 @@ comprobando que queda `pendiente` con $155.000 por pagar, y otra de $155.000, co
    la orden queda asociada con un número asignado por el sistema, la liquidación sigue `pendiente` y
    resta pagar $155.000.
 2. **Given** esa misma liquidación con $155.000 por pagar, **When** se registra una orden de $155.000
-   y se confirma, **Then** la liquidación pasa a `pagada` y resta pagar $0,00.
+   y se confirma, **Then** la liquidación pasa a `pagada`, resta pagar $0,00 y el historial suma el paso a `pagada` con el usuario y el instante.
 3. **Given** una liquidación con $155.000 por pagar, **When** se intenta registrar una orden de
    $160.000, **Then** el sistema la rechaza informando que el importe supera lo que resta pagar, e
    indica cuánto es, y no registra nada.
@@ -294,9 +313,10 @@ generar.
 6. **Given** la edición abierta, **When** otro usuario guarda antes una liquidación con uno de los
    viajes que se están agregando, **Then** al guardar el sistema rechaza la edición nombrando el viaje
    y la liquidación que lo tiene, y no cambia nada.
-7. **Given** una liquidación `pagada`, `anulada` o `pendiente` con al menos una orden de pago, **When**
-   se abre su detalle, **Then** no está la acción de editar, y si se la invoca directamente el sistema
-   la rechaza informando por qué.
+7. **Given** una liquidación `pagada`, `anulada`, `pendiente` con al menos una orden de pago, o
+   `pendiente` de un transportista dado de baja o que dejó de ser externo, **When** se abre su detalle,
+   **Then** no está la acción de editar, y si se la invoca directamente el sistema la rechaza
+   informando por qué.
 8. **Given** una edición guardada, **When** se abre el historial de la liquidación, **Then** figura la
    edición con el usuario, el instante y los números de los viajes que quitó y que agregó.
 9. **Given** dos usuarios con la edición de la misma liquidación abierta, **When** el primero quita un
@@ -400,15 +420,15 @@ de *Administración de la empresa*.
   chofer.
 - Un viaje sin chofer asignado no tiene transportista y no puede estar rendido, así que nunca se
   ofrece.
-- Un transportista externo dado de baja: no se ofrece para generar liquidaciones nuevas, pero sus
-  liquidaciones siguen visibles, pagables, editables y anulables según su estado, y el filtro del
-  listado lo ofrece.
+- Un transportista externo dado de baja: no se ofrece para generar liquidaciones nuevas, y sus
+  liquidaciones siguen visibles, pagables y anulables según su estado, pero **no editables** (FR-045);
+  el filtro del listado lo sigue ofreciendo.
 - Al transportista G&T Logística S.A. le cargaron en el padrón un CUIT distinto del de la empresa
   emisora: aparece como externo. El módulo no puede detectarlo; se corrige el CUIT en el padrón o en
   la configuración de la empresa emisora.
 - Le cambian el CUIT a la empresa emisora después de generadas liquidaciones: las liquidaciones
-  existentes no cambian; sólo cambia qué transportistas se ofrecen para generar a partir de ese
-  momento.
+  existentes no cambian; cambia qué transportistas se ofrecen para generar a partir de ese momento, y
+  las liquidaciones de un transportista que dejó de ser externo dejan de poder editarse (FR-045).
 
 ## Requirements *(mandatory)*
 
@@ -433,7 +453,9 @@ de *Administración de la empresa*.
   período: los que tienen su **fecha de viaje** dentro del mes y el año elegidos, están en estado
   `rendido` o `facturado` y no pertenecen a ninguna liquidación vigente —una liquidación vigente es
   una no `anulada`—. NO DEBE listar viajes en estado `pendiente`, `en curso` ni `anulado`, ni viajes de
-  otro transportista o de otro período.
+  otro transportista o de otro período. En este módulo, **"viaje rendido" incluye a los `facturado`**:
+  facturado es un estado posterior a rendido (FR-051 del Módulo 6), y los textos que hablan de "viajes
+  rendidos" se refieren a los dos.
 - **FR-005**: El transportista de un viaje DEBE ser el que quedó registrado en el viaje al asignarle
   el chofer (FR-028 del Módulo 5), nunca el transportista actual del chofer.
 - **FR-006**: Cada viaje listado DEBE mostrar su número, su fecha, su origen, su destino y su importe
@@ -466,7 +488,8 @@ de *Administración de la empresa*.
 - **FR-015**: Toda liquidación DEBE crearse en estado `pendiente` y sin órdenes de pago asociadas.
 - **FR-016**: Toda liquidación DEBE recibir un número único generado por el sistema, no editable y no
   reutilizable, ni siquiera cuando la liquidación se anula.
-- **FR-017**: El sistema DEBE registrar en la liquidación la fecha en que se generó.
+- **FR-017**: El sistema DEBE registrar la fecha en que se generó cada liquidación y mostrarla en su
+  detalle.
 - **FR-018**: Guardar una liquidación DEBE ser todo o nada: o se crea con todos sus viajes asociados,
   o no se crea y ningún viaje queda asociado.
 - **FR-019**: Tras un guardado exitoso, el sistema DEBE llevar al usuario al detalle de la liquidación
@@ -514,9 +537,10 @@ de *Administración de la empresa*.
 
 #### Historial
 
-- **FR-033**: El sistema DEBE registrar en la liquidación un historial con cada generación, edición y
-  anulación, con el usuario que la hizo y el instante en que ocurrió; la anulación DEBE registrar
-  además su motivo, y **cada edición los números de los viajes que quitó y los que agregó**. El
+- **FR-033**: El sistema DEBE registrar en la liquidación un historial con cada generación, edición,
+  anulación y **paso a `pagada`**, con el usuario que la hizo y el instante en que ocurrió —en el paso a
+  `pagada`, quien registró la orden de pago que dejó el saldo en cero—; la entrada de la anulación DEBE
+  mostrar además su motivo, y **cada edición los números de los viajes que quitó y los que agregó**. El
   historial NO DEBE poder editarse ni borrarse.
 - **FR-034**: Cada orden de pago DEBE registrar el usuario que la cargó y el instante en que se cargó,
   además de su fecha de pago.
@@ -525,7 +549,8 @@ de *Administración de la empresa*.
 #### Órdenes de pago
 
 - **FR-036**: El sistema DEBE permitir registrar una orden de pago sobre una liquidación `pendiente`,
-  con **fecha de pago** e **importe** en pesos, los dos obligatorios.
+  con **fecha de pago** e **importe** en pesos, los dos obligatorios. El formulario DEBE proponer como
+  fecha el día en curso y como importe lo que resta pagar, y los dos DEBEN poder cambiarse.
 - **FR-037**: El importe de una orden de pago DEBE ser mayor que cero y NO DEBE superar lo que resta
   pagar de la liquidación al momento de registrarla; al rechazarlo, el sistema DEBE informar cuánto
   resta pagar.
@@ -548,20 +573,22 @@ de *Administración de la empresa*.
 
 #### Edición
 
-- **FR-045**: El sistema DEBE permitir editar una liquidación **sólo** mientras esté `pendiente` y no
-  tenga ninguna orden de pago. En cualquier otro caso NO DEBE ofrecer la acción y DEBE rechazarla si se
-  la invoca directamente, informando por qué: que está pagada, que está anulada o que ya tiene órdenes
-  de pago.
+- **FR-045**: El sistema DEBE permitir editar una liquidación **sólo** mientras esté `pendiente`, no
+  tenga ninguna orden de pago y su transportista siga siendo **externo y activo** (FR-001). En cualquier
+  otro caso NO DEBE ofrecer la acción y DEBE rechazarla si se la invoca directamente, informando por
+  qué: que está pagada, que está anulada, que ya tiene órdenes de pago o que el transportista ya no se
+  puede liquidar.
 - **FR-046**: La edición DEBE permitir quitar viajes de la liquidación y agregar viajes disponibles
   (FR-004) del mismo transportista y del mismo período. El transportista y el período NO DEBEN poder
   cambiarse.
 - **FR-047**: La edición DEBE mostrar el importe total recalculado a medida que se quitan y agregan
   viajes.
 - **FR-048**: Al guardar la edición, el sistema DEBE volver a verificar que la liquidación siga
-  editable (FR-045), que **no haya sido modificada desde que se abrió la edición** —por otra edición,
-  una orden de pago o una anulación— y que cada viaje agregado siga disponible (FR-004). Si algo falla,
-  DEBE rechazar la edición entera informando el motivo —cuando la modificó otro usuario, que cambió
-  mientras tanto y que hay que volver a abrir la edición— y NO DEBE cambiar nada.
+  editable (FR-045), que **ningún otro usuario haya guardado otra edición desde que se abrió** y que
+  cada viaje agregado siga disponible (FR-004). Si algo falla, DEBE rechazar la edición entera
+  informando el motivo concreto —que otro usuario guardó cambios y hay que volver a abrir la edición, o
+  el motivo de FR-045 si mientras tanto se registró un pago, se anuló o el transportista dejó de poder
+  liquidarse— y NO DEBE cambiar nada.
 - **FR-049**: La edición DEBE respetar las mismas reglas que la generación: al menos un viaje
   (FR-012), total mayor que cero (FR-012a), un único transportista y período (FR-013) y cada viaje en
   a lo sumo una liquidación vigente (FR-014).
@@ -604,7 +631,8 @@ de *Administración de la empresa*.
   resolverlo con **dos permisos**: uno de **gestión** de liquidaciones —generar, editar, anular y
   registrar órdenes de pago— y uno de **consulta** —listado y detalle—. La autorización DEBE evaluarse
   por permiso y nunca por rol, y el menú DEBE resolver sus dos opciones, *Generar liquidación* y
-  *Consultar liquidación*, sin código nuevo.
+  *Consultar liquidación*, **sin agregar lógica de permisos en el frontend**: el servidor decide qué
+  opciones existen para cada usuario, y ubicarlas en una sección del menú es presentación.
 - **FR-064**: El permiso de gestión DEBE corresponder a los roles *Administración de la empresa* y
   *Administrador del sistema*. El de consulta DEBE corresponder a esos dos roles y además a
   *Gerencia*.
@@ -623,7 +651,8 @@ de *Administración de la empresa*.
 - **OrdenDePago**: pago que cancela total o parcialmente una liquidación. Incluye número (único,
   generado por el sistema), fecha de pago, importe en pesos, y el usuario y el instante en que se
   registró. Pertenece a una única liquidación. No se edita ni se borra.
-- **CambioDeLiquidacion**: registro de una generación, una edición o una anulación de una liquidación.
+- **CambioDeLiquidacion**: registro de una generación, una edición, una anulación o el paso a `pagada`
+  de una liquidación.
   Incluye qué operación fue, el usuario que la produjo, el instante en que ocurrió, el motivo cuando
   es una anulación y los viajes quitados y agregados cuando es una edición. Pertenece a una única liquidación; una liquidación tiene al menos uno, el de su
   generación. No se edita ni se borra.
@@ -640,7 +669,7 @@ de *Administración de la empresa*.
 - **EstadoLiquidacion**: `pendiente`, `pagada`, `anulada`, excluyentes. Toda liquidación nace
   `pendiente` (FR-015); pasa a `pagada` cuando no resta nada por pagar (FR-030) y a `anulada` por la
   anulación (FR-057). `pagada` y `anulada` son finales (FR-031).
-- **OperacionDeLiquidacion**: `generacion`, `edicion`, `anulacion`. Clasifica cada entrada del
+- **OperacionDeLiquidacion**: `generacion`, `edicion`, `anulacion`, `pagada`. Clasifica cada entrada del
   historial (FR-033).
 
 ### Relationships
@@ -688,7 +717,7 @@ de *Administración de la empresa*.
   aparece bajo dos estados.
 - **SC-011**: Desde el detalle de cualquier liquidación, una persona no técnica puede decir qué viajes
   la componen, con qué importe cada uno, qué órdenes de pago tiene, cuánto resta pagar y quién la
-  generó, editó o anuló y cuándo —con los viajes que quitó y agregó cada edición—, sin consultar otra
+  generó, editó, anuló o dejó pagada y cuándo —con los viajes que quitó y agregó cada edición—, sin consultar otra
   pantalla.
 - **SC-012**: El 100% de los intentos de generar, editar, anular o registrar una orden de pago sin
   sesión o sin el permiso de gestión es rechazado; un usuario sólo con el permiso de consulta no puede
@@ -728,7 +757,8 @@ de *Administración de la empresa*.
 
   Las dos copias locales son idénticas: el CUIT de once dígitos sale como `20-12345678-6` y cualquier
   otro valor sale sin tocar. Que las pruebas existentes de esas dos pantallas sigan pasando sin
-  modificarse es la verificación de que el comportamiento no cambió.
+  modificarse es la verificación de que el comportamiento no cambió. La de *Clientes* no miraba el
+  CUIT, así que antes del cambio 2 se le agrega un caso que lo busca, sin tocar los que ya tiene.
 - **Transportista externo** es todo transportista cuyo CUIT no es el de la empresa emisora. Depende de
   que G&T Logística S.A. esté cargada en el padrón con el mismo CUIT que en la configuración, como
   piden FR-004 del Módulo 3 ("con sus datos reales") y la configuración del Módulo 6.
@@ -760,7 +790,7 @@ de *Administración de la empresa*.
 - La edición no pide confirmación aparte, porque se deshace: un viaje quitado se puede volver a
   agregar mientras siga disponible. **Anular y registrar una orden de pago sí la piden**, porque no se
   deshacen: `anulada` y `pagada` son estados finales y una orden de pago no se modifica ni se elimina.
-- El historial registra **quién y cuándo** de cada generación, edición y anulación, con el motivo de
+- El historial registra **quién y cuándo** de cada generación, edición, anulación y paso a `pagada`, con el motivo de
   la anulación y, **en cada edición, los números de los viajes quitados y agregados**. Es más que el
   historial de la factura del Módulo 6, que sólo guarda quién y cuándo, y la diferencia es a propósito:
   la factura no cambia de viajes después de emitida, la liquidación sí. No guarda importes ni la
@@ -777,8 +807,8 @@ de *Administración de la empresa*.
 - Se permite más de una liquidación del mismo transportista y período, siempre con viajes distintos.
 - El desplegable de generación ofrece sólo transportistas **activos**, con el mismo criterio con el que
   el Módulo 6 ofrece sólo clientes activos. **Limitación conocida**: un fletero dado de baja con viajes
-  sin liquidar no puede recibir una liquidación nueva; sí se pueden seguir pagando, editando y anulando
-  las que ya tiene.
+  sin liquidar no puede recibir una liquidación nueva; las que ya tiene se siguen pagando y anulando,
+  pero no se editan (FR-045).
 - La liquidación no genera un documento imprimible ni se envía al fletero: el detalle en pantalla es
   lo que se le puede mostrar. Un comprobante de liquidación queda anotado como candidato para una spec
   futura.

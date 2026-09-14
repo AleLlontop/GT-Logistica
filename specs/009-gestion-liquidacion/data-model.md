@@ -137,18 +137,18 @@ CREATE INDEX IX_OrdenesDePago_LiquidacionId ON OrdenesDePago (LiquidacionId);
 
 ## Tabla `CambiosDeLiquidacion`
 
-Historial de FR-033: quién y cuándo generó, editó o anuló.
+Historial de FR-033: quién y cuándo generó, editó, anuló o dejó pagada la liquidación.
 
 | Columna | Tipo | Nulo | Regla |
 |---|---|---|---|
 | `Id` | `int` | no | PK |
 | `LiquidacionId` | `int` | no | FK → `Liquidaciones`, `Restrict` |
-| `Operacion` | `tinyint` | no | `generacion=0`, `edicion=1`, `anulacion=2` |
+| `Operacion` | `tinyint` | no | `generacion=0`, `edicion=1`, `anulacion=2`, `pagada=3` |
 | `UsuarioId` | `int` | no | FK → `Usuarios`, `Restrict` |
 | `OcurridoEn` | `datetime2` | no | instante UTC, con `TimeProvider` |
 
 ```sql
--- Una sola generación y una sola anulación por liquidación; ediciones, las que hagan falta.
+-- Una sola generación, una sola anulación y un solo paso a pagada por liquidación; ediciones, las que hagan falta.
 -- ⚠ El 1 es OperacionDeLiquidacion.Edicion escrito a mano.
 CREATE UNIQUE INDEX IX_CambiosDeLiquidacion_Unica
     ON CambiosDeLiquidacion (LiquidacionId, Operacion) WHERE [Operacion] <> 1;
@@ -160,7 +160,9 @@ CREATE UNIQUE INDEX IX_CambiosDeLiquidacion_Unica
   `FechaHoyArgentina.Desde(instante)`. El índice único garantiza que esa entrada es una sola.
 - **Qué viajes quitó y agregó cada edición** no va en esta tabla sino en su tabla hija,
   `CambiosDeLiquidacionViajes` (FR-033, research §3b).
-- **Los pagos no entran al historial**: cada orden de pago ya registra quién y cuándo (FR-034).
+- **El paso a `pagada` sí entra** (FR-033): una entrada `pagada` con el usuario y el instante de la orden
+  de pago que dejó el saldo en cero, escrita en la misma transacción que esa orden. **Las órdenes
+  parciales no entran**: cada orden ya registra quién y cuándo (FR-034) y el detalle las lista aparte.
 
 Toda liquidación tiene **al menos una** entrada, la de su generación, escrita en la misma transacción.
 
@@ -208,7 +210,7 @@ Declaradas en `GtDbContext`, igual que `NumeroDeViaje`. **La entidad no asigna e
 public enum EstadoLiquidacion : byte { Pendiente = 0, Pagada = 1, Anulada = 2 }
 
 /// ⚠ IX_CambiosDeLiquidacion_Unica lleva el 1 escrito a mano.
-public enum OperacionDeLiquidacion : byte { Generacion = 0, Edicion = 1, Anulacion = 2 }
+public enum OperacionDeLiquidacion : byte { Generacion = 0, Edicion = 1, Anulacion = 2, Pagada = 3 }
 ```
 
 Viajan en el JSON en **camelCase** —`pendiente`, `pagada`, `anulada`, `generacion`— con su traducción
@@ -229,7 +231,7 @@ reloj** (convención [005]):
 | Rango de la fecha de pago | `FechaDePagoValida(fecha, fechaGeneracion, hoy)` → `fechaGeneracion ≤ fecha ≤ hoy` | FR-038 |
 | Resta pagar | `RestaPagar(total, pagado)` → `total − pagado` | FR-027 |
 | Estado después de un pago | `EstadoTrasPago(total, pagado, importe)` → `Pagada` si `pagado + importe = total`, si no `Pendiente` | FR-030, FR-041 |
-| Por qué no se edita | `MotivoNoEditable(estado, pagado)` → `null`, `pagada`, `anulada` o `conOrdenesDePago` | FR-045 |
+| Por qué no se edita | `MotivoNoEditable(estado, pagado, transportistaLiquidable)` → `null`, `pagada`, `anulada`, `conOrdenesDePago` o `transportistaNoLiquidable` | FR-045 |
 | Por qué no se anula | `MotivoNoAnulable(estado, pagado)` → ídem | FR-053, FR-054 |
 
 `EstadoTrasPago` vive **dos veces**: acá y como `CASE` dentro del `UPDATE` condicional de §Pagar. Las dos
@@ -310,7 +312,7 @@ la respuesta: la entidad con la que se escribió no refleja lo que hicieron los 
 
 ```
 1. Validar.                                                  ──▶ 400 / 409 sin tocar nada
-   liquidación existente · editable (consulta previa: da el motivo) ·
+   liquidación existente · editable, con transportista externo y activo (consulta previa: da el motivo) ·
    versión igual a la que se abrió (consulta previa: 409 liquidacion_modificada) ·
    conjunto final no vacío · agregados disponibles del mismo transportista y período ·
    quitados que efectivamente le pertenecen · total nuevo > 0
@@ -378,6 +380,7 @@ que igual se va a rechazar es pedir una decisión que no existe.
             ya no está pendiente   ⇒ 409 liquidacion_no_pagable
             el importe ya no entra ⇒ 400 importe_supera_saldo con la resta actual
      INSERT OrdenesDePago
+     si quedó pagada: INSERT CambiosDeLiquidacion (pagada, mismo usuario e instante que la orden)
    COMMIT
 ```
 
