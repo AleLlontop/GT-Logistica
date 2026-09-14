@@ -1,0 +1,590 @@
+openapi: 3.0.3
+
+info:
+  title: Gestión de liquidación a transportistas (Módulo 9) — G&T Logística
+  version: "1.0.0"
+  description: |
+    Contrato HTTP del Módulo 9. Liquidación mensual a transportistas externos agrupando sus viajes
+    rendidos del período, con edición, anulación y órdenes de pago.
+
+    **Autenticación**: cookie de sesión del Módulo 1 (`gt.sesion`). Sin sesión: `401`.
+
+    **Dos permisos** (FR-063, FR-064):
+      - `liquidaciones.gestionar` — generar, editar, anular, registrar órdenes de pago.
+      - `liquidaciones.consultar` — listado, detalle y transportistas del filtro.
+    Sin el permiso correspondiente: `403` (FR-065).
+
+    **Regla de códigos** (convención [005], research §8):
+      - `400` cuando el problema está en **lo que se tipeó o se eligió**.
+      - `409` cuando está en el **estado** de algo compartido o que cambió: viaje ya liquidado,
+        liquidación no editable, no anulable o no pagable, **confirmación pendiente**.
+
+    **Rutas literales y `{id:int}`**: `/api/liquidaciones/transportistas` y
+    `/api/liquidaciones/disponibles` conviven con `/api/liquidaciones/{id}`. La de identificador lleva
+    restricción de tipo; sin ella las literales quedan inalcanzables (convención [005]).
+
+    **Números visibles**: `numero` llega armado —`LQ-12`, `OP-3`— y el frontend lo muestra tal cual
+    (research §4). Los viajes llevan su `numero` entero, como en el Módulo 5.
+
+    **Instantes** en UTC con `Z`; fechas sin hora como `yyyy-MM-dd`. **Importes** `decimal` con dos
+    decimales, en pesos argentinos.
+
+servers:
+  - url: /api
+
+tags:
+  - name: Armado
+  - name: Liquidaciones
+  - name: Ciclo de vida
+
+paths:
+
+  # ───────────────────────────────────────────────────────────────────────────────
+  # Armado (FR-001 a FR-010)
+  # ───────────────────────────────────────────────────────────────────────────────
+
+  /liquidaciones/transportistas:
+    get:
+      tags: [Armado]
+      summary: Transportistas externos
+      description: |
+        Externo es todo transportista cuyo CUIT no coincide con el de la empresa emisora (research
+        §5). Sin empresa emisora configurada responde `200` con `empresaEmisoraConfigurada: false` y
+        la lista vacía: la pantalla de generación muestra el bloqueo con su salida.
+
+        Sin `incluirInactivos`, sólo los activos —los que se ofrecen para generar (FR-001)—. Con
+        `incluirInactivos=true`, también los dados de baja —los del filtro del listado (FR-022)—.
+      security: [{ cookieSesion: [liquidaciones.consultar] }]
+      parameters:
+        - { name: incluirInactivos, in: query, required: false, schema: { type: boolean, default: false } }
+      responses:
+        "200":
+          description: Transportistas ordenados por razón social
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TransportistasLiquidables" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /liquidaciones/disponibles:
+    get:
+      tags: [Armado]
+      summary: Viajes disponibles de un transportista en un período
+      description: |
+        Viajes del transportista con fecha dentro del mes y año, en estado `rendido` o `facturado`,
+        sin liquidación vigente (FR-004). Ordenados por fecha y número. Los usa la generación y
+        también la edición, que toma transportista y período de la liquidación.
+      security: [{ cookieSesion: [liquidaciones.gestionar] }]
+      parameters:
+        - { name: transportistaId, in: query, required: true, schema: { type: integer } }
+        - { name: mes, in: query, required: true, schema: { type: integer, minimum: 1, maximum: 12 } }
+        - { name: anio, in: query, required: true, schema: { type: integer, enum: [2025, 2026] } }
+      responses:
+        "200":
+          description: Puede venir vacía (FR-009)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ViajeDisponible" }
+        "400":
+          description: |
+            `datos_invalidos` (falta un parámetro) · `periodo_invalido` · `empresa_emisora_no_configurada`
+            · `transportista_no_liquidable`.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  # ───────────────────────────────────────────────────────────────────────────────
+  # Liquidaciones (FR-011 a FR-028, FR-045 a FR-052)
+  # ───────────────────────────────────────────────────────────────────────────────
+
+  /liquidaciones:
+    get:
+      tags: [Liquidaciones]
+      summary: Listado de liquidaciones
+      description: |
+        Filtros opcionales y combinables, aplicados antes de paginar (FR-022). Sin `estado` devuelve
+        **todas, incluidas las anuladas**. Un valor de `estado` desconocido se ignora. Orden: número
+        descendente (FR-023). Página de 20.
+      security: [{ cookieSesion: [liquidaciones.consultar] }]
+      parameters:
+        - { name: transportistaId, in: query, required: false, schema: { type: integer } }
+        - { name: mes, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 12 } }
+        - { name: anio, in: query, required: false, schema: { type: integer } }
+        - { name: estado, in: query, required: false, schema: { $ref: "#/components/schemas/EstadoLiquidacion" } }
+        - { name: pagina, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        "200":
+          description: Página de liquidaciones
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginaDeLiquidaciones" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+    post:
+      tags: [Liquidaciones]
+      summary: Generar una liquidación
+      description: |
+        Crea la liquidación en `pendiente` con **exactamente** los `viajeIds` revisados (FR-011). El
+        cuerpo **no lleva importes**: el total lo calcula el servidor con los viajes que encuentra en
+        la base (FR-007).
+
+        Todo o nada (FR-018). La exclusividad del viaje la garantiza un índice único filtrado; si otro
+        operador se adelantó, responde `409 viaje_ya_liquidado` sin crear nada (research §1).
+      security: [{ cookieSesion: [liquidaciones.gestionar] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GeneracionRequest" }
+      responses:
+        "201":
+          description: Creada. `Location` apunta a `/api/liquidaciones/{id}`
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiquidacionDetalle" }
+        "400":
+          description: |
+            `datos_invalidos` · `periodo_invalido` · `empresa_emisora_no_configurada` ·
+            `transportista_no_liquidable` · `sin_viajes` · `total_en_cero` · `viaje_no_liquidable`.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorConViajes" }
+        "409":
+          description: "`viaje_ya_liquidado`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorConViajes" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /liquidaciones/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+
+    get:
+      tags: [Liquidaciones]
+      summary: Detalle de una liquidación
+      description: |
+        Con **todos** los viajes que agrupa —o que agrupaba, si está anulada (FR-028)—, sus órdenes de
+        pago y su historial. Los datos del transportista son los del padrón (FR-026).
+      security: [{ cookieSesion: [liquidaciones.consultar] }]
+      responses:
+        "200":
+          description: Detalle
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiquidacionDetalle" }
+        "404": { $ref: "#/components/responses/NoEncontrada" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+    put:
+      tags: [Liquidaciones]
+      summary: Editar los viajes de una liquidación
+      description: |
+        Recibe el **conjunto final** de viajes; el servidor calcula qué se quita y qué se agrega
+        (research §10). Transportista y período no se cambian (FR-046).
+
+        Lleva la `version` que devolvió el detalle al abrir la edición. Si otro usuario guardó una
+        edición en el medio, responde `409 liquidacion_modificada` sin cambiar nada (FR-048).
+
+        Sólo sobre una liquidación `pendiente` sin órdenes de pago (FR-045). Un conjunto igual al
+        actual no escribe nada ni agrega entrada al historial, y responde `200` con el detalle.
+      security: [{ cookieSesion: [liquidaciones.gestionar] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EdicionRequest" }
+      responses:
+        "200":
+          description: Guardada (releída)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiquidacionDetalle" }
+        "400":
+          description: "`sin_viajes` · `total_en_cero` · `viaje_no_liquidable`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorConViajes" }
+        "409":
+          description: "`liquidacion_no_editable` · `liquidacion_modificada` · `viaje_ya_liquidado`."
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ErrorDeEstado"
+                  - $ref: "#/components/schemas/ErrorConViajes"
+        "404": { $ref: "#/components/responses/NoEncontrada" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  # ───────────────────────────────────────────────────────────────────────────────
+  # Ciclo de vida (FR-036 a FR-044, FR-053 a FR-060)
+  # ───────────────────────────────────────────────────────────────────────────────
+
+  /liquidaciones/{id}/anulacion:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+
+    post:
+      tags: [Ciclo de vida]
+      summary: Anular una liquidación
+      description: |
+        Sólo `pendiente` sin órdenes de pago (FR-053). Deja la liquidación `anulada` con su motivo y
+        libera sus viajes, en una transacción (FR-057, FR-060).
+
+        **Sin `confirmado: true` responde `409 anulacion_requiere_confirmacion` sin cambiar nada**
+        (FR-056). La pantalla lo manda desde el diálogo, que es la confirmación explícita (research §7).
+        Orden de validación: existencia, estado, motivo, confirmación.
+      security: [{ cookieSesion: [liquidaciones.gestionar] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AnulacionRequest" }
+      responses:
+        "200":
+          description: Anulada (releída)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiquidacionDetalle" }
+        "400":
+          description: "`motivo_requerido`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: "`liquidacion_no_anulable` · `anulacion_requiere_confirmacion`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorDeEstado" }
+        "404": { $ref: "#/components/responses/NoEncontrada" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /liquidaciones/{id}/ordenes-de-pago:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+
+    post:
+      tags: [Ciclo de vida]
+      summary: Registrar una orden de pago
+      description: |
+        Sólo sobre una liquidación `pendiente` (FR-036, FR-042). Si lo pagado alcanza el total, la
+        liquidación pasa a `pagada` en la misma operación (FR-041).
+
+        **Sin `confirmado: true` responde `409 pago_requiere_confirmacion`** con el importe y lo que
+        va a restar pagar calculados por el servidor, sin registrar nada (FR-040, research §7). El
+        segundo envío lleva `confirmado: true`.
+
+        La suma de las órdenes nunca supera el total, ni con dos pagos simultáneos: lo garantizan un
+        `UPDATE` condicional y un `CHECK` (research §2).
+      security: [{ cookieSesion: [liquidaciones.gestionar] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OrdenDePagoRequest" }
+      responses:
+        "201":
+          description: Registrada. Devuelve el detalle releído de la liquidación
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LiquidacionDetalle" }
+        "400":
+          description: "`datos_invalidos` · `fecha_de_pago_fuera_de_rango` · `importe_supera_saldo`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorDePago" }
+        "409":
+          description: "`liquidacion_no_pagable` · `pago_requiere_confirmacion`."
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ErrorDeEstado"
+                  - $ref: "#/components/schemas/ConfirmacionDePago"
+        "404": { $ref: "#/components/responses/NoEncontrada" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+components:
+
+  securitySchemes:
+    cookieSesion:
+      type: apiKey
+      in: cookie
+      name: gt.sesion
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+
+  responses:
+    SinSesion: { description: Sin sesión }
+    SinPermiso: { description: Sin el permiso correspondiente }
+    NoEncontrada:
+      description: "`liquidacion_no_encontrada`"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+
+    EstadoLiquidacion:
+      type: string
+      enum: [pendiente, pagada, anulada]
+
+    OperacionDeLiquidacion:
+      type: string
+      enum: [generacion, edicion, anulacion]
+
+    TransportistaResumen:
+      type: object
+      required: [id, razonSocial, cuit, activo]
+      properties:
+        id: { type: integer }
+        razonSocial: { type: string, example: Transportes Díaz }
+        cuit: { type: string, description: Once dígitos, example: "20123456786" }
+        activo: { type: boolean }
+
+    TransportistasLiquidables:
+      type: object
+      required: [empresaEmisoraConfigurada, transportistas]
+      properties:
+        empresaEmisoraConfigurada: { type: boolean }
+        transportistas:
+          type: array
+          items: { $ref: "#/components/schemas/TransportistaResumen" }
+
+    ViajeDisponible:
+      type: object
+      required: [id, numero, fecha, origen, destino, estado, importe]
+      properties:
+        id: { type: integer }
+        numero: { type: integer, example: 13 }
+        fecha: { type: string, format: date }
+        origen: { type: string, example: Rosario }
+        destino: { type: string, example: Córdoba }
+        estado: { type: string, enum: [rendido, facturado] }
+        importe: { type: number, format: decimal, example: 120000.00 }
+
+    GeneracionRequest:
+      type: object
+      required: [transportistaId, mes, anio, viajeIds]
+      properties:
+        transportistaId: { type: integer }
+        mes: { type: integer, minimum: 1, maximum: 12 }
+        anio: { type: integer, enum: [2025, 2026] }
+        viajeIds:
+          type: array
+          minItems: 1
+          items: { type: integer }
+
+    EdicionRequest:
+      type: object
+      required: [viajeIds, version]
+      properties:
+        viajeIds:
+          type: array
+          minItems: 1
+          description: El conjunto final de viajes de la liquidación
+          items: { type: integer }
+        version:
+          type: integer
+          description: La `version` del detalle con la que se abrió la edición (FR-048)
+
+    AnulacionRequest:
+      type: object
+      required: [motivo]
+      properties:
+        motivo: { type: string, maxLength: 500 }
+        confirmado: { type: boolean }
+
+    OrdenDePagoRequest:
+      type: object
+      required: [fechaPago, importe]
+      properties:
+        fechaPago: { type: string, format: date }
+        importe: { type: number, format: decimal, exclusiveMinimum: true, minimum: 0 }
+        confirmado: { type: boolean }
+
+    LiquidacionListado:
+      type: object
+      required: [id, numero, mes, anio, transportista, importeTotal, estado]
+      properties:
+        id: { type: integer }
+        numero: { type: string, example: LQ-12 }
+        mes: { type: integer }
+        anio: { type: integer }
+        transportista: { $ref: "#/components/schemas/TransportistaResumen" }
+        importeTotal: { type: number, format: decimal }
+        restaPagar:
+          type: number
+          format: decimal
+          nullable: true
+          description: "`null` en una `anulada`: no se debe nada (FR-027)"
+        estado: { $ref: "#/components/schemas/EstadoLiquidacion" }
+        motivoAnulacion: { type: string, nullable: true }
+
+    PaginaDeLiquidaciones:
+      type: object
+      required: [items, total, pagina, tamanioPagina]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/LiquidacionListado" }
+        total: { type: integer }
+        pagina: { type: integer }
+        tamanioPagina: { type: integer, example: 20 }
+
+    ViajeLiquidado:
+      type: object
+      required: [id, numero, fecha, origen, destino, importe]
+      properties:
+        id: { type: integer }
+        numero: { type: integer }
+        fecha: { type: string, format: date }
+        origen: { type: string }
+        destino: { type: string }
+        importe: { type: number, format: decimal }
+
+    OrdenDePago:
+      type: object
+      required: [id, numero, fechaPago, importe, registradaPor, registradaEn]
+      properties:
+        id: { type: integer }
+        numero: { type: string, example: OP-3 }
+        fechaPago: { type: string, format: date }
+        importe: { type: number, format: decimal }
+        registradaPor: { type: string, example: "Gómez, Ramona" }
+        registradaEn: { type: string, format: date-time }
+
+    CambioDeLiquidacion:
+      type: object
+      required: [operacion, usuario, ocurridoEn]
+      properties:
+        operacion: { $ref: "#/components/schemas/OperacionDeLiquidacion" }
+        usuario: { type: string }
+        ocurridoEn: { type: string, format: date-time }
+        viajesQuitados:
+          type: array
+          description: Números de los viajes que quitó. Vacío salvo en `edicion` (FR-033)
+          items: { type: integer }
+        viajesAgregados:
+          type: array
+          description: Números de los viajes que agregó. Vacío salvo en `edicion`
+          items: { type: integer }
+
+    LiquidacionDetalle:
+      type: object
+      required:
+        [id, numero, mes, anio, fechaGeneracion, transportista, estado, importeTotal, importePagado, version,
+         viajes, ordenesDePago, historial, puedeEditarse, puedeAnularse, puedeRegistrarPago]
+      properties:
+        id: { type: integer }
+        numero: { type: string, example: LQ-12 }
+        mes: { type: integer }
+        anio: { type: integer }
+        fechaGeneracion:
+          type: string
+          format: date
+          description: Fecha de Argentina del instante de generación del historial (research §3)
+        transportista: { $ref: "#/components/schemas/TransportistaResumen" }
+        estado: { $ref: "#/components/schemas/EstadoLiquidacion" }
+        motivoAnulacion: { type: string, nullable: true }
+        importeTotal: { type: number, format: decimal }
+        importePagado: { type: number, format: decimal }
+        restaPagar: { type: number, format: decimal, nullable: true, description: "`null` en una `anulada`" }
+        version:
+          type: integer
+          description: Sube con cada edición guardada. La edición la manda de vuelta al guardar (FR-048)
+        viajes:
+          type: array
+          description: Los vigentes, o los que agrupaba si está anulada (FR-028)
+          items: { $ref: "#/components/schemas/ViajeLiquidado" }
+        ordenesDePago:
+          type: array
+          items: { $ref: "#/components/schemas/OrdenDePago" }
+        historial:
+          type: array
+          items: { $ref: "#/components/schemas/CambioDeLiquidacion" }
+        puedeEditarse:
+          type: boolean
+          description: Sólo por estado y pagos. Que el usuario tenga el permiso lo decide la sesión
+        puedeAnularse: { type: boolean }
+        puedeRegistrarPago: { type: boolean }
+
+    Error:
+      type: object
+      required: [codigo, mensaje]
+      properties:
+        codigo: { type: string }
+        mensaje: { type: string, description: En español, listo para mostrar }
+        campo: { type: string, nullable: true }
+
+    ErrorConViajes:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          properties:
+            viajes:
+              type: array
+              items:
+                type: object
+                required: [id, numero, motivo]
+                properties:
+                  id: { type: integer }
+                  numero: { type: integer }
+                  motivo:
+                    type: string
+                    enum: [yaLiquidado, noRendidoNiFacturado, deOtroTransportista, deOtroPeriodo]
+                  liquidacion:
+                    type: string
+                    nullable: true
+                    description: "Número de la liquidación que lo tiene, con `yaLiquidado`"
+                    example: LQ-5
+
+    ErrorDeEstado:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          properties:
+            motivo:
+              type: string
+              nullable: true
+              enum: [pagada, anulada, conOrdenesDePago]
+            cantidadOrdenesDePago:
+              type: integer
+              nullable: true
+              description: Con `conOrdenesDePago` (convención [004])
+            importePagado: { type: number, format: decimal, nullable: true }
+
+    ErrorDePago:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          properties:
+            restaPagar: { type: number, format: decimal, nullable: true, description: "Con `importe_supera_saldo`" }
+            desde: { type: string, format: date, nullable: true, description: "Con `fecha_de_pago_fuera_de_rango`" }
+            hasta: { type: string, format: date, nullable: true }
+
+    ConfirmacionDePago:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          required: [importe, restaPagarAntes, restaPagarDespues, quedaPagada]
+          properties:
+            importe: { type: number, format: decimal }
+            restaPagarAntes: { type: number, format: decimal }
+            restaPagarDespues: { type: number, format: decimal }
+            quedaPagada: { type: boolean }
