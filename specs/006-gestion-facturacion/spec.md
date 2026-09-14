@@ -229,7 +229,7 @@ período ya no aparecen.
 1. **Given** la empresa emisora configurada y clientes activos en el padrón, **When** Administración
    abre el alta de factura, **Then** elige el cliente de una lista desplegable que muestra razón
    social y CUIT, el mes y el año en dos listas desplegables separadas —el mes con los doce valores
-   `01` a `12`, el año con exactamente `2025` y `2026`—, y el tipo de comprobante y el tipo de
+   `01` a `12`, el año de `2025` al año en curso—, y el tipo de comprobante y el tipo de
    facturación en listas desplegables con sus opciones fijas.
 2. **Given** el alta de factura, **When** Administración despliega la lista de clientes, **Then** no
    aparece ningún cliente dado de baja en el padrón del Módulo 5.
@@ -697,7 +697,7 @@ cuentan sólo las del rango y ninguna anulada.
   factura, no del cliente: se elige al emitir y queda congelado en el comprobante.
 - **FR-010**: El mes y el año del período DEBEN ofrecerse en **dos listas desplegables separadas**. El
   mes DEBE ofrecer los doce valores `01` a `12`, escritos con dos dígitos. El año DEBE ofrecer
-  exactamente `2025` y `2026`. El sistema DEBE rechazar un período fuera de esas opciones aunque se
+  de `2025` al año en curso, los dos incluidos. El sistema DEBE rechazar un período fuera de esas opciones aunque se
   invoque la acción directamente: el desplegable es la comodidad, la restricción es la del servidor.
   Las mismas dos listas rigen el filtro de período del listado (FR-058).
 - **FR-011**: El cliente DEBE ofrecerse en una lista desplegable con los clientes **activos** del
@@ -1250,12 +1250,11 @@ cuentan sólo las del rango y ninguna anulada.
   fuera, en AFIP/ARCA, y el número que corresponde es el que quedó allá. El sistema propone el punto
   de venta configurado y valida el formato y la unicidad.
 - La lista desplegable del **mes** del período ofrece los doce valores `01` a `12` y la del **año**
-  ofrece exactamente `2025` y `2026` (FR-010). Son los años con operación cargada en el sistema: no
-  hay facturación de períodos futuros porque no hay viajes rendidos en ellos, ni de años anteriores a
-  2025 porque no hay viajes cargados. **Consecuencia declarada**: al empezar 2027 la lista se amplía
-  en el código. Se acepta a cambio de no agregar una pantalla de configuración de períodos que ninguna
-  FR pide, y por eso el año tampoco lleva una restricción en la base de datos, que exigiría una
-  migración cada vez.
+  va de `2025` al **año en curso** (FR-010). No hay facturación de años futuros porque no hay viajes
+  rendidos en ellos, ni de años anteriores a 2025 porque no hay viajes cargados. La lista **se deriva
+  de la fecha de hoy**: al empezar 2027 aparece sola, y 2026 sigue disponible para facturar diciembre
+  en enero. Por eso el año tampoco lleva una restricción en la base de datos, que exigiría una
+  migración cada año.
 - La ventana del panel de vencimientos es de **7 días corridos** (FR-063). El enunciado dice "los
   próximos días" sin fijar un número; siete cubre la semana de trabajo con la que se organiza una
   cobranza y no exige configuración.

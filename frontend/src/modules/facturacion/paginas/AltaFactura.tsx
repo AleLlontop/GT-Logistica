@@ -7,7 +7,7 @@ import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { formatearFecha } from '../../../compartido/fechas'
+import { aniosDelPeriodo, formatearFecha } from '../../../compartido/fechas'
 import {
   listarClientes,
   type Cliente,
@@ -40,9 +40,6 @@ import {
 const MENSAJE_SIN_CLIENTES_ACTIVOS =
   'No hay clientes activos en el padrón. Registrá o reactivá un cliente en el Módulo de viajes para ' +
   'poder emitirle una factura.'
-
-/** Los años que el sistema acepta hoy. La lista se amplía con el tiempo (FR-010). */
-const ANIOS = [2025, 2026]
 
 const MESES = Array.from({ length: 12 }, (_, indice) => indice + 1)
 
@@ -80,9 +77,7 @@ export function AltaFactura() {
   const [anuladas, setAnuladas] = useState<FacturaResumen[]>([])
   const [condicionDeVenta, setCondicionDeVenta] = useState<CondicionDeVenta>('cuentaCorriente')
   const [mes, setMes] = useState(hoy.getMonth() + 1)
-  const [anio, setAnio] = useState(
-    ANIOS.includes(hoy.getFullYear()) ? hoy.getFullYear() : ANIOS[ANIOS.length - 1],
-  )
+  const [anio, setAnio] = useState(hoy.getFullYear())
 
   const fechaDeHoy = enIso(hoy)
 
@@ -425,7 +420,7 @@ export function AltaFactura() {
                 value={anio}
                 onChange={(evento) => setAnio(Number(evento.target.value))}
               >
-                {ANIOS.map((numero) => (
+                {aniosDelPeriodo(hoy).map((numero) => (
                   <option key={numero} value={numero}>
                     {numero}
                   </option>

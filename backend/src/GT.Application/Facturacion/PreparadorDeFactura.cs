@@ -19,11 +19,9 @@ namespace GT.Application.Facturacion;
 public class PreparadorDeFactura(
     IRepositorioFacturas facturas,
     ConsultarEmpresaEmisora empresas,
-    IRepositorioEmpresaEmisora repositorioEmpresas)
+    IRepositorioEmpresaEmisora repositorioEmpresas,
+    TimeProvider reloj)
 {
-    /// <summary>Los años que el sistema acepta hoy (FR-010, spec §Assumptions).</summary>
-    public static readonly int[] AniosValidos = [2025, 2026];
-
     /// <summary>La entidad lista para renderizar o para persistir, con los viajes que la componen.</summary>
     public record Preparacion(FacturaCliente Factura, IReadOnlyList<Viaje> Viajes);
 
@@ -38,7 +36,9 @@ public class PreparadorDeFactura(
         bool esVistaPrevia,
         CancellationToken cancelacion = default)
     {
-        if (PrimerCampoInvalido(peticion) is { } invalido)
+        var hoy = Domain.Choferes.FechaHoyArgentina.Desde(reloj.GetUtcNow());
+
+        if (PrimerCampoInvalido(peticion, hoy) is { } invalido)
         {
             return (Rechazo(invalido.Error, invalido.Campo, invalido.Mensaje), null);
         }
@@ -281,7 +281,8 @@ public class PreparadorDeFactura(
     /// lo que lo garantiza (contracts/facturacion-api.yaml §vista-previa).
     /// </summary>
     private static (ErrorFactura Error, string Campo, string? Mensaje)? PrimerCampoInvalido(
-        EmisionRequest peticion)
+        EmisionRequest peticion,
+        DateOnly hoy)
     {
         if (peticion.ClienteId is null or <= 0) return Invalido("clienteId");
 
@@ -302,9 +303,9 @@ public class PreparadorDeFactura(
 
         if (peticion.Mes is null or < 1 or > 12) return Invalido("mes");
 
-        // El año se valida acá y **no con un `CHECK` en la base**: la lista se amplía con el tiempo y
-        // una restricción de base obligaría a una migración cada vez (spec §Assumptions).
-        if (peticion.Anio is not { } anio || !AniosValidos.Contains(anio)) return Invalido("anio");
+        // El año se valida acá y **no con un `CHECK` en la base**: va de 2025 al en curso y una
+        // restricción de base obligaría a una migración cada año (spec §Assumptions).
+        if (peticion.Anio is not { } anio || !PeriodoAdmitido.AnioValido(anio, hoy)) return Invalido("anio");
 
         if (peticion.Fecha is null) return Invalido("fecha");
 

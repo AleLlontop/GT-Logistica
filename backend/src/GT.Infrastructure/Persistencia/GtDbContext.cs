@@ -1,6 +1,7 @@
 using GT.Domain.Choferes;
 using GT.Domain.Facturacion;
 using GT.Domain.Flota;
+using GT.Domain.Liquidaciones;
 using GT.Domain.Personas;
 using GT.Domain.Usuarios;
 using GT.Domain.Viajes;
@@ -71,6 +72,22 @@ public class GtDbContext(DbContextOptions<GtDbContext> opciones) : DbContext(opc
     /// </summary>
     public DbSet<CambioDeEstadoFactura> CambiosDeEstadoFactura => Set<CambioDeEstadoFactura>();
 
+    // ── Módulo 9: liquidación a transportistas ─────────────────────────────────────────────────
+    public DbSet<Liquidacion> Liquidaciones => Set<Liquidacion>();
+
+    /// <summary>
+    /// Qué viajes agrupa cada liquidación, y qué agrupaba cada anulada. Tabla propia y no una columna en
+    /// <c>Viajes</c>: el Módulo 5 no se toca y la anulada no pierde sus viajes (Módulo 9, research §1).
+    /// </summary>
+    public DbSet<LiquidacionViaje> LiquidacionViajes => Set<LiquidacionViaje>();
+
+    public DbSet<OrdenDePago> OrdenesDePago => Set<OrdenDePago>();
+
+    /// <summary>Historial de FR-033. Lo alimentan los casos de uso, en la misma transacción que el cambio.</summary>
+    public DbSet<CambioDeLiquidacion> CambiosDeLiquidacion => Set<CambioDeLiquidacion>();
+
+    public DbSet<CambioDeLiquidacionViaje> CambiosDeLiquidacionViajes => Set<CambioDeLiquidacionViaje>();
+
     /// <summary>
     /// Se aplica a las propiedades <c>DateTime</c> y <c>DateTime?</c> de todo el modelo. Los
     /// <c>DateOnly</c> —nacimiento, emisión, vencimiento— no entran: no son instantes y no tienen
@@ -93,5 +110,10 @@ public class GtDbContext(DbContextOptions<GtDbContext> opciones) : DbContext(opc
         // El `NO CACHE` que elimina ese salto no tiene API fluida: lo aplica la migración con un
         // ALTER, y va acompañado de un test que verifica que la numeración avanza de a uno.
         modelo.HasSequence<int>(ViajeConfiguracion.Secuencia).StartsAt(1).IncrementsBy(1);
+
+        // Módulo 9: el mismo mecanismo y la misma trampa del número de viaje. La migración les aplica el
+        // mismo `NO CACHE`: son números que se ven y se nombran en los mensajes (research §4).
+        modelo.HasSequence<int>(LiquidacionConfiguracion.Secuencia).StartsAt(1).IncrementsBy(1);
+        modelo.HasSequence<int>(OrdenDePagoConfiguracion.Secuencia).StartsAt(1).IncrementsBy(1);
     }
 }

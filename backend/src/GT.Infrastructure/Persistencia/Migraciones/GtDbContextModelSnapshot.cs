@@ -22,6 +22,10 @@ namespace GT.Infrastructure.Persistencia.Migraciones
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.HasSequence<int>("NumeroDeLiquidacion");
+
+            modelBuilder.HasSequence<int>("NumeroDeOrdenDePago");
+
             modelBuilder.HasSequence<int>("NumeroDeViaje");
 
             modelBuilder.Entity("GT.Domain.Choferes.Chofer", b =>
@@ -566,6 +570,196 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.ToTable("Vehiculos", (string)null);
                 });
 
+            modelBuilder.Entity("GT.Domain.Liquidaciones.CambioDeLiquidacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("LiquidacionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("OcurridoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Operacion")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("LiquidacionId", "Operacion")
+                        .IsUnique()
+                        .HasDatabaseName("IX_CambiosDeLiquidacion_Unica")
+                        .HasFilter("[Operacion] <> 1");
+
+                    b.ToTable("CambiosDeLiquidacion", (string)null);
+                });
+
+            modelBuilder.Entity("GT.Domain.Liquidaciones.CambioDeLiquidacionViaje", b =>
+                {
+                    b.Property<int>("CambioDeLiquidacionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ViajeId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Agregado")
+                        .HasColumnType("bit");
+
+                    b.HasKey("CambioDeLiquidacionId", "ViajeId");
+
+                    b.HasIndex("ViajeId");
+
+                    b.ToTable("CambiosDeLiquidacionViajes", (string)null);
+                });
+
+            modelBuilder.Entity("GT.Domain.Liquidaciones.Liquidacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<byte>("Estado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
+                    b.Property<decimal>("ImportePagado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("ImporteTotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("MotivoAnulacion")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Numero")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValueSql("NEXT VALUE FOR dbo.NumeroDeLiquidacion");
+
+                    b.Property<short>("PeriodoAnio")
+                        .HasColumnType("smallint");
+
+                    b.Property<byte>("PeriodoMes")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("TransportistaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Estado")
+                        .HasDatabaseName("IX_Liquidaciones_Estado");
+
+                    b.HasIndex("Numero")
+                        .IsUnique()
+                        .IsDescending()
+                        .HasDatabaseName("IX_Liquidaciones_Numero");
+
+                    b.HasIndex("TransportistaId")
+                        .HasDatabaseName("IX_Liquidaciones_TransportistaId");
+
+                    b.HasIndex("PeriodoAnio", "PeriodoMes")
+                        .HasDatabaseName("IX_Liquidaciones_Periodo");
+
+                    b.ToTable("Liquidaciones", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Liquidaciones_Estado", "([Estado] = 0 AND [ImportePagado] < [ImporteTotal] AND [MotivoAnulacion] IS NULL) OR ([Estado] = 1 AND [ImportePagado] = [ImporteTotal] AND [MotivoAnulacion] IS NULL) OR ([Estado] = 2 AND [ImportePagado] = 0 AND [MotivoAnulacion] IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_Liquidaciones_ImportePagado", "[ImportePagado] >= 0 AND [ImportePagado] <= [ImporteTotal]");
+
+                            t.HasCheckConstraint("CK_Liquidaciones_ImporteTotal", "[ImporteTotal] > 0");
+
+                            t.HasCheckConstraint("CK_Liquidaciones_PeriodoMes", "[PeriodoMes] BETWEEN 1 AND 12");
+                        });
+                });
+
+            modelBuilder.Entity("GT.Domain.Liquidaciones.LiquidacionViaje", b =>
+                {
+                    b.Property<int>("LiquidacionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ViajeId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Vigente")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.HasKey("LiquidacionId", "ViajeId");
+
+                    b.HasIndex("ViajeId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_LiquidacionViajes_ViajeVigente")
+                        .HasFilter("[Vigente] = 1");
+
+                    b.ToTable("LiquidacionViajes", (string)null);
+                });
+
+            modelBuilder.Entity("GT.Domain.Liquidaciones.OrdenDePago", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("FechaPago")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("Importe")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("LiquidacionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Numero")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValueSql("NEXT VALUE FOR dbo.NumeroDeOrdenDePago");
+
+                    b.Property<DateTime>("RegistradaEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LiquidacionId")
+                        .HasDatabaseName("IX_OrdenesDePago_LiquidacionId");
+
+                    b.HasIndex("Numero")
+                        .IsUnique()
+                        .HasDatabaseName("IX_OrdenesDePago_Numero");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("OrdenesDePago", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OrdenesDePago_Importe", "[Importe] > 0");
+                        });
+                });
+
             modelBuilder.Entity("GT.Domain.Personas.Persona", b =>
                 {
                     b.Property<int>("Id")
@@ -1056,6 +1250,93 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Navigation("Transportista");
                 });
 
+            modelBuilder.Entity("GT.Domain.Liquidaciones.CambioDeLiquidacion", b =>
+                {
+                    b.HasOne("GT.Domain.Liquidaciones.Liquidacion", "Liquidacion")
+                        .WithMany("Cambios")
+                        .HasForeignKey("LiquidacionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Usuarios.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Liquidacion");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("GT.Domain.Liquidaciones.CambioDeLiquidacionViaje", b =>
+                {
+                    b.HasOne("GT.Domain.Liquidaciones.CambioDeLiquidacion", "Cambio")
+                        .WithMany("Viajes")
+                        .HasForeignKey("CambioDeLiquidacionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Viajes.Viaje", "Viaje")
+                        .WithMany()
+                        .HasForeignKey("ViajeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cambio");
+
+                    b.Navigation("Viaje");
+                });
+
+            modelBuilder.Entity("GT.Domain.Liquidaciones.Liquidacion", b =>
+                {
+                    b.HasOne("GT.Domain.Choferes.Transportista", "Transportista")
+                        .WithMany()
+                        .HasForeignKey("TransportistaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Transportista");
+                });
+
+            modelBuilder.Entity("GT.Domain.Liquidaciones.LiquidacionViaje", b =>
+                {
+                    b.HasOne("GT.Domain.Liquidaciones.Liquidacion", "Liquidacion")
+                        .WithMany("Viajes")
+                        .HasForeignKey("LiquidacionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Viajes.Viaje", "Viaje")
+                        .WithMany()
+                        .HasForeignKey("ViajeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Liquidacion");
+
+                    b.Navigation("Viaje");
+                });
+
+            modelBuilder.Entity("GT.Domain.Liquidaciones.OrdenDePago", b =>
+                {
+                    b.HasOne("GT.Domain.Liquidaciones.Liquidacion", "Liquidacion")
+                        .WithMany("OrdenesDePago")
+                        .HasForeignKey("LiquidacionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Usuarios.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Liquidacion");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("GT.Domain.Usuarios.Usuario", b =>
                 {
                     b.HasOne("GT.Domain.Personas.Persona", "Persona")
@@ -1186,6 +1467,20 @@ namespace GT.Infrastructure.Persistencia.Migraciones
             modelBuilder.Entity("GT.Domain.Flota.Vehiculo", b =>
                 {
                     b.Navigation("Documentacion");
+                });
+
+            modelBuilder.Entity("GT.Domain.Liquidaciones.CambioDeLiquidacion", b =>
+                {
+                    b.Navigation("Viajes");
+                });
+
+            modelBuilder.Entity("GT.Domain.Liquidaciones.Liquidacion", b =>
+                {
+                    b.Navigation("Cambios");
+
+                    b.Navigation("OrdenesDePago");
+
+                    b.Navigation("Viajes");
                 });
 
             modelBuilder.Entity("GT.Domain.Personas.Persona", b =>

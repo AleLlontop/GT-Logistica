@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatearFecha, formatearInstante } from './fechas'
+import { aniosDelPeriodo, formatearFecha, formatearInstante } from './fechas'
 
 describe('formatearFecha', () => {
   /**
@@ -28,5 +28,16 @@ describe('formatearFecha', () => {
 describe('formatearInstante', () => {
   it('muestra la fecha con la hora', () => {
     expect(formatearInstante('2026-08-06T15:30:00Z')).toMatch(/^\d{2}\/\d{2}\/2026 \d{2}:\d{2}$/)
+  })
+})
+
+describe('aniosDelPeriodo', () => {
+  it('va de 2025 al año en curso', () => {
+    expect(aniosDelPeriodo(new Date(2026, 8, 14))).toEqual([2025, 2026])
+  })
+
+  it('suma el año nuevo el 1 de enero sin que nadie lo agregue', () => {
+    expect(aniosDelPeriodo(new Date(2026, 11, 31))).toEqual([2025, 2026])
+    expect(aniosDelPeriodo(new Date(2027, 0, 1))).toEqual([2025, 2026, 2027])
   })
 })

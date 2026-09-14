@@ -74,7 +74,7 @@ detalle; el token es el destino real (convención [008]).
 |---|---|---|
 | Transportista | externos activos **y dados de baja**, por razón social | `Todos los transportistas` |
 | Mes | `01` … `12` | `Todos los meses` |
-| Año | `2025` · `2026` | `Todos los años` |
+| Año | `2025` … año en curso | `Todos los años` |
 | Estado | `Pendiente` · `Pagada` · `Anulada` | `Todos los estados` |
 
 **El filtro de estado dice qué está mostrando**, con `role="status"`:
@@ -123,7 +123,7 @@ elegido.`
 |---|---|---|---|
 | Transportista | desplegable: `Transportes Díaz — 20-12345678-6` | sí | `Seleccioná un transportista` |
 | Mes | desplegable `01` … `12` | sí | `Mes` |
-| Año | desplegable `2025` · `2026` | sí | `Año` |
+| Año | desplegable `2025` … año en curso, **propuesto en el en curso** | sí | `Año` |
 
 Acción de la sección, **secundaria**: `Buscar viajes`.
 

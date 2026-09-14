@@ -10,60 +10,60 @@
 
 ## Completitud de los requisitos
 
-- [ ] CHK001 ¿Está definida la precisión del importe de una orden de pago —cuántos decimales se admiten y qué pasa con un tercer decimal—, o sólo el formato con que se muestra? [Gap, Spec §FR-036, §FR-061]
-- [ ] CHK002 ¿Está especificado en qué zona horaria se evalúan "el día en curso" y "la fecha de generación" para validar la fecha de pago? La spec no lo dice y el criterio aparece recién en research §12.8. [Ambiguity, Spec §FR-017, §FR-038]
+- [x] CHK001 ¿Está definida la precisión del importe de una orden de pago —cuántos decimales se admiten y qué pasa con un tercer decimal—, o sólo el formato con que se muestra? [Gap, Spec §FR-036, §FR-061] — *Implementación (T101): dos decimales; un tercero se rechaza con `datos_invalidos` en vez de redondearse en silencio (`RegistrarOrdenDePago`). La spec no lo dice.*
+- [x] CHK002 ¿Está especificado en qué zona horaria se evalúan "el día en curso" y "la fecha de generación" para validar la fecha de pago? La spec no lo dice y el criterio aparece recién en research §12.8. [Ambiguity, Spec §FR-017, §FR-038] — *Diseño: hora de Argentina con `FechaHoyArgentina` (research §12.8), cubierto por `DetalleLiquidacionTests`.*
 - [x] CHK003 ¿Está especificado si el paso a `pagada` queda registrado en el historial? FR-033 enumera generación, edición y anulación, y la ausencia del pago sólo se lee en data-model, no en la spec. [Gap, Spec §FR-033, §FR-041]
-- [ ] CHK004 ¿Está definido el orden en que se listan las órdenes de pago y las entradas del historial en el detalle? El orden cronológico sólo figura en `contracts/README.md`. [Gap, Spec §FR-025, §FR-035]
-- [ ] CHK005 ¿Define la spec si el detalle de una liquidación anulada indica que alguno de los viajes que agrupaba ya está en otra liquidación? [Gap, Spec §FR-028]
-- [ ] CHK006 ¿Está especificado qué ve Gerencia para responder "cuánto se le debe a cada fletero por período" cuando un fletero tiene varias liquidaciones del mismo período? Leer la columna de cada fila no da un total por fletero. [Clarity, Spec §Usuarios, §Assumptions]
-- [ ] CHK007 ¿Está documentado qué pasa con la liquidación cuando se agote la lista fija de años (2025 y 2026)? Por ejemplo, si se puede generar la de 12/2026 durante 2027. [Assumption, Spec §FR-002]
+- [x] CHK004 ¿Está definido el orden en que se listan las órdenes de pago y las entradas del historial en el detalle? El orden cronológico sólo figura en `contracts/README.md`. [Gap, Spec §FR-025, §FR-035] — *Implementación: órdenes por fecha de pago y número; historial por instante y `Id`.*
+- [ ] CHK005 ¿Define la spec si el detalle de una liquidación anulada indica que alguno de los viajes que agrupaba ya está en otra liquidación? [Gap, Spec §FR-028] — **Deuda de spec**: no se indica; no se construyó.
+- [ ] CHK006 ¿Está especificado qué ve Gerencia para responder "cuánto se le debe a cada fletero por período" cuando un fletero tiene varias liquidaciones del mismo período? Leer la columna de cada fila no da un total por fletero. [Clarity, Spec §Usuarios, §Assumptions] — **Deuda de spec**: el cuadro de totales quedó explícitamente afuera.
+- [X] CHK007 ¿Está documentado qué pasa con la liquidación cuando se agote la lista fija de años (2025 y 2026)? Por ejemplo, si se puede generar la de 12/2026 durante 2027. [Assumption, Spec §FR-002] — **Resuelto** junto con el Módulo 6: la lista dejó de ser fija y va de 2025 al año en curso, derivada de hoy. Durante 2027 se sigue pudiendo generar la de 12/2026.
 
 ## Claridad de los requisitos
 
-- [ ] CHK008 ¿Queda definido qué cuenta como "confirmación explícita previa" cuando la anulación se invoca sin pasar por la pantalla, de modo que el requisito se pueda verificar? [Clarity, Spec §FR-056]
-- [ ] CHK009 ¿Distingue la spec entre "lo que resta pagar" de una `pendiente` sin pagos, de una con pago parcial y de una `pagada`, o el término se usa igual en los tres casos? [Clarity, Spec §FR-027, §FR-030]
-- [ ] CHK010 ¿Se usa "liquidación vigente" con la definición de FR-004 —no `anulada`— en todos los lugares donde aparece: FR-011, FR-014, *Relationships* y SC-002? [Clarity, Spec §FR-004]
+- [x] CHK008 ¿Queda definido qué cuenta como "confirmación explícita previa" cuando la anulación se invoca sin pasar por la pantalla, de modo que el requisito se pueda verificar? [Clarity, Spec §FR-056] — *Diseño: `confirmado: true` en el cuerpo; sin él, `409 anulacion_requiere_confirmacion` (research §7, `AnulacionTests`).*
+- [ ] CHK009 ¿Distingue la spec entre "lo que resta pagar" de una `pendiente` sin pagos, de una con pago parcial y de una `pagada`, o el término se usa igual en los tres casos? [Clarity, Spec §FR-027, §FR-030] — **Deuda de spec**.
+- [ ] CHK010 ¿Se usa "liquidación vigente" con la definición de FR-004 —no `anulada`— en todos los lugares donde aparece: FR-011, FR-014, *Relationships* y SC-002? [Clarity, Spec §FR-004] — **Deuda de spec** de redacción; la implementación usa una sola definición.
 - [x] CHK011 ¿Está claro que "sólo se agrupan viajes rendidos" incluye los `facturado` en todos los textos que la spec fija? El mensaje de FR-009 y el título de US1 siguen hablando sólo de "viajes rendidos". [Ambiguity, Spec §FR-004, §FR-009, §Clarifications]
-- [ ] CHK012 ¿Está definido si una liquidación `pendiente` con pago parcial se distingue de una sin pagos en el listado, o las dos se muestran igual salvo por la columna *Resta pagar*? [Clarity, Spec §FR-021, §FR-029]
+- [ ] CHK012 ¿Está definido si una liquidación `pendiente` con pago parcial se distingue de una sin pagos en el listado, o las dos se muestran igual salvo por la columna *Resta pagar*? [Clarity, Spec §FR-021, §FR-029] — **Deuda de spec**: hoy se distinguen sólo por *Resta pagar*.
 
 ## Consistencia entre requisitos y diseño
 
 - [x] CHK013 ¿Es coherente FR-008, que prohíbe elegir viajes individuales al generar, con research §6, donde el servidor acepta cualquier subconjunto de viajes disponibles? Una generación invocada directamente podría omitir viajes. [Conflict, Spec §FR-008, §FR-011, research §6]
-- [ ] CHK014 ¿Es coherente FR-033, que registra "cada edición", con data-model §Editar, donde una edición sin cambios no escribe nada ni agrega entrada al historial? [Conflict, Spec §FR-033, data-model §Editar]
-- [ ] CHK015 ¿Coincide el nivel de detalle de los rechazos? FR-054 exige, al rechazar una anulación, cuántas órdenes tiene y por cuánto; FR-045 sólo exige, al rechazar una edición, "informando por qué". [Consistency, Spec §FR-045, §FR-054]
-- [ ] CHK016 ¿Cumple el diálogo de anulación de `contracts/README.md` —una sola pantalla con motivo y botón destructivo— con US6 esc. 1, que habla de "un motivo escrito **y** una confirmación explícita"? ¿La spec admite que los dos sean el mismo paso? [Consistency, Spec §US6, §FR-056, research §7]
+- [x] CHK014 ¿Es coherente FR-033, que registra "cada edición", con data-model §Editar, donde una edición sin cambios no escribe nada ni agrega entrada al historial? [Conflict, Spec §FR-033, data-model §Editar] — *Diseño: un conjunto igual al actual no es una edición (data-model §Editar, `EdicionTests`).*
+- [ ] CHK015 ¿Coincide el nivel de detalle de los rechazos? FR-054 exige, al rechazar una anulación, cuántas órdenes tiene y por cuánto; FR-045 sólo exige, al rechazar una edición, "informando por qué". [Consistency, Spec §FR-045, §FR-054] — **Deuda de spec**; la implementación manda cantidad y suma en los dos rechazos.
+- [x] CHK016 ¿Cumple el diálogo de anulación de `contracts/README.md` —una sola pantalla con motivo y botón destructivo— con US6 esc. 1, que habla de "un motivo escrito **y** una confirmación explícita"? ¿La spec admite que los dos sean el mismo paso? [Consistency, Spec §US6, §FR-056, research §7] — *Diseño: el diálogo es la confirmación y viaja con `confirmado: true` (research §7).*
 - [ ] CHK017 ¿Está en la spec lo que el contrato propone por defecto en la orden de pago —fecha de hoy e importe igual a lo que resta—, o es comportamiento que agrega el contrato? [Consistency, Spec §FR-036, contracts §Registrar orden de pago]
-- [ ] CHK018 ¿Está en la spec el aviso de que la orden de pago "deja la liquidación pagada" que muestra el paso de confirmación del contrato, o FR-040 sólo pide el importe y lo que resta? [Consistency, Spec §FR-040, contracts §Paso 2]
-- [ ] CHK019 ¿Es coherente la regla "en una `anulada` no se muestra importe por pagar" con el texto `No corresponde` del contrato y con el aside que muestra el importe total? [Consistency, Spec §FR-027, contracts §Listado, §Detalle]
+- [ ] CHK018 ¿Está en la spec el aviso de que la orden de pago "deja la liquidación pagada" que muestra el paso de confirmación del contrato, o FR-040 sólo pide el importe y lo que resta? [Consistency, Spec §FR-040, contracts §Paso 2] — **Deuda de spec**: el aviso está implementado como dice el contrato.
+- [x] CHK019 ¿Es coherente la regla "en una `anulada` no se muestra importe por pagar" con el texto `No corresponde` del contrato y con el aside que muestra el importe total? [Consistency, Spec §FR-027, contracts §Listado, §Detalle] — *Contrato e implementación: `restaPagar` nulo, `No corresponde` y el aside con el total y la aclaración.*
 - [x] CHK020 ¿Choca el objetivo "deja trazable qué viajes componen cada liquidación" con que la edición no guarde qué viajes se quitaron o agregaron? Después de una edición, la composición anterior deja de ser trazable. [Conflict, Spec §Input, §FR-033, §Assumptions]
 
 ## Calidad de los criterios de aceptación
 
-- [ ] CHK021 ¿Se puede verificar SC-007, "el 0% de las liquidaciones con lo pagado por encima del total, incluso con dos órdenes al mismo tiempo", sin leer la base? ¿La spec declara que esa parte la cubre un test y no el recorrido manual (Principio IV)? [Measurability, Spec §SC-007]
-- [ ] CHK022 ¿Tiene SC-008 un escenario para cada una de las tres causas de rechazo —`pagada`, `anulada` y con órdenes de pago—, tanto en edición como en anulación? [Acceptance Criteria, Spec §SC-008, §US5 esc. 7, §US6 esc. 5–7]
-- [ ] CHK023 ¿Hay un criterio de éxito que mida que la anulación libera los viajes y que la anulada los sigue mostrando, o SC-009 sólo mide la liberación? [Acceptance Criteria, Spec §SC-009, §FR-028]
-- [ ] CHK024 ¿Tienen los rechazos de la orden de pago —fecha fuera de rango, importe en cero, importe que supera el saldo— valores concretos en los escenarios, como los tiene la generación con $355.000? [Measurability, Spec §US4 esc. 3–4]
+- [x] CHK021 ¿Se puede verificar SC-007, "el 0% de las liquidaciones con lo pagado por encima del total, incluso con dos órdenes al mismo tiempo", sin leer la base? ¿La spec declara que esa parte la cubre un test y no el recorrido manual (Principio IV)? [Measurability, Spec §SC-007] — *Quickstart §Lo que este recorrido no puede verificar y `PagoConcurrenteTests`.*
+- [ ] CHK022 ¿Tiene SC-008 un escenario para cada una de las tres causas de rechazo —`pagada`, `anulada` y con órdenes de pago—, tanto en edición como en anulación? [Acceptance Criteria, Spec §SC-008, §US5 esc. 7, §US6 esc. 5–7] — **Deuda de spec**; los tests cubren las seis combinaciones.
+- [ ] CHK023 ¿Hay un criterio de éxito que mida que la anulación libera los viajes y que la anulada los sigue mostrando, o SC-009 sólo mide la liberación? [Acceptance Criteria, Spec §SC-009, §FR-028] — **Deuda de spec**.
+- [ ] CHK024 ¿Tienen los rechazos de la orden de pago —fecha fuera de rango, importe en cero, importe que supera el saldo— valores concretos en los escenarios, como los tiene la generación con $355.000? [Measurability, Spec §US4 esc. 3–4] — **Deuda de spec**.
 
 ## Cobertura de escenarios
 
 - [x] CHK025 ¿Está definido qué pasa cuando dos usuarios editan al mismo tiempo la misma liquidación? ¿Gana la última edición, se rechaza la segunda, o se combinan? Ni la spec ni el diseño lo resuelven, y según cuándo se calcule la diferencia de viajes el total puede quedar distinto de la suma. [Gap, Coverage, Spec §FR-048, data-model §Editar]
-- [ ] CHK026 ¿Está definido qué pasa cuando una anulación y una orden de pago se registran al mismo tiempo? Los casos borde cubren orden de pago con edición, pero no con anulación. [Gap, Spec §Edge Cases, §FR-053]
-- [ ] CHK027 ¿Está definido qué pasa si el saldo cambia entre que se muestra la confirmación de la orden de pago y que se confirma, por ejemplo por otro pago en ese intervalo? [Gap, Exception Flow, Spec §FR-040, §FR-043]
-- [ ] CHK028 ¿Está definido qué pasa al abrir la edición de una liquidación que deja de ser editable mientras está abierta —otro usuario la anula o le registra un pago— antes de guardar? [Coverage, Spec §FR-048, §Edge Cases]
-- [ ] CHK029 ¿Cubren los requisitos quitar y volver a agregar el mismo viaje dentro de una misma edición antes de guardar? [Edge Case, Spec §FR-046, §FR-050]
+- [x] CHK026 ¿Está definido qué pasa cuando una anulación y una orden de pago se registran al mismo tiempo? Los casos borde cubren orden de pago con edición, pero no con anulación. [Gap, Spec §Edge Cases, §FR-053] — *Diseño: los dos empiezan con `UPDATE` condicional sobre la misma fila y gana uno (research §2, `AnulacionConcurrenteTests`). La spec no lo nombra.*
+- [x] CHK027 ¿Está definido qué pasa si el saldo cambia entre que se muestra la confirmación de la orden de pago y que se confirma, por ejemplo por otro pago en ese intervalo? [Gap, Exception Flow, Spec §FR-040, §FR-043] — *Implementación: `400 importe_supera_saldo` con la resta actual y "Otro pago se registró mientras tanto." (contracts §Registrar orden de pago).*
+- [x] CHK028 ¿Está definido qué pasa al abrir la edición de una liquidación que deja de ser editable mientras está abierta —otro usuario la anula o le registra un pago— antes de guardar? [Coverage, Spec §FR-048, §Edge Cases] — *FR-048: se rechaza con el motivo de FR-045 (`EdicionConcurrenteTests`).*
+- [x] CHK029 ¿Cubren los requisitos quitar y volver a agregar el mismo viaje dentro de una misma edición antes de guardar? [Edge Case, Spec §FR-046, §FR-050] — *Diseño: la diferencia se calcula entre lo guardado y el conjunto final, así que no es un cambio (data-model §CambiosDeLiquidacionViajes).*
 - [x] CHK030 ¿Está definido si una liquidación de un transportista que dejó de ser externo —porque cambió el CUIT de la empresa emisora o el del padrón— se puede seguir editando, pagando y anulando? [Edge Case, Gap, Spec §FR-001, §FR-045]
 
 ## Casos borde de importes
 
-- [ ] CHK031 ¿Está definido qué pasa con una orden de pago cuyo importe deja un saldo de centavos, y si una liquidación puede quedar `pendiente` por $0,01 sin ningún aviso? [Edge Case, Gap, Spec §FR-030, §FR-037]
-- [ ] CHK032 ¿Queda claro que la regla de total mayor que cero se evalúa también cuando la edición quita los viajes con importe y deja sólo los que están en cero? [Edge Case, Spec §FR-012a, §FR-049]
-- [ ] CHK033 ¿Está validado el supuesto de que los importes de los viajes liquidados no cambian? En particular, que anular una factura en el Módulo 6 y volver el viaje a `rendido` no abre ningún camino para editar su importe. [Assumption, Spec §Assumptions, Módulo 5 §FR-018, Módulo 6 §FR-048]
+- [ ] CHK031 ¿Está definido qué pasa con una orden de pago cuyo importe deja un saldo de centavos, y si una liquidación puede quedar `pendiente` por $0,01 sin ningún aviso? [Edge Case, Gap, Spec §FR-030, §FR-037] — **Deuda de spec**: queda `pendiente` sin aviso aparte.
+- [x] CHK032 ¿Queda claro que la regla de total mayor que cero se evalúa también cuando la edición quita los viajes con importe y deja sólo los que están en cero? [Edge Case, Spec §FR-012a, §FR-049] — *FR-049 y `EdicionTests`: `total_en_cero`.*
+- [ ] CHK033 ¿Está validado el supuesto de que los importes de los viajes liquidados no cambian? En particular, que anular una factura en el Módulo 6 y volver el viaje a `rendido` no abre ningún camino para editar su importe. [Assumption, Spec §Assumptions, Módulo 5 §FR-018, Módulo 6 §FR-048] — **Deuda de spec**; `CoherenciaDeLiquidacionTests` compara el total con la suma sólo después de las operaciones de este módulo.
 
 ## Recuperación y requisitos no funcionales
 
-- [ ] CHK034 ¿Está documentada la consecuencia de negocio de una orden de pago mal cargada que deja la liquidación `pagada` por error, dado que no hay corrección? ¿Queda claro qué hace el administrativo en ese caso? [Recovery, Assumption, Spec §FR-044, §Assumptions]
-- [ ] CHK035 ¿Está justificada en la spec la falta de separación de funciones —el mismo rol genera, paga y anula—, con el riesgo que implica para el dinero, más allá de la comparación con el Módulo 6? [Assumption, Spec §FR-063, §FR-064, §Assumptions]
-- [ ] CHK036 ¿Exige la spec que las cuatro operaciones que mueven dinero o estado —generar, editar, anular y pagar— sean todo o nada con la misma formulación? FR-018, FR-051 y FR-060 lo dicen para tres; ¿qué requisito lo dice para la orden de pago? [Consistency, Gap, Spec §FR-018, §FR-051, §FR-060, §FR-041]
+- [ ] CHK034 ¿Está documentada la consecuencia de negocio de una orden de pago mal cargada que deja la liquidación `pagada` por error, dado que no hay corrección? ¿Queda claro qué hace el administrativo en ese caso? [Recovery, Assumption, Spec §FR-044, §Assumptions] — **Deuda de spec**.
+- [ ] CHK035 ¿Está justificada en la spec la falta de separación de funciones —el mismo rol genera, paga y anula—, con el riesgo que implica para el dinero, más allá de la comparación con el Módulo 6? [Assumption, Spec §FR-063, §FR-064, §Assumptions] — **Deuda de spec**.
+- [x] CHK036 ¿Exige la spec que las cuatro operaciones que mueven dinero o estado —generar, editar, anular y pagar— sean todo o nada con la misma formulación? FR-018, FR-051 y FR-060 lo dicen para tres; ¿qué requisito lo dice para la orden de pago? [Consistency, Gap, Spec §FR-018, §FR-051, §FR-060, §FR-041] — *Diseño: data-model §Transacciones las declara las cuatro todo o nada, y el pago va en una sola transacción. La formulación de la spec sigue siendo desigual.*
 
 ## Notes
 
@@ -91,3 +91,6 @@
     (FR-033, data-model §Pagar).
   - **CHK011** → FR-004 aclara que en este módulo "viaje rendido" incluye a los `facturado`; los textos de
     pantalla quedan como habla el negocio.
+- **Revisado contra lo implementado (`T103`, 2026-09-14)**: se tildan 14 ítems que el diseño o el código ya
+  responden, con la respuesta anotada al lado. Quedan **16 abiertos como deuda de spec** —preguntas de
+  redacción o de alcance que la especificación no contesta— y **ninguno bloquea lo implementado**.

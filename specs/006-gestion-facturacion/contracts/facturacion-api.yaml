@@ -182,7 +182,7 @@ paths:
       parameters:
         - { name: clienteId, in: query, required: true, schema: { type: integer } }
         - { name: mes, in: query, required: true, schema: { type: integer, minimum: 1, maximum: 12 } }
-        - { name: anio, in: query, required: true, schema: { type: integer, minimum: 2025, maximum: 2026 } }
+        - { name: anio, in: query, required: true, description: 'de 2025 al año en curso', schema: { type: integer, minimum: 2025 } }
       responses:
         "200":
           description: Viajes facturables
@@ -281,7 +281,7 @@ paths:
         - { name: desde, in: query, schema: { type: string, format: date } }
         - { name: hasta, in: query, schema: { type: string, format: date } }
         - { name: mes, in: query, schema: { type: integer, minimum: 1, maximum: 12 } }
-        - { name: anio, in: query, schema: { type: integer, minimum: 2025, maximum: 2026 } }
+        - { name: anio, in: query, description: 'de 2025 al año en curso', schema: { type: integer, minimum: 2025 } }
         - name: estado
           in: query
           schema: { $ref: "#/components/schemas/EstadoFacturaVisible" }
@@ -772,7 +772,7 @@ components:
         tipoFacturacion: { $ref: "#/components/schemas/TipoFacturacion" }
         condicionDeVenta: { $ref: "#/components/schemas/CondicionDeVenta" }
         mes: { type: integer, minimum: 1, maximum: 12 }
-        anio: { type: integer, minimum: 2025, maximum: 2026 }
+        anio: { type: integer, minimum: 2025, description: 'hasta el año en curso' }
         fecha:
           type: string
           format: date

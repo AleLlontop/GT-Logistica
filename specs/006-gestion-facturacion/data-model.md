@@ -65,7 +65,7 @@ Entidad principal del módulo. Pertenece a exactamente un cliente y agrupa uno o
 | `TipoFacturacion` | `tinyint` | no | `original=0`, `refacturacion=1` (FR-009) |
 | `CondicionDeVenta` | `tinyint` | no | `contado=0`, `cuentaCorriente=1`, `tarjeta=2`, `cheque=3` (FR-009a). Es dato de la factura, no del cliente |
 | `PeriodoMes` | `tinyint` | no | 1–12. `CHECK` entre 1 y 12 |
-| `PeriodoAnio` | `smallint` | no | `2025` o `2026`, validado en la aplicación (FR-010). **Sin `CHECK`**: la lista se amplía con los años y una restricción de base obligaría a una migración cada vez (*Assumptions*) |
+| `PeriodoAnio` | `smallint` | no | de `2025` al año en curso, validado en la aplicación (FR-010). **Sin `CHECK`**: el tope crece con el calendario y una restricción de base obligaría a una migración cada año (*Assumptions*) |
 | `Detalle` | `nvarchar(500)` | sí | opcional (FR-013). Es el único dato de texto libre que se puede corregir después (FR-035) |
 
 ### Cliente: referencia **y** copia congelada

@@ -94,4 +94,19 @@ public static class CodigosPermiso
     /// recibe `403` (FR-068, SC-014).
     /// </summary>
     public const string FacturacionAnular = "facturacion.anular";
+
+    /// <summary>
+    /// Módulo 9: generar, editar y anular liquidaciones, y registrar sus órdenes de pago. Lo otorgan
+    /// *Administración de la empresa* y *Administrador del sistema* (FR-064, research §9).
+    ///
+    /// Anular **no** lleva un permiso aparte, a diferencia de la factura: sólo procede sin pagos y
+    /// libera los viajes para volver a liquidarlos (spec §Assumptions).
+    /// </summary>
+    public const string LiquidacionesGestionar = "liquidaciones.gestionar";
+
+    /// <summary>
+    /// Módulo 9: listado y detalle. Lo otorgan los dos roles anteriores **más** Gerencia, que responde
+    /// "cuánto se le debe a cada fletero" con el listado filtrado (FR-064).
+    /// </summary>
+    public const string LiquidacionesConsultar = "liquidaciones.consultar";
 }

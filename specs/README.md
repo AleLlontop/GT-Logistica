@@ -17,8 +17,30 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 | [006 — Gestión de facturación](006-gestion-facturacion/) | Implementado y validado | 125 / 125 |
 | [007 — Rediseño de la aplicación](007-diseno-interfaz/) | Implementado, **falta la validación manual** | 110 / 126 |
 | [008 — Adopción del sistema de diseño gt-ui](008-diseno-gt-ui/) | Implementado, **falta la validación manual** | 132 / 144 |
+| [009 — Liquidación a transportistas](009-gestion-liquidacion/) | Implementado, **falta la validación manual** | 104 / 105 |
 
 ## Qué queda abierto
+
+**Módulo 9.** Implementado con backend, base y frontend completos: **118 tests de backend** del módulo
+—29 unitarios y 89 de integración, incluidas las cuatro carreras— y la suite entera de frontend en verde,
+con build y lint limpios. Falta **el recorrido manual de los 43 pasos del quickstart (T102)** con las
+cuatro cuentas y los dos pasos de dos navegadores (15 y 25).
+
+Tres cosas anotadas, ninguna bloqueante:
+
+- `009-gestion-liquidacion/checklists/ciclo-de-vida-y-pagos.md` queda con **16 ítems abiertos**, todos
+  deuda de spec: preguntas de redacción o de alcance —el total por fletero, qué pasa al agotarse la lista
+  de años, un saldo de centavos— que la implementación no necesita resolver.
+- **`TokenDeIdentificador` ganó `sinNumeral`**, opcional y aditiva. Los números de liquidación y de orden
+  de pago llegan armados con su prefijo, y dibujados con el `#` del token se leían `#LQ-12`. Ninguna
+  llamada anterior cambió; es un parámetro de una primitiva existente, no un componente nuevo.
+- **Un test del Módulo 2 cambió su aserción**: `AsignarRolesTests.Gerencia_RecibeSuPrimerPermisoConElModulo5`
+  fijaba que Gerencia tiene exactamente dos módulos de permisos, y FR-064 le suma
+  `liquidaciones.consultar`. Es el mismo test que el Módulo 6 ya había actualizado por la misma razón, y
+  sigue protegiendo lo mismo: Gerencia no recibe ningún permiso de gestión.
+- **Las secuencias `NumeroDeLiquidacion` y `NumeroDeOrdenDePago` llevan `NO CACHE`**, como la del número
+  de viaje. El plan no lo pedía; es la misma trampa del Módulo 5 —un apagado sucio salta la numeración de
+  a mil— sobre números que se ven y se nombran en los mensajes.
 
 **Módulo 1.** Nada. El recorrido de teclado y la corrida completa del quickstart se hicieron, y las
 cinco historias quedaron verificadas operando la aplicación.
@@ -230,3 +252,11 @@ Decisiones que exceden a su módulo y que conviene conocer antes de empezar el s
   referencia a la entidad de origen, y el primero que **cambia el comportamiento de operaciones de
   otro módulo** ya cerrado: la spec acota esos cambios a una lista numerada, y romper tests del
   Módulo 5 es la señal de que la lista hacía falta.
+- **Módulo 9** — primer módulo con **cuatro carreras que cerrar** —generar, pagar, editar y anular—, y el
+  que mostró que tres de ellas son sobre la misma fila: se cerraron con un único mecanismo, un `UPDATE`
+  condicional sobre la liquidación con verificación de filas afectadas, más una `Version` para las dos
+  ediciones que las otras condiciones no distinguen. También el primero en el que **el precedente del
+  módulo anterior no se aplicaba**: copiar `Viajes.FacturaId` habría tocado el Módulo 5 y perdido los
+  viajes de una anulada, y el vínculo fue a una tabla propia con marca de vigencia e índice filtrado. Y el
+  primero que **lleva a `compartido` un formato copiado** en dos pantallas de módulos cerrados, con sus
+  suites sin modificar como prueba —y un caso nuevo donde la suite no miraba el dato—.

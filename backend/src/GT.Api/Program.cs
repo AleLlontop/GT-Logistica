@@ -5,6 +5,8 @@ using GT.Api.Usuarios.Personas;
 using GT.Api.Choferes;
 using GT.Api.Facturacion;
 using GT.Api.Flota;
+using GT.Api.Liquidaciones;
+using GT.Application.Liquidaciones;
 using GT.Application.Autenticacion;
 using GT.Application.Choferes;
 using GT.Application.Choferes.Documentacion;
@@ -177,6 +179,20 @@ builder.Services.AddScoped<AnularFactura>();
 builder.Services.AddScoped<GT.Application.Facturacion.ConsultarVencimientos>();
 builder.Services.AddScoped<ConsultarTotalesFacturacion>();
 
+// ── Módulo 9: liquidación a transportistas ─────────────────────────────────────────────────────
+// Sin dependencias, variables de entorno ni infraestructura nuevas: lee transportistas, viajes y la
+// empresa emisora sin escribirles nada (research §11).
+builder.Services.AddScoped<IRepositorioLiquidaciones, RepositorioLiquidaciones>();
+builder.Services.AddScoped<ValidadorDeViajes>();
+builder.Services.AddScoped<ConsultarDetalleLiquidacion>();
+builder.Services.AddScoped<ConsultarTransportistasLiquidables>();
+builder.Services.AddScoped<ConsultarViajesDisponibles>();
+builder.Services.AddScoped<GenerarLiquidacion>();
+builder.Services.AddScoped<ConsultarLiquidaciones>();
+builder.Services.AddScoped<EditarLiquidacion>();
+builder.Services.AddScoped<AnularLiquidacion>();
+builder.Services.AddScoped<RegistrarOrdenDePago>();
+
 // El adjunto se corta en 10 MB (FR-015a). Rechazarlo acá evita leer en memoria un cuerpo enorme
 // antes de descartarlo; el margen extra cubre los otros campos del formulario.
 builder.Services.Configure<FormOptions>(opciones =>
@@ -277,7 +293,10 @@ builder.Services.AddAuthorization(opciones =>
         // catálogo de menú del Módulo 1 los absorbieron sin cambios (FR-066, FR-067, research §7).
         CodigosPermiso.FacturacionGestionar,
         CodigosPermiso.FacturacionConsultar,
-        CodigosPermiso.FacturacionAnular));
+        CodigosPermiso.FacturacionAnular,
+        // Módulo 9: se mira con `consultar` y se opera con `gestionar`, anular incluido (FR-063).
+        CodigosPermiso.LiquidacionesGestionar,
+        CodigosPermiso.LiquidacionesConsultar));
 
 builder.Services.Configure<JsonOptions>(opciones =>
     opciones.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
@@ -350,6 +369,12 @@ app.MapearArmadoDeFacturas();
 app.MapearReportesDeFacturacion();
 app.MapearCicloDeVidaDeFacturas();
 app.MapearFacturas();
+
+// Módulo 9. El de armado va antes por legibilidad; lo que hace alcanzables sus dos rutas literales es la
+// restricción `{id:int}` de los otros dos grupos (convención [005], research §12.3).
+app.MapearArmadoDeLiquidaciones();
+app.MapearCicloDeVidaDeLiquidaciones();
+app.MapearLiquidaciones();
 
 await AplicarMigracionesYSembrarAsync(app);
 

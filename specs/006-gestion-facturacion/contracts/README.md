@@ -158,7 +158,7 @@ viajes**, **importes**, **vista previa**.
 | Factura que reemplaza | desplegable, **sólo con `Refacturación`** | sí en ese caso |
 | Condición de venta | desplegable: `Contado` · `Cuenta Corriente` · `Tarjeta de Débito / Crédito` · `Cheque` | sí |
 | Mes | desplegable: `01` … `12` | sí |
-| Año | desplegable: `2025` · `2026` | sí |
+| Año | desplegable: `2025` … año en curso, **propuesto en el en curso** | sí |
 | Fecha de facturación | fecha, **propuesta en hoy** | sí |
 | Número de comprobante | texto `0000-00000000`, con el punto de venta propuesto | sí |
 | CAE | texto | sí |

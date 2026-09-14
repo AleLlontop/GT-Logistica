@@ -16,6 +16,7 @@ import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantall
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
+import { formatearCuit } from '../../../compartido/cuit'
 import { ConfirmacionBajaCliente } from '../componentes/ConfirmacionBajaCliente'
 import { Paginacion } from '../../../compartido/ui/Paginacion'
 import {
@@ -108,10 +109,6 @@ export function ListadoClientes({ puedeGestionar }: Props) {
     } catch (fallo) {
       setError(fallo instanceof ErrorHttp ? fallo.detalle.mensaje : MENSAJE_ERROR_GENERICO)
     }
-  }
-
-  function formatearCuit(cuit: string) {
-    return cuit.length === 11 ? `${cuit.slice(0, 2)}-${cuit.slice(2, 10)}-${cuit.slice(10)}` : cuit
   }
 
   // Filtrar también es buscar: si el filtro esconde a todos, no es que el padrón esté vacío.

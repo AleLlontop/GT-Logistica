@@ -39,6 +39,10 @@ import { FichaFactura } from './modules/facturacion/paginas/FichaFactura'
 import { CorreccionFactura } from './modules/facturacion/paginas/CorreccionFactura'
 import { PanelVencimientos as PanelVencimientosFacturas } from './modules/facturacion/paginas/PanelVencimientos'
 import { TotalesFacturados } from './modules/facturacion/paginas/TotalesFacturados'
+import { ListadoLiquidaciones } from './modules/liquidaciones/paginas/ListadoLiquidaciones'
+import { GenerarLiquidacion } from './modules/liquidaciones/paginas/GenerarLiquidacion'
+import { DetalleLiquidacion } from './modules/liquidaciones/paginas/DetalleLiquidacion'
+import { EditarLiquidacion } from './modules/liquidaciones/paginas/EditarLiquidacion'
 import {
   cerrarSesion,
   obtenerSesion,
@@ -83,6 +87,10 @@ export default function App() {
   // servidor (FR-068, convención [005]).
   const puedeGestionarFacturas = tienePermiso(sesion, Permisos.facturacionGestionar)
   const puedeAnularFacturas = tienePermiso(sesion, Permisos.facturacionAnular)
+
+  // Módulo 9: se miran con `liquidaciones.consultar` y se operan con `liquidaciones.gestionar`, anular
+  // incluido (FR-063, FR-064).
+  const puedeGestionarLiquidaciones = tienePermiso(sesion, Permisos.liquidacionesGestionar)
 
   return (
     <BrowserRouter>
@@ -776,6 +784,79 @@ export default function App() {
                   onCerrarSesion={alCerrarSesion}
                 >
                   <EmpresaEmisora />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        {/* Rutas del Módulo 9. Las cuatro exigen sesión con la misma protección que el resto: sin
+            sesión llevan a `/ingresar` (FR-066). El reparto es el del servidor, que responde `403`:
+            `/liquidaciones` y `/liquidaciones/:id` se miran con `liquidaciones.consultar`;
+            `/liquidaciones/nueva` y `/liquidaciones/:id/editar` se operan con
+            `liquidaciones.gestionar`. La literal `/liquidaciones/nueva` va antes que `/:id`. */}
+        <Route
+          path="/liquidaciones"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <ListadoLiquidaciones puedeGestionar={puedeGestionarLiquidaciones} />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/liquidaciones/nueva"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <GenerarLiquidacion />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/liquidaciones/:id"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <DetalleLiquidacion puedeGestionar={puedeGestionarLiquidaciones} />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/liquidaciones/:id/editar"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <EditarLiquidacion />
                 </Layout>
               )}
             </RutaProtegida>

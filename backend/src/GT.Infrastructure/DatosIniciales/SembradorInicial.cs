@@ -55,6 +55,12 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
         (CodigosPermiso.FacturacionAnular, "Facturación",
             "Anular una factura y devolver sus viajes a rendido"),
+
+        (CodigosPermiso.LiquidacionesGestionar, "Liquidaciones",
+            "Generar, editar y anular liquidaciones a transportistas, y registrar sus órdenes de pago"),
+
+        (CodigosPermiso.LiquidacionesConsultar, "Liquidaciones",
+            "Consultar liquidaciones a transportistas, sus viajes, órdenes de pago e historial"),
     ];
 
     /// <summary>
@@ -77,6 +83,10 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
     /// `facturacion.consultar` suma además a *Gerencia*; y `facturacion.anular` queda **sólo** en el
     /// administrador, que es el tercer nivel de granularidad del sistema (Módulo 6, FR-066, FR-067,
     /// research §7).
+    ///
+    /// El Módulo 9 repite el reparto de dos niveles del 6, sin el tercero: `liquidaciones.gestionar` a
+    /// *Administración de la empresa* y al administrador —anular incluido—, y `liquidaciones.consultar`
+    /// a esos dos más *Gerencia*. Tráfico no recibe ninguno (Módulo 9, FR-064, research §9).
     /// </summary>
     private static readonly Dictionary<string, string[]> PermisosPorRol = new()
     {
@@ -91,6 +101,8 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.FacturacionGestionar,
             CodigosPermiso.FacturacionConsultar,
             CodigosPermiso.FacturacionAnular,
+            CodigosPermiso.LiquidacionesGestionar,
+            CodigosPermiso.LiquidacionesConsultar,
         ],
 
         [CodigosRol.Trafico] =
@@ -106,12 +118,15 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.ViajesConsultar,
             CodigosPermiso.FacturacionGestionar,
             CodigosPermiso.FacturacionConsultar,
+            CodigosPermiso.LiquidacionesGestionar,
+            CodigosPermiso.LiquidacionesConsultar,
         ],
 
         [CodigosRol.Gerencia] =
         [
             CodigosPermiso.ViajesConsultar,
             CodigosPermiso.FacturacionConsultar,
+            CodigosPermiso.LiquidacionesConsultar,
         ],
     };
 

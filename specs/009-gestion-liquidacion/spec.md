@@ -443,8 +443,8 @@ de *Administración de la empresa*.
 - **FR-001a**: Si la empresa emisora no está configurada, el sistema NO DEBE permitir generar
   liquidaciones y DEBE informar que primero hay que configurarla y dónde se hace.
 - **FR-002**: El sistema DEBE pedir el período en **dos listas desplegables separadas**, las dos
-  obligatorias: el mes con los doce valores `01` a `12` y el año con exactamente `2025` y `2026`, las
-  mismas opciones que fija el Módulo 6 (FR-010 del Módulo 6). El sistema DEBE rechazar un período
+  obligatorias: el mes con los doce valores `01` a `12` y el año de `2025` al año en curso, propuesto
+  en el en curso, las mismas opciones que fija el Módulo 6 (FR-010 del Módulo 6). El sistema DEBE rechazar un período
   fuera de esas opciones aunque se lo invoque directamente. Dentro de esas opciones, el sistema DEBE
   aceptar cualquier período, también el mes en curso o uno posterior, sin aviso ni restricción.
 - **FR-003**: Al pedir los viajes con algún campo vacío, el sistema DEBE marcar como obligatorio cada

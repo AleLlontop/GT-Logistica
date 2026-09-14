@@ -9,6 +9,7 @@ import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantall
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
+import { formatearCuit } from '../../../compartido/cuit'
 import { ConfirmacionBaja } from '../componentes/ConfirmacionBaja'
 import { FiltrosTransportistas } from '../componentes/FiltrosTransportistas'
 import { FILTROS_TRANSPORTISTAS_VACIOS } from '../servicios/formato'
@@ -74,11 +75,6 @@ export function ListadoTransportistas() {
     } finally {
       setABajar(null)
     }
-  }
-
-  function formatearCuit(cuit: string) {
-    if (cuit.length !== 11) return cuit
-    return `${cuit.slice(0, 2)}-${cuit.slice(2, 10)}-${cuit.slice(10)}`
   }
 
   function formatearTipo(tipo: Transportista['tipo']) {

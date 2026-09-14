@@ -6,6 +6,12 @@ interface Props {
   /** Cuando lleva `a` es un enlace; sin `a` es una etiqueta. */
   a?: string
   numero: ReactNode
+  /**
+   * Sin el `#`, para un identificador que ya trae su prefijo armado —`LQ-12`, `OP-3`—. Llevan prefijo
+   * justamente porque conviven con el `#13` del viaje en la misma pantalla, y `#LQ-12` no se lee
+   * (Módulo 9, research §4). Opcional y aditiva: ninguna llamada existente cambia.
+   */
+  sinNumeral?: boolean
 }
 
 /**
@@ -21,7 +27,7 @@ interface Props {
  * El `#` va en `dim`, que acá es **relleno decorativo y no texto informativo**: lo que se lee es el
  * número (FR-007a).
  */
-export function TokenDeIdentificador({ a, numero }: Props) {
+export function TokenDeIdentificador({ a, numero, sinNumeral = false }: Props) {
   const clases = cn(
     'inline-flex w-fit items-center gap-px rounded-token border border-line-strong',
     'bg-surface-mute px-2 py-1 font-mono no-underline',
@@ -31,9 +37,11 @@ export function TokenDeIdentificador({ a, numero }: Props) {
 
   const contenido = (
     <>
-      <span aria-hidden="true" className="text-[11.5px] text-dim">
-        #
-      </span>
+      {!sinNumeral && (
+        <span aria-hidden="true" className="text-[11.5px] text-dim">
+          #
+        </span>
+      )}
       <span className="text-[13px] font-semibold text-ink">{numero}</span>
     </>
   )

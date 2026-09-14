@@ -33,3 +33,16 @@ export function formatearFecha(iso: string): string {
 export function formatearInstante(iso: string): string {
   return format(parseISO(iso), FORMATO_INSTANTE)
 }
+
+/** El primer año con viajes cargados en el sistema. */
+const PRIMER_ANIO = 2025
+
+/**
+ * Los años que se pueden elegir como período de una factura o de una liquidación: de 2025 al en curso.
+ *
+ * Se derivan de hoy para que el año nuevo aparezca solo, y el anterior sigue para facturar o liquidar
+ * diciembre en enero. El servidor aplica la misma regla y es quien la garantiza.
+ */
+export function aniosDelPeriodo(hoy: Date = new Date()): number[] {
+  return Array.from({ length: hoy.getFullYear() - PRIMER_ANIO + 1 }, (_, indice) => PRIMER_ANIO + indice)
+}

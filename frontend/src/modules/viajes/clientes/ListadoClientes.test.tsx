@@ -118,6 +118,18 @@ describe('ListadoClientes', () => {
     expect(screen.queryByRole('button', { name: 'Dar de alta' })).not.toBeInTheDocument()
   })
 
+  /**
+   * Módulo 9, research §11b: ningún caso miraba el CUIT, así que antes de llevar su formato a
+   * `compartido/cuit` se agrega uno que lo busca con guiones.
+   */
+  it('muestra el CUIT del cliente con guiones', async () => {
+    renderizar()
+
+    const tabla = await screen.findByRole('table')
+
+    expect(within(tabla).getByText('30-71234567-8')).toBeInTheDocument()
+  })
+
   it('anuncia el cambio de página con role="status"', async () => {
     listarClientes.mockResolvedValue(pagina([cliente(1, 'Distribuidora del Litoral')], 73, 2))
 

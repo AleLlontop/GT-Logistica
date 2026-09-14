@@ -36,7 +36,7 @@ viajes de un único período.
 | `Numero` | `int` | no | `DEFAULT NEXT VALUE FOR dbo.NumeroDeLiquidacion`. Único, no editable, no reutilizable ni al anular (FR-016). Se muestra como `LQ-{Numero}` (research §4) |
 | `TransportistaId` | `int` | no | FK → `Transportistas`, `Restrict`. Externo y activo **al generar** (FR-001); si después se da de baja, la liquidación sigue igual |
 | `PeriodoMes` | `tinyint` | no | `CHECK` entre 1 y 12 |
-| `PeriodoAnio` | `smallint` | no | `2025` o `2026`, validado en la aplicación (FR-002). **Sin `CHECK`**, por el mismo motivo que `Facturas.PeriodoAnio`: la lista crece con los años |
+| `PeriodoAnio` | `smallint` | no | de `2025` al año en curso, validado en la aplicación (FR-002). **Sin `CHECK`**, por el mismo motivo que `Facturas.PeriodoAnio`: el tope crece con el calendario |
 | `ImporteTotal` | `decimal(18,2)` | no | suma exacta de los importes de los viajes vigentes. `CHECK ([ImporteTotal] > 0)` (FR-007, FR-012a). No llega nunca desde el cliente HTTP |
 | `ImportePagado` | `decimal(18,2)` | no | `DEFAULT 0`. Suma de los importes de sus órdenes de pago. `CHECK ([ImportePagado] >= 0 AND [ImportePagado] <= [ImporteTotal])` (FR-043) |
 | `Estado` | `tinyint` | no | `pendiente=0`, `pagada=1`, `anulada=2`. `DEFAULT 0` (FR-015) |
@@ -227,7 +227,7 @@ reloj** (convención [005]):
 
 | Regla | Firma conceptual | Requisito |
 |---|---|---|
-| Período admitido | `PeriodoValido(mes, anio)` → mes 1–12, año 2025 o 2026 | FR-002 |
+| Período admitido | `PeriodoValido(mes, anio, hoy)` → mes 1–12, año de 2025 a `hoy.Year` | FR-002 |
 | Rango de la fecha de pago | `FechaDePagoValida(fecha, fechaGeneracion, hoy)` → `fechaGeneracion ≤ fecha ≤ hoy` | FR-038 |
 | Resta pagar | `RestaPagar(total, pagado)` → `total − pagado` | FR-027 |
 | Estado después de un pago | `EstadoTrasPago(total, pagado, importe)` → `Pagada` si `pagado + importe = total`, si no `Pendiente` | FR-030, FR-041 |

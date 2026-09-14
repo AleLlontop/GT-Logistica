@@ -107,6 +107,23 @@ export type CodigoError =
   // Los dos que el Módulo 6 le agregó al 5, dentro de la lista acotada de cambios de su spec
   | 'viaje_facturado_inmutable'
   | 'remito_requerido'
+  // Módulo 9
+  | 'periodo_invalido'
+  | 'empresa_emisora_no_configurada'
+  | 'transportista_no_liquidable'
+  | 'sin_viajes'
+  | 'total_en_cero'
+  | 'viaje_no_liquidable'
+  | 'fecha_de_pago_fuera_de_rango'
+  | 'importe_supera_saldo'
+  | 'liquidacion_no_encontrada'
+  | 'viaje_ya_liquidado'
+  | 'liquidacion_no_editable'
+  | 'liquidacion_modificada'
+  | 'liquidacion_no_anulable'
+  | 'liquidacion_no_pagable'
+  | 'pago_requiere_confirmacion'
+  | 'anulacion_requiere_confirmacion'
 
 /** Estados posibles de una cuenta (FR-005). */
 export type EstadoUsuario = 'activo' | 'inactivo' | 'bloqueado'

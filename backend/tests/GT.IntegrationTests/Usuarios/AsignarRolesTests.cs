@@ -167,8 +167,16 @@ public class AsignarRolesTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
             [CodigosPermiso.FacturacionConsultar],
             facturacion.Permisos.Select(permiso => permiso.Codigo));
 
-        // Dos módulos y nada más: ningún permiso de gestión, ni de anulación.
-        Assert.Equal(2, gerencia.PermisosPorModulo.Count);
+        // El **Módulo 9 sumó el tercero**: `liquidaciones.consultar`, para responder cuánto se le debe a
+        // cada fletero sin poder generar, pagar ni anular (Módulo 9, FR-064).
+        var liquidaciones = gerencia.PermisosPorModulo.Single(modulo => modulo.Modulo == "Liquidaciones");
+
+        Assert.Equal(
+            [CodigosPermiso.LiquidacionesConsultar],
+            liquidaciones.Permisos.Select(permiso => permiso.Codigo));
+
+        // Tres módulos y nada más: ningún permiso de gestión, ni de anulación.
+        Assert.Equal(3, gerencia.PermisosPorModulo.Count);
     }
 
     [Fact]

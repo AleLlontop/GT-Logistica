@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { aniosDelPeriodo } from '../../../compartido/fechas'
 import { Filtros, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
 import { clasesDeEtiquetaDeFiltro, clasesDeFiltro } from '../../../compartido/ui/clases'
 import { listarClientes, type Cliente } from '../../viajes/clientes/servicioClientes'
@@ -9,9 +10,6 @@ import {
   type TipoComprobante,
 } from '../servicios/api'
 import type { FiltrosFacturas as ValorDeFiltros } from '../servicios/servicioFacturas'
-
-/** Los años que el sistema acepta hoy. La lista se amplía con el tiempo (FR-010). */
-const ANIOS = [2025, 2026]
 
 const MESES = Array.from({ length: 12 }, (_, indice) => indice + 1)
 
@@ -140,7 +138,7 @@ export function FiltrosFacturas({ valor, onCambio, declaracion, resumen }: Props
             className={clasesDeFiltro(valor.anio !== '')}
           >
             <option value="">Todos los años</option>
-            {ANIOS.map((numero) => (
+            {aniosDelPeriodo().map((numero) => (
               <option key={numero} value={numero}>
                 {numero}
               </option>

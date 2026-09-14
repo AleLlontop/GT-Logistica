@@ -35,6 +35,13 @@ export const Permisos = {
   facturacionGestionar: 'facturacion.gestionar',
   facturacionConsultar: 'facturacion.consultar',
   facturacionAnular: 'facturacion.anular',
+
+  /**
+   * Módulo 9. Dos niveles, sin el tercero de la factura: se mira con `consultar` y se opera —anular
+   * incluido— con `gestionar` (FR-063, FR-064).
+   */
+  liquidacionesGestionar: 'liquidaciones.gestionar',
+  liquidacionesConsultar: 'liquidaciones.consultar',
 } as const
 
 export function tienePermiso(sesion: Sesion | null, codigo: string): boolean {

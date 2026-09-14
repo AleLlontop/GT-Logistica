@@ -38,9 +38,12 @@ public static class ArmadoEndpoints
         int mes,
         int anio,
         ConsultarFacturables consultar,
+        TimeProvider reloj,
         CancellationToken cancelacion)
     {
-        if (clienteId <= 0 || mes is < 1 or > 12 || !PreparadorDeFactura.AniosValidos.Contains(anio))
+        var hoy = Domain.Choferes.FechaHoyArgentina.Desde(reloj.GetUtcNow());
+
+        if (clienteId <= 0 || mes is < 1 or > 12 || !Domain.Facturacion.PeriodoAdmitido.AnioValido(anio, hoy))
         {
             return RespuestasDeFactura.TraducirFallo(
                 new ResultadoFactura(ErrorFactura.DatosInvalidos));

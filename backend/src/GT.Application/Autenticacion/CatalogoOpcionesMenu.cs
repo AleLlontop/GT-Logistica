@@ -78,6 +78,17 @@ public static class CatalogoOpcionesMenu
             new OpcionMenuDto("totales-facturados", "Totales facturados", "/facturas/totales")),
         (CodigosPermiso.FacturacionGestionar,
             new OpcionMenuDto("empresa-emisora", "Empresa emisora", "/facturacion/empresa")),
+
+        // Módulo 9. *Consultar liquidación* va con el permiso de lectura y *Generar liquidación* con el
+        // de gestión: Gerencia ve la primera y no la segunda (FR-063, FR-064).
+        //
+        // Los códigos **no** son `liquidaciones`: `seccionesDeMenu.test.ts` usa justamente ese código como
+        // ejemplo de uno desconocido que cae en la última sección, y mapearlo rompería un test que prueba
+        // otra cosa (research §9).
+        (CodigosPermiso.LiquidacionesConsultar,
+            new OpcionMenuDto("consultar-liquidacion", "Consultar liquidación", "/liquidaciones")),
+        (CodigosPermiso.LiquidacionesGestionar,
+            new OpcionMenuDto("generar-liquidacion", "Generar liquidación", "/liquidaciones/nueva")),
     ];
 
     /// <summary>
