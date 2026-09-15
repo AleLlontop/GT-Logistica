@@ -1,0 +1,488 @@
+openapi: 3.0.3
+
+info:
+  title: Gestión de adelantos de sueldo (Módulo 10) — G&T Logística
+  version: "1.0.0"
+  description: |
+    Contrato HTTP del Módulo 10. Registro de adelantos de sueldo a choferes propios y empleados, con
+    circuito pendiente / aprobado / rechazado, anulación de aprobados e historial.
+
+    **Autenticación**: cookie de sesión del Módulo 1 (`gt.sesion`). Sin sesión: `401`.
+
+    **Dos permisos** (FR-041, FR-042):
+      - `adelantos.gestionar` — registrar, aprobar, rechazar, anular, y el desplegable de beneficiarios.
+      - `adelantos.consultar` — listado, detalle y personas del filtro.
+    Sin el permiso correspondiente: `403` (FR-043).
+
+    **Regla de códigos** (convención [005], research §6):
+      - `400` cuando el problema está en **lo que se tipeó o se eligió** —campos, fecha fuera de rango,
+        persona no elegible, rango de filtro invertido—.
+      - `409` cuando está en el **estado** del adelanto: no resoluble, no anulable, **confirmación
+        pendiente**.
+
+    **Rutas literales y `{id:int}`**: `/api/adelantos/beneficiarios` y `/api/adelantos/personas` conviven
+    con `/api/adelantos/{id}`. La de identificador lleva restricción de tipo; sin ella las literales
+    quedan inalcanzables (convención [005]).
+
+    **Fechas** sin hora como `yyyy-MM-dd`; **instantes** en UTC con `Z`. **Importes** `decimal` con dos
+    decimales, en pesos argentinos.
+
+servers:
+  - url: /api
+
+tags:
+  - name: Registro
+  - name: Consulta
+  - name: Ciclo de vida
+
+paths:
+
+  # ───────────────────────────────────────────────────────────────────────────────
+  # Registro (FR-001 a FR-012)
+  # ───────────────────────────────────────────────────────────────────────────────
+
+  /adelantos/beneficiarios:
+    get:
+      tags: [Registro]
+      summary: Personas elegibles de un tipo
+      description: |
+        Con `tipo=chofer`, las personas activas con ficha de chofer activa cuyo transportista tiene el
+        CUIT de la empresa emisora. Con `tipo=empleado`, las personas activas de tipo empleado sin ficha
+        de chofer (FR-002). Ordenadas por apellido, nombre e `Id`.
+
+        Sin empresa emisora configurada, `tipo=chofer` responde `200` con
+        `empresaEmisoraConfigurada: false` y la lista vacía; `tipo=empleado` sigue ofreciendo a los
+        empleados (FR-002a). La lista vacía por falta de personas del tipo también es `200` (FR-004).
+
+        Es la misma regla con la que `POST /adelantos` valida la persona (research §1).
+      security: [{ cookieSesion: [adelantos.gestionar] }]
+      parameters:
+        - { name: tipo, in: query, required: true, schema: { $ref: "#/components/schemas/TipoBeneficiario" } }
+      responses:
+        "200":
+          description: Personas elegibles
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Beneficiarios" }
+        "400":
+          description: "`datos_invalidos` (falta el tipo o no es `chofer` ni `empleado`)."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /adelantos:
+    get:
+      tags: [Consulta]
+      summary: Listado de adelantos
+      description: |
+        Filtros opcionales y combinables, aplicados antes de contar, sumar y paginar (FR-014). El rango
+        incluye sus dos extremos y admite uno solo. Sin `estado` devuelve **todos, incluidos los
+        rechazados y anulados**; un valor de `estado` desconocido se ignora.
+
+        `totalAdelantado` suma los importes de los adelantos **`aprobado`** entre **todos** los que
+        cumplen los filtros, no sólo los de la página (FR-016).
+
+        Orden: fecha descendente y, a igual fecha, `Id` descendente (FR-017). Página de 20.
+      security: [{ cookieSesion: [adelantos.consultar] }]
+      parameters:
+        - { name: personaId, in: query, required: false, schema: { type: integer } }
+        - { name: desde, in: query, required: false, schema: { type: string, format: date } }
+        - { name: hasta, in: query, required: false, schema: { type: string, format: date } }
+        - { name: estado, in: query, required: false, schema: { $ref: "#/components/schemas/EstadoAdelanto" } }
+        - { name: pagina, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        "200":
+          description: Página de adelantos
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginaDeAdelantos" }
+        "400":
+          description: "`rango_invalido` (`desde` posterior a `hasta`, FR-015)."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+    post:
+      tags: [Registro]
+      summary: Registrar un adelanto
+      description: |
+        Crea el adelanto en `pendiente` sobre la persona, con el tipo elegido (FR-010). Valida, también
+        cuando se invoca sin pasar por la pantalla, que la persona sea elegible para ese tipo con la
+        misma regla que el desplegable (FR-009).
+
+        Orden de validación: campos presentes, fecha admitida, motivo, importe, elegibilidad. No hay
+        tope ni aviso por acumulación (FR-012).
+      security: [{ cookieSesion: [adelantos.gestionar] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegistroRequest" }
+      responses:
+        "201":
+          description: Creado. `Location` apunta a `/api/adelantos/{id}`
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdelantoDetalle" }
+        "400":
+          description: |
+            `datos_invalidos` con `campo` (`tipo`, `personaId`, `fecha`, `motivo`, `importe`) ·
+            `fecha_fuera_de_rango` · `empresa_emisora_no_configurada` · `beneficiario_no_elegible`.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Error"
+                  - $ref: "#/components/schemas/ErrorDeFecha"
+                  - $ref: "#/components/schemas/ErrorDeBeneficiario"
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  # ───────────────────────────────────────────────────────────────────────────────
+  # Consulta (FR-013 a FR-020)
+  # ───────────────────────────────────────────────────────────────────────────────
+
+  /adelantos/personas:
+    get:
+      tags: [Consulta]
+      summary: Personas del filtro del listado
+      description: |
+        Las personas con al menos un adelanto registrado, en cualquier estado, estén activas o dadas de
+        baja y sean o no hoy chofer propio (FR-014). Ordenadas por apellido, nombre e `Id`.
+      security: [{ cookieSesion: [adelantos.consultar] }]
+      responses:
+        "200":
+          description: Puede venir vacía
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PersonaResumen" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /adelantos/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+
+    get:
+      tags: [Consulta]
+      summary: Detalle de un adelanto
+      description: |
+        Con la persona leída del padrón vigente, el tipo guardado al registrar (FR-020), el motivo del
+        rechazo o de la anulación cuando corresponde y el historial (FR-019, FR-036).
+      security: [{ cookieSesion: [adelantos.consultar] }]
+      responses:
+        "200":
+          description: Detalle
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdelantoDetalle" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  # ───────────────────────────────────────────────────────────────────────────────
+  # Ciclo de vida (FR-021 a FR-032)
+  # ───────────────────────────────────────────────────────────────────────────────
+
+  /adelantos/{id}/aprobacion:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+
+    post:
+      tags: [Ciclo de vida]
+      summary: Aprobar un adelanto
+      description: |
+        Sólo `pendiente` (FR-021). Sin cuerpo y sin confirmación: se deshace con la anulación (research
+        §4). Quien lo registró puede aprobarlo (FR-022). Con otro usuario resolviéndolo a la vez,
+        exactamente una operación se completa (FR-026).
+      security: [{ cookieSesion: [adelantos.gestionar] }]
+      responses:
+        "200":
+          description: Aprobado (releído)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdelantoDetalle" }
+        "409":
+          description: "`adelanto_no_resoluble`, con el estado en que está."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorDeEstado" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /adelantos/{id}/rechazo:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+
+    post:
+      tags: [Ciclo de vida]
+      summary: Rechazar un adelanto
+      description: |
+        Sólo `pendiente` (FR-021), con motivo (FR-024).
+
+        **Sin `confirmado: true` responde `409 rechazo_requiere_confirmacion` sin cambiar nada**:
+        `rechazado` es final (US4 esc. 8). La pantalla lo manda desde el diálogo, que es la confirmación
+        explícita (research §4). Orden de validación: existencia, estado, motivo, confirmación.
+      security: [{ cookieSesion: [adelantos.gestionar] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RechazoRequest" }
+      responses:
+        "200":
+          description: Rechazado (releído)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdelantoDetalle" }
+        "400":
+          description: "`motivo_requerido` · `datos_invalidos` (motivo de más de 500 caracteres)."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: "`adelanto_no_resoluble`, con el estado en que está · `rechazo_requiere_confirmacion`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorDeEstado" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+  /adelantos/{id}/anulacion:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+
+    post:
+      tags: [Ciclo de vida]
+      summary: Anular un adelanto aprobado
+      description: |
+        Sólo `aprobado` (FR-027). En esta versión ninguna otra condición lo impide (FR-028).
+
+        **Sin `confirmado: true` responde `409 anulacion_requiere_confirmacion` sin cambiar nada**
+        (FR-029). La pantalla lo manda desde el diálogo, que es la confirmación explícita (research §4,
+        convención [009]). Orden de validación: existencia, estado, motivo, confirmación.
+      security: [{ cookieSesion: [adelantos.gestionar] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AnulacionRequest" }
+      responses:
+        "200":
+          description: Anulado (releído)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdelantoDetalle" }
+        "400":
+          description: "`motivo_requerido` · `datos_invalidos` (motivo de más de 500 caracteres)."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: "`adelanto_no_anulable`, con el estado en que está · `anulacion_requiere_confirmacion`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorDeEstado" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+        "401": { $ref: "#/components/responses/SinSesion" }
+        "403": { $ref: "#/components/responses/SinPermiso" }
+
+components:
+
+  securitySchemes:
+    cookieSesion:
+      type: apiKey
+      in: cookie
+      name: gt.sesion
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+
+  responses:
+    SinSesion: { description: Sin sesión }
+    SinPermiso: { description: Sin el permiso correspondiente }
+    NoEncontrado:
+      description: "`adelanto_no_encontrado`"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+
+    EstadoAdelanto:
+      type: string
+      enum: [pendiente, aprobado, rechazado, anulado]
+
+    OperacionDeAdelanto:
+      type: string
+      enum: [registro, aprobacion, rechazo, anulacion]
+
+    TipoBeneficiario:
+      type: string
+      enum: [chofer, empleado]
+
+    PersonaResumen:
+      type: object
+      required: [id, apellido, nombre, dni]
+      properties:
+        id: { type: integer }
+        apellido: { type: string, example: Pérez }
+        nombre: { type: string, example: Juan }
+        dni: { type: string, description: Sólo dígitos, example: "30123456" }
+
+    Beneficiarios:
+      type: object
+      required: [empresaEmisoraConfigurada, personas]
+      properties:
+        empresaEmisoraConfigurada:
+          type: boolean
+          description: Sólo decide algo con `tipo=chofer`
+        personas:
+          type: array
+          items: { $ref: "#/components/schemas/PersonaResumen" }
+
+    RegistroRequest:
+      type: object
+      required: [tipo, personaId, fecha, motivo, importe]
+      properties:
+        tipo: { $ref: "#/components/schemas/TipoBeneficiario" }
+        personaId: { type: integer }
+        fecha:
+          type: string
+          format: date
+          description: Del primer día del mes anterior al día en curso, los dos incluidos (FR-005)
+        motivo: { type: string, maxLength: 200, description: Se recorta; sólo espacios es vacío }
+        importe:
+          type: number
+          format: decimal
+          exclusiveMinimum: true
+          minimum: 0
+          description: A lo sumo dos decimales (FR-007)
+
+    RechazoRequest:
+      type: object
+      required: [motivo]
+      properties:
+        motivo: { type: string, maxLength: 500 }
+        confirmado: { type: boolean }
+
+    AnulacionRequest:
+      type: object
+      required: [motivo]
+      properties:
+        motivo: { type: string, maxLength: 500 }
+        confirmado: { type: boolean }
+
+    AdelantoListado:
+      type: object
+      required: [id, fecha, persona, tipo, motivo, importe, estado]
+      properties:
+        id: { type: integer }
+        fecha: { type: string, format: date }
+        persona: { $ref: "#/components/schemas/PersonaResumen" }
+        tipo: { $ref: "#/components/schemas/TipoBeneficiario" }
+        motivo: { type: string }
+        importe: { type: number, format: decimal }
+        estado: { $ref: "#/components/schemas/EstadoAdelanto" }
+
+    PaginaDeAdelantos:
+      type: object
+      required: [items, total, pagina, tamanioPagina, totalAdelantado]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/AdelantoListado" }
+        total: { type: integer }
+        pagina: { type: integer }
+        tamanioPagina: { type: integer, example: 20 }
+        totalAdelantado:
+          type: number
+          format: decimal
+          description: Suma de los `aprobado` entre todos los que cumplen los filtros (FR-016)
+
+    CambioDeAdelanto:
+      type: object
+      required: [operacion, usuario, ocurridoEn]
+      properties:
+        operacion: { $ref: "#/components/schemas/OperacionDeAdelanto" }
+        usuario: { type: string, example: "Gómez, Ramona" }
+        ocurridoEn: { type: string, format: date-time }
+        motivo:
+          type: string
+          nullable: true
+          description: En `rechazo` y `anulacion`, leído de la columna del adelanto; `null` en las otras
+
+    AdelantoDetalle:
+      type: object
+      required: [id, fecha, persona, tipo, motivo, importe, estado, historial, puedeResolverse, puedeAnularse]
+      properties:
+        id: { type: integer }
+        fecha: { type: string, format: date }
+        persona: { $ref: "#/components/schemas/PersonaResumen" }
+        tipo:
+          allOf: [{ $ref: "#/components/schemas/TipoBeneficiario" }]
+          description: El elegido al registrar; no se recalcula (FR-020)
+        motivo: { type: string }
+        importe: { type: number, format: decimal }
+        estado: { $ref: "#/components/schemas/EstadoAdelanto" }
+        motivoRechazo: { type: string, nullable: true }
+        motivoAnulacion: { type: string, nullable: true }
+        historial:
+          type: array
+          description: De la más vieja a la más nueva
+          items: { $ref: "#/components/schemas/CambioDeAdelanto" }
+        puedeResolverse:
+          type: boolean
+          description: Sólo por estado (`pendiente`). Que el usuario tenga el permiso lo decide la sesión
+        puedeAnularse:
+          type: boolean
+          description: Sólo por estado (`aprobado`)
+
+    Error:
+      type: object
+      required: [codigo, mensaje]
+      properties:
+        codigo: { type: string }
+        mensaje: { type: string, description: En español, listo para mostrar }
+        campo: { type: string, nullable: true }
+
+    ErrorDeFecha:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          required: [desde, hasta]
+          properties:
+            desde: { type: string, format: date, description: Primer día del mes anterior }
+            hasta: { type: string, format: date, description: El día en curso }
+
+    ErrorDeBeneficiario:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          required: [motivo]
+          properties:
+            motivo:
+              type: string
+              enum: [inexistente, inactiva, tipoDistinto, choferExterno]
+
+    ErrorDeEstado:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          properties:
+            estado:
+              allOf: [{ $ref: "#/components/schemas/EstadoAdelanto" }]
+              nullable: true
+              description: El estado en que está el adelanto. Ausente en `rechazo_requiere_confirmacion` y `anulacion_requiere_confirmacion`
