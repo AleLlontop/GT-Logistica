@@ -28,6 +28,97 @@ namespace GT.Infrastructure.Persistencia.Migraciones
 
             modelBuilder.HasSequence<int>("NumeroDeViaje");
 
+            modelBuilder.Entity("GT.Domain.Adelantos.Adelanto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<byte>("Estado")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("Importe")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("MotivoAnulacion")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("MotivoRechazo")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("PersonaId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("TipoBeneficiario")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Estado")
+                        .HasDatabaseName("IX_Adelantos_Estado");
+
+                    b.HasIndex("PersonaId")
+                        .HasDatabaseName("IX_Adelantos_PersonaId");
+
+                    b.HasIndex("Fecha", "Id")
+                        .IsDescending()
+                        .HasDatabaseName("IX_Adelantos_Fecha");
+
+                    b.ToTable("Adelantos", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Adelantos_Estado", "([Estado] IN (0, 1) AND [MotivoRechazo] IS NULL AND [MotivoAnulacion] IS NULL) OR ([Estado] = 2 AND [MotivoRechazo] IS NOT NULL AND LEN([MotivoRechazo]) > 0 AND [MotivoAnulacion] IS NULL) OR ([Estado] = 3 AND [MotivoAnulacion] IS NOT NULL AND LEN([MotivoAnulacion]) > 0 AND [MotivoRechazo] IS NULL)");
+
+                            t.HasCheckConstraint("CK_Adelantos_Importe", "[Importe] > 0");
+
+                            t.HasCheckConstraint("CK_Adelantos_Motivo", "LEN([Motivo]) > 0");
+
+                            t.HasCheckConstraint("CK_Adelantos_TipoBeneficiario", "[TipoBeneficiario] IN (1, 2)");
+                        });
+                });
+
+            modelBuilder.Entity("GT.Domain.Adelantos.CambioDeAdelanto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AdelantoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("OcurridoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Operacion")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("AdelantoId", "Operacion")
+                        .IsUnique()
+                        .HasDatabaseName("IX_CambiosDeAdelanto_Operacion");
+
+                    b.ToTable("CambiosDeAdelanto", (string)null);
+                });
+
             modelBuilder.Entity("GT.Domain.Choferes.Chofer", b =>
                 {
                     b.Property<int>("Id")
@@ -1137,6 +1228,36 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.ToTable("UsuarioRoles", (string)null);
                 });
 
+            modelBuilder.Entity("GT.Domain.Adelantos.Adelanto", b =>
+                {
+                    b.HasOne("GT.Domain.Personas.Persona", "Persona")
+                        .WithMany()
+                        .HasForeignKey("PersonaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Persona");
+                });
+
+            modelBuilder.Entity("GT.Domain.Adelantos.CambioDeAdelanto", b =>
+                {
+                    b.HasOne("GT.Domain.Adelantos.Adelanto", "Adelanto")
+                        .WithMany("Cambios")
+                        .HasForeignKey("AdelantoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Usuarios.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Adelanto");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("GT.Domain.Choferes.Chofer", b =>
                 {
                     b.HasOne("GT.Domain.Personas.Persona", "Persona")
@@ -1433,6 +1554,11 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                         .HasForeignKey("UsuariosId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("GT.Domain.Adelantos.Adelanto", b =>
+                {
+                    b.Navigation("Cambios");
                 });
 
             modelBuilder.Entity("GT.Domain.Choferes.Chofer", b =>

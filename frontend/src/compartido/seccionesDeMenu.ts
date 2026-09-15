@@ -36,6 +36,9 @@ const SECCION_POR_CODIGO: Record<string, NombreDeSeccion> = {
   // Módulo 9. Los códigos no son `liquidaciones`: ése es el ejemplo de código desconocido del test.
   'consultar-liquidacion': 'Operación',
   'generar-liquidacion': 'Operación',
+  // Módulo 10.
+  'consultar-adelanto': 'Operación',
+  'registrar-adelanto': 'Operación',
 
   // Los padrones sobre los que se opera
   clientes: 'Padrones',

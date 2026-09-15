@@ -65,6 +65,11 @@ const TONO_POR_VALOR: Record<string, Tono> = {
   pagada: 'rendido',
   anulada: 'anulado',
 
+  // Adelanto (Módulo 10). `pendiente` y `anulado` ya están. `rechazado` comparte tono con `anulado`:
+  // los dos son finales y no cuentan, y la palabra los distingue (FR-039).
+  aprobado: 'rendido',
+  rechazado: 'anulado',
+
   // Vehículo (Módulo 4)
   disponible: 'rendido',
   enViaje: 'facturado',

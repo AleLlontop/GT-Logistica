@@ -18,8 +18,29 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 | [007 — Rediseño de la aplicación](007-diseno-interfaz/) | Implementado, **falta la validación manual** | 110 / 126 |
 | [008 — Adopción del sistema de diseño gt-ui](008-diseno-gt-ui/) | Implementado, **falta la validación manual** | 132 / 144 |
 | [009 — Liquidación a transportistas](009-gestion-liquidacion/) | Implementado, **falta la validación manual** | 104 / 105 |
+| [010 — Gestión de adelantos de sueldo](010-gestion-adelantos/) | Implementado, **falta la validación manual** | 92 / 93 |
 
 ## Qué queda abierto
+
+**Módulo 10.** Implementado con backend, base y frontend completos: **36 tests unitarios** del módulo —la
+tabla entera de elegibilidad y el piso de la fecha cruzando el año— y **86 de integración** —con las dos
+carreras, cada `CHECK` violado de a uno y los tres cambios de estado invocados directamente—, más **55 de
+frontend** del módulo. La suite entera de backend y de frontend en verde, con build y lint limpios. Falta
+**el recorrido manual de los 43 pasos del quickstart (T091)** con las cuatro cuentas y los dos pasos de dos
+navegadores (13 y 20).
+
+Cuatro cosas anotadas, ninguna bloqueante:
+
+- **`compartido/tipos.ts` sumó los siete códigos de error nuevos** a `CodigoError`. El plan no lo listaba
+  entre los archivos modificados, pero es un punto de extensión que cada módulo toca —el 9 sumó los suyos—:
+  sin eso los tests que construyen un `ErrorHttp` con un código del módulo no compilan.
+- **La pastilla de estado del detalle va en la línea de contexto y no en la del título**, como la del detalle
+  de liquidación. `contracts/README.md` la pide en la misma línea que `Adelanto`, y `EncabezadoDePantalla`
+  recibe el título como texto; ponerla ahí es un cambio a una primitiva que ninguna tarea pedía.
+- **El historial nombra al usuario por su `username`**, igual que el Módulo 9. El ejemplo del contrato dice
+  `Gómez, Ramona`, que es un apellido y nombre que el usuario no tiene salvo que esté asociado a una persona.
+- **El callout del rechazado, para quien sólo consulta**, conserva *"No se corrige ni se vuelve a
+  presentar."* y quita sólo la instrucción: la oración entera mezclaba un dato y una indicación.
 
 **Módulo 9.** Implementado con backend, base y frontend completos: **118 tests de backend** del módulo
 —29 unitarios y 89 de integración, incluidas las cuatro carreras— y la suite entera de frontend en verde,
@@ -260,3 +281,10 @@ Decisiones que exceden a su módulo y que conviene conocer antes de empezar el s
   viajes de una anulada, y el vínculo fue a una tabla propia con marca de vigencia e índice filtrado. Y el
   primero que **lleva a `compartido` un formato copiado** en dos pantallas de módulos cerrados, con sus
   suites sin modificar como prueba —y un caso nuevo donde la suite no miraba el dato—.
+- **Módulo 10** — primer módulo con una **regla sobre datos de tres módulos anteriores** —persona, ficha de
+  chofer y transportista, empresa emisora— que la pantalla ofrece y el guardado valida con motivo: se
+  escribió **una vez como función pura** sobre una proyección, y el desplegable la aplica en memoria. Es el
+  primero que aplica las convenciones del 009 **sin inventar mecanismo**: sin edición, el `UPDATE`
+  condicional sobre el estado cierra las cuatro carreras y no hizo falta `Version`. También el primero cuyas
+  pantallas **distinguen el `403` de un error de carga**, y el que destapó que en un `CHECK` un `LEN` sobre
+  una columna anulable deja pasar la fila si no va detrás de su `IS NOT NULL`.

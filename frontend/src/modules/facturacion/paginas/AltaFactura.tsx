@@ -7,7 +7,7 @@ import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { aniosDelPeriodo, formatearFecha } from '../../../compartido/fechas'
+import { aniosDelPeriodo, enIso, formatearFecha } from '../../../compartido/fechas'
 import {
   listarClientes,
   type Cliente,
@@ -589,13 +589,6 @@ export function AltaFactura() {
       )}
     </section>
   )
-}
-
-/** Una fecha en `yyyy-MM-dd`, que es el formato con el que viaja al backend. */
-function enIso(fecha: Date): string {
-  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(
-    fecha.getDate(),
-  ).padStart(2, '0')}`
 }
 
 /**

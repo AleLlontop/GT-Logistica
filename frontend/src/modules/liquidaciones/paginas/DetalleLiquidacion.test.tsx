@@ -183,6 +183,26 @@ describe('DetalleLiquidacion', () => {
     ).toHaveAttribute('role', 'status')
   })
 
+  /**
+   * Módulo 10, cambio 3: la fecha de pago propuesta es el día local. Se agregó antes de llevar la función a
+   * `compartido/fechas`, y se vio en verde con la copia local (convención [009]).
+   */
+  it('propone como fecha de pago el día local aunque en UTC ya sea mañana', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 8, 14, 23, 30))
+
+    try {
+      const usuario = userEvent.setup()
+      renderizar()
+
+      await usuario.click(await screen.findByRole('button', { name: 'Registrar orden de pago' }))
+
+      expect(within(await screen.findByRole('dialog')).getByLabelText('Fecha de pago')).toHaveValue('2026-09-14')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('anula desde el diálogo y anuncia los viajes liberados', async () => {
     anularLiquidacion.mockResolvedValue(
       detalle({ estado: 'anulada', motivoAnulacion: 'Error.', restaPagar: null, puedeEditarse: false, puedeAnularse: false, puedeRegistrarPago: false }),

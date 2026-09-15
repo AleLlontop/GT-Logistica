@@ -61,6 +61,12 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
         (CodigosPermiso.LiquidacionesConsultar, "Liquidaciones",
             "Consultar liquidaciones a transportistas, sus viajes, órdenes de pago e historial"),
+
+        (CodigosPermiso.AdelantosGestionar, "Adelantos",
+            "Registrar adelantos de sueldo, aprobarlos, rechazarlos y anularlos"),
+
+        (CodigosPermiso.AdelantosConsultar, "Adelantos",
+            "Consultar adelantos de sueldo, su total adelantado e historial"),
     ];
 
     /// <summary>
@@ -87,6 +93,10 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
     /// El Módulo 9 repite el reparto de dos niveles del 6, sin el tercero: `liquidaciones.gestionar` a
     /// *Administración de la empresa* y al administrador —anular incluido—, y `liquidaciones.consultar`
     /// a esos dos más *Gerencia*. Tráfico no recibe ninguno (Módulo 9, FR-064, research §9).
+    ///
+    /// El Módulo 10 repite el mismo reparto: `adelantos.gestionar` a *Administración de la empresa* y al
+    /// administrador —aprobar incluido, sin control por oposición—, y `adelantos.consultar` a esos dos más
+    /// *Gerencia*. Tráfico no recibe ninguno (Módulo 10, FR-042, research §7).
     /// </summary>
     private static readonly Dictionary<string, string[]> PermisosPorRol = new()
     {
@@ -103,6 +113,8 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.FacturacionAnular,
             CodigosPermiso.LiquidacionesGestionar,
             CodigosPermiso.LiquidacionesConsultar,
+            CodigosPermiso.AdelantosGestionar,
+            CodigosPermiso.AdelantosConsultar,
         ],
 
         [CodigosRol.Trafico] =
@@ -120,6 +132,8 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.FacturacionConsultar,
             CodigosPermiso.LiquidacionesGestionar,
             CodigosPermiso.LiquidacionesConsultar,
+            CodigosPermiso.AdelantosGestionar,
+            CodigosPermiso.AdelantosConsultar,
         ],
 
         [CodigosRol.Gerencia] =
@@ -127,6 +141,7 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.ViajesConsultar,
             CodigosPermiso.FacturacionConsultar,
             CodigosPermiso.LiquidacionesConsultar,
+            CodigosPermiso.AdelantosConsultar,
         ],
     };
 

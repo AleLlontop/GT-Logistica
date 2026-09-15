@@ -1,3 +1,4 @@
+using GT.Api.Adelantos;
 using GT.Api.Autenticacion;
 using GT.Api.Autorizacion;
 using GT.Api.Usuarios;
@@ -7,6 +8,7 @@ using GT.Api.Facturacion;
 using GT.Api.Flota;
 using GT.Api.Liquidaciones;
 using GT.Application.Liquidaciones;
+using GT.Application.Adelantos;
 using GT.Application.Autenticacion;
 using GT.Application.Choferes;
 using GT.Application.Choferes.Documentacion;
@@ -193,6 +195,19 @@ builder.Services.AddScoped<EditarLiquidacion>();
 builder.Services.AddScoped<AnularLiquidacion>();
 builder.Services.AddScoped<RegistrarOrdenDePago>();
 
+// ── Módulo 10: gestión de adelantos de sueldo ──────────────────────────────────────────────────
+// Sin dependencias, variables de entorno ni infraestructura nuevas: lee personas, fichas de chofer,
+// transportistas y la empresa emisora sin escribirles nada (research §10).
+builder.Services.AddScoped<IRepositorioAdelantos, RepositorioAdelantos>();
+builder.Services.AddScoped<ConsultarDetalleAdelanto>();
+builder.Services.AddScoped<ConsultarBeneficiarios>();
+builder.Services.AddScoped<RegistrarAdelanto>();
+builder.Services.AddScoped<ConsultarAdelantos>();
+builder.Services.AddScoped<ConsultarPersonasConAdelantos>();
+builder.Services.AddScoped<AprobarAdelanto>();
+builder.Services.AddScoped<RechazarAdelanto>();
+builder.Services.AddScoped<AnularAdelanto>();
+
 // El adjunto se corta en 10 MB (FR-015a). Rechazarlo acá evita leer en memoria un cuerpo enorme
 // antes de descartarlo; el margen extra cubre los otros campos del formulario.
 builder.Services.Configure<FormOptions>(opciones =>
@@ -296,7 +311,10 @@ builder.Services.AddAuthorization(opciones =>
         CodigosPermiso.FacturacionAnular,
         // Módulo 9: se mira con `consultar` y se opera con `gestionar`, anular incluido (FR-063).
         CodigosPermiso.LiquidacionesGestionar,
-        CodigosPermiso.LiquidacionesConsultar));
+        CodigosPermiso.LiquidacionesConsultar,
+        // Módulo 10: el mismo reparto que el 9; aprobar no lleva permiso aparte (FR-022, FR-041).
+        CodigosPermiso.AdelantosGestionar,
+        CodigosPermiso.AdelantosConsultar));
 
 builder.Services.Configure<JsonOptions>(opciones =>
     opciones.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
@@ -375,6 +393,11 @@ app.MapearFacturas();
 app.MapearArmadoDeLiquidaciones();
 app.MapearCicloDeVidaDeLiquidaciones();
 app.MapearLiquidaciones();
+
+// Módulo 10. Lo que hace alcanzables `/beneficiarios` y `/personas` es la restricción `{id:int}` de los
+// dos grupos (convención [005]).
+app.MapearCicloDeVidaDeAdelantos();
+app.MapearAdelantos();
 
 await AplicarMigracionesYSembrarAsync(app);
 

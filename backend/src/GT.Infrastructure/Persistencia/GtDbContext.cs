@@ -1,3 +1,4 @@
+using GT.Domain.Adelantos;
 using GT.Domain.Choferes;
 using GT.Domain.Facturacion;
 using GT.Domain.Flota;
@@ -87,6 +88,16 @@ public class GtDbContext(DbContextOptions<GtDbContext> opciones) : DbContext(opc
     public DbSet<CambioDeLiquidacion> CambiosDeLiquidacion => Set<CambioDeLiquidacion>();
 
     public DbSet<CambioDeLiquidacionViaje> CambiosDeLiquidacionViajes => Set<CambioDeLiquidacionViaje>();
+
+    // ── Módulo 10: gestión de adelantos de sueldo ──────────────────────────────────────────────
+    /// <summary>
+    /// No se borran ni se modifican: sólo cambian de estado, con un <c>UPDATE</c> condicional (Módulo 10,
+    /// research §2). Lee <c>Personas</c>, <c>Choferes</c> y <c>Transportistas</c> sin agregarles nada.
+    /// </summary>
+    public DbSet<Adelanto> Adelantos => Set<Adelanto>();
+
+    /// <summary>Historial de FR-036. Lo alimentan los casos de uso, en la misma transacción que el cambio.</summary>
+    public DbSet<CambioDeAdelanto> CambiosDeAdelanto => Set<CambioDeAdelanto>();
 
     /// <summary>
     /// Se aplica a las propiedades <c>DateTime</c> y <c>DateTime?</c> de todo el modelo. Los

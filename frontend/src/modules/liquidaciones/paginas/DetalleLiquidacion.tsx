@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import { formatearCuit } from '../../../compartido/cuit'
-import { formatearFecha, formatearInstante } from '../../../compartido/fechas'
+import { formatearFecha, formatearInstante, hoyEnIso } from '../../../compartido/fechas'
 import { formatearPesos } from '../../../compartido/moneda'
 import { AsideDeFicha, BloqueDeAside, CifraDestacada } from '../../../compartido/ui/AsideDeFicha'
 import { Boton } from '../../../compartido/ui/Boton'
@@ -433,11 +433,4 @@ function CalloutDeEstado({ liquidacion, puedeGestionar, conPagos }: CalloutProps
   }
 
   return contenido === null ? null : <div className="mb-[18px]">{contenido}</div>
-}
-
-/** Hoy en `yyyy-MM-dd`, construido con los tres números para no pasar por `new Date(iso)`. */
-function hoyEnIso(): string {
-  const hoy = new Date()
-
-  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
 }

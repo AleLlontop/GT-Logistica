@@ -120,6 +120,23 @@ describe('AltaFactura', () => {
   })
 
   /** El desplegable ofrece **sólo activos**: no se le puede facturar a un cliente de baja (FR-011). */
+  /**
+   * Módulo 10, cambio 2: la fecha de facturación propuesta es el día local. Se agregó antes de llevar la
+   * función a `compartido/fechas`, y se vio en verde con la copia local (convención [009]).
+   */
+  it('propone como fecha de facturación el día local aunque en UTC ya sea mañana', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 8, 14, 23, 30))
+
+    try {
+      renderizar()
+
+      expect(await screen.findByLabelText('Fecha de facturación')).toHaveValue('2026-09-14')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('pide sólo los clientes activos', async () => {
     renderizar()
 

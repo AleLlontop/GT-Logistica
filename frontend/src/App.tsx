@@ -43,6 +43,9 @@ import { ListadoLiquidaciones } from './modules/liquidaciones/paginas/ListadoLiq
 import { GenerarLiquidacion } from './modules/liquidaciones/paginas/GenerarLiquidacion'
 import { DetalleLiquidacion } from './modules/liquidaciones/paginas/DetalleLiquidacion'
 import { EditarLiquidacion } from './modules/liquidaciones/paginas/EditarLiquidacion'
+import { ListadoAdelantos } from './modules/adelantos/paginas/ListadoAdelantos'
+import { RegistrarAdelanto } from './modules/adelantos/paginas/RegistrarAdelanto'
+import { DetalleAdelanto } from './modules/adelantos/paginas/DetalleAdelanto'
 import {
   cerrarSesion,
   obtenerSesion,
@@ -91,6 +94,10 @@ export default function App() {
   // Módulo 9: se miran con `liquidaciones.consultar` y se operan con `liquidaciones.gestionar`, anular
   // incluido (FR-063, FR-064).
   const puedeGestionarLiquidaciones = tienePermiso(sesion, Permisos.liquidacionesGestionar)
+
+  // Módulo 10: se miran con `adelantos.consultar` y se registran, aprueban, rechazan y anulan con
+  // `adelantos.gestionar` (FR-041, FR-042).
+  const puedeGestionarAdelantos = tienePermiso(sesion, Permisos.adelantosGestionar)
 
   return (
     <BrowserRouter>
@@ -857,6 +864,63 @@ export default function App() {
                   onCerrarSesion={alCerrarSesion}
                 >
                   <EditarLiquidacion />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        {/* Rutas del Módulo 10. Las tres exigen sesión con la misma protección que el resto: sin
+            sesión llevan a `/ingresar` (FR-044). El reparto es el del servidor, que responde `403`:
+            `/adelantos` y `/adelantos/:id` se miran con `adelantos.consultar` y lo deciden con el
+            `403` de su carga; `/adelantos/nuevo` se opera con `adelantos.gestionar` y, como no carga
+            nada al abrir, lo decide con el permiso de la sesión (FR-043). La literal
+            `/adelantos/nuevo` va antes que `/:id`. */}
+        <Route
+          path="/adelantos"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <ListadoAdelantos puedeGestionar={puedeGestionarAdelantos} />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/adelantos/nuevo"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <RegistrarAdelanto puedeGestionar={puedeGestionarAdelantos} />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/adelantos/:id"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <DetalleAdelanto puedeGestionar={puedeGestionarAdelantos} />
                 </Layout>
               )}
             </RutaProtegida>

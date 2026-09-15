@@ -109,4 +109,18 @@ public static class CodigosPermiso
     /// "cuánto se le debe a cada fletero" con el listado filtrado (FR-064).
     /// </summary>
     public const string LiquidacionesConsultar = "liquidaciones.consultar";
+
+    /// <summary>
+    /// Módulo 10: registrar, aprobar, rechazar y anular adelantos, y el desplegable de beneficiarios.
+    /// Lo otorgan *Administración de la empresa* y *Administrador del sistema* (FR-042, research §7).
+    ///
+    /// Aprobar **no** lleva un permiso aparte: quien registra un adelanto puede aprobarlo (FR-022).
+    /// </summary>
+    public const string AdelantosGestionar = "adelantos.gestionar";
+
+    /// <summary>
+    /// Módulo 10: listado, detalle y las personas del filtro. Lo otorgan los dos roles anteriores **más**
+    /// Gerencia, que controla cuánto se adelanta sobre los sueldos (FR-042).
+    /// </summary>
+    public const string AdelantosConsultar = "adelantos.consultar";
 }

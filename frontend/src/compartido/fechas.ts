@@ -34,6 +34,24 @@ export function formatearInstante(iso: string): string {
   return format(parseISO(iso), FORMATO_INSTANTE)
 }
 
+/**
+ * Una fecha en `yyyy-MM-dd`, el formato con el que viaja al backend.
+ *
+ * Con el año, el mes y el día **locales** y ceros a la izquierda, **sin pasar por `toISOString()`**: eso
+ * convierte a UTC, y a las 22 en Argentina ya es el día siguiente. Tres pantallas de los Módulos 6 y 9
+ * tenían su propia copia de esto; el Módulo 10 fue la cuarta necesidad (research §10b del Módulo 10).
+ */
+export function enIso(fecha: Date): string {
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(
+    fecha.getDate(),
+  ).padStart(2, '0')}`
+}
+
+/** Hoy en `yyyy-MM-dd`, el día local de quien usa la pantalla. */
+export function hoyEnIso(): string {
+  return enIso(new Date())
+}
+
 /** El primer año con viajes cargados en el sistema. */
 const PRIMER_ANIO = 2025
 

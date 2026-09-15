@@ -12,7 +12,7 @@ import { IconoAnulado, IconoEnRegla } from '../../../compartido/ui/iconos'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
-import { formatearFecha, formatearInstante } from '../../../compartido/fechas'
+import { formatearFecha, formatearInstante, hoyEnIso } from '../../../compartido/fechas'
 import { formatearPesos } from '../../../compartido/moneda'
 import { ConfirmacionAnulacion } from '../componentes/ConfirmacionAnulacion'
 import { RegistrarCobro } from '../componentes/RegistrarCobro'
@@ -567,13 +567,4 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
  */
 function nombreDelEstado(estado: string): string {
   return NOMBRES_DE_ESTADO[estado as keyof typeof NOMBRES_DE_ESTADO] ?? estado
-}
-
-/** Hoy en `yyyy-MM-dd`, construido con los tres números para no pasar por `new Date(iso)`. */
-function hoyEnIso(): string {
-  const hoy = new Date()
-
-  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(
-    hoy.getDate(),
-  ).padStart(2, '0')}`
 }

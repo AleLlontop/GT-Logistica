@@ -89,6 +89,14 @@ public static class CatalogoOpcionesMenu
             new OpcionMenuDto("consultar-liquidacion", "Consultar liquidación", "/liquidaciones")),
         (CodigosPermiso.LiquidacionesGestionar,
             new OpcionMenuDto("generar-liquidacion", "Generar liquidación", "/liquidaciones/nueva")),
+
+        // Módulo 10. El mismo reparto que el 9: *Consultar adelanto* con el permiso de lectura y
+        // *Registrar adelanto* con el de gestión, así que Gerencia ve la primera y no la segunda (FR-041,
+        // FR-042). Los textos son los nombres del enunciado (research §7).
+        (CodigosPermiso.AdelantosConsultar,
+            new OpcionMenuDto("consultar-adelanto", "Consultar adelanto", "/adelantos")),
+        (CodigosPermiso.AdelantosGestionar,
+            new OpcionMenuDto("registrar-adelanto", "Registrar adelanto", "/adelantos/nuevo")),
     ];
 
     /// <summary>

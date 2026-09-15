@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { aniosDelPeriodo, formatearFecha, formatearInstante } from './fechas'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { aniosDelPeriodo, enIso, formatearFecha, formatearInstante, hoyEnIso } from './fechas'
 
 describe('formatearFecha', () => {
   /**
@@ -28,6 +28,26 @@ describe('formatearFecha', () => {
 describe('formatearInstante', () => {
   it('muestra la fecha con la hora', () => {
     expect(formatearInstante('2026-08-06T15:30:00Z')).toMatch(/^\d{2}\/\d{2}\/2026 \d{2}:\d{2}$/)
+  })
+})
+
+describe('enIso', () => {
+  it('arma año, mes y día locales con ceros a la izquierda', () => {
+    expect(enIso(new Date(2026, 0, 5))).toBe('2026-01-05')
+  })
+})
+
+describe('hoyEnIso', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  /** A las 23:30 en Argentina ya es el día siguiente en UTC: `toISOString()` daría el 15. */
+  it('es el día local aunque en UTC ya sea mañana', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 8, 14, 23, 30))
+
+    expect(hoyEnIso()).toBe('2026-09-14')
   })
 })
 

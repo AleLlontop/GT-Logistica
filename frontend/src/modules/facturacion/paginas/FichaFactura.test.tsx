@@ -305,6 +305,26 @@ describe('FichaFactura', () => {
   // ── La anulación (User Story 6) ─────────────────────────────────────────────────────────────
 
   /** FR-046: el botón no se habilita sin motivo escrito. */
+  /**
+   * Módulo 10, cambio 1: la fecha de cobro propuesta es el día local. Se agregó antes de llevar la función
+   * a `compartido/fechas`, y se vio en verde con la copia local (convención [009]).
+   */
+  it('propone como fecha de cobro el día local aunque en UTC ya sea mañana', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 8, 14, 23, 30))
+
+    try {
+      const usuario = userEvent.setup()
+      renderizar()
+
+      await usuario.click(await screen.findByRole('button', { name: 'Registrar cobro' }))
+
+      expect(await screen.findByLabelText('Fecha de cobro')).toHaveValue('2026-09-14')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('el diálogo de anulación no habilita el botón sin motivo', async () => {
     const usuario = userEvent.setup()
     renderizar()

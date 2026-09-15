@@ -124,6 +124,15 @@ export type CodigoError =
   | 'liquidacion_no_pagable'
   | 'pago_requiere_confirmacion'
   | 'anulacion_requiere_confirmacion'
+  // Módulo 10. `datos_invalidos`, `motivo_requerido`, `empresa_emisora_no_configurada` y
+  // `anulacion_requiere_confirmacion` ya estaban.
+  | 'fecha_fuera_de_rango'
+  | 'beneficiario_no_elegible'
+  | 'rango_invalido'
+  | 'adelanto_no_encontrado'
+  | 'adelanto_no_resoluble'
+  | 'adelanto_no_anulable'
+  | 'rechazo_requiere_confirmacion'
 
 /** Estados posibles de una cuenta (FR-005). */
 export type EstadoUsuario = 'activo' | 'inactivo' | 'bloqueado'

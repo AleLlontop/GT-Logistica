@@ -42,6 +42,13 @@ export const Permisos = {
    */
   liquidacionesGestionar: 'liquidaciones.gestionar',
   liquidacionesConsultar: 'liquidaciones.consultar',
+
+  /**
+   * Módulo 10. El mismo reparto que el 9: se mira con `consultar` y se registra, aprueba, rechaza y
+   * anula con `gestionar` (FR-041, FR-042).
+   */
+  adelantosGestionar: 'adelantos.gestionar',
+  adelantosConsultar: 'adelantos.consultar',
 } as const
 
 export function tienePermiso(sesion: Sesion | null, codigo: string): boolean {
