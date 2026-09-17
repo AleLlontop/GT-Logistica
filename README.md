@@ -1,55 +1,57 @@
 # Sistema Integral de Gestión — G&T Logística
 
 Aplicación web para que G&T Logística administre su flujo organizacional: viajes, facturación,
-liquidaciones y flota.
+liquidaciones, adelantos de sueldo y flota.
 
-## Estado de los módulos
+## Requisitos previos
 
-| Módulo | Estado | Qué hay hoy |
-|---|---|---|
-| [1. Autenticación de usuarios](specs/001-autenticacion-usuarios/) | Implementado | Ingreso con cookie de sesión, permisos revalidados por petición, límite de intentos fallidos y menú calculado en el servidor |
-| [2. Gestión de usuarios y roles](specs/002-gestion-usuarios-roles/) | Implementado | ABM de usuarios, asignación de roles, restablecimiento de contraseña y padrón de personas |
-| [3. Gestión de choferes y su documentación](specs/003-gestion-choferes/) | Implementado | CRUDS de transportistas, choferes, documentación , listado con filtros y paginación, panel de vencimientos, catálogo de tipos y bajas.|
-| [4. Gestión de flota](specs/004-gestion-flota/) | Implementado | Padrón de vehículos con su transportista dueño, documentación con estado calculado, estado operativo derivado, listado con filtros y paginación, panel de vencimientos, catálogo de tipos de vehículo, bajas y reactivaciones |
-| [5. Gestión de viajes](specs/005-gestion-viajes/) | Implementado | Padrón de clientes, alta de viajes con chofer y vehículo validados contra su documentación **a la fecha del viaje**, ciclo pendiente → en curso → rendido / anulado con historial de quién y cuándo, unidad ocupada mientras el viaje está en curso, listado con filtros y paginación, y totales de cantidad e importe por cliente y por transportista en un período |
-| [6. Gestión de facturación](specs/006-gestion-facturacion/) | Implementado | Configuración de la empresa emisora con su logo, emisión agrupando viajes rendidos de un cliente y período con neto / IVA / total calculados, vista previa y documento PDF generado por el sistema, CAE y su vencimiento, estados pendiente / vencida / pagada / anulada con registro del cobro, anulación con motivo que devuelve los viajes a rendido, refacturación, listado con filtros, panel de vencimientos y totales facturado / cobrado / pendiente |
+- **Docker y Docker Compose** — levantan SQL Server, backend y frontend. En Windows o Mac, Docker
+  Desktop tiene que estar corriendo
+- **Node.js 24** y npm — para trabajar el frontend fuera de los contenedores (el `package.json`
+  exige `>=24 <25`)
+- **.NET 10 SDK** — para correr los tests del backend fuera de los contenedores
 
+## Guía de instalación y ejecución
 
-> Los identificadores de tarea (`T059`, `T123`, …) **se numeran desde uno en cada módulo**, así que
-> el mismo ID significa cosas distintas en cada `tasks.md`. Cuando haga falta nombrar uno, va con su
-> carpeta: `[001] T059`.
+### Usando Docker Compose (recomendado)
 
-El estado completo está en [specs/README.md](specs/README.md), y el detalle tarea por tarea en el
-`tasks.md` de cada carpeta de `specs/`.
+1. **Clonar el repositorio:**
 
-## Levantar el sistema
+   ```bash
+   git clone <url-del-repositorio>
+   cd gt-logistica
+   ```
 
-La primera vez hay que definir dos contraseñas.
+2. **Definir las dos contraseñas** (sólo la primera vez):
 
-```bash
-cp .env.template .env    # y completá las dos variables
-podman compose up -d     # SQL Server + backend + frontend
-```
+   ```bash
+   cp .env.template .env    # y completá GT_SQL_PASSWORD y GT_ADMIN_PASSWORD_INICIAL
+   ```
 
-La aplicación queda en `http://localhost:5173`. Al arrancar, el backend aplica las migraciones y
-crea el catálogo de roles y permisos junto con el usuario `admin`.
+3. **Levantar los servicios:**
 
-### Si ya tenés Docker instalado
+   ```bash
+   docker compose up -d --build
+   ```
 
-No hace falta instalar Podman: el `docker-compose.yml` es uno solo y usa sólo sintaxis estándar de
-Compose, así que corre igual en los dos. Cambiá `podman` por `docker` y listo.
+¡Eso es todo! Docker instala las dependencias, crea la base y corre los tres servicios. La primera
+vez, el backend aplica las migraciones, siembra el catálogo de roles y permisos y crea el usuario
+`admin`.
 
-```bash
-cp .env.template .env    # y completá las dos variables
-docker compose up -d     # SQL Server + backend + frontend
-```
+- **Frontend:** http://localhost:5173
+- **API (backend):** http://localhost:8080
+- **SQL Server:** `localhost,1433`
 
-Con Docker Compose V1 —el binario viejo, separado— el comando es `docker-compose up -d`. En Windows
-o Mac, Docker Desktop tiene que estar corriendo antes.
+Para detener los contenedores: `docker compose down`. Si corre sin `-d`, alcanza con `Ctrl+C`.
 
-Los comandos del día a día son los mismos con el prefijo cambiado:
+| Variable | Para qué sirve |
+|---|---|
+| `GT_ADMIN_PASSWORD_INICIAL` | Contraseña del administrador inicial. Obligatoria **sólo mientras el usuario `admin` no exista**: una vez creado podés borrarla, porque la contraseña ya vive hasheada en la base |
+| `GT_SQL_PASSWORD` | Contraseña de `sa` en el SQL Server de desarrollo |
 
-| Para qué | Con Docker |
+Los comandos del día a día:
+
+| Para qué | Comando |
 |---|---|
 | Levantar | `docker compose up -d` |
 | Ver los logs del backend | `docker compose logs -f backend` |
@@ -65,15 +67,29 @@ Los puertos que quedan tomados son el `5173` (frontend), el `8080` (backend) y e
 Server). Si alguno está ocupado —por ejemplo un SQL Server instalado en la máquina—, el `up` falla
 al publicarlo.
 
-| Variable | Para qué sirve |
-|---|---|
-| `GT_ADMIN_PASSWORD_INICIAL` | Contraseña del administrador inicial. Obligatoria **sólo mientras el usuario `admin` no exista**: una vez creado podés borrarla, porque la contraseña ya vive hasheada en la base |
-| `GT_SQL_PASSWORD` | Contraseña de `sa` en el SQL Server de desarrollo |
-
 Si falta `GT_ADMIN_PASSWORD_INICIAL` justo cuando hacía falta crear el administrador, el backend se
-detiene con un mensaje explicando qué falta. 
+detiene con un mensaje explicando qué falta.
 
-De ahí en más alcanza con `podman compose up -d`.
+## Estado de los módulos
+
+| Módulo | Estado | Qué hay hoy |
+|---|---|---|
+| [1. Autenticación de usuarios](specs/001-autenticacion-usuarios/) | Implementado | Ingreso con cookie de sesión, permisos revalidados por petición, límite de intentos fallidos y menú calculado en el servidor |
+| [2. Gestión de usuarios y roles](specs/002-gestion-usuarios-roles/) | Implementado | ABM de usuarios, asignación de roles, restablecimiento de contraseña y padrón de personas |
+| [3. Gestión de choferes y su documentación](specs/003-gestion-choferes/) | Implementado | CRUDS de transportistas, choferes, documentación , listado con filtros y paginación, panel de vencimientos, catálogo de tipos y bajas.|
+| [4. Gestión de flota](specs/004-gestion-flota/) | Implementado | Padrón de vehículos con su transportista dueño, documentación con estado calculado, estado operativo derivado, listado con filtros y paginación, panel de vencimientos, catálogo de tipos de vehículo, bajas y reactivaciones |
+| [5. Gestión de viajes](specs/005-gestion-viajes/) | Implementado | Padrón de clientes, alta de viajes con chofer y vehículo validados contra su documentación **a la fecha del viaje**, ciclo pendiente → en curso → rendido / anulado con historial de quién y cuándo, unidad ocupada mientras el viaje está en curso, listado con filtros y paginación, y totales de cantidad e importe por cliente y por transportista en un período |
+| [6. Gestión de facturación](specs/006-gestion-facturacion/) | Implementado | Configuración de la empresa emisora con su logo, emisión agrupando viajes rendidos de un cliente y período con neto / IVA / total calculados, vista previa y documento PDF generado por el sistema, CAE y su vencimiento, estados pendiente / vencida / pagada / anulada con registro del cobro, anulación con motivo que devuelve los viajes a rendido, refacturación, listado con filtros, panel de vencimientos y totales facturado / cobrado / pendiente |
+| [9. Liquidación a transportistas](specs/009-gestion-liquidacion/) | Implementado | Liquidación mensual a fleteros agrupando los viajes rendidos del período, un viaje en una sola liquidación, detalle de los viajes que la componen y las órdenes de pago que la cancelan, estados pendiente / pagada / anulada y listado con filtros combinables |
+| [10. Gestión de adelantos de sueldo](specs/010-gestion-adelantos/) | Implementado | Registro de adelantos a choferes propios y empleados, circuito pendiente → aprobado / rechazado con motivo y anulación confirmada, listado con filtros por persona, rango de fechas y estado, total adelantado de la selección e historial de quién hizo qué y cuándo |
+
+
+> Los identificadores de tarea (`T059`, `T123`, …) **se numeran desde uno en cada módulo**, así que
+> el mismo ID significa cosas distintas en cada `tasks.md`. Cuando haga falta nombrar uno, va con su
+> carpeta: `[001] T059`.
+
+El estado completo está en [specs/README.md](specs/README.md), y el detalle tarea por tarea en el
+`tasks.md` de cada carpeta de `specs/`.
 
 ## Probar
 
@@ -104,7 +120,9 @@ frontend/src/
 │   ├── choferes/           Choferes, transportistas y documentación
 │   ├── flota/              Vehículos, tipos de vehículo y su documentación
 │   ├── viajes/             Viajes, clientes y totales por cliente y transportista
-│   └── facturacion/        Facturas, empresa emisora y totales facturado/cobrado
+│   ├── facturacion/        Facturas, empresa emisora y totales facturado/cobrado
+│   ├── liquidaciones/      Liquidaciones a transportistas y órdenes de pago
+│   └── adelantos/          Adelantos de sueldo a choferes y empleados
 └── compartido/             Layout, menú y cliente HTTP
 
 specs/                      Una carpeta por módulo: spec, plan y tareas
@@ -124,18 +142,18 @@ extensión de git y todas las `specs/`—; lo que genera Spec Kit para una IA en
 que después de clonar, una vez:
 
 ```bash
-specify init --here --ai <claude | copilot | cursor | gemini | …>
+specify init --here --integration <claude | copilot | cursor | gemini | opencode | …>
 ```
 
-Eso te crea tus comandos (`.claude/`, `.github/prompts/`, `.cursor/commands/`, según cuál elijas) sin
-tocar los de nadie. En Linux o Mac agregá `--script sh`: hoy sólo están generados los scripts de
-PowerShell.
+Eso te crea tus comandos (`.claude/`, `.github/prompts/`, `.cursor/commands/`, `.opencode/`, según
+cuál elijas) sin tocar los de nadie. En Linux o Mac agregá `--script sh`: hoy sólo están generados
+los scripts de PowerShell.
 
 Las instrucciones del proyecto para asistentes están en [AGENTS.md](AGENTS.md), que sí se versiona.
 Si tu herramienta busca otro nombre, creá el archivo que espera con una sola línea que lo importe
 —por ejemplo un `CLAUDE.md` con `@AGENTS.md`— y quedará ignorado por git.
 
-Dos decisiones del Módulo 1 que conviene conocer antes de tocar el código:
+Una decision del Módulo 1 que conviene conocer antes de tocar el código:
 
 - **La sesión es una cookie, no un token.** Los permisos se recalculan contra la base en cada
   petición, así que quitarle un rol a alguien con la sesión abierta surte efecto en su operación

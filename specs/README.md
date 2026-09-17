@@ -17,17 +17,17 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 | [006 — Gestión de facturación](006-gestion-facturacion/) | Implementado y validado | 125 / 125 |
 | [007 — Rediseño de la aplicación](007-diseno-interfaz/) | Implementado, **falta la validación manual** | 110 / 126 |
 | [008 — Adopción del sistema de diseño gt-ui](008-diseno-gt-ui/) | Implementado, **falta la validación manual** | 132 / 144 |
-| [009 — Liquidación a transportistas](009-gestion-liquidacion/) | Implementado, **falta la validación manual** | 104 / 105 |
-| [010 — Gestión de adelantos de sueldo](010-gestion-adelantos/) | Implementado, **falta la validación manual** | 92 / 93 |
+| [009 — Liquidación a transportistas](009-gestion-liquidacion/) | Implementado y validado | 105 / 105 |
+| [010 — Gestión de adelantos de sueldo](010-gestion-adelantos/) | Implementado y validado | 93 / 93 |
 
 ## Qué queda abierto
 
 **Módulo 10.** Implementado con backend, base y frontend completos: **36 tests unitarios** del módulo —la
 tabla entera de elegibilidad y el piso de la fecha cruzando el año— y **86 de integración** —con las dos
 carreras, cada `CHECK` violado de a uno y los tres cambios de estado invocados directamente—, más **55 de
-frontend** del módulo. La suite entera de backend y de frontend en verde, con build y lint limpios. Falta
-**el recorrido manual de los 43 pasos del quickstart (T091)** con las cuatro cuentas y los dos pasos de dos
-navegadores (13 y 20).
+frontend** del módulo. La suite entera de backend y de frontend en verde, con build y lint limpios. El
+recorrido manual de los 43 pasos del quickstart (T091) se hizo con las cuatro cuentas, incluidos los dos
+pasos de dos navegadores (13 y 20).
 
 Cuatro cosas anotadas, ninguna bloqueante:
 
@@ -44,8 +44,8 @@ Cuatro cosas anotadas, ninguna bloqueante:
 
 **Módulo 9.** Implementado con backend, base y frontend completos: **118 tests de backend** del módulo
 —29 unitarios y 89 de integración, incluidas las cuatro carreras— y la suite entera de frontend en verde,
-con build y lint limpios. Falta **el recorrido manual de los 43 pasos del quickstart (T102)** con las
-cuatro cuentas y los dos pasos de dos navegadores (15 y 25).
+con build y lint limpios. El recorrido manual de los 43 pasos del quickstart (T102) se hizo con las
+cuatro cuentas, incluidos los dos pasos de dos navegadores (15 y 25).
 
 Tres cosas anotadas, ninguna bloqueante:
 
