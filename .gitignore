@@ -52,7 +52,9 @@ GEMINI.md
 # Adjuntos de la documentación de choferes (Módulo 3).
 # El volumen vive fuera del repositorio a propósito: un psicofísico o una licencia son datos
 # personales sensibles y no se versionan (FR-024, research §3).
-archivos/
+# Anclado a la raíz con `/`: sin ella el patrón también ignora `backend/src/GT.Api/Archivos/`,
+# que es código fuente (ResultadoArchivo), no el volumen.
+/archivos/
 
 # `podman machine ssh` escribe acá su known_hosts: pasa NUL como dispositivo nulo de
 # Windows y Git Bash lo crea como archivo. Git no puede indexar un nombre reservado.
