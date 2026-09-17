@@ -36,6 +36,7 @@ Thumbs.db
 .github/prompts/
 .cursor/
 .gemini/
+.opencode/
 .windsurf/
 .specify/init-options.json
 .specify/integration.json
