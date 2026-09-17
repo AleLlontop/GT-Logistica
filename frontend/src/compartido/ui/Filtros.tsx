@@ -64,5 +64,5 @@ export function FranjaDeBusqueda({ children }: { children: ReactNode }) {
 
 /** La franja del medio: los filtros, como desplegables compactos que muestran su valor actual. */
 export function FranjaDeFiltros({ children }: { children: ReactNode }) {
-  return <div className="flex flex-wrap items-end gap-3.5">{children}</div>
+  return <div className="flex flex-wrap items-start gap-3.5">{children}</div>
 }

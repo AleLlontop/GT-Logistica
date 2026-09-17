@@ -160,6 +160,33 @@
   }
 
   /*
+   * Ícono de alerta para los mensajes de error de campo.
+   * Se agrega como pseudo-elemento para que todos los formularios del sistema lo hereden
+   * automáticamente sin modificar su HTML.
+   */
+  .campo__error {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 0.25rem;
+    font-size: 11.5px;
+    font-weight: 500; /* font-medium */
+    color: var(--color-danger-text);
+    white-space: nowrap; /* en un renglón */
+  }
+
+  .campo__error::before {
+    content: '';
+    display: inline-block;
+    width: 12.5px;
+    height: 12.5px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c13a3e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4'/%3E%3Cpath d='M12 16h.01'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    flex-shrink: 0;
+  }
+
+  /*
    * Cifras tabulares en todo el sistema. Es lo que sostiene FR-039: que los importes de una columna
    * se comparen en vertical con los separadores de miles y decimales en la misma línea. No depende
    * de que la fuente propia cargue.

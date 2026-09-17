@@ -37,7 +37,7 @@ describe('DialogoOrdenDePago', () => {
     renderizar()
 
     expect(screen.getByLabelText('Fecha de pago')).toHaveValue('2026-09-20')
-    expect(screen.getByLabelText('Importe')).toHaveValue('155000,00')
+    expect(screen.getByLabelText('Importe')).toHaveValue('155.000,00')
     expect(screen.getByText('LQ-12 · Transportes Díaz · Resta pagar $ 155.000,00')).toBeInTheDocument()
   })
 
@@ -93,7 +93,7 @@ describe('DialogoOrdenDePago', () => {
 
     await usuario.click(screen.getByRole('button', { name: 'Volver' }))
 
-    expect(screen.getByLabelText('Importe')).toHaveValue('100000')
+    expect(screen.getByLabelText('Importe')).toHaveValue('100.000')
   })
 
   it('dice que la liquidación queda pagada cuando corresponde', async () => {

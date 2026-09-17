@@ -1,10 +1,11 @@
 import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
 import { estilosDeBoton } from '../../../compartido/ui/clases'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { Aviso } from '../../../compartido/ui/Aviso'
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
-import { IconoEnRegla } from '../../../compartido/ui/iconos'
-import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
+import { IconoEnRegla, IconoVolver } from '../../../compartido/ui/iconos'
+import { clasesDeFormularioAgrupado, clasesDeBoton, clasesDeCirculoDeVolver } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -15,6 +16,7 @@ import {
   obtenerChofer,
   type ChoferDetalle,
 } from '../servicios/servicioChoferes'
+import { CodigosError } from '../servicios/api'
 import { listarTransportistas, type Transportista } from '../transportistas/servicioTransportistas'
 
 /** Errores de formato por campo. */
@@ -147,6 +149,10 @@ export function FormularioChofer() {
     setDatos((previos) => ({ ...previos, [campo]: valor }))
   }
 
+  function classNameCampo(campo: keyof ErroresDeCampo) {
+    return `campo ${errores[campo] ? 'con-error' : ''}`
+  }
+
   function validarEnPantalla(): ErroresDeCampo {
     const encontrados: ErroresDeCampo = {}
 
@@ -209,7 +215,17 @@ export function FormularioChofer() {
       if (fallo instanceof ErrorHttp) {
         const campo = fallo.detalle.campo
 
-        if (campo !== undefined && CAMPOS_DEL_FORMULARIO.includes(campo)) {
+        if (fallo.detalle.codigo === CodigosError.datosInvalidos) {
+          setErrorGeneral(fallo.detalle.mensaje)
+          if (campo !== undefined && CAMPOS_DEL_FORMULARIO.includes(campo)) {
+            setErrores({
+              [campo]:
+                campo === 'cuil'
+                  ? 'El CUIL no corresponde con el DNI ingresado.'
+                  : 'Valor inválido o requerido.',
+            })
+          }
+        } else if (campo !== undefined && CAMPOS_DEL_FORMULARIO.includes(campo)) {
           setErrores({ [campo]: fallo.detalle.mensaje })
         } else {
           setErrorGeneral(fallo.detalle.mensaje)
@@ -260,14 +276,24 @@ export function FormularioChofer() {
     <section>
       <EncabezadoDePantalla titulo={titulo} />
 
-      {registrado !== null && (
-        <div role="status">
-          <p>
+      <Aviso tono="exito" rol="status" className="mb-4">
+        {registrado !== null && (
+          <p className="m-0">
             {registrado.reutilizoPersona
               ? `El chofer ${registrado.apellido}, ${registrado.nombre} se registró correctamente, reutilizando la persona que ya estaba en el padrón.`
               : `El chofer ${registrado.apellido}, ${registrado.nombre} se registró correctamente.`}
           </p>
-          <Link to="/choferes">Volver al listado de choferes</Link>
+        )}
+      </Aviso>
+
+      {registrado !== null && (
+        <div className="mb-6">
+          <Link to="/choferes" className={clasesDeBoton('terciario')}>
+            <span aria-hidden="true" className={clasesDeCirculoDeVolver}>
+              <IconoVolver className="size-3 text-muted" />
+            </span>
+            Volver al listado de choferes
+          </Link>
         </div>
       )}
 
@@ -283,7 +309,7 @@ export function FormularioChofer() {
           titulo="Identidad"
           explicacion="El CUIL tiene que coincidir con el DNI."
         >
-          <div className="campo max-w-campo-corto">
+          <div className={`${classNameCampo('dni')} max-w-campo-corto`}>
             <label htmlFor="dni">DNI</label>
             <input
               id="dni"
@@ -304,7 +330,7 @@ export function FormularioChofer() {
             )}
           </div>
 
-          <div className="campo max-w-campo-medio">
+          <div className={`${classNameCampo('nombre')} max-w-campo-medio`}>
             <label htmlFor="nombre">Nombre</label>
             <input
               id="nombre"
@@ -323,7 +349,7 @@ export function FormularioChofer() {
             )}
           </div>
 
-          <div className="campo max-w-campo-medio">
+          <div className={`${classNameCampo('apellido')} max-w-campo-medio`}>
             <label htmlFor="apellido">Apellido</label>
             <input
               id="apellido"
@@ -342,7 +368,7 @@ export function FormularioChofer() {
             )}
           </div>
 
-          <div className="campo max-w-campo-corto">
+          <div className={`${classNameCampo('fechaNacimiento')} max-w-campo-corto`}>
             <label htmlFor="fechaNacimiento">Fecha de nacimiento</label>
             <input
               id="fechaNacimiento"
@@ -363,7 +389,7 @@ export function FormularioChofer() {
             )}
           </div>
 
-          <div className="campo max-w-campo-corto">
+          <div className={`${classNameCampo('cuil')} max-w-campo-corto`}>
             <label htmlFor="cuil">CUIL</label>
             <input
               id="cuil"
@@ -388,7 +414,7 @@ export function FormularioChofer() {
           numero={2}
           titulo="Contacto"
         >
-          <div className="campo max-w-campo-medio">
+          <div className={`${classNameCampo('telefono')} max-w-campo-medio`}>
             <label htmlFor="telefono">Teléfono</label>
             <input
               id="telefono"
@@ -408,7 +434,7 @@ export function FormularioChofer() {
             )}
           </div>
 
-          <div className="campo max-w-campo-medio">
+          <div className={`${classNameCampo('email')} max-w-campo-medio`}>
             <label htmlFor="email">Email</label>
             <input
               id="email"
@@ -434,7 +460,7 @@ export function FormularioChofer() {
           titulo="Dependencia"
           explicacion="De qué transportista depende."
         >
-          <div className="campo max-w-campo-largo">
+          <div className={`${classNameCampo('transportistaId')} max-w-campo-largo`}>
             <label htmlFor="transportistaId">Transportista</label>
             <select
               id="transportistaId"

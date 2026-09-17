@@ -22,6 +22,7 @@ import {
   obtenerVehiculo,
   type VehiculoEstado,
 } from '../servicios/servicioFlota'
+import { CodigosErrorFlota } from '../servicios/api'
 
 const MENSAJE_SIN_TIPOS =
   'Todavía no hay ningún tipo de vehículo cargado. Pedile al administrador que cargue al menos uno ' +
@@ -73,6 +74,10 @@ export function FormularioVehiculo() {
   const [errores, setErrores] = useState<Record<string, string>>({})
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
+
+  function classNameCampo(campo: string) {
+    return `campo ${errores[campo] ? 'con-error' : ''}`
+  }
 
   // Los selectores ofrecen **sólo lo activo**: un tipo o un transportista dado de baja no se puede
   // elegir (FR-005, FR-008a, FR-011).
@@ -162,8 +167,15 @@ export function FormularioVehiculo() {
     } catch (fallo) {
       // Nada se limpia: lo tipeado tiene que seguir en pantalla para poder corregir y reintentar.
       if (fallo instanceof ErrorHttp) {
-        if (fallo.detalle.campo !== undefined) {
-          setErrores({ [fallo.detalle.campo]: fallo.detalle.mensaje })
+        const campo = fallo.detalle.campo
+
+        if (fallo.detalle.codigo === CodigosErrorFlota.datosInvalidos) {
+          setErrorGeneral(fallo.detalle.mensaje)
+          if (campo !== undefined) {
+            setErrores({ [campo]: 'Valor inválido o requerido.' })
+          }
+        } else if (campo !== undefined) {
+          setErrores({ [campo]: fallo.detalle.mensaje })
         } else {
           setErrorGeneral(fallo.detalle.mensaje)
         }
@@ -237,7 +249,7 @@ export function FormularioVehiculo() {
           titulo="Identificación"
           explicacion="La patente no se puede editar después de guardar."
         >
-          <div className="campo">
+          <div className={`${classNameCampo('patente')} max-w-campo-corto`}>
             <label htmlFor="patente">Patente</label>
             <input
               id="patente"
@@ -261,7 +273,7 @@ export function FormularioVehiculo() {
             )}
           </div>
 
-          <div className="campo max-w-campo-medio">
+          <div className={`${classNameCampo('marca')} max-w-campo-medio`}>
             <label htmlFor="marca">Marca</label>
             <input
               id="marca"
@@ -279,7 +291,7 @@ export function FormularioVehiculo() {
             )}
           </div>
 
-          <div className="campo max-w-campo-medio">
+          <div className={`${classNameCampo('modelo')} max-w-campo-medio`}>
             <label htmlFor="modelo">Modelo</label>
             <input
               id="modelo"
@@ -297,7 +309,7 @@ export function FormularioVehiculo() {
             )}
           </div>
 
-          <div className="campo max-w-campo-medio">
+          <div className={`${classNameCampo('tipoVehiculoId')} max-w-campo-medio`}>
             <label htmlFor="tipoVehiculoId">Tipo de vehículo</label>
             <select
               id="tipoVehiculoId"
@@ -327,7 +339,7 @@ export function FormularioVehiculo() {
           numero={2}
           titulo="Dependencia y estado"
         >
-          <div className="campo max-w-campo-largo">
+          <div className={`${classNameCampo('transportistaId')} max-w-campo-largo`}>
             <label htmlFor="transportistaId">Transportista</label>
             <select
               id="transportistaId"
@@ -352,11 +364,10 @@ export function FormularioVehiculo() {
             )}
           </div>
 
-          <div className="campo">
+          <div className={`${classNameCampo('estadoOperativo')} max-w-campo-medio`}>
             <label htmlFor="estadoOperativo">Estado operativo</label>
             <select
               id="estadoOperativo"
-              className="max-w-campo-medio"
               value={estadoOperativo}
               onChange={(evento) => setEstadoOperativo(evento.target.value as VehiculoEstado)}
               required

@@ -207,8 +207,6 @@ export const clasesDeFormulario = cn(
   '[&_.con-error_input]:border-danger [&_.con-error_input]:bg-danger-bg',
   '[&_.con-error_select]:border-danger [&_.con-error_select]:bg-danger-bg',
   '[&_.con-error_textarea]:border-danger [&_.con-error_textarea]:bg-danger-bg',
-  '[&_.campo__error]:text-[11.5px] [&_.campo__error]:font-medium',
-  '[&_.campo__error]:text-danger-text',
   '[&_.formulario__error]:rounded-card [&_.formulario__error]:border',
   '[&_.formulario__error]:border-line [&_.formulario__error]:bg-danger-bg',
   '[&_.formulario__error]:px-[18px] [&_.formulario__error]:py-4',

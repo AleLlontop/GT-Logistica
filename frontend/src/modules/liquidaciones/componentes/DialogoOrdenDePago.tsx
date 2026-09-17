@@ -7,6 +7,7 @@ import { clasesDeAvisoDePantalla, clasesDeFormulario } from '../../../compartido
 import { cn } from '../../../compartido/ui/cn'
 import { Dialogo } from '../../../compartido/ui/Dialogo'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { InputImporte } from '../../../compartido/ui/InputImporte'
 import {
   detalleDeError,
   type ConfirmacionDePago,
@@ -18,7 +19,7 @@ import {
 const PARA_EL_CAMPO = new Intl.NumberFormat('es-AR', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
-  useGrouping: false,
+  useGrouping: true,
 })
 
 const MENSAJE_INESPERADO = 'Ocurrió un problema inesperado. Volvé a intentar en unos minutos.'
@@ -38,7 +39,8 @@ interface Props {
 
 /** `155000,50` → `155000.5`; `null` si no es un importe con hasta dos decimales. */
 function leerImporte(texto: string): number | null {
-  const normalizado = texto.trim().replace(',', '.')
+  const sinPuntos = texto.replace(/\./g, '')
+  const normalizado = sinPuntos.trim().replace(',', '.')
 
   return /^\d+(\.\d{1,2})?$/.test(normalizado) ? Number(normalizado) : null
 }
@@ -168,14 +170,11 @@ export function DialogoOrdenDePago({
             <p id="ayuda-importe" className="m-0 text-[11.5px] text-faint">
               Hasta {formatearPesos(restaPagar)}.
             </p>
-            <input
+            <InputImporte
               id="importe"
-              type="text"
-              inputMode="decimal"
               required
-              className="text-right"
               value={importeTexto}
-              onChange={(evento) => setImporteTexto(evento.target.value)}
+              onChange={(valor) => setImporteTexto(valor)}
               onBlur={() => tocar('importe')}
               aria-invalid={visible('importe', errorDeImporte) !== null}
               aria-describedby="ayuda-importe"

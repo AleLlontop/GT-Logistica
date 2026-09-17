@@ -9,6 +9,7 @@ import { clasesDeAvisoDePantalla, clasesDeFormularioAgrupado } from '../../../co
 import { cn } from '../../../compartido/ui/cn'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { InputImporte } from '../../../compartido/ui/InputImporte'
 import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
 import {
   CodigosErrorAdelantos,
@@ -43,7 +44,8 @@ type Campo = 'tipo' | 'personaId' | 'fecha' | 'motivo' | 'importe'
  * dos decimales o mal escrito, el formato (contracts/README §Errores de campo).
  */
 function leerImporte(texto: string): { valor: number } | { error: string } {
-  const normalizado = texto.trim().replace(',', '.')
+  const sinPuntos = texto.replace(/\./g, '')
+  const normalizado = sinPuntos.trim().replace(',', '.')
 
   if (normalizado === '') return { error: IMPORTE_REQUERIDO }
   if (!/^-?\d+(\.\d+)?$/.test(normalizado)) return { error: IMPORTE_MAL_ESCRITO }
@@ -356,15 +358,12 @@ function FormularioDeAdelanto() {
           </CampoDeAdelanto>
 
           <CampoDeAdelanto id="importe" etiqueta="Importe" ancho="max-w-campo-corto" error={visible('importe')}>
-            <input
+            <InputImporte
               id="importe"
-              type="text"
-              inputMode="decimal"
               required
-              className="text-right"
-              placeholder="150000,00"
+              placeholder="150.000,00"
               value={importeTexto}
-              onChange={(evento) => setImporteTexto(evento.target.value)}
+              onChange={(valor) => setImporteTexto(valor)}
               onBlur={() => tocar('importe')}
               aria-invalid={visible('importe') !== null}
               aria-describedby={visible('importe') !== null ? 'error-importe' : undefined}

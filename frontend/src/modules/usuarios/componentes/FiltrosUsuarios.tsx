@@ -98,14 +98,18 @@ export function FiltrosUsuarios({ valor, onCambio, resumen }: Props) {
           </select>
         </div>
 
-        <Boton
-          variante="secundario"
-          tamanio="chico"
-          className="self-end"
-          onClick={() => onCambio(FILTROS_VACIOS)}
-        >
-          Limpiar filtros
-        </Boton>
+        <div className="flex flex-col gap-1.5">
+          <label className={clasesDeEtiquetaDeFiltro + ' invisible'} aria-hidden="true">
+            Limpiar
+          </label>
+          <Boton
+            variante="secundario"
+            tamanio="chico"
+            onClick={() => onCambio(FILTROS_VACIOS)}
+          >
+            Limpiar filtros
+          </Boton>
+        </div>
       </FranjaDeFiltros>
     </ContenedorDeFiltros>
   )

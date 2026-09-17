@@ -31,3 +31,16 @@ export function formatearPesos(importe: number): string {
   // para que lo que se ve sea también lo que un test puede escribir.
   return FORMATEADOR.format(importe).replace(/ /g, ' ')
 }
+
+const FORMATEADOR_CAMPO = new Intl.NumberFormat('es-AR', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+  useGrouping: true,
+})
+
+/**
+ * Un importe formateado para rellenar un campo numérico: `1.240.000,00`.
+ */
+export function formatearParaCampo(importe: number): string {
+  return FORMATEADOR_CAMPO.format(importe)
+}

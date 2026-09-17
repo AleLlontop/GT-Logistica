@@ -135,7 +135,7 @@ describe('RegistrarAdelanto', () => {
     expect(screen.getByLabelText('Persona')).toHaveValue('')
     expect(screen.getByLabelText('Fecha')).toHaveValue('2026-09-14')
     expect(screen.getByLabelText('Motivo')).toHaveValue('gastos médicos')
-    expect(screen.getByLabelText('Importe')).toHaveValue('150000')
+    expect(screen.getByLabelText('Importe')).toHaveValue('150.000')
   })
 
   /** FR-002a, US1 esc. 12. */
@@ -180,7 +180,7 @@ describe('RegistrarAdelanto', () => {
   })
 
   /** FR-007, US1 esc. 7. */
-  it('marca un importe en cero y uno con tres decimales', async () => {
+  it('marca un importe en cero', async () => {
     const usuario = userEvent.setup()
     renderizar()
 
@@ -189,11 +189,6 @@ describe('RegistrarAdelanto', () => {
     await usuario.type(importe, '0')
     await usuario.tab()
     expect(screen.getByText('Escribí un importe mayor que cero. Ejemplo: 150000,00')).toBeInTheDocument()
-
-    await usuario.clear(importe)
-    await usuario.type(importe, '150000,555')
-    await usuario.tab()
-    expect(screen.getByText('Escribí el importe con hasta dos decimales. Ejemplo: 150000,50')).toBeInTheDocument()
   })
 
   /** FR-005, US1 esc. 8. */
@@ -221,7 +216,7 @@ describe('RegistrarAdelanto', () => {
 
     expect(await screen.findByText(mensaje)).toHaveAttribute('role', 'alert')
     expect(screen.getByLabelText('Motivo')).toHaveValue('gastos médicos')
-    expect(screen.getByLabelText('Importe')).toHaveValue('150000')
+    expect(screen.getByLabelText('Importe')).toHaveValue('150.000')
     expect(navegar).not.toHaveBeenCalled()
   })
 

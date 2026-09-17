@@ -17,6 +17,8 @@ import {
   obtenerViaje,
   type ViajePeticion,
 } from '../servicios/servicioViajes'
+import { InputImporte } from '../../../compartido/ui/InputImporte'
+import { formatearParaCampo } from '../../../compartido/moneda'
 
 const MENSAJE_SIN_CLIENTES_ACTIVOS =
   'Todavía no hay clientes activos. Cargá al menos un cliente antes de registrar viajes.'
@@ -77,7 +79,7 @@ export function FormularioViaje() {
         setDestino(viaje.destino)
         setNumeroRemito(viaje.numeroRemito ?? '')
         setDetalleCarga(viaje.detalleCarga ?? '')
-        setImporte(String(viaje.importe))
+        setImporte(formatearParaCampo(viaje.importe))
       })
       .catch(() => {
         if (vigente) setErrorGlobal('No pudimos traer los datos del viaje.')
@@ -110,7 +112,7 @@ export function FormularioViaje() {
       destino,
       numeroRemito: numeroRemito.trim() === '' ? null : numeroRemito,
       detalleCarga: detalleCarga.trim() === '' ? null : detalleCarga,
-      importe: Number(importe === '' ? 0 : importe),
+      importe: Number(importe === '' ? 0 : importe.replace(/\./g, '').replace(',', '.')),
     }
 
     try {
@@ -327,14 +329,11 @@ export function FormularioViaje() {
             {/* El cero es válido: viaje sin cargo o con el importe todavía sin definir (FR-013). */}
 
             <label htmlFor="importe">Importe en pesos</label>
-            <input
+            <InputImporte
               id="importe"
-              placeholder="22644,63"
-              type="number"
-              min={0}
-              step="0.01"
+              placeholder="22.644,63"
               value={importe}
-              onChange={(evento) => setImporte(evento.target.value)}
+              onChange={(valor) => setImporte(valor)}
               aria-invalid={erroresDeCampo.importe !== undefined}
             />
             {erroresDeCampo.importe && (
