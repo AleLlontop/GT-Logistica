@@ -15,6 +15,7 @@ import { Estado } from '../../../compartido/ui/Estado'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
 import { FichaCuerpo, FichaSeccion } from '../../../compartido/ui/Ficha'
 import { IconoNuevo } from '../../../compartido/ui/iconos'
+import { Listado } from '../../../compartido/ui/Listado'
 import { Paginacion } from '../../../compartido/ui/Paginacion'
 import { TablaDeMovimientos } from '../componentes/TablaDeMovimientos'
 import {
@@ -208,6 +209,10 @@ export function DetalleDeCaja({ puedeGestionar }: Props) {
               {formatearPesos(cerrada && caja.saldoFinal !== null ? caja.saldoFinal : caja.saldoActual)}
             </dd>
           </dl>
+        </FichaSeccion>
+      </FichaCuerpo>
+
+      <div className="mt-[18px]">
         <FichaSeccion titulo="Movimientos" id="titulo-movimientos-caja">
           {movimientos === null ? (
             <p role="status" className="m-0 px-[22px] py-5 text-[13px] text-ink-soft">
@@ -218,7 +223,7 @@ export function DetalleDeCaja({ puedeGestionar }: Props) {
               Esta caja no tiene movimientos.
             </EstadoVacio>
           ) : (
-            <>
+            <Listado className="rounded-none border-0 shadow-none">
               <TablaDeMovimientos titulo="Movimientos de la caja" movimientos={movimientos.items} />
               <div className="px-[22px] pb-4">
                 <Paginacion
@@ -229,7 +234,7 @@ export function DetalleDeCaja({ puedeGestionar }: Props) {
                   onCambiarPagina={setPagina}
                 />
               </div>
-            </>
+            </Listado>
           )}
           <p className="m-0 px-[22px] pb-4 text-[12.5px]">
             <Link to={`/movimientos-caja?cajaId=${caja.id}`} className="text-brand underline underline-offset-2">
@@ -237,7 +242,7 @@ export function DetalleDeCaja({ puedeGestionar }: Props) {
             </Link>
           </p>
         </FichaSeccion>
-      </FichaCuerpo>
+      </div>
     </section>
   )
 }

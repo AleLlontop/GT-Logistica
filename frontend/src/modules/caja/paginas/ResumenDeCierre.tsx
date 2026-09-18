@@ -10,6 +10,7 @@ import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantall
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
 import { FichaCuerpo, FichaSeccion } from '../../../compartido/ui/Ficha'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
+import { Listado } from '../../../compartido/ui/Listado'
 import { TablaDeMovimientos } from '../componentes/TablaDeMovimientos'
 import {
   cerrarCaja,
@@ -197,17 +198,21 @@ export function ResumenDeCierre() {
             <dd className="font-bold">{formatearPesos(mostrado.totalEgresos)}</dd>
           </dl>
         </FichaSeccion>
+      </FichaCuerpo>
 
+      <div className="mt-[18px]">
         <FichaSeccion titulo="Movimientos" id="titulo-movimientos-cierre">
           {mostrado.movimientos.length === 0 ? (
             <EstadoVacio caso="vacio" className="border-0 shadow-none">
               {MENSAJE_SIN_MOVIMIENTOS}
             </EstadoVacio>
           ) : (
-            <TablaDeMovimientos titulo="Movimientos de la caja" movimientos={mostrado.movimientos} />
+            <Listado className="rounded-none border-0 shadow-none">
+              <TablaDeMovimientos titulo="Movimientos de la caja" movimientos={mostrado.movimientos} />
+            </Listado>
           )}
         </FichaSeccion>
-      </FichaCuerpo>
+      </div>
     </section>
   )
 }

@@ -7,6 +7,7 @@ import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantall
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
+import { Aviso } from '../../../compartido/ui/Aviso'
 import type { CodigoRol, RolConPermisos } from '../../../compartido/tipos'
 import { PermisosDelRol } from '../componentes/PermisosDelRol'
 import { asignarRoles, listarRoles, obtenerUsuario } from '../servicios/usuarios'
@@ -112,11 +113,9 @@ export function PanelRoles() {
     <section>
       <EncabezadoDePantalla titulo={`Roles de ${username}`} />
 
-      {error !== null && (
-        <p className="formulario__error" role="alert">
-          {error}
-        </p>
-      )}
+      <Aviso tono="error" rol="alert" className="mb-[18px]">
+        {error}
+      </Aviso>
 
       <form onSubmit={alGuardar} noValidate className={clasesDeFormularioSimple}>
         <fieldset className="flex flex-col gap-3">
