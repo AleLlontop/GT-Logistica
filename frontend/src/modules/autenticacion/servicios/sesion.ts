@@ -49,6 +49,12 @@ export const Permisos = {
    */
   adelantosGestionar: 'adelantos.gestionar',
   adelantosConsultar: 'adelantos.consultar',
+  /**
+   * Módulo 11: la caja se mira con `consultar` —Gerencia incluida— y se abre, se opera y se cierra con
+   * `gestionar`. Que la caja sea propia lo decide el servidor con `puedeOperar` (FR-031 a FR-035).
+   */
+  cajaGestionar: 'caja.gestionar',
+  cajaConsultar: 'caja.consultar',
 } as const
 
 export function tienePermiso(sesion: Sesion | null, codigo: string): boolean {

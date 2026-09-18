@@ -133,6 +133,14 @@ export type CodigoError =
   | 'adelanto_no_resoluble'
   | 'adelanto_no_anulable'
   | 'rechazo_requiere_confirmacion'
+  // Módulo 11. `datos_invalidos` y `rango_invalido` ya estaban.
+  | 'referencia_invalida'
+  | 'caja_no_encontrada'
+  | 'caja_ya_abierta'
+  | 'caja_cerrada'
+  | 'caja_ajena'
+  | 'confirmacion_requerida'
+  | 'cierre_desactualizado'
 
 /** Estados posibles de una cuenta (FR-005). */
 export type EstadoUsuario = 'activo' | 'inactivo' | 'bloqueado'

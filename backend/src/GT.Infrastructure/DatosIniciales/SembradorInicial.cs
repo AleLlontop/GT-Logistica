@@ -67,6 +67,12 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
         (CodigosPermiso.AdelantosConsultar, "Adelantos",
             "Consultar adelantos de sueldo, su total adelantado e historial"),
+
+        (CodigosPermiso.CajaGestionar, "Caja",
+            "Abrir la propia caja, registrar sus ingresos y egresos, y cerrarla"),
+
+        (CodigosPermiso.CajaConsultar, "Caja",
+            "Consultar cajas, sus saldos y sus movimientos"),
     ];
 
     /// <summary>
@@ -97,6 +103,10 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
     /// El Módulo 10 repite el mismo reparto: `adelantos.gestionar` a *Administración de la empresa* y al
     /// administrador —aprobar incluido, sin control por oposición—, y `adelantos.consultar` a esos dos más
     /// *Gerencia*. Tráfico no recibe ninguno (Módulo 10, FR-042, research §7).
+    ///
+    /// El Módulo 11 repite el mismo reparto: `caja.gestionar` a *Administración de la empresa* y al
+    /// administrador —abrir, registrar y cerrar—, y `caja.consultar` a esos dos más *Gerencia*, que revisa
+    /// cajas y movimientos sin operar. Tráfico no recibe ninguno (Módulo 11, FR-031, FR-032, research §9).
     /// </summary>
     private static readonly Dictionary<string, string[]> PermisosPorRol = new()
     {
@@ -115,6 +125,8 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.LiquidacionesConsultar,
             CodigosPermiso.AdelantosGestionar,
             CodigosPermiso.AdelantosConsultar,
+            CodigosPermiso.CajaGestionar,
+            CodigosPermiso.CajaConsultar,
         ],
 
         [CodigosRol.Trafico] =
@@ -134,6 +146,8 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.LiquidacionesConsultar,
             CodigosPermiso.AdelantosGestionar,
             CodigosPermiso.AdelantosConsultar,
+            CodigosPermiso.CajaGestionar,
+            CodigosPermiso.CajaConsultar,
         ],
 
         [CodigosRol.Gerencia] =
@@ -142,6 +156,7 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.FacturacionConsultar,
             CodigosPermiso.LiquidacionesConsultar,
             CodigosPermiso.AdelantosConsultar,
+            CodigosPermiso.CajaConsultar,
         ],
     };
 

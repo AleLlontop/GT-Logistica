@@ -76,7 +76,30 @@ identificador llevan `{id:int}` porque conviven con rutas literales en el mismo 
 
 // 400 referencia_invalida (RF-011)
 { "codigo": "referencia_invalida", "mensaje": "La factura elegida ya no está pendiente de cobro.", "campo": "facturaId" }
+
+// 409 caja_ajena — registrar o cerrar la caja de otro empleado (FR-035)
+{ "codigo": "caja_ajena", "mensaje": "Esta caja es de otro empleado. Sólo quien la abrió puede registrar movimientos y cerrarla." }
 ```
+
+Los dos `409` del cierre traen además `totalIngresos` y `totalEgresos`, con la misma forma que el `GET`
+del resumen.
+
+## Decisiones fijadas en `tasks.md`
+
+1. **La caja es personal también en el servidor** (FR-035): registrar y cerrar exigen que el usuario en
+   sesión sea el responsable. El `UPDATE` que toma el lock suma `AND UsuarioResponsableId = @usuario`; con
+   cero filas se relee y responde `409 caja_ajena` si la caja existe, está abierta y es de otro. Una caja
+   cerrada responde `caja_cerrada` aunque sea de otro.
+2. **`CajaDetalle` trae `saldoInicial`, `totalIngresos`, `totalEgresos`, `saldoActual` y `puedeOperar`**,
+   calculados al leer. `puedeOperar` es abierta y del usuario en sesión, y lo decide el servidor (SC-007).
+3. **Las dos entradas de menú son de consulta**: *Caja* (`consultar-caja`, `/caja`) y *Movimientos de
+   caja* (`consultar-movimientos-caja`, `/movimientos-caja`), las dos por `caja.consultar`, en la sección
+   *Operación*. *Abrir caja* se llega desde `/caja`, que muestra el botón sólo con `caja.gestionar`.
+4. **El rango del filtro son días de Argentina** sobre un instante UTC: *desde* es `desde 00:00 −03:00` y
+   *hasta* es `< hasta+1 00:00 −03:00`. Un movimiento del 16/09 a las 23:30 de Argentina entra con
+   *hasta* = 16/09.
+5. **La pastilla de estado**: `abierta` en el tono de `pendiente` y `cerrada` en el de `rendido`, en
+   `TONO_POR_VALOR` de `compartido/ui/Estado.tsx`.
 
 ## Textos (español rioplatense, sin voseo forzado en mensajes de sistema)
 

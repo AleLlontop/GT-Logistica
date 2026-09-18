@@ -1,4 +1,5 @@
 using GT.Domain.Adelantos;
+using GT.Domain.Caja;
 using GT.Domain.Choferes;
 using GT.Domain.Facturacion;
 using GT.Domain.Flota;
@@ -98,6 +99,19 @@ public class GtDbContext(DbContextOptions<GtDbContext> opciones) : DbContext(opc
 
     /// <summary>Historial de FR-036. Lo alimentan los casos de uso, en la misma transacción que el cambio.</summary>
     public DbSet<CambioDeAdelanto> CambiosDeAdelanto => Set<CambioDeAdelanto>();
+
+    // ── Módulo 11: gestión de caja ─────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Una abierta por responsable, por índice único filtrado (Módulo 11, research §1). Cerrar y registrar un
+    /// movimiento toman el lock de su fila antes de seguir (research §2).
+    /// </summary>
+    public DbSet<Caja> Cajas => Set<Caja>();
+
+    /// <summary>
+    /// No se editan, no se anulan, no se borran (Módulo 11, FR-014). Lee <c>Facturas</c> y
+    /// <c>OrdenesDePago</c> sin agregarles nada.
+    /// </summary>
+    public DbSet<MovimientoDeCaja> MovimientosDeCaja => Set<MovimientoDeCaja>();
 
     /// <summary>
     /// Se aplica a las propiedades <c>DateTime</c> y <c>DateTime?</c> de todo el modelo. Los

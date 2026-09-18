@@ -183,8 +183,16 @@ public class AsignarRolesTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
             [CodigosPermiso.AdelantosConsultar],
             adelantos.Permisos.Select(permiso => permiso.Codigo));
 
-        // Cuatro módulos y nada más: ningún permiso de gestión, ni de anulación.
-        Assert.Equal(4, gerencia.PermisosPorModulo.Count);
+        // El Módulo 11 sumó el quinto: `caja.consultar`, para revisar cajas y movimientos sin poder abrir,
+        // registrar ni cerrar (Módulo 11, FR-032).
+        var caja = gerencia.PermisosPorModulo.Single(modulo => modulo.Modulo == "Caja");
+
+        Assert.Equal(
+            [CodigosPermiso.CajaConsultar],
+            caja.Permisos.Select(permiso => permiso.Codigo));
+
+        // Cinco módulos y nada más: ningún permiso de gestión, ni de anulación.
+        Assert.Equal(5, gerencia.PermisosPorModulo.Count);
     }
 
     [Fact]

@@ -119,6 +119,109 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.ToTable("CambiosDeAdelanto", (string)null);
                 });
 
+            modelBuilder.Entity("GT.Domain.Caja.Caja", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<byte>("Estado")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime>("FechaApertura")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaCierre")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("SaldoFinal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("SaldoInicial")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UsuarioResponsableId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioResponsableId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Cajas_UsuarioResponsable_Abierta")
+                        .HasFilter("[Estado] = 0");
+
+                    b.HasIndex("FechaApertura", "Id")
+                        .IsDescending()
+                        .HasDatabaseName("IX_Cajas_FechaApertura");
+
+                    b.ToTable("Cajas", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Cajas_CierreConsistente", "([Estado] = 0 AND [FechaCierre] IS NULL AND [SaldoFinal] IS NULL) OR ([Estado] = 1 AND [FechaCierre] IS NOT NULL AND [SaldoFinal] IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_Cajas_SaldoInicial", "[SaldoInicial] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("GT.Domain.Caja.MovimientoDeCaja", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CajaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Concepto")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("FacturaId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Importe")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("OrdenDePagoId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("Tipo")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FacturaId");
+
+                    b.HasIndex("Fecha")
+                        .HasDatabaseName("IX_MovimientosDeCaja_Fecha");
+
+                    b.HasIndex("OrdenDePagoId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("CajaId", "Fecha")
+                        .HasDatabaseName("IX_MovimientosDeCaja_Caja_Fecha");
+
+                    b.ToTable("MovimientosDeCaja", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MovimientosDeCaja_Concepto", "LEN(LTRIM(RTRIM([Concepto]))) > 0");
+
+                            t.HasCheckConstraint("CK_MovimientosDeCaja_Importe", "[Importe] > 0");
+
+                            t.HasCheckConstraint("CK_MovimientosDeCaja_Referencia", "([Tipo] = 0 AND [OrdenDePagoId] IS NULL) OR ([Tipo] = 1 AND [FacturaId] IS NULL)");
+                        });
+                });
+
             modelBuilder.Entity("GT.Domain.Choferes.Chofer", b =>
                 {
                     b.Property<int>("Id")
@@ -1258,6 +1361,50 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("GT.Domain.Caja.Caja", b =>
+                {
+                    b.HasOne("GT.Domain.Usuarios.Usuario", "UsuarioResponsable")
+                        .WithMany()
+                        .HasForeignKey("UsuarioResponsableId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("UsuarioResponsable");
+                });
+
+            modelBuilder.Entity("GT.Domain.Caja.MovimientoDeCaja", b =>
+                {
+                    b.HasOne("GT.Domain.Caja.Caja", "Caja")
+                        .WithMany("Movimientos")
+                        .HasForeignKey("CajaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Facturacion.FacturaCliente", "Factura")
+                        .WithMany()
+                        .HasForeignKey("FacturaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("GT.Domain.Liquidaciones.OrdenDePago", "OrdenDePago")
+                        .WithMany()
+                        .HasForeignKey("OrdenDePagoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("GT.Domain.Usuarios.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Caja");
+
+                    b.Navigation("Factura");
+
+                    b.Navigation("OrdenDePago");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("GT.Domain.Choferes.Chofer", b =>
                 {
                     b.HasOne("GT.Domain.Personas.Persona", "Persona")
@@ -1559,6 +1706,11 @@ namespace GT.Infrastructure.Persistencia.Migraciones
             modelBuilder.Entity("GT.Domain.Adelantos.Adelanto", b =>
                 {
                     b.Navigation("Cambios");
+                });
+
+            modelBuilder.Entity("GT.Domain.Caja.Caja", b =>
+                {
+                    b.Navigation("Movimientos");
                 });
 
             modelBuilder.Entity("GT.Domain.Choferes.Chofer", b =>

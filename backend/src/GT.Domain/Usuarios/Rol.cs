@@ -123,4 +123,19 @@ public static class CodigosPermiso
     /// Gerencia, que controla cuánto se adelanta sobre los sueldos (FR-042).
     /// </summary>
     public const string AdelantosConsultar = "adelantos.consultar";
+
+    /// <summary>
+    /// Módulo 11: abrir la propia caja, registrar sus movimientos y cerrarla, y los dos desplegables de
+    /// referencia. Lo otorgan *Administración de la empresa* y *Administrador del sistema* (FR-031, research §9).
+    ///
+    /// Un solo permiso de escritura: no hay anulación ni reversión que pida uno aparte. Que la caja sea del
+    /// usuario en sesión no lo decide el permiso sino el servidor en cada escritura (FR-035).
+    /// </summary>
+    public const string CajaGestionar = "caja.gestionar";
+
+    /// <summary>
+    /// Módulo 11: listado de cajas, detalle y movimientos. Lo otorgan los dos roles anteriores **más**
+    /// Gerencia, que revisa cajas y movimientos sin operar (FR-032).
+    /// </summary>
+    public const string CajaConsultar = "caja.consultar";
 }

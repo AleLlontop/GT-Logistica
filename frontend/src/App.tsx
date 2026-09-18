@@ -46,6 +46,12 @@ import { EditarLiquidacion } from './modules/liquidaciones/paginas/EditarLiquida
 import { ListadoAdelantos } from './modules/adelantos/paginas/ListadoAdelantos'
 import { RegistrarAdelanto } from './modules/adelantos/paginas/RegistrarAdelanto'
 import { DetalleAdelanto } from './modules/adelantos/paginas/DetalleAdelanto'
+import { ConsultaDeCajas } from './modules/caja/paginas/ConsultaDeCajas'
+import { AbrirCaja } from './modules/caja/paginas/AbrirCaja'
+import { DetalleDeCaja } from './modules/caja/paginas/DetalleDeCaja'
+import { RegistrarMovimiento } from './modules/caja/paginas/RegistrarMovimiento'
+import { ResumenDeCierre } from './modules/caja/paginas/ResumenDeCierre'
+import { ConsultaDeMovimientos } from './modules/caja/paginas/ConsultaDeMovimientos'
 import {
   cerrarSesion,
   obtenerSesion,
@@ -98,6 +104,10 @@ export default function App() {
   // Módulo 10: se miran con `adelantos.consultar` y se registran, aprueban, rechazan y anulan con
   // `adelantos.gestionar` (FR-041, FR-042).
   const puedeGestionarAdelantos = tienePermiso(sesion, Permisos.adelantosGestionar)
+
+  // Módulo 11: se miran con `caja.consultar` y se abren, operan y cierran con `caja.gestionar`. Que la
+  // caja sea propia lo decide el servidor con `puedeOperar` (FR-031 a FR-035).
+  const puedeGestionarCaja = tienePermiso(sesion, Permisos.cajaGestionar)
 
   return (
     <BrowserRouter>
@@ -921,6 +931,118 @@ export default function App() {
                   onCerrarSesion={alCerrarSesion}
                 >
                   <DetalleAdelanto puedeGestionar={puedeGestionarAdelantos} />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        {/* Rutas del Módulo 11. Las seis exigen sesión con la misma protección que el resto: sin sesión
+            llevan a `/ingresar` (FR-034). El reparto es el del servidor, que responde `403`:
+            - `/caja`, `/caja/:id` y `/movimientos-caja` se miran con `caja.consultar` y lo deciden con
+              el `403` de su carga; `/caja/:id` recibe además el permiso para ofrecer las acciones.
+            - `/caja/:id/cierre` se opera con `caja.gestionar` y lo decide el `403` de su carga, que
+              exige ese mismo permiso: no recibe prop.
+            - `/caja/nueva` no carga nada y `/caja/:id/movimientos/nuevo` carga con una consulta que a
+              Gerencia le responde `200`: las dos lo deciden con el permiso de la sesión (convención
+              [010]).
+            Las literales van antes que `/caja/:id`. */}
+        <Route
+          path="/caja"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <ConsultaDeCajas puedeGestionar={puedeGestionarCaja} />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/caja/nueva"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <AbrirCaja puedeGestionar={puedeGestionarCaja} />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/caja/:id"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <DetalleDeCaja puedeGestionar={puedeGestionarCaja} />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/caja/:id/movimientos/nuevo"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <RegistrarMovimiento puedeGestionar={puedeGestionarCaja} />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/caja/:id/cierre"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <ResumenDeCierre />
+                </Layout>
+              )}
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/movimientos-caja"
+          element={
+            <RutaProtegida sesion={sesion}>
+              {sesion !== null && (
+                <Layout
+                  username={sesion.username}
+                  opcionesMenu={sesion.opcionesMenu}
+                  onCerrarSesion={alCerrarSesion}
+                >
+                  <ConsultaDeMovimientos />
                 </Layout>
               )}
             </RutaProtegida>

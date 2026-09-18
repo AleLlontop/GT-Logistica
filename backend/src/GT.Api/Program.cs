@@ -1,4 +1,5 @@
 using GT.Api.Adelantos;
+using GT.Api.Caja;
 using GT.Api.Autenticacion;
 using GT.Api.Autorizacion;
 using GT.Api.Usuarios;
@@ -9,6 +10,7 @@ using GT.Api.Flota;
 using GT.Api.Liquidaciones;
 using GT.Application.Liquidaciones;
 using GT.Application.Adelantos;
+using GT.Application.Caja;
 using GT.Application.Autenticacion;
 using GT.Application.Choferes;
 using GT.Application.Choferes.Documentacion;
@@ -208,6 +210,21 @@ builder.Services.AddScoped<AprobarAdelanto>();
 builder.Services.AddScoped<RechazarAdelanto>();
 builder.Services.AddScoped<AnularAdelanto>();
 
+// ── Módulo 11: gestión de caja ─────────────────────────────────────────────────────────────────
+// Sin dependencias, variables de entorno ni infraestructura nuevas: lee usuarios, facturas y órdenes de
+// pago sin escribirles nada (FR-012). `TimeProvider` ya está abajo y se consume tal como está.
+builder.Services.AddScoped<IRepositorioCaja, RepositorioCaja>();
+builder.Services.AddScoped<ConsultarDetalleCaja>();
+builder.Services.AddScoped<AbrirCaja>();
+builder.Services.AddScoped<ConsultarCajas>();
+builder.Services.AddScoped<RegistrarMovimiento>();
+builder.Services.AddScoped<ConsultarMovimientosDeCaja>();
+builder.Services.AddScoped<ConsultarFacturasPendientes>();
+builder.Services.AddScoped<ConsultarOrdenesDePago>();
+builder.Services.AddScoped<ConsultarResumenDeCierre>();
+builder.Services.AddScoped<CerrarCaja>();
+builder.Services.AddScoped<ConsultarMovimientos>();
+
 // El adjunto se corta en 10 MB (FR-015a). Rechazarlo acá evita leer en memoria un cuerpo enorme
 // antes de descartarlo; el margen extra cubre los otros campos del formulario.
 builder.Services.Configure<FormOptions>(opciones =>
@@ -314,7 +331,10 @@ builder.Services.AddAuthorization(opciones =>
         CodigosPermiso.LiquidacionesConsultar,
         // Módulo 10: el mismo reparto que el 9; aprobar no lleva permiso aparte (FR-022, FR-041).
         CodigosPermiso.AdelantosGestionar,
-        CodigosPermiso.AdelantosConsultar));
+        CodigosPermiso.AdelantosConsultar,
+        // Módulo 11: el mismo reparto; que la caja sea propia lo decide cada escritura (FR-035).
+        CodigosPermiso.CajaGestionar,
+        CodigosPermiso.CajaConsultar));
 
 builder.Services.Configure<JsonOptions>(opciones =>
     opciones.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
@@ -398,6 +418,12 @@ app.MapearLiquidaciones();
 // dos grupos (convención [005]).
 app.MapearCicloDeVidaDeAdelantos();
 app.MapearAdelantos();
+
+// Módulo 11. Lo que hace alcanzables `/abierta`, `/facturas-pendientes` y `/ordenes-de-pago` es la
+// restricción `{id:int}` de los tres grupos (convención [005]).
+app.MapearCaja();
+app.MapearMovimientosDeCaja();
+app.MapearCierreDeCaja();
 
 await AplicarMigracionesYSembrarAsync(app);
 

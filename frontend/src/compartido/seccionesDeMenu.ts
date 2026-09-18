@@ -39,6 +39,9 @@ const SECCION_POR_CODIGO: Record<string, NombreDeSeccion> = {
   // Módulo 10.
   'consultar-adelanto': 'Operación',
   'registrar-adelanto': 'Operación',
+  // Módulo 11.
+  'consultar-caja': 'Operación',
+  'consultar-movimientos-caja': 'Operación',
 
   // Los padrones sobre los que se opera
   clientes: 'Padrones',

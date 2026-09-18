@@ -70,6 +70,11 @@ const TONO_POR_VALOR: Record<string, Tono> = {
   aprobado: 'rendido',
   rechazado: 'anulado',
 
+  // Caja (Módulo 11). Abierta es un proceso en curso y cerrada es final: la palabra los distingue
+  // (FR-029).
+  abierta: 'pendiente',
+  cerrada: 'rendido',
+
   // Vehículo (Módulo 4)
   disponible: 'rendido',
   enViaje: 'facturado',

@@ -19,8 +19,30 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 | [008 — Adopción del sistema de diseño gt-ui](008-diseno-gt-ui/) | Implementado, **falta la validación manual** | 132 / 144 |
 | [009 — Liquidación a transportistas](009-gestion-liquidacion/) | Implementado y validado | 105 / 105 |
 | [010 — Gestión de adelantos de sueldo](010-gestion-adelantos/) | Implementado y validado | 93 / 93 |
+| [011 — Gestión de caja](011-gestion-caja/) | Implementado, **falta la validación manual** | 88 / 89 |
 
 ## Qué queda abierto
+
+**Módulo 11.** Implementado con backend, base y frontend completos: **25 tests unitarios** de las reglas
+puras y **84 de integración** del módulo —las tres carreras (doble apertura, dos cierres, movimiento contra
+cierre), cada `CHECK` violado de a uno, el índice filtrado, el corte de los días de Argentina y la
+invocación directa sobre la caja de otro—, más **54 de frontend**. La suite entera de backend y de frontend
+en verde, con build y lint limpios. **Falta el recorrido manual de los 19 pasos del quickstart (T087)**, con
+las cuentas de los cuatro roles y el paso 12 de dos pestañas.
+
+Cuatro cosas anotadas, ninguna bloqueante:
+
+- **El responsable dado de baja con la caja abierta** deja una caja que nadie puede cerrar: sólo el
+  responsable opera su caja (FR-035) y no hay reapertura ni cierre por otro. La spec lo admite
+  (§Assumptions); resolverlo es una spec futura.
+- **`compartido/tipos.ts` sumó los siete códigos de error nuevos**, como el Módulo 10: es el décimo archivo
+  modificado, que el plan no listaba.
+- **El saldo inicial negativo no se puede tipear**: `InputImporte` descarta el signo al escribir, así que el
+  error *"El saldo inicial no puede ser negativo."* sólo lo da el servidor ante una invocación directa. El
+  test de la pantalla afirma que el signo se descarta.
+- **`detalleDeError` va por su cuarta copia** (facturación, liquidaciones, adelantos, caja). Es la
+  conversión del cuerpo al tipo de error de cada módulo y no un formato de presentación, así que [009] no la
+  alcanza; unificarla tocaría tres módulos cerrados.
 
 **Módulo 10.** Implementado con backend, base y frontend completos: **36 tests unitarios** del módulo —la
 tabla entera de elegibilidad y el piso de la fecha cruzando el año— y **86 de integración** —con las dos
@@ -288,3 +310,8 @@ Decisiones que exceden a su módulo y que conviene conocer antes de empezar el s
   condicional sobre el estado cierra las cuatro carreras y no hizo falta `Version`. También el primero cuyas
   pantallas **distinguen el `403` de un error de carga**, y el que destapó que en un `CHECK` un `LEN` sobre
   una columna anulable deja pasar la fila si no va detrás de su `IS NOT NULL`.
+- **Módulo 11** — primer módulo cuyo candado protege **un `INSERT` en una tabla hija** y no una escritura
+  sobre la misma fila: registrar un movimiento y cerrar empiezan con un `UPDATE` que no cambia nada sobre la
+  caja, sólo para tomar su lock. El primero cuya confirmación **viaja con el número que confirma**
+  —`saldoFinalConfirmado`—, porque no hay valor elegido por el usuario contra el cual confirmar. Y el primero
+  que filtra **días locales sobre instantes UTC**, cortando el rango con el desplazamiento de Argentina.

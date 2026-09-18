@@ -97,6 +97,13 @@ public static class CatalogoOpcionesMenu
             new OpcionMenuDto("consultar-adelanto", "Consultar adelanto", "/adelantos")),
         (CodigosPermiso.AdelantosGestionar,
             new OpcionMenuDto("registrar-adelanto", "Registrar adelanto", "/adelantos/nuevo")),
+
+        // Módulo 11. Las dos entradas van con `caja.consultar`, así que Gerencia ve las dos y no opera en
+        // ninguna: *Abrir caja* se llega desde `/caja`, que muestra el botón sólo con `caja.gestionar`
+        // (FR-031 a FR-034). Los códigos no son `caja` a secas por lo mismo que el Módulo 9 (research §9).
+        (CodigosPermiso.CajaConsultar, new OpcionMenuDto("consultar-caja", "Caja", "/caja")),
+        (CodigosPermiso.CajaConsultar,
+            new OpcionMenuDto("consultar-movimientos-caja", "Movimientos de caja", "/movimientos-caja")),
     ];
 
     /// <summary>
