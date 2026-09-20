@@ -56,7 +56,7 @@ export function PanelVencimientos() {
         escribe esta feature, siguiendo la forma de los que ya existen en choferes y flota (FR-065).
       */}
       <EncabezadoDePantalla
-        titulo="Vencimientos"
+        titulo="Vencimientos de facturas"
         volverA={{ ruta: '/facturas', etiqueta: 'Volver al listado de facturas' }}
       />
 

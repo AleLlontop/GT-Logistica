@@ -73,7 +73,7 @@ public static class CatalogoOpcionesMenu
         // distinguen (contracts/README §Pantallas).
         (CodigosPermiso.FacturacionConsultar, new OpcionMenuDto("facturas", "Facturas", "/facturas")),
         (CodigosPermiso.FacturacionConsultar,
-            new OpcionMenuDto("vencimientos-facturas", "Vencimientos", "/facturas/vencimientos")),
+            new OpcionMenuDto("vencimientos-facturas", "Vencimientos de facturas", "/facturas/vencimientos")),
         (CodigosPermiso.FacturacionConsultar,
             new OpcionMenuDto("totales-facturados", "Totales facturados", "/facturas/totales")),
         (CodigosPermiso.FacturacionGestionar,
