@@ -405,6 +405,7 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
         DateTime? hastaExcluido,
         int? cajaId,
         int pagina,
+        int? tamanioPagina = null,
         CancellationToken cancelacion = default)
     {
         var consulta = contexto.MovimientosDeCaja.AsQueryable();
@@ -424,7 +425,7 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
             consulta = consulta.Where(movimiento => movimiento.Fecha < fin);
         }
 
-        return PaginarAsync(consulta, pagina, cancelacion);
+        return PaginarAsync(consulta, pagina, cancelacion, tamanioPagina);
     }
 
     // ── Piezas comunes ──────────────────────────────────────────────────────────────────────────
@@ -451,15 +452,23 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
             .SumAsync(movimiento => movimiento.Importe, cancelacion);
 
     /// <summary>Cuenta y pagina <b>después</b> de filtrar, por <c>Fecha DESC, Id DESC</c> (convención [003]).</summary>
+    /// <param name="tamanioPagina">
+    /// El Módulo 12 lo usa para traerse todas las filas del filtro en una sola vuelta. <c>null</c> es el
+    /// tamaño de siempre: el detalle de una caja y el cierre siguen paginando de a veinte.
+    /// </param>
     private async Task<PaginaDe<MovimientoListado>> PaginarAsync(
         IQueryable<MovimientoDeCaja> consulta,
         int pagina,
-        CancellationToken cancelacion)
+        CancellationToken cancelacion,
+        int? tamanioPagina = null)
     {
         var total = await consulta.CountAsync(cancelacion);
 
         pagina = Math.Max(pagina, 1);
-        var tamanio = PaginaDe<MovimientoListado>.TamanioPorDefecto;
+
+        // Las tres apariciones —`Skip`, `Take` y el `PaginaDe<>` que se devuelve— salen de la misma
+        // variable: con la constante en la última, la respuesta informaría veinte con miles adentro.
+        var tamanio = tamanioPagina ?? PaginaDe<MovimientoListado>.TamanioPorDefecto;
 
         var filas = await consulta
             .OrderByDescending(movimiento => movimiento.Fecha)

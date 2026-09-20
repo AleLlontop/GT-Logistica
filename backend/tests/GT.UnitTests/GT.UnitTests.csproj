@@ -23,6 +23,17 @@
     <ProjectReference Include="..\..\src\GT.Domain\GT.Domain.csproj" />
     <ProjectReference Include="..\..\src\GT.Application\GT.Application.csproj" />
     <ProjectReference Include="..\..\src\GT.Infrastructure\GT.Infrastructure.csproj" />
+
+    <!--
+      Módulo 12: `RespuestasDeReporte` traduce un resultado a su respuesta HTTP y no toca la base ni
+      necesita la aplicación levantada, así que su test es unitario. Para eso hace falta ver `GT.Api`
+      y el framework web; no se levanta ningún host.
+    -->
+    <ProjectReference Include="..\..\src\GT.Api\GT.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
 </Project>

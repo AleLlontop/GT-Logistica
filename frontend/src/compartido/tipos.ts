@@ -141,6 +141,10 @@ export type CodigoError =
   | 'caja_ajena'
   | 'confirmacion_requerida'
   | 'cierre_desactualizado'
+  // Módulo 12. `sin_permiso` ya estaba, desde el Módulo 1.
+  | 'formato_invalido'
+  | 'tope_de_filas_superado'
+  | 'reporte_no_generado'
 
 /** Estados posibles de una cuenta (FR-005). */
 export type EstadoUsuario = 'activo' | 'inactivo' | 'bloqueado'

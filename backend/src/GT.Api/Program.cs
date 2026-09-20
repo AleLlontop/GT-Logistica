@@ -8,6 +8,7 @@ using GT.Api.Choferes;
 using GT.Api.Facturacion;
 using GT.Api.Flota;
 using GT.Api.Liquidaciones;
+using GT.Api.Reportes;
 using GT.Application.Liquidaciones;
 using GT.Application.Adelantos;
 using GT.Application.Caja;
@@ -20,6 +21,8 @@ using GT.Application.Facturacion.EmpresaEmisora;
 using GT.Application.Flota;
 using GT.Application.Flota.Documentacion;
 using GT.Application.Flota.TiposVehiculo;
+using GT.Application.Reportes;
+using GT.Application.Reportes.Fuentes;
 using GT.Application.Usuarios;
 using GT.Application.Usuarios.Personas;
 using GT.Application.Viajes;
@@ -31,6 +34,7 @@ using GT.Infrastructure.Correo;
 using GT.Infrastructure.DatosIniciales;
 using GT.Infrastructure.Documentos;
 using GT.Infrastructure.Persistencia;
+using GT.Infrastructure.Reportes;
 using GT.Infrastructure.Seguridad;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -225,6 +229,29 @@ builder.Services.AddScoped<ConsultarResumenDeCierre>();
 builder.Services.AddScoped<CerrarCaja>();
 builder.Services.AddScoped<ConsultarMovimientos>();
 
+// ── Módulo 12: emitir reportes ─────────────────────────────────────────────────────────────────
+// Una dependencia nueva —ClosedXML, sin requisitos nativos, así que el `Dockerfile` no cambia—, cinco
+// fuentes y dos armadores. Ninguna tabla, ninguna migración y ninguna variable de entorno
+// (data-model §7).
+//
+// Los dos armadores son singleton y son la frontera con las bibliotecas: no tienen estado, reciben el
+// `ReporteTabular` y devuelven bytes. La licencia de QuestPDF ya quedó declarada arriba, en el
+// Módulo 6, y vale igual para estos reportes.
+builder.Services.AddSingleton<IArmadorReportePdf, ArmadorReportePdfQuestPdf>();
+builder.Services.AddSingleton<IArmadorReporteExcel, ArmadorReporteExcelClosedXml>();
+
+// El tope de FR-016 se registra como servicio y no se lee de una constante: un `const` no se puede
+// bajar para un test, y research §13 pide probar el `409` sin sembrar 5.001 filas. El `5000` sigue
+// escrito una sola vez, en `OpcionesDeReporte.TopePorDefecto` (data-model §4).
+builder.Services.AddSingleton(OpcionesDeReporte.PorDefecto);
+builder.Services.AddScoped<ArmadoDeReporte>();
+
+builder.Services.AddScoped<FuenteReporteViajes>();
+builder.Services.AddScoped<FuenteReporteVencimientosChoferes>();
+builder.Services.AddScoped<FuenteReporteVencimientosFlota>();
+builder.Services.AddScoped<FuenteReporteVencimientosFacturas>();
+builder.Services.AddScoped<FuenteReporteMovimientosCaja>();
+
 // El adjunto se corta en 10 MB (FR-015a). Rechazarlo acá evita leer en memoria un cuerpo enorme
 // antes de descartarlo; el margen extra cubre los otros campos del formulario.
 builder.Services.Configure<FormOptions>(opciones =>
@@ -290,9 +317,15 @@ builder.Services
             ResponderError(contexto.Response, StatusCodes.Status401Unauthorized,
                 ErrorResponse.SesionExpirada());
 
+        // El cuerpo del `403` se arma acá, una sola vez para todo el sistema. Desde el Módulo 12 un
+        // endpoint puede declarar el suyo como metadata —los cinco de reportes lo hacen, porque su
+        // contrato fija un texto propio— y si no declara ninguno vale el genérico de siempre. **No
+        // mueve ninguna decisión de autorización al endpoint**: quien decide sigue siendo la política.
         opciones.Events.OnRedirectToAccessDenied = contexto =>
             ResponderError(contexto.Response, StatusCodes.Status403Forbidden,
-                ErrorResponse.SinPermiso());
+                contexto.HttpContext.GetEndpoint()?.Metadata
+                    .GetMetadata<MensajeDeSinPermiso>()?.Cuerpo
+                ?? ErrorResponse.SinPermiso());
 
         // FR-006 y FR-009: ver RevalidadorSesion.
         opciones.Events.OnValidatePrincipal = async contexto =>
@@ -339,7 +372,33 @@ builder.Services.AddAuthorization(opciones =>
         CodigosPermiso.AdelantosConsultar,
         // Módulo 11: el mismo reparto; que la caja sea propia lo decide cada escritura (FR-035).
         CodigosPermiso.CajaGestionar,
-        CodigosPermiso.CajaConsultar));
+        CodigosPermiso.CajaConsultar,
+        // Módulo 12: `reportes.emitir` sólo para Gerencia y el administrador (FR-014). La política
+        // simple queda registrada junto a las demás; lo que los cinco endpoints piden es la
+        // **combinada** de abajo.
+        CodigosPermiso.ReportesEmitir));
+
+// Módulo 12: las cinco políticas combinadas, una por reporte. Cada una exige el permiso de lectura de
+// su pantalla **más** `reportes.emitir`, y ASP.NET Core pide que se satisfagan todos los requirements
+// de una política, así que la conjunción de FR-015 sale gratis y el `PermisoHandler` del Módulo 1 no
+// cambia una línea (research §5).
+builder.Services.AddAuthorization(opciones =>
+{
+    opciones.AgregarPoliticaCombinada(
+        CodigosPermiso.ViajesConsultar, CodigosPermiso.ReportesEmitir);
+
+    opciones.AgregarPoliticaCombinada(
+        CodigosPermiso.ChoferesVencimientosConsultar, CodigosPermiso.ReportesEmitir);
+
+    opciones.AgregarPoliticaCombinada(
+        CodigosPermiso.FlotaVencimientosConsultar, CodigosPermiso.ReportesEmitir);
+
+    opciones.AgregarPoliticaCombinada(
+        CodigosPermiso.FacturacionConsultar, CodigosPermiso.ReportesEmitir);
+
+    opciones.AgregarPoliticaCombinada(
+        CodigosPermiso.CajaConsultar, CodigosPermiso.ReportesEmitir);
+});
 
 builder.Services.Configure<JsonOptions>(opciones =>
     opciones.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
@@ -429,6 +488,11 @@ app.MapearAdelantos();
 app.MapearCaja();
 app.MapearMovimientosDeCaja();
 app.MapearCierreDeCaja();
+
+// Módulo 12: los cinco `MapGet` de reporte, juntos en un archivo para que la revisión cuente cinco
+// (FR-001, research §6). Sus rutas son literales y conviven con las `{id:int}` de los grupos de
+// arriba, que ya llevan su restricción de tipo (convención [005]).
+app.MapearReportes();
 
 await AplicarMigracionesYSembrarAsync(app);
 

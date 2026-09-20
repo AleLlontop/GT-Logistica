@@ -1,5 +1,5 @@
 import type { VariantProps } from 'class-variance-authority'
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react'
 import { cn } from './cn'
 import { clasesDeCirculoDeIcono, clasesDeCirculoDeVolver, estilosDeBoton } from './clases'
 import { IconoVolver } from './iconos'
@@ -34,6 +34,15 @@ interface Props extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className
   tamanio?: Tamanio
   /** El ícono de la acción, que la primitiva anida en un círculo pegado al borde derecho. */
   icono?: ReactNode
+  /**
+   * Una referencia al `<button>` nativo, para los pocos casos en que quien lo dibuja necesita moverle
+   * el foco: el disparador de *Generar reporte*, que lo recupera al cerrar el diálogo (Módulo 12,
+   * FR-002).
+   *
+   * Va declarada porque `ButtonHTMLAttributes` no la trae; en React 19 llega como una prop más y la
+   * primitiva la pasa al elemento con el resto.
+   */
+  ref?: Ref<HTMLButtonElement>
   className?: string
 }
 

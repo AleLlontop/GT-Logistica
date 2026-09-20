@@ -79,6 +79,9 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
         (CodigosPermiso.CajaConsultar, "Caja",
             "Consultar cajas, sus saldos y sus movimientos"),
+
+        (CodigosPermiso.ReportesEmitir, "Reportes",
+            "Emitir los reportes de viajes, vencimientos y movimientos de caja en PDF y Excel"),
     ];
 
     /// <summary>
@@ -121,6 +124,11 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
     /// llegaban a los dos paneles por `choferes.gestionar` y `flota.gestionar`: sembrarlos por separado es
     /// lo que hace que para ellos no cambie nada. *Administración de la empresa* sigue sin ninguno de los
     /// dos módulos.
+    ///
+    /// El Módulo 12 es el primero que **invierte** el reparto: `reportes.emitir` lo reciben *Gerencia* y
+    /// el administrador, y **no** lo reciben Tráfico ni *Administración de la empresa*. Hasta acá Gerencia
+    /// siempre tenía un subconjunto de lo de Administración; "sólo del gerente" acota a los roles
+    /// operativos, y el administrador lo recibe como recibe todo lo demás (Módulo 12, FR-014).
     /// </summary>
     private static readonly Dictionary<string, string[]> PermisosPorRol = new()
     {
@@ -143,6 +151,7 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.AdelantosConsultar,
             CodigosPermiso.CajaGestionar,
             CodigosPermiso.CajaConsultar,
+            CodigosPermiso.ReportesEmitir,
         ],
 
         [CodigosRol.Trafico] =
@@ -177,6 +186,7 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.LiquidacionesConsultar,
             CodigosPermiso.AdelantosConsultar,
             CodigosPermiso.CajaConsultar,
+            CodigosPermiso.ReportesEmitir,
         ],
     };
 

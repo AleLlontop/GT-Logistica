@@ -8,6 +8,7 @@ import type { EstadoDocumentacionChofer, EstadoDocumento } from './servicioChofe
  * rojo/amarillo/verde deja afuera a quien no distingue esos colores y acá el estado es la
  * información principal de la pantalla.
  */
+// Copiado en C# como `NombresDeEstado.EnPantalla` (Módulo 12); lo fija `PalabrasDeEstadoTests`.
 export const TEXTO_ESTADO_DOCUMENTO: Record<EstadoDocumento, string> = {
   vigente: 'Al día',
   proximaAvencer: 'Próxima a vencer',

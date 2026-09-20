@@ -128,54 +128,13 @@ export function eliminar(ruta: string) {
   return peticion<void>(ruta, { metodo: 'DELETE' })
 }
 
-/**
- * Pide un PDF y lo devuelve como `Blob`.
+/*
+ * `obtenerPdf` vivía acá y se fue a `compartido/archivos.ts` como `obtenerArchivo` (Módulo 12).
  *
- * **Es un patrón nuevo en este frontend** (research §2): la vista previa y el documento no son JSON,
- * así que no pueden ir por `peticion`, que parsea la respuesta. Va por `fetch` directo con las mismas
- * dos reglas del cliente compartido —credenciales incluidas y el prefijo `/api`— y traduce el error
- * al mismo `ErrorHttp` que el resto del módulo, para que las pantallas manejen un solo tipo.
+ * Era la primera copia del patrón; los cinco reportes en dos formatos son la segunda y la tercera
+ * necesidad a la vez, que es el umbral de la convención [009]: se lleva a `compartido` y se reemplaza
+ * la copia del módulo en la misma feature.
  */
-export async function obtenerPdf(
-  ruta: string,
-  opciones: { metodo?: 'GET' | 'POST'; cuerpo?: unknown } = {},
-): Promise<Blob> {
-  const { metodo = 'GET', cuerpo } = opciones
-
-  let respuesta: Response
-
-  try {
-    respuesta = await fetch(`/api${ruta}`, {
-      method: metodo,
-      credentials: 'include',
-      headers: cuerpo === undefined ? {} : { 'Content-Type': 'application/json' },
-      body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo),
-    })
-  } catch {
-    throw new ErrorHttp(0, {
-      codigo: 'sin_conexion',
-      mensaje: 'No pudimos conectarnos con el sistema. Revisá tu conexión y volvé a intentar.',
-    })
-  }
-
-  if (!respuesta.ok) {
-    // El rechazo sí viene en JSON: el servidor sólo devuelve `application/pdf` cuando pudo armarlo.
-    let detalle: ErrorDeFactura
-
-    try {
-      detalle = (await respuesta.json()) as ErrorDeFactura
-    } catch {
-      detalle = {
-        codigo: 'error_inesperado',
-        mensaje: 'Ocurrió un problema inesperado. Volvé a intentar en unos minutos.',
-      }
-    }
-
-    throw new ErrorHttp(respuesta.status, detalle)
-  }
-
-  return await respuesta.blob()
-}
 
 /** Arma la query descartando los parámetros vacíos, para no mandar `?clienteId=` sin valor. */
 export function query(parametros: Record<string, string | number | boolean | null | undefined>) {
@@ -210,6 +169,7 @@ export function detalleDeError(error: unknown): ErrorDeFactura | null {
  * `dias` es negativo cuando hay atraso y positivo cuando queda plazo. El cero tiene su propio texto: decir
  * `Vence en 0 días` sería técnicamente correcto y no es lo que nadie diría.
  */
+// Copiada en C# como `SituacionDeVencimiento.Para` (Módulo 12); la fija `PalabrasDeEstadoTests`.
 export function situacion(dias: number): string {
   if (dias < 0) {
     const atraso = Math.abs(dias)

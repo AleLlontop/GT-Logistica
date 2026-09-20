@@ -28,6 +28,19 @@
       primera factura.
     -->
     <PackageReference Include="QuestPDF" Version="2026.7.3" />
+
+    <!--
+      Módulo 12: escribe el `.xlsx` de los cinco reportes (research §1). La única clase que la conoce
+      es `Reportes/ArmadorReporteExcelClosedXml`, igual que QuestPDF con su armador.
+
+      LICENCIA: MIT, sin cláusula comercial — a diferencia de EPPlus, que desde su versión 5 es
+      *Polyform Noncommercial* y por eso queda afuera.
+
+      A diferencia de QuestPDF, **no tiene requisitos nativos**: es C# puro, así que el `Dockerfile`
+      no cambia. Aun así lleva su test de integración, que la ejercita de verdad resolviendo el
+      servicio del contenedor (convención [006]).
+    -->
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
   </ItemGroup>
 
   <PropertyGroup>

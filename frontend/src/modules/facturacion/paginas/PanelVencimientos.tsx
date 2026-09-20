@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { formatearFecha } from '../../../compartido/fechas'
 import { formatearPesos } from '../../../compartido/moneda'
 import { situacion } from '../servicios/api'
+import { GenerarReporte } from '../../reportes/componentes/GenerarReporte'
 import { consultarVencimientos, type FilaDeVencimiento } from '../servicios/servicioFacturas'
 
 export const MENSAJE_PANEL_VACIO =
@@ -26,7 +27,12 @@ export const MENSAJE_PANEL_VACIO =
  * **Un panel vacío es una respuesta legítima** y se dice con esas palabras, en vez de mostrar una tabla sin
  * filas que se lee como un error de carga.
  */
-export function PanelVencimientos() {
+interface Props {
+  /** `reportes.emitir`. Sin él, *Generar reporte* no se dibuja (Módulo 12, FR-013). */
+  puedeEmitirReportes: boolean
+}
+
+export function PanelVencimientos({ puedeEmitirReportes }: Props) {
   const [filas, setFilas] = useState<FilaDeVencimiento[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -58,6 +64,14 @@ export function PanelVencimientos() {
       <EncabezadoDePantalla
         titulo="Vencimientos de facturas"
         volverA={{ ruta: '/facturas', etiqueta: 'Volver al listado de facturas' }}
+        /* Mismo criterio que los otros dos paneles: secundaria, y la pantalla sigue sin primaria. */
+        accionSecundaria={
+          <GenerarReporte
+            reporte="vencimientos-facturas"
+            puedeEmitir={puedeEmitirReportes}
+            cantidadDeFilas={filas?.length ?? 0}
+          />
+        }
       />
 
       {error !== null && (

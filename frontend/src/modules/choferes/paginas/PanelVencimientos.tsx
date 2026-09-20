@@ -7,6 +7,7 @@ import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState } from 'react'
 import { formatearFecha, TEXTO_ESTADO_DOCUMENTO, textoDelPlazo } from '../servicios/estados'
+import { GenerarReporte } from '../../reportes/componentes/GenerarReporte'
 import { listarVencimientos, type AlertaVencimiento } from '../servicios/servicioChoferes'
 
 const MENSAJE_SIN_VENCIMIENTOS = 'No hay documentación próxima a vencer ni vencida.'
@@ -18,6 +19,8 @@ interface Props {
    * salida a una pantalla que no se puede abrir es peor que no ofrecer ninguna (convención [005]).
    */
   puedeVolverAlListado: boolean
+  /** `reportes.emitir`. Sin él, *Generar reporte* no se dibuja (Módulo 12, FR-013). */
+  puedeEmitirReportes: boolean
 }
 
 /**
@@ -30,7 +33,7 @@ interface Props {
  * Sólo entran choferes activos y documentos vigentes de su tipo: un chofer dado de baja no alerta
  * aunque tenga todo vencido, y una licencia vieja ya renovada tampoco (FR-021, FR-020a).
  */
-export function PanelVencimientos({ puedeVolverAlListado }: Props) {
+export function PanelVencimientos({ puedeVolverAlListado, puedeEmitirReportes }: Props) {
   const [alertas, setAlertas] = useState<AlertaVencimiento[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -59,6 +62,21 @@ export function PanelVencimientos({ puedeVolverAlListado }: Props) {
           puedeVolverAlListado
             ? { ruta: '/choferes', etiqueta: 'Volver al listado de choferes' }
             : undefined
+        }
+        /*
+          Módulo 12: *Generar reporte* es **secundaria**, y la pantalla **sigue sin acción primaria**.
+          No se la promueve por descarte: el propósito de un panel de vencimientos es resolver lo que
+          está por vencer, no exportarlo (FR-005). `Volver al listado` sigue siendo terciaria.
+
+          El panel no tiene filtros y esta feature no se los agrega: el reporte se lleva el panel
+          completo y su encabezado dice `Sin filtros aplicados`.
+        */
+        accionSecundaria={
+          <GenerarReporte
+            reporte="vencimientos-choferes"
+            puedeEmitir={puedeEmitirReportes}
+            cantidadDeFilas={alertas?.length ?? 0}
+          />
         }
       />
       {error !== null && (

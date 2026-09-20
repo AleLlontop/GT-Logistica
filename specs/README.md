@@ -20,8 +20,34 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 | [009 — Liquidación a transportistas](009-gestion-liquidacion/) | Implementado y validado | 105 / 105 |
 | [010 — Gestión de adelantos de sueldo](010-gestion-adelantos/) | Implementado y validado | 93 / 93 |
 | [011 — Gestión de caja](011-gestion-caja/) | Implementado, **falta la validación manual** | 88 / 89 |
+| [012 — Emitir reportes](012-emitir-reportes/) | Implementado, **falta la validación manual** | 77 / 78 |
 
 ## Qué queda abierto
+
+**Módulo 12.** Implementado con backend y frontend completos: **106 tests unitarios** del módulo —las
+palabras de los estados, el nombre del archivo, la línea de filtros, el encabezado de FR-006, la traducción
+a HTTP de los cuatro cuerpos de error y las cinco fuentes—, **38 de integración** —las dos bibliotecas
+ejercitadas de verdad resolviendo el servicio del contenedor, la paridad fila a fila contra los cinco
+listados, el `409` del tope con el tope bajado por configuración, el `500` con el armador doblado y la
+matriz de cuatro roles por cinco reportes—, más **42 de frontend**. Las suites enteras en verde —500
+unitarios y 958 de integración en backend, 492 en frontend—, con typecheck y lint limpios. **Falta el
+recorrido manual de los 32 pasos del quickstart (T067)**, incluidos los que se comprueban con la calculadora
+de la planilla.
+
+Tres cosas anotadas, ninguna bloqueante:
+
+- **El panel de Flota dice `Vigente` donde el de Choferes dice `Al día`** para el mismo estado del
+  documento. `data-model.md` §3.3 daba por hecho que los dos mapas de TypeScript eran iguales; no lo son.
+  Manda la regla operativa —cada `EnPantalla` copia literalmente el mapa de **su** pantalla—, así que el
+  reporte de flota dice lo que dice su panel. La palabra no llega a ningún archivo: los dos paneles excluyen
+  los documentos vigentes.
+- **El `403` de los cinco endpoints lleva el texto del contrato del módulo.** El cuerpo del `403` lo arma el
+  pipeline una sola vez para todo el sistema, así que un endpoint ahora puede declarar el suyo como
+  metadata. No mueve ninguna decisión de autorización al handler: quien decide sigue siendo la política.
+- **Dos llamadas existentes pasaron a nombrar el argumento de cancelación.** El parámetro opcional
+  `tamanioPagina` va antes del `CancellationToken`, que es el orden de este código, y eso rompe una llamada
+  posicional. Son dos líneas, en `ViajesEndpoints` y en `MovimientosDeCajaEndpoints`, sin cambio de
+  comportamiento.
 
 **Módulo 11.** Implementado con backend, base y frontend completos: **25 tests unitarios** de las reglas
 puras y **84 de integración** del módulo —las tres carreras (doble apertura, dos cierres, movimiento contra
@@ -310,6 +336,15 @@ Decisiones que exceden a su módulo y que conviene conocer antes de empezar el s
   condicional sobre el estado cierra las cuatro carreras y no hizo falta `Version`. También el primero cuyas
   pantallas **distinguen el `403` de un error de carga**, y el que destapó que en un `CHECK` un `LEN` sobre
   una columna anulable deja pasar la fila si no va detrás de su `IS NOT NULL`.
+- **Módulo 12** — primer módulo que **no agrega ninguna pantalla**: son cinco botones sobre pantallas que
+  ya existen, y por eso su permiso es el primero que **no lleva entrada de menú**. El primero cuyo reparto de
+  permisos **se invierte** —Gerencia y el administrador sí, los dos roles operativos no—, y el primero que
+  exige **dos permisos juntos** sobre un mismo endpoint, como conjunción de requirements en una política y
+  sin un `if` adentro del handler. También el primero que **declara una excepción a una regla anterior**: el
+  artefacto lleva el instante de generación, al revés del documento de la factura, porque un reporte es la
+  foto de un listado que cambia. Y el que descubrió que **las palabras en español de los estados no existen
+  en el backend**: las clases `NombresDeEstado*` devuelven el código del JSON y las palabras viven sólo en
+  TypeScript.
 - **Módulo 11** — primer módulo cuyo candado protege **un `INSERT` en una tabla hija** y no una escritura
   sobre la misma fila: registrar un movimiento y cerrar empiezan con un `UPDATE` que no cambia nada sobre la
   caja, sólo para tomar su lock. El primero cuya confirmación **viaja con el número que confirma**

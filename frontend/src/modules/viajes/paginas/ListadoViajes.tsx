@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatearFecha } from '../../../compartido/fechas'
 import { formatearPesos } from '../../../compartido/moneda'
+import { GenerarReporte } from '../../reportes/componentes/GenerarReporte'
 import { FiltrosViajes } from '../componentes/FiltrosViajes'
 import { Paginacion } from '../../../compartido/ui/Paginacion'
 import type { PaginaDe } from '../clientes/servicioClientes'
@@ -30,6 +31,8 @@ const MENSAJE_SIN_COINCIDENCIAS = 'Ningún viaje coincide con los filtros aplica
 interface Props {
   /** `viajes.gestionar`. Quien sólo consulta ve el listado sin el botón de alta (FR-052). */
   puedeGestionar: boolean
+  /** `reportes.emitir`. Sin él, *Generar reporte* no se dibuja (Módulo 12, FR-013). */
+  puedeEmitirReportes: boolean
 }
 
 /**
@@ -45,7 +48,7 @@ interface Props {
  * Los importes se formatean con `formatearPesos` y las fechas con `formatearFecha`, nunca a mano
  * (Principio II, convención [003]).
  */
-export function ListadoViajes({ puedeGestionar }: Props) {
+export function ListadoViajes({ puedeGestionar, puedeEmitirReportes }: Props) {
 
   const [filtros, setFiltros] = useState(FILTROS_VIAJES_INICIALES)
   const [pagina, setPagina] = useState(1)
@@ -84,6 +87,29 @@ export function ListadoViajes({ puedeGestionar }: Props) {
     <section>
       <EncabezadoDePantalla
         titulo="Viajes"
+        /*
+          *Generar reporte* es **secundaria** (Módulo 12, FR-005): *Nuevo viaje* sigue siendo la única
+          primaria, y para Gerencia —que no gestiona viajes— la pantalla sigue sin primaria, como
+          antes de esta feature.
+
+          Se le pasan **los filtros aplicados** y el `total` del listado, no los de la página visible:
+          el reporte abarca todas las filas del filtro (FR-007).
+        */
+        accionSecundaria={
+          <GenerarReporte
+            reporte="viajes"
+            puedeEmitir={puedeEmitirReportes}
+            cantidadDeFilas={resultado?.total ?? 0}
+            filtros={{
+              clienteId: filtros.clienteId,
+              transportistaId: filtros.transportistaId,
+              estado: filtros.estado,
+              desde: filtros.desde,
+              hasta: filtros.hasta,
+              busqueda: filtros.busqueda.trim(),
+            }}
+          />
+        }
         accionPrincipal={
           puedeGestionar ? (
             <Link to="/viajes/nuevo" className={clasesDeBoton('primario')}>

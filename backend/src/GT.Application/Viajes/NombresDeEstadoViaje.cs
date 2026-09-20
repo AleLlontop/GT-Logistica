@@ -43,6 +43,26 @@ public static class NombresDeEstadoViaje
     };
 
     /// <summary>
+    /// La palabra que <b>la pantalla muestra</b>, para los reportes del Módulo 12 (FR-010).
+    ///
+    /// <b>Es una copia declarada de <c>NOMBRES_DE_ESTADO</c> de
+    /// <c>frontend/src/modules/viajes/servicios/servicioViajes.ts</c></b>, y la fija el test
+    /// <c>PalabrasDeEstadoTests</c>. Existe porque <see cref="EnJson"/> devuelve el <i>código</i> del
+    /// contrato —<c>enCurso</c>— y las palabras visibles viven sólo en TypeScript: un reporte que se
+    /// arma en C# no puede llamarlas (data-model §2.5, research §14). Si la palabra cambia en la
+    /// pantalla, cambia acá.
+    /// </summary>
+    public static string EnPantalla(EstadoViaje estado) => estado switch
+    {
+        EstadoViaje.Pendiente => "Pendiente",
+        EstadoViaje.EnCurso => "En curso",
+        EstadoViaje.Rendido => "Rendido",
+        EstadoViaje.Anulado => "Anulado",
+        EstadoViaje.Facturado => "Facturado",
+        _ => throw new ArgumentOutOfRangeException(nameof(estado), estado, null),
+    };
+
+    /// <summary>
     /// Cómo se nombra el estado <b>dentro de un mensaje</b> en español, con la minúscula que pide la
     /// oración: "El viaje 1041 está rendido y no se puede modificar", "No se puede pasar el viaje
     /// 1041 de pendiente a rendido" (contracts/README.md).

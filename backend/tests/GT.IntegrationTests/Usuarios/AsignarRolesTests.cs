@@ -207,8 +207,20 @@ public class AsignarRolesTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
             [CodigosPermiso.FlotaVencimientosConsultar],
             flota.Permisos.Select(permiso => permiso.Codigo));
 
-        // Siete módulos y nada más: ningún permiso de gestión, ni de anulación.
-        Assert.Equal(7, gerencia.PermisosPorModulo.Count);
+        // El Módulo 12 suma el octavo, y es el primero que **invierte** el reparto: `reportes.emitir` lo
+        // reciben Gerencia y el administrador, y no los dos roles operativos. Hasta acá Gerencia siempre
+        // tenía un subconjunto de lo de Administración (Módulo 12, FR-014).
+        //
+        // Es además el primer permiso de Gerencia que **no termina en `consultar`**, y no contradice lo
+        // que este test protege: emitir un reporte no modifica nada del sistema.
+        var reportes = gerencia.PermisosPorModulo.Single(modulo => modulo.Modulo == "Reportes");
+
+        Assert.Equal(
+            [CodigosPermiso.ReportesEmitir],
+            reportes.Permisos.Select(permiso => permiso.Codigo));
+
+        // Ocho módulos y nada más: ningún permiso de gestión, ni de anulación.
+        Assert.Equal(8, gerencia.PermisosPorModulo.Count);
     }
 
     [Fact]

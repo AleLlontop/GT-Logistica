@@ -60,7 +60,7 @@ describe('PanelVencimientos', () => {
 
     render(
       <MemoryRouter>
-        <PanelVencimientos />
+        <PanelVencimientos puedeEmitirReportes />
       </MemoryRouter>,
     )
 
@@ -81,7 +81,7 @@ describe('PanelVencimientos', () => {
 
     render(
       <MemoryRouter>
-        <PanelVencimientos />
+        <PanelVencimientos puedeEmitirReportes />
       </MemoryRouter>,
     )
 
@@ -92,12 +92,51 @@ describe('PanelVencimientos', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
+  // ── Módulo 12: la acción de reporte (US2) ───────────────────────────────────────────────────
+
+  it('con el permiso ofrece Generar reporte, y la pantalla sigue sin acción primaria', async () => {
+    render(
+      <MemoryRouter>
+        <PanelVencimientos puedeEmitirReportes />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByRole('button', { name: 'Generar reporte' })).toBeEnabled()
+    expect(screen.queryByRole('button', { name: /Nueva factura/ })).toBeNull()
+  })
+
+  it('sin el permiso la acción no aparece', async () => {
+    render(
+      <MemoryRouter>
+        <PanelVencimientos puedeEmitirReportes={false} />
+      </MemoryRouter>,
+    )
+
+    await screen.findByRole('table')
+
+    expect(screen.queryByRole('button', { name: 'Generar reporte' })).toBeNull()
+  })
+
+  /** Escenario 4 de la historia: un panel sin alertas deshabilita la acción y lo explica (FR-003). */
+  it('con el panel vacío la acción queda deshabilitada y se explica por qué', async () => {
+    consultarVencimientos.mockResolvedValue([])
+
+    render(
+      <MemoryRouter>
+        <PanelVencimientos puedeEmitirReportes />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByRole('button', { name: 'Generar reporte' })).toBeDisabled()
+    expect(screen.getByText('No hay filas para reportar.')).toBeVisible()
+  })
+
   it('formatea los importes en pesos y las fechas en dd/MM/yyyy', async () => {
     consultarVencimientos.mockResolvedValue([fila({ id: 1, total: 1_240_000 })])
 
     render(
       <MemoryRouter>
-        <PanelVencimientos />
+        <PanelVencimientos puedeEmitirReportes />
       </MemoryRouter>,
     )
 

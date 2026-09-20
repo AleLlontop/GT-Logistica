@@ -85,8 +85,14 @@ public class RepositorioViajes(GtDbContext contexto) : IRepositorioViajes
     public async Task<PaginaDe<ViajeListado>> ConsultarAsync(
         FiltrosDeViajes filtros,
         MomentoDeLectura momento,
+        int? tamanioPagina = null,
         CancellationToken cancelacion = default)
     {
+        // El valor por defecto se declara **sólo en la interfaz** y acá se resuelve con `??`: dos
+        // defaults escritos de los dos lados se resuelven por el tipo estático de quien llama y
+        // pueden divergir sin que falle nada (convención [009], research §3).
+        var tamanio = tamanioPagina ?? PaginaDe<ViajeListado>.TamanioPorDefecto;
+
         // En variables locales para que EF las tome como parámetros de la consulta. Leer una
         // propiedad calculada del récord dentro del árbol obligaría a EF a decidir si la evalúa acá o
         // en la base, y ese es justo el tipo de duda que termina en evaluación en memoria.
@@ -143,8 +149,8 @@ public class RepositorioViajes(GtDbContext contexto) : IRepositorioViajes
         var items = await consulta
             .OrderByDescending(viaje => viaje.Fecha)
             .ThenByDescending(viaje => viaje.Numero)
-            .Skip((filtros.Pagina - 1) * PaginaDe<ViajeListado>.TamanioPorDefecto)
-            .Take(PaginaDe<ViajeListado>.TamanioPorDefecto)
+            .Skip((filtros.Pagina - 1) * tamanio)
+            .Take(tamanio)
             .Select(viaje => new ViajeListado(
                 viaje.Id,
                 viaje.Numero,
@@ -190,11 +196,13 @@ public class RepositorioViajes(GtDbContext contexto) : IRepositorioViajes
             .AsNoTracking()
             .ToListAsync(cancelacion);
 
+        // **Las tres apariciones, no dos**: con la constante acá, la respuesta informaría
+        // `TamanioPagina: 20` con 5.000 filas adentro. No falla: miente.
         return new PaginaDe<ViajeListado>(
             items,
             total,
             filtros.Pagina,
-            PaginaDe<ViajeListado>.TamanioPorDefecto);
+            tamanio);
     }
 
     /// <summary>

@@ -11,6 +11,7 @@ import {
   TEXTO_ESTADO_DOCUMENTO,
   textoDelPlazo,
 } from '../servicios/estados'
+import { GenerarReporte } from '../../reportes/componentes/GenerarReporte'
 import {
   listarVencimientosDeFlota,
   type AlertaVencimientoFlota,
@@ -34,9 +35,11 @@ interface Props {
    * choferes —Gerencia llega acá por `flota.vencimientos.consultar` y `/flota` le responde 403—.
    */
   puedeVolverAlListado: boolean
+  /** `reportes.emitir`. Sin él, *Generar reporte* no se dibuja (Módulo 12, FR-013). */
+  puedeEmitirReportes: boolean
 }
 
-export function PanelVencimientosFlota({ puedeVolverAlListado }: Props) {
+export function PanelVencimientosFlota({ puedeVolverAlListado, puedeEmitirReportes }: Props) {
   const [alertas, setAlertas] = useState<AlertaVencimientoFlota[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -59,6 +62,14 @@ export function PanelVencimientosFlota({ puedeVolverAlListado }: Props) {
           puedeVolverAlListado
             ? { ruta: '/flota', etiqueta: 'Volver al listado de flota' }
             : undefined
+        }
+        /* Mismo criterio que el panel de choferes: secundaria, y la pantalla sigue sin primaria. */
+        accionSecundaria={
+          <GenerarReporte
+            reporte="vencimientos-flota"
+            puedeEmitir={puedeEmitirReportes}
+            cantidadDeFilas={alertas?.length ?? 0}
+          />
         }
       />
       {error !== null && (

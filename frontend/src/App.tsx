@@ -115,6 +115,12 @@ export default function App() {
   // caja sea propia lo decide el servidor con `puedeOperar` (FR-031 a FR-035).
   const puedeGestionarCaja = tienePermiso(sesion, Permisos.cajaGestionar)
 
+  // Módulo 12: se calcula **una vez** y se pasa a las cinco pantallas que ofrecen la acción. Sin el
+  // permiso, `GenerarReporte` devuelve `null` y la acción no existe para ese usuario (FR-013).
+  // Cada reporte exige además el permiso de lectura de su pantalla, y eso lo decide el servidor
+  // (FR-015): acá no se combina nada.
+  const puedeEmitirReportes = tienePermiso(sesion, Permisos.reportesEmitir)
+
   return (
     <BrowserRouter>
       {/*
@@ -318,7 +324,10 @@ export default function App() {
                   opcionesMenu={sesion.opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
-                  <PanelVencimientos puedeVolverAlListado={puedeGestionarChoferes} />
+                  <PanelVencimientos
+                    puedeVolverAlListado={puedeGestionarChoferes}
+                    puedeEmitirReportes={puedeEmitirReportes}
+                  />
                 </Layout>
               )}
             </RutaProtegida>
@@ -456,7 +465,10 @@ export default function App() {
                   opcionesMenu={sesion.opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
-                  <PanelVencimientosFlota puedeVolverAlListado={puedeGestionarFlota} />
+                  <PanelVencimientosFlota
+                    puedeVolverAlListado={puedeGestionarFlota}
+                    puedeEmitirReportes={puedeEmitirReportes}
+                  />
                 </Layout>
               )}
             </RutaProtegida>
@@ -544,7 +556,10 @@ export default function App() {
                   opcionesMenu={sesion.opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
-                  <ListadoViajes puedeGestionar={puedeGestionarViajes} />
+                  <ListadoViajes
+                    puedeGestionar={puedeGestionarViajes}
+                    puedeEmitirReportes={puedeEmitirReportes}
+                  />
                 </Layout>
               )}
             </RutaProtegida>
@@ -718,7 +733,7 @@ export default function App() {
                   opcionesMenu={sesion.opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
-                  <PanelVencimientosFacturas />
+                  <PanelVencimientosFacturas puedeEmitirReportes={puedeEmitirReportes} />
                 </Layout>
               )}
             </RutaProtegida>
@@ -1048,7 +1063,7 @@ export default function App() {
                   opcionesMenu={sesion.opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
-                  <ConsultaDeMovimientos />
+                  <ConsultaDeMovimientos puedeEmitirReportes={puedeEmitirReportes} />
                 </Layout>
               )}
             </RutaProtegida>

@@ -156,4 +156,21 @@ public static class CodigosPermiso
     /// Gerencia, que revisa cajas y movimientos sin operar (FR-032).
     /// </summary>
     public const string CajaConsultar = "caja.consultar";
+
+    /// <summary>
+    /// Módulo 12: emitir en PDF o en Excel los reportes de viajes, de los tres paneles de vencimientos
+    /// y de los movimientos de caja. Lo otorgan **sólo** *Gerencia* y *Administrador del sistema*
+    /// (FR-014).
+    ///
+    /// Es el **primer permiso que Gerencia recibe y los dos roles operativos no**: hasta el Módulo 11,
+    /// Gerencia siempre tenía un subconjunto de lo de Administración. Acá se invierte, y es deliberado
+    /// — "sólo del gerente" acota a los roles operativos, y el administrador lo recibe como recibe
+    /// todo lo demás.
+    ///
+    /// **No alcanza solo**: cada reporte exige además el permiso de lectura de la pantalla de la que
+    /// sale, como conjunción de dos <c>PermisoRequirement</c> en una misma política (FR-015,
+    /// research §5). Y **no lleva entrada de menú**: no hay pantalla nueva, y el catálogo es una lista
+    /// de pares permiso → pantalla.
+    /// </summary>
+    public const string ReportesEmitir = "reportes.emitir";
 }

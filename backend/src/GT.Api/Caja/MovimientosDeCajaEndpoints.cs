@@ -73,7 +73,7 @@ public static class MovimientosDeCajaEndpoints
     {
         var resultado = await consultar.EjecutarAsync(
             new FiltrosDeMovimientos(desde, hasta, cajaId, Math.Max(pagina ?? 1, 1)),
-            cancelacion);
+            cancelacion: cancelacion);
 
         return resultado.Rechazo is { } rechazo
             ? RespuestasDeCaja.TraducirFallo(rechazo)

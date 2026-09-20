@@ -60,7 +60,7 @@ public static class ViajesEndpoints
             busqueda,
             pagina ?? 1);
 
-        return Results.Ok(await consultar.EjecutarAsync(filtros, cancelacion));
+        return Results.Ok(await consultar.EjecutarAsync(filtros, cancelacion: cancelacion));
     }
 
     private static async Task<IResult> ObtenerAsync(

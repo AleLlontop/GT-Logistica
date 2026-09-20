@@ -284,6 +284,24 @@ public static class NombresDeEstadoFlota
 
     public static string DelDocumento(DocumentacionEstado estado) => EnCamelCase(estado.ToString());
 
+    /// <summary>
+    /// La palabra que <b>el panel muestra</b> para el estado del documento, para los reportes del
+    /// Módulo 12 (FR-010).
+    ///
+    /// <b>Es una copia declarada de <c>TEXTO_ESTADO_DOCUMENTO</c> de
+    /// <c>frontend/src/modules/flota/servicios/estados.ts</c></b>, y la fija el test
+    /// <c>PalabrasDeEstadoTests</c>. Se copia del mapa de <b>este</b> módulo y no del de Choferes:
+    /// Flota dice <c>Vigente</c> donde Choferes dice <c>Al día</c>, y el reporte tiene que decir lo que
+    /// dice su pantalla (data-model §2.5, research §14).
+    /// </summary>
+    public static string EnPantalla(DocumentacionEstado estado) => estado switch
+    {
+        DocumentacionEstado.Vigente => "Vigente",
+        DocumentacionEstado.ProximaAvencer => "Próxima a vencer",
+        DocumentacionEstado.Vencida => "Vencida",
+        _ => throw new ArgumentOutOfRangeException(nameof(estado), estado, null),
+    };
+
     public static string DelFiltro(FiltroEstadoVehiculo filtro) => EnCamelCase(filtro.ToString());
 
     /// <summary>

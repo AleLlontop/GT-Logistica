@@ -32,10 +32,13 @@ const alerta: AlertaVencimiento = {
   },
 }
 
-function renderizar(puedeVolverAlListado = true) {
+function renderizar(puedeVolverAlListado = true, puedeEmitirReportes = true) {
   return render(
     <MemoryRouter>
-      <PanelVencimientos puedeVolverAlListado={puedeVolverAlListado} />
+      <PanelVencimientos
+        puedeVolverAlListado={puedeVolverAlListado}
+        puedeEmitirReportes={puedeEmitirReportes}
+      />
     </MemoryRouter>,
   )
 }
@@ -97,5 +100,34 @@ describe('PanelVencimientos', () => {
     await screen.findByRole('table')
 
     expect(screen.getByText(/Vencida/)).toBeInTheDocument()
+  })
+
+  // ── Módulo 12: la acción de reporte (US2) ───────────────────────────────────────────────────
+
+  it('con el permiso ofrece Generar reporte, y la pantalla sigue sin acción primaria', async () => {
+    renderizar()
+
+    expect(await screen.findByRole('button', { name: 'Generar reporte' })).toBeEnabled()
+
+    // No se promueve a primaria por descarte: el propósito del panel es resolver lo que vence.
+    expect(screen.queryByRole('button', { name: /Nuev[ao]/ })).toBeNull()
+  })
+
+  it('sin el permiso la acción no aparece', async () => {
+    renderizar(true, false)
+
+    await screen.findByRole('table')
+
+    expect(screen.queryByRole('button', { name: 'Generar reporte' })).toBeNull()
+  })
+
+  /** Escenario 4 de la historia: un panel sin alertas deshabilita la acción y lo explica (FR-003). */
+  it('con el panel sin alertas la acción queda deshabilitada y se explica por qué', async () => {
+    listarVencimientos.mockResolvedValue([])
+
+    renderizar()
+
+    expect(await screen.findByRole('button', { name: 'Generar reporte' })).toBeDisabled()
+    expect(screen.getByText('No hay filas para reportar.')).toBeVisible()
   })
 })

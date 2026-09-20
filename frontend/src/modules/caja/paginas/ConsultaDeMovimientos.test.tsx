@@ -40,10 +40,10 @@ function pagina(items: MovimientoListado[]): PaginaDeMovimientos {
   return { items, total: items.length, pagina: 1, tamanioPagina: 20 }
 }
 
-function renderizar(ruta = '/movimientos-caja') {
+function renderizar(ruta = '/movimientos-caja', puedeEmitirReportes = true) {
   render(
     <MemoryRouter initialEntries={[ruta]}>
-      <ConsultaDeMovimientos />
+      <ConsultaDeMovimientos puedeEmitirReportes={puedeEmitirReportes} />
     </MemoryRouter>,
   )
 }
@@ -145,5 +145,32 @@ describe('ConsultaDeMovimientos', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(MENSAJE_SIN_PERMISO)
     expect(screen.queryByText(/Volvé a intentar/)).not.toBeInTheDocument()
+  })
+
+  // ── Módulo 12: la acción de reporte (US3) ───────────────────────────────────────────────────
+
+  it('con el permiso ofrece Generar reporte, y la pantalla sigue sin acción primaria', async () => {
+    renderizar()
+
+    expect(await screen.findByRole('button', { name: 'Generar reporte' })).toBeEnabled()
+    expect(screen.queryByRole('button', { name: /Registrar movimiento/ })).toBeNull()
+  })
+
+  it('sin el permiso la acción no aparece', async () => {
+    renderizar('/movimientos-caja', false)
+
+    await screen.findByRole('table')
+
+    expect(screen.queryByRole('button', { name: 'Generar reporte' })).toBeNull()
+  })
+
+  /** Con un rango que no deja ningún movimiento, la acción se deshabilita y se explica (FR-003). */
+  it('sin movimientos para el filtro la acción queda deshabilitada y se explica por qué', async () => {
+    listarMovimientos.mockResolvedValue(pagina([]))
+
+    renderizar()
+
+    expect(await screen.findByRole('button', { name: 'Generar reporte' })).toBeDisabled()
+    expect(screen.getByText('No hay filas para reportar.')).toBeVisible()
   })
 })

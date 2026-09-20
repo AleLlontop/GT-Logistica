@@ -7,6 +7,7 @@ import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantall
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
 import { Listado } from '../../../compartido/ui/Listado'
 import { Paginacion } from '../../../compartido/ui/Paginacion'
+import { GenerarReporte } from '../../reportes/componentes/GenerarReporte'
 import { FiltrosDeMovimientos } from '../componentes/FiltrosDeMovimientos'
 import { TablaDeMovimientos } from '../componentes/TablaDeMovimientos'
 import {
@@ -50,7 +51,12 @@ function declaracionDe(filtros: FiltrosMovimientos): string {
  *
  * Admite `?cajaId=` para llegar filtrado desde una caja.
  */
-export function ConsultaDeMovimientos() {
+interface Props {
+  /** `reportes.emitir`. Sin él, *Generar reporte* no se dibuja (Módulo 12, FR-013). */
+  puedeEmitirReportes: boolean
+}
+
+export function ConsultaDeMovimientos({ puedeEmitirReportes }: Props) {
   const [parametros] = useSearchParams()
   const cajaInicial = Number(parametros.get('cajaId'))
 
@@ -110,7 +116,24 @@ export function ConsultaDeMovimientos() {
 
   return (
     <section>
-      <EncabezadoDePantalla titulo={TITULO} />
+      <EncabezadoDePantalla
+        titulo={TITULO}
+        /*
+          Módulo 12: la acción es **secundaria** y la pantalla **sigue sin acción primaria** — es de
+          sólo lectura, y el gerente la usa sin poder operar (FR-005).
+
+          Se le pasan los filtros aplicados y el `total` del listado: el reporte abarca todas las
+          filas del filtro, no las de la página visible (FR-007).
+        */
+        accionSecundaria={
+          <GenerarReporte
+            reporte="movimientos-caja"
+            puedeEmitir={puedeEmitirReportes}
+            cantidadDeFilas={visible?.total ?? 0}
+            filtros={{ desde: filtros.desde, hasta: filtros.hasta, cajaId: filtros.cajaId }}
+          />
+        }
+      />
 
       {error !== null && (
         <p role="alert" className={cn(clasesDeAvisoDePantalla.error, 'mb-4')}>

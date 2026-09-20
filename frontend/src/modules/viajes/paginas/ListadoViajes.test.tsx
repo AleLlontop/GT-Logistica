@@ -56,10 +56,13 @@ function pagina(items: ViajeListado[], total = items.length, numero = 1): Pagina
   return { items, total, pagina: numero, tamanioPagina: 20 }
 }
 
-function renderizar(puedeGestionar = true) {
+function renderizar(puedeGestionar = true, puedeEmitirReportes = true) {
   return render(
     <MemoryRouter>
-      <ListadoViajes puedeGestionar={puedeGestionar} />
+      <ListadoViajes
+        puedeGestionar={puedeGestionar}
+        puedeEmitirReportes={puedeEmitirReportes}
+      />
     </MemoryRouter>,
   )
 }
@@ -238,5 +241,62 @@ describe('ListadoViajes', () => {
     await screen.findByRole('table')
 
     expect(screen.queryByRole('link', { name: 'Nuevo viaje' })).not.toBeInTheDocument()
+  })
+
+  // ── Módulo 12: la acción de reporte (US1) ───────────────────────────────────────────────────
+
+  /**
+   * Con el permiso aparece la acción **y el resto de la pantalla no cambia**: *Nuevo viaje* sigue
+   * siendo la única primaria y la tabla sigue diciendo lo mismo (FR-005).
+   */
+  it('con el permiso ofrece Generar reporte sin cambiar el resto de la pantalla', async () => {
+    renderizar()
+
+    expect(await screen.findByRole('button', { name: 'Generar reporte' })).toBeEnabled()
+    expect(screen.getByRole('link', { name: /Nuevo viaje/ })).toBeVisible()
+    expect(screen.getByRole('table')).toBeVisible()
+  })
+
+  /** **Sin el permiso no aparece en ningún lado**: no es un botón deshabilitado (FR-013). */
+  it('sin el permiso la acción no aparece', async () => {
+    renderizar(true, false)
+
+    await screen.findByRole('table')
+
+    expect(screen.queryByRole('button', { name: 'Generar reporte' })).toBeNull()
+  })
+
+  /** Para Gerencia —que sólo consulta— la pantalla **sigue sin acción primaria**. */
+  it('sin gestionar, la acción de reporte no inventa una primaria', async () => {
+    renderizar(false)
+
+    expect(await screen.findByRole('button', { name: 'Generar reporte' })).toBeVisible()
+    expect(screen.queryByRole('link', { name: /Nuevo viaje/ })).toBeNull()
+  })
+
+  /** Cerrar el diálogo sin elegir deja los filtros y la página **exactamente como estaban** (FR-002). */
+  it('cerrar el diálogo sin elegir no vuelve a consultar el listado', async () => {
+    const usuario = userEvent.setup()
+    renderizar()
+
+    await screen.findByRole('table')
+    const consultasAntes = listarViajes.mock.calls.length
+
+    await usuario.click(screen.getByRole('button', { name: 'Generar reporte' }))
+    await usuario.click(screen.getByRole('button', { name: 'Cancelar' }))
+
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(listarViajes.mock.calls).toHaveLength(consultasAntes)
+    expect(screen.getByRole('table')).toBeVisible()
+  })
+
+  /** Con el listado vacío, la acción queda deshabilitada y se explica por qué (FR-003). */
+  it('sin filas la acción queda deshabilitada y se explica por qué', async () => {
+    listarViajes.mockResolvedValue(pagina([]))
+
+    renderizar()
+
+    expect(await screen.findByRole('button', { name: 'Generar reporte' })).toBeDisabled()
+    expect(screen.getByText('No hay filas para reportar.')).toBeVisible()
   })
 })

@@ -66,9 +66,24 @@ public interface IRepositorioViajes
     /// </summary>
     Task<Viaje?> ObtenerFichaAsync(int id, CancellationToken cancelacion = default);
 
+    /// <param name="tamanioPagina">
+    /// Cuántas filas trae la página. <c>null</c> es el tamaño de siempre, así que <b>ninguna llamada
+    /// existente cambia</b>.
+    ///
+    /// Lo agregó el Módulo 12 para que el reporte use <b>la misma consulta</b> del listado en vez de
+    /// una parecida: así el orden no se replica, se hereda, y el <c>Total</c> que esta consulta ya
+    /// calcula sobre el filtro completo es el número que FR-016 necesita, sin una consulta nueva
+    /// (research §3).
+    ///
+    /// <b>El valor por defecto se declara sólo acá, en la interfaz, y la implementación lo resuelve
+    /// con <c>??</c>.</b> Repetirlo de los dos lados deja dos defaults que se resuelven por el tipo
+    /// estático de quien llama y pueden divergir sin que falle nada — la forma exacta del bug de
+    /// <c>HasSentinel</c> de [009].
+    /// </param>
     Task<PaginaDe<ViajeListado>> ConsultarAsync(
         FiltrosDeViajes filtros,
         MomentoDeLectura momento,
+        int? tamanioPagina = null,
         CancellationToken cancelacion = default);
 
     /// <summary>

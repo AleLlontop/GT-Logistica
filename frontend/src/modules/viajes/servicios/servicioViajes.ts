@@ -241,7 +241,13 @@ export function consultarTotales(desde: string, hasta: string) {
   return obtener<TotalesDelPeriodo>(`/viajes/totales${query({ desde, hasta })}`)
 }
 
-/** Cómo se nombra cada estado en pantalla (`contracts/README.md`). */
+/**
+ * Cómo se nombra cada estado en pantalla (`contracts/README.md`).
+ *
+ * Copiado en C# como `NombresDeEstadoViaje.EnPantalla`, para los reportes del Módulo 12: el backend
+ * no tiene estas palabras y no puede llamar a este mapa. Si una cambia acá, cambia allá — lo obliga
+ * `GT.UnitTests/Reportes/PalabrasDeEstadoTests`.
+ */
 export const NOMBRES_DE_ESTADO: Record<EstadoViaje, string> = {
   pendiente: 'Pendiente',
   enCurso: 'En curso',

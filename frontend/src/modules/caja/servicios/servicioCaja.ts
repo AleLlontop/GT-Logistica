@@ -103,6 +103,7 @@ export const NOMBRES_DE_ESTADO: Record<EstadoCaja, string> = {
   cerrada: 'Cerrada',
 }
 
+// Copiado en C# como `NombresDeEstadoCaja.EnPantalla` (Módulo 12); lo fija `PalabrasDeEstadoTests`.
 export const NOMBRES_DE_TIPO: Record<TipoMovimientoCaja, string> = {
   ingreso: 'Ingreso',
   egreso: 'Egreso',

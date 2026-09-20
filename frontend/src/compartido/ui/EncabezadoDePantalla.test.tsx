@@ -39,4 +39,44 @@ describe('EncabezadoDePantalla', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Panel de vencimientos' })).toBeVisible()
   })
+
+  /**
+   * Módulo 12: la acción secundaria tiene su propio espacio, a la izquierda de la principal. Va así y
+   * no pasándola por `accionPrincipal`, porque un slot llamado *acción principal* que recibe una
+   * secundaria es lo que la convención [007] señala.
+   */
+  it('dibuja la acción secundaria a la izquierda de la principal', () => {
+    render(
+      <MemoryRouter>
+        <EncabezadoDePantalla
+          titulo="Viajes"
+          accionSecundaria={<button type="button">Generar reporte</button>}
+          accionPrincipal={<button type="button">Nuevo viaje</button>}
+        />
+      </MemoryRouter>,
+    )
+
+    const secundaria = screen.getByRole('button', { name: 'Generar reporte' })
+    const principal = screen.getByRole('button', { name: 'Nuevo viaje' })
+
+    expect(secundaria).toBeVisible()
+    expect(principal).toBeVisible()
+    expect(secundaria.compareDocumentPosition(principal)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+  })
+
+  /** Es aditiva: una pantalla de sólo lectura la recibe y **sigue sin acción primaria**. */
+  it('la acción secundaria sola no inventa una primaria', () => {
+    render(
+      <MemoryRouter>
+        <EncabezadoDePantalla
+          titulo="Vencimientos"
+          accionSecundaria={<button type="button">Generar reporte</button>}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getAllByRole('button')).toHaveLength(1)
+  })
 })

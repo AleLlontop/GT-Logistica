@@ -16,8 +16,14 @@ public class ConsultarMovimientos(IRepositorioCaja cajas)
 {
     private static readonly TimeSpan DesplazamientoArgentina = TimeSpan.FromHours(-3);
 
+    /// <param name="tamanioPagina">
+    /// <c>null</c> es el tamaño de siempre y <b>ninguna llamada existente cambia</b>. El reporte del
+    /// Módulo 12 lo usa para traerse todas las filas del filtro llamando a <b>esta misma consulta</b>,
+    /// con su mismo orden y su mismo corte por día de Argentina (research §3).
+    /// </param>
     public async Task<ResultadoConsultaMovimientos> EjecutarAsync(
         FiltrosDeMovimientos filtros,
+        int? tamanioPagina = null,
         CancellationToken cancelacion = default)
     {
         if (filtros is { Desde: { } desde, Hasta: { } hasta } && desde > hasta)
@@ -32,6 +38,7 @@ public class ConsultarMovimientos(IRepositorioCaja cajas)
             filtros.Hasta is { } fin ? InicioDelDia(fin.AddDays(1)) : null,
             filtros.CajaId,
             Math.Max(filtros.Pagina, 1),
+            tamanioPagina,
             cancelacion);
 
         return new ResultadoConsultaMovimientos(pagina, null);

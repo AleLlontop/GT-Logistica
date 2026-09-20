@@ -1,8 +1,8 @@
+import { obtenerArchivo } from '../../../compartido/archivos'
 import {
   actualizar,
   enviar,
   obtener,
-  obtenerPdf,
   query,
   type CondicionDeVenta,
   type EstadoFacturaVisible,
@@ -90,8 +90,15 @@ export function listarAnuladasSinReemplazo(clienteId: number) {
  *
  * Pedirla no crea la factura ni guarda ningún archivo (US2 esc. 33).
  */
-export function pedirVistaPrevia(peticion: EmisionPeticion) {
-  return obtenerPdf('/facturas/vista-previa', { metodo: 'POST', cuerpo: peticion })
+export async function pedirVistaPrevia(peticion: EmisionPeticion) {
+  // El helper compartido devuelve además el nombre que puso el backend; la vista previa no lo usa,
+  // porque no se guarda ni se descarga: se muestra en pantalla.
+  const { blob } = await obtenerArchivo('/facturas/vista-previa', {
+    metodo: 'POST',
+    cuerpo: peticion,
+  })
+
+  return blob
 }
 
 /**

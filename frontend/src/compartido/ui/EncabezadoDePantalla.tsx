@@ -10,6 +10,17 @@ interface Props {
   titulo: string
   /** La acción principal de la pantalla: *Nueva factura*, *Registrar viaje*. */
   accionPrincipal?: ReactNode
+  /**
+   * Una acción de segundo nivel, a la izquierda de la principal y en la misma fila: *Generar
+   * reporte* (Módulo 12, FR-005).
+   *
+   * Va en su propio espacio y **no se pasa por `accionPrincipal`**: un slot llamado *acción
+   * principal* que recibe una secundaria es exactamente la clase de cosa que la convención [007]
+   * señala. Es opcional y aditiva: ninguna de las 42 pantallas deja de compilar ni cambia, y una
+   * pantalla de sólo lectura que gana esta acción **sigue sin acción primaria** — exportar no se
+   * vuelve primaria por descarte.
+   */
+  accionSecundaria?: ReactNode
   /** Adónde se vuelve, cuando la pantalla es una hoja de otra. */
   volverA?: { ruta: string; etiqueta: string }
   /** Datos que acompañan al título sin ser acciones. */
@@ -43,6 +54,7 @@ interface Props {
 export function EncabezadoDePantalla({
   titulo,
   accionPrincipal,
+  accionSecundaria,
   volverA,
   resumen,
   className,
@@ -75,8 +87,11 @@ export function EncabezadoDePantalla({
           )}
         </div>
 
-        {accionPrincipal !== undefined && (
-          <div className="flex flex-wrap items-center gap-2.5">{accionPrincipal}</div>
+        {(accionPrincipal !== undefined || accionSecundaria !== undefined) && (
+          <div className="flex flex-wrap items-center gap-2.5">
+            {accionSecundaria}
+            {accionPrincipal}
+          </div>
         )}
       </div>
     </header>

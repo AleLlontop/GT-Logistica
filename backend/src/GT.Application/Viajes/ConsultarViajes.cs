@@ -12,8 +12,14 @@ namespace GT.Application.Viajes;
 /// </summary>
 public class ConsultarViajes(IRepositorioViajes viajes, TimeProvider reloj)
 {
+    /// <param name="tamanioPagina">
+    /// <c>null</c> es el tamaño de siempre y <b>ninguna llamada existente cambia</b>. El reporte del
+    /// Módulo 12 lo usa para traerse todas las filas del filtro llamando a <b>esta misma consulta</b>:
+    /// así el orden no se replica, se hereda (research §3).
+    /// </param>
     public Task<PaginaDe<ViajeListado>> EjecutarAsync(
         FiltrosDeViajes filtros,
+        int? tamanioPagina = null,
         CancellationToken cancelacion = default) =>
-        viajes.ConsultarAsync(filtros, MomentoDeLectura.Desde(reloj), cancelacion);
+        viajes.ConsultarAsync(filtros, MomentoDeLectura.Desde(reloj), tamanioPagina, cancelacion);
 }

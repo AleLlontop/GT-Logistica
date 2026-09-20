@@ -174,6 +174,33 @@ public static class NombresDeEstado
 
     public static string DelDocumento(DocumentacionEstado estado) => EnCamelCase(estado.ToString());
 
+    /// <summary>
+    /// La palabra que <b>el panel muestra</b> para el estado del documento, para los reportes del
+    /// Módulo 12 (FR-010).
+    ///
+    /// <b>Es una copia declarada de <c>TEXTO_ESTADO_DOCUMENTO</c> de
+    /// <c>frontend/src/modules/choferes/servicios/estados.ts</c></b>, y la fija el test
+    /// <c>PalabrasDeEstadoTests</c>. Existe porque <see cref="DelDocumento"/> devuelve el <i>código</i>
+    /// del contrato —<c>proximaAvencer</c>— y las palabras visibles viven sólo en TypeScript
+    /// (data-model §2.5, research §14).
+    ///
+    /// Es <b>el estado del documento, no el del chofer</b>: es el que el panel muestra.
+    /// </summary>
+    public static string EnPantalla(DocumentacionEstado estado) => estado switch
+    {
+        DocumentacionEstado.Vigente => "Al día",
+        DocumentacionEstado.ProximaAvencer => "Próxima a vencer",
+        DocumentacionEstado.Vencida => "Vencida",
+        _ => throw new ArgumentOutOfRangeException(nameof(estado), estado, null),
+    };
+
+    /// <summary>
+    /// El estado del documento a partir del código con el que viaja en el JSON. Lo necesita el reporte,
+    /// que recibe el DTO ya armado y no el enum.
+    /// </summary>
+    public static DocumentacionEstado LeerDocumento(string codigoJson) =>
+        Enum.Parse<DocumentacionEstado>(codigoJson, ignoreCase: true);
+
     /// <summary>Ámbito de un tipo de documentación: <c>chofer</c> o <c>vehiculo</c> (Módulo 4, FR-017).</summary>
     public static string DelAmbito(DocumentacionAmbito ambito) => EnCamelCase(ambito.ToString());
 

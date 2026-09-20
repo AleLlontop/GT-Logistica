@@ -95,11 +95,21 @@ public interface IRepositorioCaja
     /// Los filtros <b>antes</b> de contar y paginar (research §8). El rango ya llega convertido a instantes
     /// UTC: <paramref name="desde"/> incluido y <paramref name="hastaExcluido"/> excluido.
     /// </summary>
+    /// <param name="tamanioPagina">
+    /// Cuántas filas trae la página. <c>null</c> es el tamaño de siempre, así que <b>ninguna llamada
+    /// existente cambia</b>.
+    ///
+    /// Lo agregó el Módulo 12 para que el reporte use la misma consulta del listado, con su mismo
+    /// orden y su mismo corte por día de Argentina, en vez de una parecida (research §3). Igual que en
+    /// <c>IRepositorioViajes.ConsultarAsync</c>, y por el mismo motivo, <b>el valor por defecto se
+    /// declara sólo acá</b> y la implementación lo resuelve con <c>??</c>.
+    /// </param>
     Task<PaginaDe<MovimientoListado>> ConsultarMovimientosAsync(
         DateTime? desde,
         DateTime? hastaExcluido,
         int? cajaId,
         int pagina,
+        int? tamanioPagina = null,
         CancellationToken cancelacion = default);
 }
 

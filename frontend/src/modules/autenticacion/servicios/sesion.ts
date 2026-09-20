@@ -64,6 +64,14 @@ export const Permisos = {
    */
   cajaGestionar: 'caja.gestionar',
   cajaConsultar: 'caja.consultar',
+
+  /**
+   * Módulo 12. **No alcanza solo**: cada reporte exige además el permiso de lectura de la pantalla de
+   * la que sale, y eso lo decide el servidor (FR-013, FR-015). Acá se consulta para decidir si la
+   * acción *Generar reporte* se dibuja: sin el permiso el componente devuelve `null`, no un botón
+   * deshabilitado — la acción no existe para ese usuario.
+   */
+  reportesEmitir: 'reportes.emitir',
 } as const
 
 export function tienePermiso(sesion: Sesion | null, codigo: string): boolean {
