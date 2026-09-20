@@ -114,21 +114,23 @@ export function TotalesPeriodo() {
           {MENSAJE_SIN_RESULTADOS}
         </EstadoVacio>}
 
-      {totales !== null && totales.porCliente.length > 0 && (
-        <Cuadro
-          titulo="Por cliente"
-          encabezado="Cliente"
-          filas={totales.porCliente}
-        />
-      )}
+      <div className="flex flex-col gap-10 mt-6">
+        {totales !== null && totales.porCliente.length > 0 && (
+          <Cuadro
+            titulo="Por cliente"
+            encabezado="Cliente"
+            filas={totales.porCliente}
+          />
+        )}
 
-      {totales !== null && totales.porTransportista.length > 0 && (
-        <Cuadro
-          titulo="Por transportista"
-          encabezado="Transportista"
-          filas={totales.porTransportista}
-        />
-      )}
+        {totales !== null && totales.porTransportista.length > 0 && (
+          <Cuadro
+            titulo="Por transportista"
+            encabezado="Transportista"
+            filas={totales.porTransportista}
+          />
+        )}
+      </div>
     </section>
   )
 }
@@ -144,7 +146,7 @@ function Cuadro({
 }) {
   return (
     <section>
-      <h2>{titulo}</h2>
+      <h2 className="m-0 mb-4 text-[16px] font-bold tracking-[-0.02em] text-ink">{titulo}</h2>
 
       <Listado>
           <TablaDesplazable>
@@ -153,10 +155,10 @@ function Cuadro({
         <thead>
           <tr>
             <th scope="col">{encabezado}</th>
-            <th scope="col" className="text-right">
+            <th scope="col" className="!text-right">
               Viajes
             </th>
-            <th scope="col" className="text-right">
+            <th scope="col" className="!text-right">
               Importe
             </th>
           </tr>
