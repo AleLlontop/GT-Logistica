@@ -35,8 +35,14 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
         (CodigosPermiso.ChoferesGestionar, "Choferes",
             "Gestionar transportistas, choferes y su documentación"),
 
+        (CodigosPermiso.ChoferesVencimientosConsultar, "Choferes",
+            "Consultar el panel de vencimientos de la documentación de choferes"),
+
         (CodigosPermiso.FlotaGestionar, "Flota",
             "Gestionar vehículos, su documentación y el panel de vencimientos"),
+
+        (CodigosPermiso.FlotaVencimientosConsultar, "Flota",
+            "Consultar el panel de vencimientos de la documentación de vehículos"),
 
         (CodigosPermiso.FlotaTiposGestionar, "Flota",
             "Mantener el catálogo de tipos de vehículo"),
@@ -107,6 +113,14 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
     /// El Módulo 11 repite el mismo reparto: `caja.gestionar` a *Administración de la empresa* y al
     /// administrador —abrir, registrar y cerrar—, y `caja.consultar` a esos dos más *Gerencia*, que revisa
     /// cajas y movimientos sin operar. Tráfico no recibe ninguno (Módulo 11, FR-031, FR-032, research §9).
+    ///
+    /// Los dos **paneles de vencimientos** —choferes y flota— se separan de sus permisos de gestión con
+    /// `choferes.vencimientos.consultar` y `flota.vencimientos.consultar`, para que *Gerencia* vea qué
+    /// documentación está por vencer sin quedarse con el padrón, la carga de documentos ni la descarga de
+    /// escaneos, que es un dato personal sensible. Los reciben además *Tráfico* y el administrador, que ya
+    /// llegaban a los dos paneles por `choferes.gestionar` y `flota.gestionar`: sembrarlos por separado es
+    /// lo que hace que para ellos no cambie nada. *Administración de la empresa* sigue sin ninguno de los
+    /// dos módulos.
     /// </summary>
     private static readonly Dictionary<string, string[]> PermisosPorRol = new()
     {
@@ -114,7 +128,9 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
         [
             CodigosPermiso.UsuariosGestionar,
             CodigosPermiso.ChoferesGestionar,
+            CodigosPermiso.ChoferesVencimientosConsultar,
             CodigosPermiso.FlotaGestionar,
+            CodigosPermiso.FlotaVencimientosConsultar,
             CodigosPermiso.FlotaTiposGestionar,
             CodigosPermiso.ViajesGestionar,
             CodigosPermiso.ViajesConsultar,
@@ -132,7 +148,9 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
         [CodigosRol.Trafico] =
         [
             CodigosPermiso.ChoferesGestionar,
+            CodigosPermiso.ChoferesVencimientosConsultar,
             CodigosPermiso.FlotaGestionar,
+            CodigosPermiso.FlotaVencimientosConsultar,
             CodigosPermiso.ViajesGestionar,
             CodigosPermiso.ViajesConsultar,
         ],
@@ -152,6 +170,8 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
         [CodigosRol.Gerencia] =
         [
+            CodigosPermiso.ChoferesVencimientosConsultar,
+            CodigosPermiso.FlotaVencimientosConsultar,
             CodigosPermiso.ViajesConsultar,
             CodigosPermiso.FacturacionConsultar,
             CodigosPermiso.LiquidacionesConsultar,

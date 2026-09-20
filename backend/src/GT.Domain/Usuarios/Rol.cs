@@ -41,10 +41,28 @@ public static class CodigosPermiso
     public const string ChoferesGestionar = "choferes.gestionar";
 
     /// <summary>
+    /// Sólo el **panel de vencimientos** de la documentación de choferes, sin el resto del Módulo 3.
+    /// Lo otorgan *Tráfico*, *Gerencia* y *Administrador del sistema*.
+    ///
+    /// Va aparte de <c>choferes.gestionar</c> porque Gerencia tiene que ver qué documentación está por
+    /// vencer sin poder tocar el padrón ni descargar un escaneo, que es un dato personal sensible
+    /// (Módulo 3, FR-024, SC-011). Quien gestiona el módulo lo recibe además de <c>choferes.gestionar</c>,
+    /// sembrado por separado: no son niveles ordenados.
+    /// </summary>
+    public const string ChoferesVencimientosConsultar = "choferes.vencimientos.consultar";
+
+    /// <summary>
     /// Módulo 4: vehículos, su documentación, el panel de vencimientos y la descarga de adjuntos. Lo
     /// otorgan *Tráfico* y *Administrador del sistema* (FR-039).
     /// </summary>
     public const string FlotaGestionar = "flota.gestionar";
+
+    /// <summary>
+    /// Sólo el **panel de vencimientos** de la documentación de vehículos, sin el resto del Módulo 4.
+    /// Lo otorgan *Tráfico*, *Gerencia* y *Administrador del sistema*, por el mismo motivo que
+    /// <see cref="ChoferesVencimientosConsultar"/>.
+    /// </summary>
+    public const string FlotaVencimientosConsultar = "flota.vencimientos.consultar";
 
     /// <summary>
     /// Módulo 4: sólo el ABM del catálogo de tipos de vehículo, y lo otorga únicamente

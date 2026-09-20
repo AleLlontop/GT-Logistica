@@ -42,9 +42,11 @@ public static class DocumentacionVehiculoEndpoints
         documentacion.MapDelete("/{id:int}", EliminarAsync);
         documentacion.MapGet("/{id:int}/archivo", DescargarAsync);
 
-        // El panel vive fuera del grupo porque cuelga de /api/flota/vencimientos.
+        // El panel vive fuera del grupo porque cuelga de /api/flota/vencimientos, y exige un permiso
+        // distinto del resto del módulo: `flota.vencimientos.consultar`, que también tiene Gerencia.
         rutas.MapGet("/api/flota/vencimientos", ConsultarVencimientosAsync)
-            .RequireAuthorization(politica);
+            .RequireAuthorization(
+                PoliticasAutorizacion.Para(CodigosPermiso.FlotaVencimientosConsultar));
     }
 
     /// <summary>

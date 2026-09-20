@@ -35,9 +35,13 @@ public static class DocumentacionEndpoints
         documentacion.MapDelete("/{id:int}", EliminarAsync);
         documentacion.MapGet("/{id:int}/archivo", DescargarAsync);
 
-        // El panel vive fuera del grupo porque cuelga de /api/vencimientos, no de /api/documentacion.
+        // El panel vive fuera del grupo porque cuelga de /api/vencimientos, no de /api/documentacion,
+        // y además exige un permiso distinto del resto del módulo: `choferes.vencimientos.consultar`,
+        // que también tiene Gerencia. Mirar qué está por vencer no habilita nada de lo de arriba, y en
+        // particular no habilita la descarga del escaneo.
         rutas.MapGet("/api/vencimientos", ConsultarVencimientosAsync)
-            .RequireAuthorization(politica);
+            .RequireAuthorization(
+                PoliticasAutorizacion.Para(CodigosPermiso.ChoferesVencimientosConsultar));
     }
 
     /// <summary>

@@ -315,6 +315,11 @@ builder.Services.AddAuthorization(opciones =>
         // y el resto del módulo también es de Tráfico (FR-039, research §7).
         CodigosPermiso.FlotaGestionar,
         CodigosPermiso.FlotaTiposGestionar,
+        // Los dos paneles de vencimientos van bajo un permiso de lectura propio, para que Gerencia los
+        // mire sin quedarse con el padrón ni con la descarga de escaneos. Quien gestiona el módulo los
+        // tiene además de su permiso de gestión, sembrados por separado.
+        CodigosPermiso.ChoferesVencimientosConsultar,
+        CodigosPermiso.FlotaVencimientosConsultar,
         // Módulo 5: los `GET` van bajo `viajes.consultar` y las escrituras bajo `viajes.gestionar`.
         // No son niveles ordenados: quien gestiona tiene los dos, sembrados por separado (FR-050).
         CodigosPermiso.ViajesGestionar,

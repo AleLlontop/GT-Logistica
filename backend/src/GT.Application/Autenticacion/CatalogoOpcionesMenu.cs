@@ -35,10 +35,12 @@ public static class CatalogoOpcionesMenu
             new OpcionMenuDto("tipos-documentacion", "Tipos de documentación", "/tipos-documentacion")),
 
         // Módulo 7. El panel de vencimientos de choferes existe desde el Módulo 3 y era alcanzable
-        // sólo por dirección o desde adentro del módulo: no figuraba en ningún menú. Va con el mismo
-        // permiso que ya exige, así que no cambia quién puede verlo — cambia que ahora se encuentra
-        // (FR-013, research §7).
-        (CodigosPermiso.ChoferesGestionar,
+        // sólo por dirección o desde adentro del módulo: no figuraba en ningún menú (FR-013, research §7).
+        //
+        // Va con `choferes.vencimientos.consultar` —el permiso de lectura propio del panel— y no con
+        // `choferes.gestionar`: Gerencia ve la entrada y ninguna de las tres de arriba. Tráfico y el
+        // administrador tienen los dos permisos, así que para ellos el menú no cambia.
+        (CodigosPermiso.ChoferesVencimientosConsultar,
             new OpcionMenuDto("vencimientos-choferes", "Vencimientos de choferes", "/choferes/vencimientos")),
 
         // Módulo 4. Las dos entradas van atadas a permisos **distintos**: es el primer módulo que
@@ -50,10 +52,10 @@ public static class CatalogoOpcionesMenu
             new OpcionMenuDto("tipos-vehiculo", "Tipos de vehículo", "/tipos-vehiculo")),
 
         // Módulo 7. El mismo caso que el de choferes: la pantalla existe desde el Módulo 4 y no
-        // estaba en el menú. Va con `flota.gestionar`, que es el permiso que ya exige — y no con
-        // `flota.tipos.gestionar`, que es el del catálogo de tipos y sólo lo tiene el administrador
-        // (FR-013).
-        (CodigosPermiso.FlotaGestionar,
+        // estaba en el menú (FR-013). Va con `flota.vencimientos.consultar`, el permiso de lectura
+        // propio del panel — y no con `flota.tipos.gestionar`, que es el del catálogo de tipos y sólo
+        // lo tiene el administrador.
+        (CodigosPermiso.FlotaVencimientosConsultar,
             new OpcionMenuDto("vencimientos-flota", "Vencimientos de flota", "/flota/vencimientos")),
 
         // Módulo 5. Las tres entradas van atadas a `viajes.consultar` —el permiso **de lectura**— y

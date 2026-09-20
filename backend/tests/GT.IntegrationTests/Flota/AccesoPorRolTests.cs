@@ -12,6 +12,7 @@ namespace GT.IntegrationTests.Flota;
 /// <list type="bullet">
 ///   <item><c>flota.gestionar</c> — Tráfico y Administrador del sistema.</item>
 ///   <item><c>flota.tipos.gestionar</c> — sólo Administrador del sistema.</item>
+///   <item><c>flota.vencimientos.consultar</c> — los dos anteriores más Gerencia.</item>
 /// </list>
 ///
 /// Se verifica contra el servidor y no contra el menú: la autorización se evalúa acá, sin importar si
@@ -71,11 +72,12 @@ public class AccesoPorRolTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
         Assert.Equal(HttpStatusCode.Forbidden, reactivacion.StatusCode);
     }
 
-    /// <summary>Un rol sin ninguno de los dos permisos recibe 403 en los dos grupos.</summary>
+    /// <summary>
+    /// Gerencia no tiene ninguno de los dos permisos de gestión y recibe 403 en los dos grupos.
+    /// </summary>
     [Theory]
     [InlineData("/api/flota/vehiculos")]
     [InlineData("/api/flota/tipos-vehiculo")]
-    [InlineData("/api/flota/vencimientos")]
     public async Task Un_RolSinPermisos_RecibeProhibido(string ruta)
     {
         var usuario = await app.CrearUsuarioConRolAsync(
@@ -88,6 +90,30 @@ public class AccesoPorRolTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
         var respuesta = await cliente.GetAsync(ruta);
 
         Assert.Equal(HttpStatusCode.Forbidden, respuesta.StatusCode);
+    }
+
+    /// <summary>
+    /// El panel de vencimientos es la excepción: va bajo <c>flota.vencimientos.consultar</c>, que
+    /// Gerencia sí tiene. Mirar qué documentación está por vencer no le abre el padrón —el 403 de
+    /// <c>/api/flota/vehiculos</c> de arriba lo demuestra— ni la descarga de adjuntos.
+    /// </summary>
+    [Fact]
+    public async Task Gerencia_LlegaAlPanelDeVencimientos()
+    {
+        var usuario = await app.CrearUsuarioConRolAsync(
+            "gerencia-vencimientos",
+            PasswordDePrueba,
+            CodigosRol.Gerencia);
+
+        var cliente = await app.CrearClienteAutenticadoAsync(usuario.Username, PasswordDePrueba);
+
+        var respuesta = await cliente.GetAsync("/api/flota/vencimientos");
+
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+
+        var adjunto = await cliente.GetAsync("/api/flota/documentacion/1/archivo");
+
+        Assert.Equal(HttpStatusCode.Forbidden, adjunto.StatusCode);
     }
 
     /// <summary>El administrador tiene los dos permisos y llega a todo.</summary>

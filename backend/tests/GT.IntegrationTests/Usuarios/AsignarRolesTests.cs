@@ -148,7 +148,8 @@ public class AsignarRolesTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
         // Gerencia era el último ejemplo disponible, así que el test pasa a afirmar lo que ahora es
         // cierto. El **Módulo 6 sumó el segundo**: `facturacion.consultar`, con el mismo criterio —mirar
         // la cobranza no exige poder facturar—. Lo que sigue siendo verdad, y es lo que este test
-        // protege, es que Gerencia **no recibe ningún permiso de gestión** (Módulo 6, FR-066).
+        // protege, es que Gerencia **no recibe ningún permiso de gestión** (Módulo 6, FR-066), ni
+        // siquiera en los dos módulos donde entró por un solo panel.
         var cliente = await app.CrearClienteAutenticadoAsync();
 
         var roles = await cliente.GetFromJsonAsync<List<RolLeido>>("/api/roles");
@@ -191,8 +192,23 @@ public class AsignarRolesTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
             [CodigosPermiso.CajaConsultar],
             caja.Permisos.Select(permiso => permiso.Codigo));
 
-        // Cinco módulos y nada más: ningún permiso de gestión, ni de anulación.
-        Assert.Equal(5, gerencia.PermisosPorModulo.Count);
+        // Los dos últimos son de los Módulos 3 y 4, y son los primeros que Gerencia recibe de un módulo
+        // que **no** es suyo: sólo el panel de vencimientos de cada uno, para ver qué documentación está
+        // por vencer. No traen el padrón, ni la carga de documentos, ni la descarga del escaneo.
+        var choferes = gerencia.PermisosPorModulo.Single(modulo => modulo.Modulo == "Choferes");
+
+        Assert.Equal(
+            [CodigosPermiso.ChoferesVencimientosConsultar],
+            choferes.Permisos.Select(permiso => permiso.Codigo));
+
+        var flota = gerencia.PermisosPorModulo.Single(modulo => modulo.Modulo == "Flota");
+
+        Assert.Equal(
+            [CodigosPermiso.FlotaVencimientosConsultar],
+            flota.Permisos.Select(permiso => permiso.Codigo));
+
+        // Siete módulos y nada más: ningún permiso de gestión, ni de anulación.
+        Assert.Equal(7, gerencia.PermisosPorModulo.Count);
     }
 
     [Fact]
@@ -213,9 +229,18 @@ public class AsignarRolesTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
         // vehículo, que es sólo del administrador: es el primer módulo con dos niveles de acceso
         // adentro (FR-039, research §7).
         var flota = Assert.Single(trafico.PermisosPorModulo, modulo => modulo.Modulo == "Flota");
-        var permisoDeFlota = Assert.Single(flota.Permisos);
 
-        Assert.Equal(CodigosPermiso.FlotaGestionar, permisoDeFlota.Codigo);
+        Assert.DoesNotContain(flota.Permisos, permiso => permiso.Codigo == CodigosPermiso.FlotaTiposGestionar);
+
+        // Y tiene los dos permisos de cada panel de vencimientos además del de gestión: sembrados por
+        // separado, para que separarlos le abriera el panel a Gerencia sin quitárselo a Tráfico.
+        Assert.Equal(
+            [CodigosPermiso.ChoferesGestionar, CodigosPermiso.ChoferesVencimientosConsultar],
+            choferes.Permisos.Select(permiso => permiso.Codigo).Order());
+
+        Assert.Equal(
+            [CodigosPermiso.FlotaGestionar, CodigosPermiso.FlotaVencimientosConsultar],
+            flota.Permisos.Select(permiso => permiso.Codigo).Order());
     }
 
     [Fact]
