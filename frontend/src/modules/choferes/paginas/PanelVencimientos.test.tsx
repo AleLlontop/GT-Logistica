@@ -32,10 +32,10 @@ const alerta: AlertaVencimiento = {
   },
 }
 
-function renderizar() {
+function renderizar(puedeVolverAlListado = true) {
   return render(
     <MemoryRouter>
-      <PanelVencimientos />
+      <PanelVencimientos puedeVolverAlListado={puedeVolverAlListado} />
     </MemoryRouter>,
   )
 }
@@ -44,6 +44,28 @@ describe('PanelVencimientos', () => {
   beforeEach(() => {
     listarVencimientos.mockReset()
     listarVencimientos.mockResolvedValue([alerta])
+  })
+
+  /**
+   * El panel va bajo `choferes.vencimientos.consultar`, que también tiene Gerencia. Para ella
+   * `/choferes` es un `403`, así que la salida al listado no se ofrece: un *volver* a una pantalla que
+   * no se puede abrir es peor que ninguno (convención [005]).
+   */
+  it('no ofrece volver al listado cuando la sesión no gestiona choferes', async () => {
+    renderizar(false)
+
+    expect(await screen.findByRole('table')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Volver al listado de choferes' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('ofrece volver al listado cuando la sesión sí gestiona choferes', async () => {
+    renderizar()
+
+    expect(
+      await screen.findByRole('link', { name: 'Volver al listado de choferes' }),
+    ).toBeInTheDocument()
   })
 
   /** US5 esc. 4: una lista vacía es una buena noticia y se dice, no se muestra una tabla vacía. */

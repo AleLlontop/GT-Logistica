@@ -11,6 +11,15 @@ import { listarVencimientos, type AlertaVencimiento } from '../servicios/servici
 
 const MENSAJE_SIN_VENCIMIENTOS = 'No hay documentación próxima a vencer ni vencida.'
 
+interface Props {
+  /**
+   * Si la sesión tiene `choferes.gestionar`. Decide el *volver*, nada más: el panel va bajo su propio
+   * permiso de lectura, que también tiene Gerencia, y para ella `/choferes` es un 403. Ofrecer una
+   * salida a una pantalla que no se puede abrir es peor que no ofrecer ninguna (convención [005]).
+   */
+  puedeVolverAlListado: boolean
+}
+
 /**
  * Panel de vencimientos (User Story 5).
  *
@@ -21,7 +30,7 @@ const MENSAJE_SIN_VENCIMIENTOS = 'No hay documentación próxima a vencer ni ven
  * Sólo entran choferes activos y documentos vigentes de su tipo: un chofer dado de baja no alerta
  * aunque tenga todo vencido, y una licencia vieja ya renovada tampoco (FR-021, FR-020a).
  */
-export function PanelVencimientos() {
+export function PanelVencimientos({ puedeVolverAlListado }: Props) {
   const [alertas, setAlertas] = useState<AlertaVencimiento[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -46,7 +55,11 @@ export function PanelVencimientos() {
       */}
       <EncabezadoDePantalla
         titulo="Vencimientos"
-        volverA={{ ruta: '/choferes', etiqueta: 'Volver al listado de choferes' }}
+        volverA={
+          puedeVolverAlListado
+            ? { ruta: '/choferes', etiqueta: 'Volver al listado de choferes' }
+            : undefined
+        }
       />
       {error !== null && (
         <Aviso tono="error" rol="alert" className="mb-4">

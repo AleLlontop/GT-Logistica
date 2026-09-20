@@ -59,3 +59,8 @@ GEMINI.md
 # `podman machine ssh` escribe acá su known_hosts: pasa NUL como dispositivo nulo de
 # Windows y Git Bash lo crea como archivo. Git no puede indexar un nombre reservado.
 NUL
+
+# Borradores de trabajo en la raíz: copias `.fixed` de un componente mientras se reescribe y
+# parches sueltos. Se colaron en el commit del Módulo 11 y hubo que sacarlos en el siguiente.
+/*.fixed.tsx
+/*.patch

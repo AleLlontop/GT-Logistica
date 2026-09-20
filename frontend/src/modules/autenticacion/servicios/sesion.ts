@@ -24,6 +24,15 @@ export interface Sesion {
 
 /** Los permisos que este frontend consulta por nombre. */
 export const Permisos = {
+  /**
+   * Módulos 3 y 4. El frontend los consulta sólo para el *volver* de los dos paneles de vencimientos:
+   * esos paneles van bajo `choferes.vencimientos.consultar` y `flota.vencimientos.consultar`, que
+   * también tiene Gerencia, y para ella el listado del módulo es un 403. Sin esto el panel ofrece una
+   * salida a una pantalla que no puede abrir.
+   */
+  choferesGestionar: 'choferes.gestionar',
+  flotaGestionar: 'flota.gestionar',
+
   viajesGestionar: 'viajes.gestionar',
   viajesConsultar: 'viajes.consultar',
 

@@ -37,10 +37,10 @@ function alerta(diasHastaVencimiento: number): AlertaVencimientoFlota {
   }
 }
 
-function renderizar() {
+function renderizar(puedeVolverAlListado = true) {
   return render(
     <MemoryRouter>
-      <PanelVencimientosFlota />
+      <PanelVencimientosFlota puedeVolverAlListado={puedeVolverAlListado} />
     </MemoryRouter>,
   )
 }
@@ -49,6 +49,24 @@ describe('PanelVencimientosFlota', () => {
   beforeEach(() => {
     listarVencimientosDeFlota.mockReset()
     listarVencimientosDeFlota.mockResolvedValue([])
+  })
+
+  /** El mismo caso que el panel de choferes: Gerencia llega acá y `/flota` le responde `403`. */
+  it('no ofrece volver al listado cuando la sesión no gestiona la flota', async () => {
+    renderizar(false)
+
+    expect(await screen.findByText('No hay vencimientos pendientes.')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Volver al listado de flota' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('ofrece volver al listado cuando la sesión sí gestiona la flota', async () => {
+    renderizar()
+
+    expect(
+      await screen.findByRole('link', { name: 'Volver al listado de flota' }),
+    ).toBeInTheDocument()
   })
 
   /** US5 esc. 5 y FR-036: una lista vacía es una buena noticia, y se dice. */

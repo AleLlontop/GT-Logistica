@@ -86,6 +86,12 @@ export default function App() {
     return <p role="status">Cargando…</p>
   }
 
+  // Módulos 3 y 4: los dos paneles de vencimientos van bajo un permiso de lectura propio que también
+  // tiene Gerencia, así que el *volver al listado* de cada uno se decide con el permiso de gestión del
+  // módulo. Para Gerencia ese listado es un `403` y el enlace no se dibuja (convención [005]).
+  const puedeGestionarChoferes = tienePermiso(sesion, Permisos.choferesGestionar)
+  const puedeGestionarFlota = tienePermiso(sesion, Permisos.flotaGestionar)
+
   // Módulo 5: las pantallas se miran con `viajes.consultar` y se operan con `viajes.gestionar`, así
   // que las de este módulo reciben el permiso para decidir qué acciones ofrecen (FR-052).
   const puedeGestionarViajes = tienePermiso(sesion, Permisos.viajesGestionar)
@@ -312,7 +318,7 @@ export default function App() {
                   opcionesMenu={sesion.opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
-                  <PanelVencimientos />
+                  <PanelVencimientos puedeVolverAlListado={puedeGestionarChoferes} />
                 </Layout>
               )}
             </RutaProtegida>
@@ -450,7 +456,7 @@ export default function App() {
                   opcionesMenu={sesion.opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
-                  <PanelVencimientosFlota />
+                  <PanelVencimientosFlota puedeVolverAlListado={puedeGestionarFlota} />
                 </Layout>
               )}
             </RutaProtegida>

@@ -28,7 +28,15 @@ const MENSAJE_SIN_VENCIMIENTOS = 'No hay vencimientos pendientes.'
  * Sólo entran vehículos activos y documentos vigentes de su tipo: una unidad dada de baja no alerta
  * aunque tenga todo vencido, y un seguro viejo ya renovado tampoco (FR-035, FR-024).
  */
-export function PanelVencimientosFlota() {
+interface Props {
+  /**
+   * Si la sesión tiene `flota.gestionar`. Decide el *volver*, nada más: el mismo caso que el panel de
+   * choferes —Gerencia llega acá por `flota.vencimientos.consultar` y `/flota` le responde 403—.
+   */
+  puedeVolverAlListado: boolean
+}
+
+export function PanelVencimientosFlota({ puedeVolverAlListado }: Props) {
   const [alertas, setAlertas] = useState<AlertaVencimientoFlota[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -47,7 +55,11 @@ export function PanelVencimientosFlota() {
           acción principal, y no se le inventa una (FR-017). */}
       <EncabezadoDePantalla
         titulo="Vencimientos de la flota"
-        volverA={{ ruta: '/flota', etiqueta: 'Volver al listado de flota' }}
+        volverA={
+          puedeVolverAlListado
+            ? { ruta: '/flota', etiqueta: 'Volver al listado de flota' }
+            : undefined
+        }
       />
       {error !== null && (
         <Aviso tono="error" rol="alert" className="mb-4">
