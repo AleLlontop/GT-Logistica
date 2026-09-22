@@ -82,6 +82,8 @@ detiene con un mensaje explicando qué falta.
 | [6. Gestión de facturación](specs/006-gestion-facturacion/) | Implementado | Configuración de la empresa emisora con su logo, emisión agrupando viajes rendidos de un cliente y período con neto / IVA / total calculados, vista previa y documento PDF generado por el sistema, CAE y su vencimiento, estados pendiente / vencida / pagada / anulada con registro del cobro, anulación con motivo que devuelve los viajes a rendido, refacturación, listado con filtros, panel de vencimientos y totales facturado / cobrado / pendiente |
 | [9. Liquidación a transportistas](specs/009-gestion-liquidacion/) | Implementado | Liquidación mensual a fleteros agrupando los viajes rendidos del período, un viaje en una sola liquidación, detalle de los viajes que la componen y las órdenes de pago que la cancelan, estados pendiente / pagada / anulada y listado con filtros combinables |
 | [10. Gestión de adelantos de sueldo](specs/010-gestion-adelantos/) | Implementado | Registro de adelantos a choferes propios y empleados, circuito pendiente → aprobado / rechazado con motivo y anulación confirmada, listado con filtros por persona, rango de fechas y estado, total adelantado de la selección e historial de quién hizo qué y cuándo |
+| [11. Gestión de caja](specs/011-gestion-caja/) | Implementado | Apertura de caja con saldo inicial y responsable, una sola caja abierta por empleado, registro de ingresos y egresos con concepto y referencia opcional a una factura o a una orden de pago, resumen previo al cierre con el saldo final calculado y confirmado contra el número que se vio, cierre que deja la caja sin admitir movimientos, y consulta por caja o por rango de días  |
+| [12. Emitir reportes](specs/012-emitir-reportes/) | Implementado | Acción *Generar reporte* en PDF y Excel sobre cinco listados ya existentes —viajes, los tres paneles de vencimientos y los movimientos de caja—, con las filas que los filtros dejan y no sólo la página a la vista, encabezado con la línea de filtros y el instante de generación, totales al pie, importes y fechas que la planilla puede sumar, y permiso propio de emisión exigido junto al de consulta del módulo |
 
 
 > Los identificadores de tarea (`T059`, `T123`, …) **se numeran desde uno en cada módulo**, así que
@@ -122,7 +124,9 @@ frontend/src/
 │   ├── viajes/             Viajes, clientes y totales por cliente y transportista
 │   ├── facturacion/        Facturas, empresa emisora y totales facturado/cobrado
 │   ├── liquidaciones/      Liquidaciones a transportistas y órdenes de pago
-│   └── adelantos/          Adelantos de sueldo a choferes y empleados
+│   ├── adelantos/          Adelantos de sueldo a choferes y empleados
+│   ├── caja/               Apertura, movimientos y cierre de caja
+│   └── reportes/           Acción compartida Generar reporte
 └── compartido/             Layout, menú y cliente HTTP
 
 specs/                      Una carpeta por módulo: spec, plan y tareas
