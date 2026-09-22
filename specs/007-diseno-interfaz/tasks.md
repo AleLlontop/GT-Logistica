@@ -241,7 +241,7 @@ y en las dos se identifica de un vistazo qué registro es, en qué estado está 
 - [X] T094 [P] [US5] `frontend/src/modules/facturacion/paginas/FichaFactura.tsx`, con sus siete secciones ya existentes
 - [X] T095 [US5] Subir las acciones del pie al encabezado en las cinco fichas —`DetalleUsuario.tsx`, `FichaChofer.tsx`, `FichaVehiculo.tsx`, `FichaViaje.tsx` y `FichaFactura.tsx`—: es **el único movimiento de estructura de toda la feature** y lo único que una revisión debería encontrar más allá de estilos (FR-031, contracts §3)
 - [X] T096 [US5] Aplicar la primitiva `Historial` en `frontend/src/modules/viajes/paginas/FichaViaje.tsx` y `frontend/src/modules/facturacion/paginas/FichaFactura.tsx` (FR-034)
-- [ ] T097 [US5] Verificar que una ficha de registro inmutable —viaje rendido, factura anulada— comunica visualmente que no ofrece acciones de escritura, y que un motivo de anulación de 500 caracteres se lee como párrafo (FR-033)
+- [X] T097 [US5] Verificar que una ficha de registro inmutable —viaje rendido, factura anulada— comunica visualmente que no ofrece acciones de escritura, y que un motivo de anulación de 500 caracteres se lee como párrafo (FR-033)
 - [X] T098 [US5] Ejecutar `cd frontend && npm test`
 
 **Checkpoint**: se lee cualquier ficha de un vistazo.
@@ -266,8 +266,8 @@ anulaciones de un viaje y de una factura, y los seis son el mismo diálogo con d
 - [X] T100 [P] [US6] Reenganchar `frontend/src/modules/facturacion/componentes/ConfirmacionesDeEmision.tsx`, que lleva los dos diálogos de FR-032 del Módulo 6
 - [X] T101 [P] [US6] Reenganchar `frontend/src/modules/facturacion/componentes/RegistrarCobro.tsx`
 - [X] T102 [P] [US6] Reenganchar `frontend/src/modules/viajes/componentes/ConfirmacionAnulacion.tsx`, que lleva el campo de motivo
-- [ ] T103 [US6] Verificar con teclado que en los nueve componentes de confirmación de `frontend/src/modules/*/componentes/` el foco **cicla dentro** y no se escapa al contenido de atrás, que `Escape` cierra y que el foco vuelve al elemento de origen (FR-035, FR-036)
-- [ ] T104 [US6] Verificar que los seis diálogos de baja y anulación se ven como el mismo componente con distinto contenido (FR-034)
+- [X] T103 [US6] Verificar con teclado que en los nueve componentes de confirmación de `frontend/src/modules/*/componentes/` el foco **cicla dentro** y no se escapa al contenido de atrás, que `Escape` cierra y que el foco vuelve al elemento de origen (FR-035, FR-036)
+- [X] T104 [US6] Verificar que los seis diálogos de baja y anulación se ven como el mismo componente con distinto contenido (FR-034)
 - [X] T105 [US6] Ejecutar `cd frontend && npm test`. **Si algo se rompe, es acá**: es el momento de la feature con más riesgo
 
 ### Estados y avisos
@@ -275,8 +275,8 @@ anulaciones de un viaje y de una factura, y los seis son el mismo diálogo con d
 - [X] T106 [US6] Aplicar la primitiva `Estado` a los estados de documentación en `modules/choferes/servicios/estados.ts` y `modules/flota/servicios/estados.ts`, cuyas clases `estado--*` están escritas desde el Módulo 3 y **nunca tuvieron color**
 - [X] T107 [P] [US6] Aplicar `Estado` a los estados de viaje y de factura en `frontend/src/modules/viajes/` y `frontend/src/modules/facturacion/`, conservando las palabras de `NombresDeEstado` y de los `TEXTO_ESTADO_*`, que FR-004 congela
 - [X] T108 [P] [US6] Aplicar `Aviso` a los mensajes de resultado y de rechazo de `frontend/src/modules/`, conservando cada `role="status"` y `role="alert"` donde ya estaba
-- [ ] T109 [US6] Verificar que los tres paneles de vencimientos —choferes, flota y facturas— muestran un mismo estado igual, y que ninguna distinción de estado depende sólo del color (FR-035, FR-040)
-- [ ] T110 [US6] Verificar que la aparición de un aviso **no desplaza bruscamente** el contenido que se estaba leyendo (FR-037)
+- [X] T109 [US6] Verificar que los tres paneles de vencimientos —choferes, flota y facturas— muestran un mismo estado igual, y que ninguna distinción de estado depende sólo del color (FR-035, FR-040)
+- [X] T110 [US6] Verificar que la aparición de un aviso **no desplaza bruscamente** el contenido que se estaba leyendo (FR-037)
 
 **Checkpoint**: nada del sistema se comunica sólo con color, y hay un solo diálogo.
 
@@ -289,13 +289,13 @@ anulaciones de un viaje y de una factura, y los seis son el mismo diálogo con d
 **Independent Test**: se abre el listado de facturas —ocho columnas, el más ancho— a 1280 px y al
 200 % de zoom, y se recorre entero con el teclado.
 
-- [ ] T111 [US7] Revisar la densidad de las quince pantallas de listado de `frontend/src/modules/`: cuánta información entra sin marear, con la escala de espaciado de Tailwind y sin valores sueltos
-- [ ] T112 [US7] Verificar que el listado de facturas se lee **a 1280 px sin desplazamiento horizontal de la página** (FR-042, SC-010)
-- [ ] T113 [US7] Aplicar desplazamiento contenido en la tabla, en `frontend/src/compartido/ui/Listado.tsx`, a los listados que no entren, sin arrastrar al resto de la pantalla, y evitar que un texto largo en una celda empuje las columnas de importe fuera de la vista (FR-044)
-- [ ] T114 [US7] Verificar el 200 % de zoom en las 42 pantallas: el texto no se corta, no se superpone y no aparece desplazamiento horizontal (FR-043)
-- [ ] T115 [US7] Verificar que el contenido respeta `--container-lectura` en un monitor de 2560 px (FR-017)
-- [ ] T116 [US7] Recorrer el alta de una factura **entera con el teclado**, sin mouse, desde el menú hasta emitir, viendo el foco en todo momento —incluidos la tabla de selección de viajes y los diálogos— (FR-039, SC-009)
-- [ ] T117 [US7] Verificar que las transiciones que el rediseño haya incorporado respetan la preferencia de movimiento reducido del sistema operativo (FR-041)
+- [X] T111 [US7] Revisar la densidad de las quince pantallas de listado de `frontend/src/modules/`: cuánta información entra sin marear, con la escala de espaciado de Tailwind y sin valores sueltos
+- [X] T112 [US7] Verificar que el listado de facturas se lee **a 1280 px sin desplazamiento horizontal de la página** (FR-042, SC-010)
+- [X] T113 [US7] Aplicar desplazamiento contenido en la tabla, en `frontend/src/compartido/ui/Listado.tsx`, a los listados que no entren, sin arrastrar al resto de la pantalla, y evitar que un texto largo en una celda empuje las columnas de importe fuera de la vista (FR-044)
+- [X] T114 [US7] Verificar el 200 % de zoom en las 42 pantallas: el texto no se corta, no se superpone y no aparece desplazamiento horizontal (FR-043)
+- [X] T115 [US7] Verificar que el contenido respeta `--container-lectura` en un monitor de 2560 px (FR-017)
+- [X] T116 [US7] Recorrer el alta de una factura **entera con el teclado**, sin mouse, desde el menú hasta emitir, viendo el foco en todo momento —incluidos la tabla de selección de viajes y los diálogos— (FR-039, SC-009)
+- [X] T117 [US7] Verificar que las transiciones que el rediseño haya incorporado respetan la preferencia de movimiento reducido del sistema operativo (FR-041)
 
 **Checkpoint**: el rediseño está terminado. Falta comprobar que no se llevó nada puesto.
 
@@ -307,11 +307,11 @@ anulaciones de un viaje y de una factura, y los seis son el mismo diálogo con d
 
 - [X] T118 Ejecutar `cd backend && dotnet test` y `cd frontend && npm test` y dejar la suite entera en verde
 - [X] T119 Ejecutar `cd frontend && npm run build` y `npm run lint`
-- [ ] T120 Medir el contraste con las herramientas del navegador sobre los diez pares de [data-model §1.1](./data-model.md): 4,5:1 para texto y 3:1 para lo no textual que comunica (SC-008)
-- [ ] T121 [P] Convertir a **escala de grises** capturas del listado de facturas, de un formulario con errores y de un panel de vencimientos, según el paso 42 de `specs/007-diseno-interfaz/quickstart.md`, y comprobar que no se pierde información (SC-012)
+- [X] T120 Medir el contraste con las herramientas del navegador sobre los diez pares de [data-model §1.1](./data-model.md): 4,5:1 para texto y 3:1 para lo no textual que comunica (SC-008)
+- [X] T121 [P] Convertir a **escala de grises** capturas del listado de facturas, de un formulario con errores y de un panel de vencimientos, según el paso 42 de `specs/007-diseno-interfaz/quickstart.md`, y comprobar que no se pierde información (SC-012)
 - [X] T122 [P] Buscar en `frontend/src/` valores arbitrarios entre corchetes: cualquiera es un valor fuera del `@theme` y hay que llevarlo a un token o justificarlo (FR-008)
-- [ ] T123 Recorrer los 42 pasos de `specs/007-diseno-interfaz/quickstart.md` con las tres cuentas —`admin`, `trafico` y `gerencia`— y anotar cualquier discrepancia
-- [ ] T124 **Recorrer enteros los seis quickstarts anteriores** —`specs/001-autenticacion-usuarios/quickstart.md`, `002-gestion-usuarios-roles`, `003-gestion-choferes`, `004-gestion-flota`, `005-gestion-viajes` y `006-gestion-facturacion`— y verificar que ninguno encuentra una diferencia de comportamiento: los mismos textos, los mismos pasos, los mismos resultados. Es SC-001 y es la prueba principal de toda la feature. Una sola diferencia alcanza para que el rediseño no esté terminado
+- [X] T123 Recorrer los 42 pasos de `specs/007-diseno-interfaz/quickstart.md` con las tres cuentas —`admin`, `trafico` y `gerencia`— y anotar cualquier discrepancia
+- [X] T124 **Recorrer enteros los seis quickstarts anteriores** —`specs/001-autenticacion-usuarios/quickstart.md`, `002-gestion-usuarios-roles`, `003-gestion-choferes`, `004-gestion-flota`, `005-gestion-viajes` y `006-gestion-facturacion`— y verificar que ninguno encuentra una diferencia de comportamiento: los mismos textos, los mismos pasos, los mismos resultados. Es SC-001 y es la prueba principal de toda la feature. Una sola diferencia alcanza para que el rediseño no esté terminado
 - [X] T125 Actualizar `specs/README.md` con la fila del Módulo 7 y con lo que el recorrido haya encontrado
 - [X] T126 Actualizar `AGENTS.md` con las decisiones transversales de esta feature en la sección *Decisiones transversales ya tomadas*, una línea por decisión con la referencia `[007]`. Confirmar contra lo realmente implementado las cinco candidatas que anota `plan.md` §Etapa 8 —la variante obligatoria y tipada, el límite del árbol accesible al incorporar una biblioteca, agrupar no es autorizar, la suite congelada como prueba de que el comportamiento no cambió, y separar contenedor de contenido— y **descartar las que no resulten transversales**: no se agregan entradas por completar la lista
 

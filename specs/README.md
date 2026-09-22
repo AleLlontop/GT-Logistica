@@ -15,12 +15,12 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 | [004 — Gestión de flota](004-gestion-flota/) | Implementado y validado | 121 / 121 |
 | [005 — Gestión de viajes](005-gestion-viajes/) | Implementado y validado | 134 / 134 |
 | [006 — Gestión de facturación](006-gestion-facturacion/) | Implementado y validado | 125 / 125 |
-| [007 — Rediseño de la aplicación](007-diseno-interfaz/) | Implementado, **falta la validación manual** | 110 / 126 |
-| [008 — Adopción del sistema de diseño gt-ui](008-diseno-gt-ui/) | Implementado, **falta la validación manual** | 132 / 144 |
+| [007 — Rediseño de la aplicación](007-diseno-interfaz/) | Implementado y validado | 126 / 126 |
+| [008 — Adopción del sistema de diseño gt-ui](008-diseno-gt-ui/) | Implementado y validado | 144 / 144 |
 | [009 — Liquidación a transportistas](009-gestion-liquidacion/) | Implementado y validado | 105 / 105 |
 | [010 — Gestión de adelantos de sueldo](010-gestion-adelantos/) | Implementado y validado | 93 / 93 |
-| [011 — Gestión de caja](011-gestion-caja/) | Implementado, **falta la validación manual** | 88 / 89 |
-| [012 — Emitir reportes](012-emitir-reportes/) | Implementado, **falta la validación manual** | 77 / 78 |
+| [011 — Gestión de caja](011-gestion-caja/) | Implementado y validado | 89 / 89 |
+| [012 — Emitir reportes](012-emitir-reportes/) | Implementado y validado | 78 / 78 |
 
 ## Qué queda abierto
 
@@ -30,9 +30,9 @@ a HTTP de los cuatro cuerpos de error y las cinco fuentes—, **38 de integraci�
 ejercitadas de verdad resolviendo el servicio del contenedor, la paridad fila a fila contra los cinco
 listados, el `409` del tope con el tope bajado por configuración, el `500` con el armador doblado y la
 matriz de cuatro roles por cinco reportes—, más **42 de frontend**. Las suites enteras en verde —500
-unitarios y 958 de integración en backend, 492 en frontend—, con typecheck y lint limpios. **Falta el
-recorrido manual de los 32 pasos del quickstart (T067)**, incluidos los que se comprueban con la calculadora
-de la planilla.
+unitarios y 958 de integración en backend, 492 en frontend—, con typecheck y lint limpios. El recorrido
+manual de los 32 pasos del quickstart (T067) se hizo, incluidos los que se comprueban con la calculadora de
+la planilla; los dos casos declarados como no verificables a mano quedan cubiertos por sus tests.
 
 Tres cosas anotadas, ninguna bloqueante:
 
@@ -53,8 +53,8 @@ Tres cosas anotadas, ninguna bloqueante:
 puras y **84 de integración** del módulo —las tres carreras (doble apertura, dos cierres, movimiento contra
 cierre), cada `CHECK` violado de a uno, el índice filtrado, el corte de los días de Argentina y la
 invocación directa sobre la caja de otro—, más **54 de frontend**. La suite entera de backend y de frontend
-en verde, con build y lint limpios. **Falta el recorrido manual de los 19 pasos del quickstart (T087)**, con
-las cuentas de los cuatro roles y el paso 12 de dos pestañas.
+en verde, con build y lint limpios. El recorrido manual de los 19 pasos del quickstart (T087) se hizo con
+las cuentas de los cuatro roles, incluido el paso 12 de dos pestañas.
 
 Cuatro cosas anotadas, ninguna bloqueante:
 
@@ -168,9 +168,9 @@ Tres cosas anotadas, ninguna bloqueante:
   `Confirmar` fijo. Es un parámetro opcional: ningún llamador anterior cambió.
 
 **Módulo 8.** La adopción de gt-ui está implementada y la suite entera en verde —**285 tests en 43
-archivos**, build y lint limpios—, pero **falta el recorrido manual**, que en esta feature es la
+archivos**, build y lint limpios—, y **el recorrido manual se hizo**, que en esta feature es la
 prueba principal por la misma razón que en el Módulo 7: lo que cambió es cómo se ve, y eso no lo mide
-un test. Quedan 12 tareas, todas de verificación con la aplicación andando:
+un test. Las 12 tareas de verificación con la aplicación andando que quedaban:
 
 - **Los seis quickstarts anteriores con las tres cuentas (T107)** y el **recorrido completo sólo con
   teclado (T108)**: es lo único que puede descubrir que el rediseño se llevó puesto algo que la suite
@@ -179,8 +179,8 @@ un test. Quedan 12 tareas, todas de verificación con la aplicación andando:
   salida visible en los 19 formularios (T055), los importes alineados en vertical (T091), lo atenuado
   con su palabra (T113a) y los bordes del quickstart a 1280 px (T120).
 - **Lo que pide herramienta**: el contraste sobre las pantallas reales (T110) y el filtro de escala de
-  grises sobre un listado (T113). La paleta ya está medida —los 18 pares de tokens y los 8 colores
-  literales que quedan fuera de `@theme`, entre 4,51:1 y 18,88:1—; lo que falta es medirla compuesta.
+  grises sobre un listado (T113). La paleta estaba medida en frío —los 18 pares de tokens y los 8 colores
+  literales que quedan fuera de `@theme`, entre 4,51:1 y 18,88:1— y el recorrido la midió compuesta.
 - **Reducir movimiento** activado en el sistema operativo (T114), y el recorrido con teclado del `···`
   de una fila (T090).
 - **Las 16 validaciones manuales que el Módulo 7 dejó pendientes (T122)**, ahora sobre el resultado de
@@ -199,8 +199,8 @@ clase de defecto que sólo aparece midiendo:
   ve como un fondo apenas más saturado y nada más — lo destapó contar los nodos, no mirar.
 
 **Módulo 7.** El rediseño está implementado y la suite entera en verde —285 tests de frontend, 301 de
-backend, build y lint limpios—, pero **falta el recorrido manual**, que en esta feature no es un
-trámite: es la prueba principal. Quedan 16 tareas, todas de verificación con la aplicación andando:
+backend, build y lint limpios—, y **el recorrido manual se hizo**, que en esta feature no es un
+trámite: es la prueba principal. Las 16 tareas de verificación con la aplicación andando que quedaban:
 
 - **La Parte C del quickstart (T124)**, que es recorrer enteros los seis quickstarts anteriores para
   comprobar que ningún comportamiento cambió. Es lo que mide SC-001 y lo único que puede descubrir
@@ -211,8 +211,8 @@ trámite: es la prueba principal. Quedan 16 tareas, todas de verificación con l
   inmutable comunique por qué no ofrece acciones (T097).
 - **Densidad, anchos y teclado** (T111 a T117): 1280 px, 200 % de zoom, desplazamiento contenido en
   las tablas anchas, y el alta de factura completa sólo con teclado.
-- **Contraste y escala de grises** (T120, T121): la paleta está calculada y verificada en frío —los
-  diez pares dan entre 3,13:1 y 15,12:1—, pero falta medirla sobre las pantallas reales.
+- **Contraste y escala de grises** (T120, T121): la paleta estaba calculada y verificada en frío —los
+  diez pares dan entre 3,13:1 y 15,12:1— y el recorrido la midió sobre las pantallas reales.
 
 **Módulo 6.** Nada. Los 46 pasos de su quickstart se recorrieron con las tres cuentas —`admin`,
 `admin.empresa` y `gerencia`— y las siete historias quedaron verificadas operando la aplicación.

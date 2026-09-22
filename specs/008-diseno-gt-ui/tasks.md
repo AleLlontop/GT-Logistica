@@ -88,7 +88,7 @@ coinciden. Ninguna quedó con la apariencia anterior.
 - [X] T024 [US1] Aplicar `Geist Mono` a los identificadores del sistema —DNI, CUIT, CUIL, patente, número de comprobante, número de remito, número de viaje— en las pantallas que los muestran. Hoy no hay ninguna familia monoespaciada: un CUIT se escribe con la misma fuente que una razón social (FR-003, FR-064)
 - [X] T025 [US1] Revestir `frontend/src/modules/autenticacion/paginas/PantallaIngreso.tsx` y `frontend/src/modules/usuarios/paginas/CambiarPassword.tsx`: mismo lienzo, misma tipografía y mismo vocabulario de componentes, **sin navegación** (FR-014)
 - [X] T026 [US1] Revestir `frontend/src/modules/autenticacion/paginas/PantallaInicio.tsx` sobre el lienzo, sin inventarle una acción primaria que no tiene (FR-017)
-- [ ] T027 [US1] Recorrer las **42 pantallas** de [data-model §4](./data-model.md#4-las-42-pantallas) verificando fondo, tipografía, radios y sombras. Ninguna con la apariencia anterior, ninguna con borde gris sólido de 1 px ni sombra dura (SC-001)
+- [X] T027 [US1] Recorrer las **42 pantallas** de [data-model §4](./data-model.md#4-las-42-pantallas) verificando fondo, tipografía, radios y sombras. Ninguna con la apariencia anterior, ninguna con borde gris sólido de 1 px ni sombra dura (SC-001)
 
 **Checkpoint**: la aplicación se ve como gt-ui de punta a punta. Es el MVP: se puede mirar y juzgar sin abrir un archivo.
 
@@ -137,7 +137,7 @@ pastilla rellena, que es la que guarda, y que existe una salida visible sin desp
 - [X] T052 [P] [US2] Agrupar `frontend/src/modules/facturacion/paginas/EmpresaEmisora.tsx` en **4 secciones**: *1. Identidad fiscal*, *2. Datos de facturación*, *3. Contacto y cobro*, *4. Logo*, con `componentes/CargaDeLogo.tsx` en la cuarta
 - [X] T053 [P] [US2] Aplicar el contrato de campo y la barra de acciones al pie de su contenedor en los **tres formularios en línea** que no son pantalla propia: `frontend/src/modules/choferes/documentacion/FormularioDocumento.tsx`, `frontend/src/modules/flota/documentacion/FormularioDocumentoVehiculo.tsx` y el alta de `frontend/src/modules/choferes/documentacion/TiposDocumentacion.tsx`. Ninguno lleva sección numerada (data-model §6)
 - [X] T054 [US2] Recorrer las 42 pantallas contando botones **primarios** —la pastilla `ink` rellena—: **a lo sumo uno por pantalla**, y en toda pantalla con formulario es el que guarda. **La acción destructiva no entra en el conteo**: es un cuarto nivel y en `/choferes/:id`, `/flota/:id`, `/viajes/:id` y `/facturas/:id` convive con el primario, que es lo correcto y no una infracción. Los cuatro paneles de solo lectura —`/choferes/vencimientos`, `/flota/vencimientos`, `/viajes/totales`, `/facturas/vencimientos`— **no llevan ninguno**, y tampoco `/`. **`/facturas/totales` sí lleva**: su *Ver totales* ejecuta la consulta, y es la asimetría con `/viajes/totales` que el relevamiento destapó (FR-017, FR-020, SC-002, research §10, tabla de acción primaria del plan)
-- [ ] T055 [US2] Verificar en los 16 formularios que hay salida visible sin desplazar la pantalla y que la acción principal es alcanzable desde cualquier punto del desplazamiento — anclada al viewport en los de página completa, al pie de su contenedor en el diálogo y en las dos pantallas sin sesión (SC-003)
+- [X] T055 [US2] Verificar en los 16 formularios que hay salida visible sin desplazar la pantalla y que la acción principal es alcanzable desde cualquier punto del desplazamiento — anclada al viewport en los de página completa, al pie de su contenedor en el diálogo y en las dos pantallas sin sesión (SC-003)
 - [X] T056 [US2] Verificar que el rojo quedó reservado a lo destructivo: ningún otro elemento del sistema lo usa como relleno de acción (FR-020)
 - [X] T056a [US2] Recorrer los **16 encabezados con acciones** —los 15 que usan `accionPrincipal` más `DetalleUsuario`— y confirmar que ninguno tiene dos **primarios** compitiendo: el primario es uno solo, lo que lo acompaña se lee como secundario, lo destructivo se lee como destructivo y el *volver* está arriba a la izquierda. Las **dos secundarias reales** del sistema son las dos *Ver vencimientos* de `/choferes` y `/flota` (FR-019, FR-022, SC-002, research §10)
 
@@ -226,8 +226,8 @@ mouse y se recorre el menú `···` sólo con el tabulador.
 - [X] T088 [US3] Verificar que en **cada listado de índice** hay exactamente un enlace por fila, que es el dato que se busca con la vista, y que las 12 tablas sin ficha de destino no tienen ninguno (SC-006)
 - [X] T089 [US3] Verificar que **ninguna de las 21 tablas tiene columna `Acciones`**: las 10 que la tenían la perdieron, 8 dejando su `···` y 2 sin dejar nada (FR-046, SC-007, data-model §5)
 - [X] T089a [US3] Contra la tabla de [data-model §5](./data-model.md#columnas-que-se-fusionan-fr-047), confirmar las **15 fusiones en 12 tablas** y que las **9 tablas restantes** —nombradas ahí una por una— se miraron y no tienen ningún par de columnas que nombre un solo concepto (FR-047)
-- [ ] T090 [US3] Recorrer con el tabulador un listado con acciones de fila: se llega al `···` de cada fila, se abre sin mouse, las flechas recorren los ítems y `Escape` cierra devolviendo el foco al `···`. Sin pasar el mouse, todos los `···` están visibles (SC-008)
-- [ ] T091 [US3] Verificar en las tablas con importes que los separadores de miles y la coma decimal quedan alineados en vertical entre todas las filas (FR-039, SC-005)
+- [X] T090 [US3] Recorrer con el tabulador un listado con acciones de fila: se llega al `···` de cada fila, se abre sin mouse, las flechas recorren los ítems y `Escape` cierra devolviendo el foco al `···`. Sin pasar el mouse, todos los `···` están visibles (SC-008)
+- [X] T091 [US3] Verificar en las tablas con importes que los separadores de miles y la coma decimal quedan alineados en vertical entre todas las filas (FR-039, SC-005)
 - [X] T091a [US3] Vaciar cada listado por los **dos caminos** —uno sin ningún registro y otro con un filtro que no encuentra nada— y verificar que `EstadoVacio` **distingue los dos casos** con el texto que cada módulo ya escribió, y que la causa se explica **en un solo lugar**. La prop `caso` de la primitiva es la que lo decide, y su firma no cambia (FR-059, contracts §1)
 
 **Checkpoint**: se abre un listado, se filtra, se pagina y se entra a una fila —con el mouse o sólo con el teclado— sin buscar dónde hacer clic.
@@ -272,8 +272,8 @@ verifica el encabezado, las dos columnas, el dato destacado del aside y el callo
 - [X] T104 [US5] Ejecutar `cd frontend && npm test`: **285 pruebas en 43 archivos en verde** (FR-068, SC-011)
 - [X] T105 [US5] Revisar el diff completo de la suite: los únicos cambios son pasos de interacción en los cinco archivos de FR-069. **Ninguna aserción sobre textos, roles ni etiquetas accesibles cambió** (SC-011)
 - [X] T106 [US5] Verificar que las **42 direcciones** siguen siendo las mismas y que el título de la pestaña sigue nombrando la pantalla y el sistema (FR-067, FR-071)
-- [ ] T107 [US5] Recorrer los **seis quickstarts** de los Módulos 1 a 6 con las tres cuentas —`admin`, Tráfico y Gerencia—: mismos mensajes, mismas confirmaciones, mismos rechazos, mismos permisos (SC-012)
-- [ ] T108 [US5] Operar el sistema **de punta a punta sólo con teclado**, con el foco visible en cada paso, verificando que se alcanza todo lo que se alcanzaba antes —en particular todas las acciones que vivían en la columna `Acciones` (FR-070, SC-013)
+- [X] T107 [US5] Recorrer los **seis quickstarts** de los Módulos 1 a 6 con las tres cuentas —`admin`, Tráfico y Gerencia—: mismos mensajes, mismas confirmaciones, mismos rechazos, mismos permisos (SC-012)
+- [X] T108 [US5] Operar el sistema **de punta a punta sólo con teclado**, con el foco visible en cada paso, verificando que se alcanza todo lo que se alcanzaba antes —en particular todas las acciones que vivían en la columna `Acciones` (FR-070, SC-013)
 - [X] T109 [US5] Verificar que todo resultado que aparece sin que la pantalla cambie se sigue anunciando con `role="status"` (FR-061, convención [003])
 
 **Checkpoint**: el rediseño está completo y ninguna operación cambió de comportamiento.
@@ -284,20 +284,20 @@ verifica el encabezado, las dos columnas, el dato destacado del aside y el callo
 
 **Purpose**: lo que atraviesa a todas las historias y lo que le queda al proyecto después.
 
-- [ ] T110 Medir el contraste con herramienta —no a ojo— en las 42 pantallas: **4,5:1 para texto y 3:1 para lo no textual que comunica**. Prestar atención a los cuatro valores recalibrados y a los fondos sobre los que se los midió (SC-009)
+- [X] T110 Medir el contraste con herramienta —no a ojo— en las 42 pantallas: **4,5:1 para texto y 3:1 para lo no textual que comunica**. Prestar atención a los cuatro valores recalibrados y a los fondos sobre los que se los midió (SC-009)
 - [X] T111 Verificar que **ningún texto va directo sobre el lienzo ni sobre `surface-mute` salvo `ink` e `ink-soft`**. Es la regla que cubre a `muted`, que falla 4,13:1 sobre el lienzo y que esta feature deliberadamente no recalibra (FR-007b, SC-009a, research §1)
 - [X] T112 Verificar que **ninguna pantalla muestra un mensaje de error en su primer dibujo**, antes de que alguien la haya tocado. Esta feature no cambió cuándo se valida (FR-028, SC-010)
-- [ ] T113 Verificar con un filtro de escala de grises sobre un listado que los estados de las filas **se siguen distinguiendo**: cada uno lleva su palabra además del color (FR-055, SC-014)
-- [ ] T113a Verificar que todo elemento atenuado —un viaje anulado, una factura anulada— **lleva la palabra que lo explica** además del tono, y que el tono sigue siendo legible: atenuado no es borroso (FR-060)
-- [ ] T114 Activar *Reducir movimiento* en el sistema operativo y recorrer el sistema: **nada anima** (FR-006, SC-015)
+- [X] T113 Verificar con un filtro de escala de grises sobre un listado que los estados de las filas **se siguen distinguiendo**: cada uno lleva su palabra además del color (FR-055, SC-014)
+- [X] T113a Verificar que todo elemento atenuado —un viaje anulado, una factura anulada— **lleva la palabra que lo explica** además del tono, y que el tono sigue siendo legible: atenuado no es borroso (FR-060)
+- [X] T114 Activar *Reducir movimiento* en el sistema operativo y recorrer el sistema: **nada anima** (FR-006, SC-015)
 - [X] T115 Verificar que las animaciones que quedan usan **sólo** la curva de gt-ui y animan **sólo** `transform` y `opacity`, con `IntersectionObserver` y nunca un listener de scroll (FR-006)
 - [X] T116 [P] Verificar que **no hay emoji** en ninguna parte de la interfaz (FR-063)
 - [X] T117 [P] Verificar que las fechas y los importes conservan su formato argentino —`compartido/fechas` y `compartido/moneda`— y que los identificadores están en mono (FR-064)
 - [X] T118 [P] Revisar los textos **nuevos** que introdujo esta feature —9 rótulos de columna, 24 títulos de sección, el nombre accesible de los `···`, la leyenda de obligatorios, los **~20 placeholders**, los *Seleccioná …* y el chip *Opcional*— en español rioplatense con voseo, sin muletillas de producto. Los placeholders además se revisan contra su regla propia: **ejemplo del formato, nunca instrucción** (FR-065, contracts §5)
 - [X] T119 [P] Verificar que el nombre del sistema sigue siendo *Sistema Integral de Gestión* y no el *Sistema Integral de Transporte* de la imagen de referencia
-- [ ] T120 Recorrer los bordes de [quickstart.md](./quickstart.md#los-bordes-que-hay-que-probar-a-propósito) **a 1280 px de ancho, que es la resolución mínima soportada**: menú vacío, menú largo, pantalla sin navegación, estado desconocido, fila sin acciones, tabla que no entra a lo ancho, fila atenuada y clic sobre un control de la fila. Tablet y celular siguen fuera de alcance: no se los prueba ni se los adapta (FR-049, FR-056, FR-060, FR-072)
+- [X] T120 Recorrer los bordes de [quickstart.md](./quickstart.md#los-bordes-que-hay-que-probar-a-propósito) **a 1280 px de ancho, que es la resolución mínima soportada**: menú vacío, menú largo, pantalla sin navegación, estado desconocido, fila sin acciones, tabla que no entra a lo ancho, fila atenuada y clic sobre un control de la fila. Tablet y celular siguen fuera de alcance: no se los prueba ni se los adapta (FR-049, FR-056, FR-060, FR-072)
 - [X] T121 Ejecutar `cd frontend && npm run lint` y `npm run build`, y limpiar los tokens, clases e importaciones que quedaron sin uso
-- [ ] T122 Recorrer las **16 tareas de validación manual que el Módulo 7 dejó pendientes**, ahora sobre el resultado de este módulo y no sobre el anterior (supuesto de la spec)
+- [X] T122 Recorrer las **16 tareas de validación manual que el Módulo 7 dejó pendientes**, ahora sobre el resultado de este módulo y no sobre el anterior (supuesto de la spec)
 - [X] T123 Actualizar `AGENTS.md` con las decisiones transversales de esta feature, una línea por decisión y con referencia `[008]`. Las candidatas están en la sección *Mantenimiento* de [plan.md](./plan.md#mantenimiento); **sólo entra lo que de verdad sirva a una feature futura**, no una entrada por entrada
 
 ---
