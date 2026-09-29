@@ -2,16 +2,18 @@ import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
-import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
+import { clasesDeBoton, clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
-import type { CodigoRol, EstadoUsuario } from '../../../compartido/tipos'
+import type { CodigoRol, EstadoUsuario, RolConPermisos } from '../../../compartido/tipos'
+import { PermisosDelRol } from '../componentes/PermisosDelRol'
 import { SelectorPersona } from '../componentes/SelectorPersona'
 import {
   crearUsuario,
   ESTADOS_DE_USUARIO,
+  listarRoles,
   modificarUsuario,
   obtenerUsuario,
   ROLES_DEL_SISTEMA,
@@ -59,6 +61,7 @@ export function FormularioUsuario() {
   const [errores, setErrores] = useState<ErroresDeCampo>({})
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
+  const [verPermisosDe, setVerPermisosDe] = useState<RolConPermisos | null>(null)
 
   // FR-014: el formulario de edición abre con los datos actuales cargados.
   useEffect(() => {
@@ -99,6 +102,20 @@ export function FormularioUsuario() {
       vigente = false
     }
   }, [idUsuario])
+
+  /** El catálogo con permisos se trae recién al pedirlo: `ROLES_DEL_SISTEMA` sólo tiene código y nombre. */
+  async function verPermisos(codigo: CodigoRol) {
+    try {
+      const catalogo = await listarRoles()
+      setVerPermisosDe(catalogo.find((rol) => rol.codigo === codigo) ?? null)
+    } catch (fallo) {
+      setErrorGeneral(
+        fallo instanceof ErrorHttp
+          ? fallo.detalle.mensaje
+          : 'Ocurrió un problema inesperado. Volvé a intentar en unos minutos.',
+      )
+    }
+  }
 
   function alternarRol(codigo: CodigoRol) {
     setRoles((actuales) =>
@@ -305,14 +322,14 @@ export function FormularioUsuario() {
 
           {!esEdicion && (
             <fieldset
-              className="campo"
+              className="campo flex flex-col gap-3"
               aria-invalid={errores.roles !== undefined}
               aria-describedby={errores.roles !== undefined ? 'error-roles' : undefined}
             >
-              <legend>Roles</legend>
+              <legend className="mb-4 font-semibold text-[13.5px] text-ink-soft">Roles del sistema</legend>
 
               {ROLES_DEL_SISTEMA.map((rol) => (
-                <div key={rol.codigo}>
+                <div key={rol.codigo} className="flex items-center gap-2.5">
                   <input
                     id={`rol-${rol.codigo}`}
                     name="roles"
@@ -321,7 +338,17 @@ export function FormularioUsuario() {
                     checked={roles.includes(rol.codigo)}
                     onChange={() => alternarRol(rol.codigo)}
                   />
-                  <label htmlFor={`rol-${rol.codigo}`}>{rol.nombre}</label>
+                  <label htmlFor={`rol-${rol.codigo}`} className="text-[13.5px] font-medium text-ink cursor-pointer">
+                    {rol.nombre}
+                  </label>
+
+                  <button
+                    type="button"
+                    className={clasesDeBoton('texto', 'chico')}
+                    onClick={() => void verPermisos(rol.codigo)}
+                  >
+                    Ver permisos
+                  </button>
                 </div>
               ))}
 
@@ -345,6 +372,10 @@ export function FormularioUsuario() {
           </Boton>
         </BarraDeAcciones>
       </form>
+
+      {verPermisosDe !== null && (
+        <PermisosDelRol rol={verPermisosDe} onCerrar={() => setVerPermisosDe(null)} />
+      )}
     </section>
   )
 }
