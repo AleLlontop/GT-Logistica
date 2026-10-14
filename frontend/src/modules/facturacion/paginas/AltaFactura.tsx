@@ -33,6 +33,7 @@ import {
   listarAnuladasSinReemplazo,
   listarFacturables,
   obtenerEmpresaEmisoraParaAlta,
+  solicitarCaeAfip,
   type EmisionPeticion,
   type ViajeFacturable,
 } from '../servicios/servicioFacturas'
@@ -101,6 +102,8 @@ export function AltaFactura() {
   const [confirmacion, setConfirmacion] = useState<
     { motivo: MotivoConfirmacion; mensaje: string } | null
   >(null)
+  const [solicitandoAfip, setSolicitandoAfip] = useState(false)
+  const [mensajeAfip, setMensajeAfip] = useState<string | null>(null)
 
   // Sólo los activos: no se le puede facturar a un cliente dado de baja (FR-011).
   useEffect(() => {
@@ -196,6 +199,36 @@ export function AltaFactura() {
     clienteId, seleccionados, numeroComprobante, cae, fecha, caeVencimiento, vencimientoPago,
     tipoComprobante, tipoFacturacion, condicionDeVenta, mes, anio, detalle, facturaReemplazadaId,
   ])
+
+  async function autocompletarConAfip() {
+    setSolicitandoAfip(true)
+    setMensajeAfip(null)
+    setErrorGlobal(null)
+
+    try {
+      const resultado = await solicitarCaeAfip({
+        puntoDeVenta: '0014',
+        tipoComprobante,
+        fecha,
+      })
+
+      setNumeroComprobante(resultado.numeroComprobante)
+      setCae(resultado.cae)
+      setCaeVencimiento(resultado.caeVencimiento)
+      setMensajeAfip(
+        `✓ Comprobante autorizado por AFIP: N° ${resultado.numeroComprobante} | CAE ${resultado.cae} (Vto: ${formatearFecha(resultado.caeVencimiento)})`,
+      )
+
+      setErroresDeCampo((prev) => {
+        const { numeroComprobante: _, cae: __, caeVencimiento: ___, ...resto } = prev
+        return resto
+      })
+    } catch {
+      setErrorGlobal('No pudimos obtener la autorización de AFIP / ARCA.')
+    } finally {
+      setSolicitandoAfip(false)
+    }
+  }
 
   async function emitir(confirmado: boolean) {
     if (peticion === null) return
@@ -434,6 +467,31 @@ export function AltaFactura() {
             titulo="Datos del comprobante"
             explicacion="Los que devuelve AFIP al autorizarlo."
           >
+            <div className="flex flex-col gap-2 rounded-lg border border-line bg-surface-mute/60 p-3.5 max-w-campo-largo">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[13px] font-semibold text-ink">
+                  Integración AFIP / ARCA (Demo)
+                </span>
+                <Boton
+                  type="button"
+                  variante="secundario"
+                  tamanio="chico"
+                  disabled={solicitandoAfip}
+                  onClick={autocompletarConAfip}
+                >
+                  {solicitandoAfip ? 'Consultando AFIP...' : 'Obtener datos de AFIP / ARCA'}
+                </Boton>
+              </div>
+              <p className="m-0 text-[12px] text-faint">
+                Asigna el próximo número correlativo y obtiene el CAE y vencimiento oficial simulado.
+              </p>
+              {mensajeAfip && (
+                <p className="m-0 text-[12px] font-medium text-emerald-700" role="status">
+                  {mensajeAfip}
+                </p>
+              )}
+            </div>
+
             <div className={`${classNameCampo('fecha')} max-w-campo-corto`}>
               {/* Propuesta en hoy y modificable (FR-012). */}
 

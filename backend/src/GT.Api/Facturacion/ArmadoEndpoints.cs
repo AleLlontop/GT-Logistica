@@ -1,5 +1,6 @@
 using GT.Api.Autorizacion;
 using GT.Application.Facturacion;
+using GT.Application.Facturacion.Afip;
 using GT.Domain.Usuarios;
 
 namespace GT.Api.Facturacion;
@@ -27,6 +28,7 @@ public static class ArmadoEndpoints
         grupo.MapGet("/facturables", ConsultarFacturablesAsync);
         grupo.MapGet("/anuladas-sin-reemplazo", ConsultarAnuladasSinReemplazoAsync);
         grupo.MapPost("/vista-previa", VistaPreviaAsync);
+        grupo.MapPost("/afip/solicitar-cae", SolicitarCaeAfipAsync);
     }
 
     /// <summary>
@@ -84,4 +86,33 @@ public static class ArmadoEndpoints
 
         return Results.File(pdf!.Contenido, "application/pdf");
     }
+
+    /// <summary>
+    /// Consulta o simula la autorización de un comprobante ante AFIP / ARCA (WSFEv1),
+    /// devolviendo el correlativo siguiente, el CAE y su vencimiento oficial.
+    /// </summary>
+    private static async Task<IResult> SolicitarCaeAfipAsync(
+        SolicitudAfipRequest? peticion,
+        IAfipFacturacionService afipService,
+        TimeProvider reloj,
+        CancellationToken cancelacion)
+    {
+        var hoy = Domain.Choferes.FechaHoyArgentina.Desde(reloj.GetUtcNow());
+        var fecha = peticion?.Fecha ?? hoy;
+        var ptoVta = string.IsNullOrWhiteSpace(peticion?.PuntoDeVenta) ? "0014" : peticion.PuntoDeVenta;
+        var tipoComp = string.IsNullOrWhiteSpace(peticion?.TipoComprobante) ? "facturaA" : peticion.TipoComprobante;
+        var total = peticion?.Total ?? 0m;
+
+        var resultado = await afipService.AutorizarComprobanteAsync(
+            new SolicitudAutorizacionAfip(ptoVta, tipoComp, fecha, total),
+            cancelacion);
+
+        return Results.Ok(resultado);
+    }
 }
+
+public record SolicitudAfipRequest(
+    string? PuntoDeVenta,
+    string? TipoComprobante,
+    DateOnly? Fecha,
+    decimal? Total);

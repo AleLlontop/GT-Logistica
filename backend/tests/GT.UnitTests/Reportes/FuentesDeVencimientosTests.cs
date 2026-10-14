@@ -23,10 +23,10 @@ public class FuentesDeVencimientosTests
     private static readonly FakeTimeProvider Reloj =
         new(new DateTimeOffset(2026, 9, 20, 17, 32, 0, TimeSpan.Zero));
 
-    /// <summary>Vence en tres días desde el 20/09/2026, con aviso de treinta: próxima a vencer.</summary>
-    private static readonly DateOnly ProximaAvencer = new(2026, 9, 23);
+    /// <summary>Vence en tres días desde hoy, con aviso de treinta: próxima a vencer.</summary>
+    private static DateOnly ProximaAvencer => FechaHoyArgentina.Hoy().AddDays(3);
 
-    private static readonly DateOnly YaVencida = new(2026, 9, 10);
+    private static DateOnly YaVencida => FechaHoyArgentina.Hoy().AddDays(-10);
 
     // ── Choferes (data-model §3.2) ──────────────────────────────────────────────────────────────
 

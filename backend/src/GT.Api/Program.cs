@@ -17,6 +17,7 @@ using GT.Application.Choferes;
 using GT.Application.Choferes.Documentacion;
 using GT.Application.Choferes.Transportistas;
 using GT.Application.Facturacion;
+using GT.Application.Facturacion.Afip;
 using GT.Application.Facturacion.EmpresaEmisora;
 using GT.Application.Flota;
 using GT.Application.Flota.Documentacion;
@@ -29,6 +30,7 @@ using GT.Application.Viajes;
 using GT.Application.Viajes.Clientes;
 using GT.Api.Viajes;
 using GT.Domain.Usuarios;
+using GT.Infrastructure.Afip;
 using GT.Infrastructure.Archivos;
 using GT.Infrastructure.Correo;
 using GT.Infrastructure.DatosIniciales;
@@ -186,6 +188,7 @@ builder.Services.AddScoped<AnularFactura>();
 // dentro del módulo.
 builder.Services.AddScoped<GT.Application.Facturacion.ConsultarVencimientos>();
 builder.Services.AddScoped<ConsultarTotalesFacturacion>();
+builder.Services.AddScoped<IAfipFacturacionService, AfipDemoFacturacionService>();
 
 // ── Módulo 9: liquidación a transportistas ─────────────────────────────────────────────────────
 // Sin dependencias, variables de entorno ni infraestructura nuevas: lee transportistas, viajes y la

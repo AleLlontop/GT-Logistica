@@ -89,6 +89,34 @@ public class RepositorioFacturas(GtDbContext contexto, IAlmacenDeArchivos almace
             .AsNoTracking()
             .FirstOrDefaultAsync(cancelacion);
 
+    public async Task<int> ObtenerUltimoNumeroCorrelativoAsync(
+        string puntoDeVenta,
+        CancellationToken cancelacion = default)
+    {
+        var pv = int.TryParse(puntoDeVenta, out var p) ? p : 14;
+        var prefijo = pv.ToString("D4") + "-";
+
+        var numeros = await contexto.Facturas
+            .Where(factura => factura.NumeroComprobante.StartsWith(prefijo))
+            .Select(factura => factura.NumeroComprobante)
+            .ToListAsync(cancelacion);
+
+        var maximo = 0;
+        foreach (var numero in numeros)
+        {
+            var partes = numero.Split('-');
+            if (partes.Length == 2 && int.TryParse(partes[1], out var correlativo))
+            {
+                if (correlativo > maximo)
+                {
+                    maximo = correlativo;
+                }
+            }
+        }
+
+        return maximo;
+    }
+
     /// <summary>
     /// FR-049, FR-049a: las anuladas de ese cliente que todavía nadie refacturó. La segunda condición
     /// es una subconsulta de no existencia sobre <c>FacturaReemplazadaId</c>, que es la misma columna

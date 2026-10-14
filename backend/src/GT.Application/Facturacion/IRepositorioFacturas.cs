@@ -81,6 +81,14 @@ public interface IRepositorioFacturas
         CancellationToken cancelacion = default);
 
     /// <summary>
+    /// Consulta el último correlativo usado para un punto de venta.
+    /// Devuelve 0 si no hay ninguna factura emitida con ese punto de venta.
+    /// </summary>
+    Task<int> ObtenerUltimoNumeroCorrelativoAsync(
+        string puntoDeVenta,
+        CancellationToken cancelacion = default);
+
+    /// <summary>
     /// Las anuladas de ese cliente que todavía nadie refacturó, para el desplegable de la
     /// Refacturación (FR-049, FR-049a).
     /// </summary>

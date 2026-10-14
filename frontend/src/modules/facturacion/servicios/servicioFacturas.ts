@@ -8,6 +8,8 @@ import {
   type EstadoFacturaVisible,
   type FacturaResumen,
   type PaginaDe,
+  type ResultadoAfipRespuesta,
+  type SolicitudAfipPeticion,
   type TipoComprobante,
   type TipoFacturacion,
 } from './api'
@@ -110,6 +112,14 @@ export async function pedirVistaPrevia(peticion: EmisionPeticion) {
  */
 export function emitirFactura(peticion: EmisionPeticion) {
   return enviar<FacturaDetalle>('/facturas', peticion)
+}
+
+/**
+ * Consulta o simula la autorización de un comprobante ante AFIP / ARCA (WSFEv1),
+ * devolviendo el correlativo siguiente, el CAE y su vencimiento oficial.
+ */
+export function solicitarCaeAfip(peticion: SolicitudAfipPeticion) {
+  return enviar<ResultadoAfipRespuesta>('/facturas/afip/solicitar-cae', peticion)
 }
 
 // ── Facturas ────────────────────────────────────────────────────────────────────────────────────

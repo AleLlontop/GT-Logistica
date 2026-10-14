@@ -226,6 +226,8 @@ internal sealed class RepositorioFacturasDoble(IReadOnlyList<FilaDeVencimiento> 
 
     public Task<FacturaCliente?> ObtenerPorNumeroAsync(string numeroComprobante, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
 
+    public Task<int> ObtenerUltimoNumeroCorrelativoAsync(string puntoDeVenta, CancellationToken cancelacion = default) => Task.FromResult(0);
+
     public Task<IReadOnlyList<FacturaCliente>> ConsultarAnuladasSinReemplazoAsync(int clienteId, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
 
     public Task<PaginaDe<FacturaListado>> ConsultarAsync(FiltrosDeFacturas filtros, DateOnly hoy, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);

@@ -95,6 +95,21 @@ export interface ErrorDeFactura extends ErrorApi {
   fechaCobro?: string
 }
 
+export interface SolicitudAfipPeticion {
+  puntoDeVenta?: string
+  tipoComprobante?: string
+  fecha?: string
+  total?: number
+}
+
+export interface ResultadoAfipRespuesta {
+  numeroComprobante: string
+  cae: string
+  caeVencimiento: string
+  modo: string
+  mensaje: string
+}
+
 /** Los cuatro valores del estado visible, en camelCase igual que en el JSON (convención [003]). */
 export type EstadoFacturaVisible = 'pendiente' | 'vencida' | 'pagada' | 'anulada'
 
