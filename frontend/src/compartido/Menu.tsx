@@ -10,6 +10,7 @@ import {
   IconoPadrones,
   IconoSeguimiento,
 } from './ui/iconos'
+import { InterruptorModoOscuro } from './ui/InterruptorModoOscuro'
 import type { OpcionMenu } from './tipos'
 
 interface Props {
@@ -117,7 +118,10 @@ export function Menu({ opciones, username, onCerrarSesion }: Props) {
         la barra superior que el Módulo 7 tenía (FR-010).
       */}
       <div className="mt-auto rounded-b-island border-t border-line bg-surface-mute px-4 py-4">
-        <p className="m-0 truncate text-[13px] font-bold tracking-tight text-ink-soft">{username}</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="m-0 truncate text-[13px] font-bold tracking-tight text-ink-soft">{username}</p>
+          <InterruptorModoOscuro />
+        </div>
 
         <div className="mt-2.5 flex flex-col gap-1">
           <Link

@@ -37,7 +37,16 @@ export {
   KeyRound as IconoContrasena,
   X as IconoCerrar,
 
-  // Paginación
+  // Paginación y navegación
   ChevronLeft as IconoAnterior,
   ChevronRight as IconoSiguiente,
+  ChevronDown as IconoChevronAbajo,
+
+  // Portapapeles y estados
+  Copy as IconoCopiar,
+  Check as IconoCopiado,
+
+  // Tema
+  Sun as IconoSol,
+  Moon as IconoLuna,
 } from 'lucide-react'

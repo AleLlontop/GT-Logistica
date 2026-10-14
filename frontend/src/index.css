@@ -208,4 +208,59 @@
       transition-duration: 0.01ms !important;
     }
   }
+
+  /*
+   * Modo oscuro: redefinición de variables CSS para el sistema de diseño.
+   * Al aplicarse en html.dark, todas las utilidades de @theme adoptan automáticamente la paleta oscura.
+   */
+  html.dark {
+    color-scheme: dark;
+
+    /* ── Fondos y superficies ── */
+    --color-canvas: #0f1117;
+    --color-surface: #181b24;
+    --color-surface-soft: #1f2330;
+    --color-surface-mute: #282d3c;
+
+    /* ── Texto ── */
+    --color-ink: #f3f4f6;
+    --color-ink-soft: #c5cbd6;
+    --color-muted: #9aa1b2;
+    --color-faint: #8890a2;
+    --color-dim: #4b5263;
+    --color-dim-texto: #8890a2;
+
+    /* ── Bordes ── */
+    --color-line: rgb(255 255 255 / 0.08);
+    --color-line-strong: rgb(255 255 255 / 0.14);
+
+    /* ── Acento ── */
+    --color-brand: #707df0;
+    --color-brand-deep: #8b97ff;
+    --color-brand-soft: #242a4a;
+
+    /* ── Estados ── */
+    --color-estado-rendido: #34d399;
+    --color-estado-rendido-bg: rgb(6 78 59 / 0.35);
+    --color-estado-pendiente: #fbbf24;
+    --color-estado-pendiente-bg: rgb(120 53 15 / 0.35);
+    --color-estado-facturado: #818cf8;
+    --color-estado-facturado-bg: rgb(49 46 129 / 0.35);
+    --color-estado-anulado: #9ca3af;
+    --color-estado-anulado-bg: rgb(55 65 81 / 0.40);
+
+    /* ── Feedback ── */
+    --color-danger: #f87171;
+    --color-danger-text: #f87171;
+    --color-danger-bg: rgb(69 10 10 / 0.40);
+
+    /* ── Encabezado de columna ── */
+    --color-encabezado: #9ca3af;
+
+    /* ── Sombras ── */
+    --shadow-card: 0 14px 34px -8px rgb(0 0 0 / 0.45);
+    --shadow-island: 0 16px 40px -8px rgb(0 0 0 / 0.60);
+    --shadow-pill: 0 4px 12px rgb(0 0 0 / 0.35);
+    --shadow-btn: 0 8px 18px -2px rgb(0 0 0 / 0.50);
+  }
 }

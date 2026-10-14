@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { cn } from './cn'
+import { IconoChevronAbajo } from './iconos'
 
 /**
  * Las piezas de una ficha de solo lectura.
@@ -63,10 +64,23 @@ interface SeccionProps {
   id: string
   children: ReactNode
   className?: string
+  /** Si la sección se puede contraer o expandir al clickear su cabecera. Por defecto true. */
+  colapsable?: boolean
+  /** Si arranca colapsada. Por defecto false (abierta). */
+  inicialmenteColapsada?: boolean
 }
 
 /** `FichaSeccion` no cambia de firma ni de estructura: sólo se reviste con los tokens nuevos. */
-export function FichaSeccion({ titulo, id, children, className }: SeccionProps) {
+export function FichaSeccion({
+  titulo,
+  id,
+  children,
+  className,
+  colapsable = true,
+  inicialmenteColapsada = false,
+}: SeccionProps) {
+  const [colapsado, setColapsado] = useState(inicialmenteColapsada)
+
   return (
     <section
       aria-labelledby={id}
@@ -84,12 +98,36 @@ export function FichaSeccion({ titulo, id, children, className }: SeccionProps) 
     >
       <h2
         id={id}
-        className="m-0 border-b border-line px-[22px] py-4 text-[14px] font-bold tracking-[-0.02em] text-ink"
+        className={cn(
+          'm-0 text-[14px] font-bold tracking-[-0.02em] text-ink',
+          !colapsado && 'border-b border-line',
+        )}
       >
-        {titulo}
+        {colapsable ? (
+          <button
+            type="button"
+            onClick={() => setColapsado((c) => !c)}
+            aria-expanded={!colapsado}
+            className="flex w-full items-center justify-between px-[22px] py-4 text-left font-inherit text-inherit hover:bg-surface-soft/60 transition-colors cursor-pointer select-none group"
+          >
+            <span>{titulo}</span>
+            <span className="flex items-center gap-1.5 text-[12px] font-normal text-faint group-hover:text-ink">
+              <span className="sr-only">{colapsado ? 'Expandir sección' : 'Contraer sección'}</span>
+              <IconoChevronAbajo
+                aria-hidden="true"
+                className={cn(
+                  'size-4 text-faint transition-transform duration-200 ease-gt group-hover:text-ink',
+                  colapsado && '-rotate-90',
+                )}
+              />
+            </span>
+          </button>
+        ) : (
+          <div className="px-[22px] py-4">{titulo}</div>
+        )}
       </h2>
 
-      {children}
+      {!colapsado && children}
     </section>
   )
 }

@@ -8,6 +8,7 @@ import { cn } from '../../../compartido/ui/cn'
 import { Dialogo } from '../../../compartido/ui/Dialogo'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
 import { InputImporte } from '../../../compartido/ui/InputImporte'
+import { SelectorFecha } from '../../../compartido/ui/SelectorFecha'
 import {
   detalleDeError,
   type ConfirmacionDePago,
@@ -145,20 +146,19 @@ export function DialogoOrdenDePago({
 
       {confirmacion === null ? (
         <form onSubmit={registrar} noValidate className={cn(clasesDeFormulario, 'mt-5')}>
-          <div className={cn('campo max-w-[200px]', visible('fechaPago', errorDeFecha) !== null && 'con-error')}>
+          <div className={cn('campo max-w-[340px]', visible('fechaPago', errorDeFecha) !== null && 'con-error')}>
             <label htmlFor="fechaPago">Fecha de pago</label>
             <p id="ayuda-fechaPago" className="m-0 text-[11.5px] text-faint">
               Entre el {formatearFecha(fechaGeneracion)} y hoy.
             </p>
-            <input
+            <SelectorFecha
               id="fechaPago"
-              type="date"
-              required
               value={fechaPago}
-              onChange={(evento) => setFechaPago(evento.target.value)}
-              onBlur={() => tocar('fechaPago')}
-              aria-invalid={visible('fechaPago', errorDeFecha) !== null}
-              aria-describedby="ayuda-fechaPago"
+              onChange={(nuevaFecha) => {
+                setFechaPago(nuevaFecha)
+                tocar('fechaPago')
+              }}
+              conError={visible('fechaPago', errorDeFecha) !== null}
             />
             {visible('fechaPago', errorDeFecha) !== null && (
               <p className="campo__error">{errorDeFecha}</p>

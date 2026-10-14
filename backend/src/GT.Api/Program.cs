@@ -517,7 +517,7 @@ static async Task AplicarMigracionesYSembrarAsync(WebApplication app)
     using var alcance = app.Services.CreateScope();
 
     var contexto = alcance.ServiceProvider.GetRequiredService<GtDbContext>();
-    var reintentos = 5;
+    var reintentos = 15;
     for (var i = 1; i <= reintentos; i++)
     {
         try
@@ -525,7 +525,7 @@ static async Task AplicarMigracionesYSembrarAsync(WebApplication app)
             await contexto.Database.MigrateAsync();
             break;
         }
-        catch (Microsoft.Data.SqlClient.SqlException ex) when (i < reintentos && ex.Number is 1801 or 4060 or 18456)
+        catch (Microsoft.Data.SqlClient.SqlException) when (i < reintentos)
         {
             await Task.Delay(2000);
         }

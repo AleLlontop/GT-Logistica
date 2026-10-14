@@ -1,6 +1,7 @@
 import { SeccionNumerada } from '../../../compartido/ui/SeccionNumerada'
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
+import { SelectorFecha } from '../../../compartido/ui/SelectorFecha'
 import { Aviso } from '../../../compartido/ui/Aviso'
 import { IconoEnRegla } from '../../../compartido/ui/iconos'
 import { clasesDeFormularioAgrupado } from '../../../compartido/ui/clases'
@@ -492,25 +493,23 @@ export function AltaFactura() {
               )}
             </div>
 
-            <div className={`${classNameCampo('fecha')} max-w-campo-corto`}>
+            <div className={`${classNameCampo('fecha')} max-w-[340px]`}>
               {/* Propuesta en hoy y modificable (FR-012). */}
 
               <label htmlFor="fecha">Fecha de facturación</label>
-              <input
+              <SelectorFecha
                 id="fecha"
-                type="date"
-                required
                 value={fecha}
-                onChange={(evento) => {
-                  setFecha(evento.target.value)
+                onChange={(nuevaFecha) => {
+                  setFecha(nuevaFecha)
 
                   // El vencimiento de pago se propone en fecha + 30 días, y sigue a la fecha mientras no
                   // se lo haya tocado a mano (spec §Assumptions).
-                  if (evento.target.value !== '') {
-                    setVencimientoPago(sumarDias(evento.target.value, 30))
+                  if (nuevaFecha !== '') {
+                    setVencimientoPago(sumarDias(nuevaFecha, 30))
                   }
                 }}
-                aria-invalid={erroresDeCampo.fecha !== undefined}
+                conError={erroresDeCampo.fecha !== undefined}
               />
             </div>
 

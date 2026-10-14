@@ -3,6 +3,7 @@ import { Aviso } from '../../../compartido/ui/Aviso'
 import { AsideDeFicha, BloqueDeAside, CifraDestacada } from '../../../compartido/ui/AsideDeFicha'
 import { TablaDesplazable } from '../../../compartido/ui/Listado'
 import { Boton } from '../../../compartido/ui/Boton'
+import { BotonCopiar } from '../../../compartido/ui/BotonCopiar'
 import { Callout } from '../../../compartido/ui/Callout'
 import { Estado } from '../../../compartido/ui/Estado'
 import { FichaCuerpo, FichaSeccion } from '../../../compartido/ui/Ficha'
@@ -297,7 +298,10 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
               {/* La congelada, con la palabra `Inactivo` si dejó el padrón después (FR-011 del
                   Módulo 6). */}
               <p className="m-0 font-semibold">{nombreDeCliente(factura.cliente)}</p>
-              <p className="m-0 font-mono text-[12.5px] text-faint">{factura.cliente.cuit}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="m-0 font-mono text-[12.5px] text-faint">{factura.cliente.cuit}</p>
+                <BotonCopiar texto={factura.cliente.cuit} etiqueta="Copiar CUIT del cliente" />
+              </div>
               <p className="m-0 text-[12.5px] text-faint">{factura.cliente.domicilio}</p>
             </BloqueDeAside>
 
@@ -339,7 +343,10 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
             <dd>{factura.detalle ?? <span className="atenuada">Sin detalle</span>}</dd>
 
             <dt>CAE</dt>
-            <dd className="font-mono">{factura.cae}</dd>
+            <dd className="flex items-center gap-2 font-mono">
+              <span>{factura.cae}</span>
+              <BotonCopiar texto={factura.cae} etiqueta="Copiar CAE" />
+            </dd>
 
             <dt>Vencimiento del CAE</dt>
             <dd>{formatearFecha(factura.caeVencimiento)}</dd>
@@ -424,7 +431,10 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
             <dd>{factura.emisor.razonSocial}</dd>
 
             <dt>CUIT</dt>
-            <dd className="font-mono">{factura.emisor.cuit}</dd>
+            <dd className="flex items-center gap-2 font-mono">
+              <span>{factura.emisor.cuit}</span>
+              <BotonCopiar texto={factura.emisor.cuit} etiqueta="Copiar CUIT del emisor" />
+            </dd>
 
             <dt>Domicilio</dt>
             <dd>{factura.emisor.domicilio}</dd>
@@ -456,8 +466,9 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
             </dd>
 
             <dt>CBU</dt>
-            <dd className="font-mono">
-              {factura.emisor.cbu ?? <span className="atenuada font-sans">Sin CBU cargado</span>}
+            <dd className="flex items-center gap-2 font-mono">
+              <span>{factura.emisor.cbu ?? <span className="atenuada font-sans">Sin CBU cargado</span>}</span>
+              {factura.emisor.cbu && <BotonCopiar texto={factura.emisor.cbu} etiqueta="Copiar CBU" />}
             </dd>
 
             <dt>Teléfono</dt>
