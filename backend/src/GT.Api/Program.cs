@@ -517,7 +517,19 @@ static async Task AplicarMigracionesYSembrarAsync(WebApplication app)
     using var alcance = app.Services.CreateScope();
 
     var contexto = alcance.ServiceProvider.GetRequiredService<GtDbContext>();
-    await contexto.Database.MigrateAsync();
+    var reintentos = 5;
+    for (var i = 1; i <= reintentos; i++)
+    {
+        try
+        {
+            await contexto.Database.MigrateAsync();
+            break;
+        }
+        catch (Microsoft.Data.SqlClient.SqlException ex) when (i < reintentos && ex.Number is 1801 or 4060 or 18456)
+        {
+            await Task.Delay(2000);
+        }
+    }
 
     var sembrador = alcance.ServiceProvider.GetRequiredService<SembradorInicial>();
 
