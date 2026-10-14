@@ -13,19 +13,19 @@ describe('FichaSeccion colapsable', () => {
     // Por defecto inicia abierto
     expect(screen.getByText('Contenido detallado del comprobante')).toBeInTheDocument()
 
-    const boton = screen.getByRole('button', { name: /Comprobante/i })
-    expect(boton).toHaveAttribute('aria-expanded', 'true')
+    const encabezado = screen.getByRole('heading', { name: 'Comprobante' })
+    expect(encabezado).toHaveAttribute('aria-expanded', 'true')
 
     // Click colapsa
-    fireEvent.click(boton)
+    fireEvent.click(encabezado)
 
     expect(screen.queryByText('Contenido detallado del comprobante')).not.toBeInTheDocument()
-    expect(boton).toHaveAttribute('aria-expanded', 'false')
+    expect(encabezado).toHaveAttribute('aria-expanded', 'false')
 
     // Click expande de nuevo
-    fireEvent.click(boton)
+    fireEvent.click(encabezado)
 
     expect(screen.getByText('Contenido detallado del comprobante')).toBeInTheDocument()
-    expect(boton).toHaveAttribute('aria-expanded', 'true')
+    expect(encabezado).toHaveAttribute('aria-expanded', 'true')
   })
 })

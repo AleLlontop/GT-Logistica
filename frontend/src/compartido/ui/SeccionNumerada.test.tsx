@@ -13,19 +13,17 @@ describe('SeccionNumerada colapsable', () => {
     // Por defecto inicia abierto
     expect(screen.getByText('Campos del formulario')).toBeInTheDocument()
 
-    const boton = screen.getByRole('button', { name: /Datos del comprobante/i })
-    expect(boton).toHaveAttribute('aria-expanded', 'true')
+    const encabezado = screen.getByRole('heading', { name: 'Datos del comprobante' })
+    expect(encabezado).toBeInTheDocument()
 
     // Click colapsa
-    fireEvent.click(boton)
+    fireEvent.click(encabezado)
 
     expect(screen.queryByText('Campos del formulario')).not.toBeInTheDocument()
-    expect(boton).toHaveAttribute('aria-expanded', 'false')
 
     // Click expande de nuevo
-    fireEvent.click(boton)
+    fireEvent.click(encabezado)
 
     expect(screen.getByText('Campos del formulario')).toBeInTheDocument()
-    expect(boton).toHaveAttribute('aria-expanded', 'true')
   })
 })

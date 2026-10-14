@@ -37,58 +37,52 @@ export function SeccionNumerada({
 }: Props) {
   const [colapsado, setColapsado] = useState(inicialmenteColapsada)
 
+  function manejarTeclado(evento: React.KeyboardEvent<HTMLElement>) {
+    if (colapsable && (evento.key === 'Enter' || evento.key === ' ')) {
+      evento.preventDefault()
+      setColapsado((c) => !c)
+    }
+  }
+
   return (
     <section className="border-b border-line px-[30px] py-[26px] last:border-b-0">
-      <header className={cn('flex flex-col gap-1', !colapsado && 'mb-[18px]')}>
-        {colapsable ? (
-          <button
-            type="button"
-            onClick={() => setColapsado((c) => !c)}
-            aria-expanded={!colapsado}
-            className="flex w-full items-center justify-between text-left font-inherit cursor-pointer select-none group"
-          >
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2.5">
-                <span
-                  aria-hidden="true"
-                  className="flex size-6 items-center justify-center rounded-chip border border-line bg-surface-mute text-[11.5px] font-bold text-ink-soft group-hover:border-brand/40 group-hover:bg-brand-soft transition-colors"
-                >
-                  {numero}
-                </span>
-                <h2 className="m-0 text-[14.5px] font-bold tracking-[-0.02em] text-ink group-hover:text-brand transition-colors">
-                  {titulo}
-                </h2>
-              </div>
-
-              {explicacion !== undefined && (
-                <p className="m-0 text-[12.5px] text-faint">{explicacion}</p>
-              )}
-            </div>
-
-            <IconoChevronAbajo
+      <header
+        tabIndex={colapsable ? 0 : undefined}
+        onClick={colapsable ? () => setColapsado((c) => !c) : undefined}
+        onKeyDown={colapsable ? manejarTeclado : undefined}
+        aria-expanded={colapsable ? !colapsado : undefined}
+        className={cn(
+          'flex items-center justify-between',
+          colapsable && 'cursor-pointer select-none group',
+          !colapsado && 'mb-[18px]',
+        )}
+      >
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2.5">
+            <span
               aria-hidden="true"
-              className={cn(
-                'size-4 text-faint transition-transform duration-200 ease-gt group-hover:text-ink',
-                colapsado && '-rotate-90',
-              )}
-            />
-          </button>
-        ) : (
-          <>
-            <div className="flex items-center gap-2.5">
-              <span
-                aria-hidden="true"
-                className="flex size-6 items-center justify-center rounded-chip border border-line bg-surface-mute text-[11.5px] font-bold text-ink-soft"
-              >
-                {numero}
-              </span>
-              <h2 className="m-0 text-[14.5px] font-bold tracking-[-0.02em] text-ink">{titulo}</h2>
-            </div>
+              className="flex size-6 items-center justify-center rounded-chip border border-line bg-surface-mute text-[11.5px] font-bold text-ink-soft group-hover:border-brand/40 group-hover:bg-brand-soft transition-colors"
+            >
+              {numero}
+            </span>
+            <h2 className="m-0 text-[14.5px] font-bold tracking-[-0.02em] text-ink group-hover:text-brand transition-colors">
+              {titulo}
+            </h2>
+          </div>
 
-            {explicacion !== undefined && (
-              <p className="m-0 text-[12.5px] text-faint">{explicacion}</p>
+          {explicacion !== undefined && (
+            <p className="m-0 text-[12.5px] text-faint">{explicacion}</p>
+          )}
+        </div>
+
+        {colapsable && (
+          <IconoChevronAbajo
+            aria-hidden="true"
+            className={cn(
+              'size-4 text-faint transition-transform duration-200 ease-gt group-hover:text-ink',
+              colapsado && '-rotate-90',
             )}
-          </>
+          />
         )}
       </header>
 
