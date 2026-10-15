@@ -286,7 +286,9 @@ public class RepositorioFacturas(GtDbContext contexto, IAlmacenDeArchivos almace
         contexto.Facturas
             .Include(factura => factura.Cliente)
             .Include(factura => factura.Viajes)
-            .Include(factura => factura.CambiosDeEstado).ThenInclude(cambio => cambio.Usuario)
+            .Include(factura => factura.CambiosDeEstado)
+                .ThenInclude(cambio => cambio.Usuario)
+                .ThenInclude(u => u!.Persona)
             .Include(factura => factura.FacturaReemplazada)
             .AsNoTracking()
             .FirstOrDefaultAsync(factura => factura.Id == id, cancelacion);
@@ -536,6 +538,30 @@ public class RepositorioFacturas(GtDbContext contexto, IAlmacenDeArchivos almace
             FacturaId = factura.Id,
             EstadoAnterior = estadoAnterior,
             EstadoNuevo = EstadoFactura.Pagada,
+            UsuarioId = usuarioId,
+            OcurridoEn = ocurridoEn,
+        });
+
+        await contexto.SaveChangesAsync(cancelacion);
+    }
+
+    public async Task RevertirCobroAsync(
+        FacturaCliente factura,
+        string motivo,
+        int usuarioId,
+        DateTime ocurridoEn,
+        CancellationToken cancelacion = default)
+    {
+        var estadoAnterior = factura.Estado;
+
+        factura.Estado = EstadoFactura.Pendiente;
+        factura.FechaCobro = null;
+
+        factura.CambiosDeEstado.Add(new CambioDeEstadoFactura
+        {
+            FacturaId = factura.Id,
+            EstadoAnterior = estadoAnterior,
+            EstadoNuevo = EstadoFactura.Pendiente,
             UsuarioId = usuarioId,
             OcurridoEn = ocurridoEn,
         });

@@ -1,4 +1,10 @@
+using GT.Domain.Choferes;
+using GT.Domain.Facturacion;
+using GT.Domain.Flota;
+using GT.Domain.Liquidaciones;
+using GT.Domain.Personas;
 using GT.Domain.Usuarios;
+using GT.Domain.Viajes;
 using GT.Infrastructure.Persistencia;
 using GT.Infrastructure.Seguridad;
 using Microsoft.EntityFrameworkCore;
@@ -305,5 +311,469 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
         contexto.Usuarios.Add(administrador);
 
         await contexto.SaveChangesAsync(cancelacion);
+    }
+
+    /// <summary>
+    /// Siembra datos de demostración si la base no contiene clientes cargados aún.
+    /// Incluye clientes, choferes, flota, documentación (con alertas próximas a vencer),
+    /// viajes en distintos estados y una liquidación de prueba.
+    /// </summary>
+    public async Task SembrarDatosDeDemostracionAsync(CancellationToken cancelacion = default)
+    {
+        if (await contexto.Clientes.AnyAsync(cancelacion))
+        {
+            return;
+        }
+
+        var ahora = DateTime.UtcNow;
+        var hoy = DateOnly.FromDateTime(DateTime.Today);
+
+        // 1. Empresa Emisora
+        if (!await contexto.EmpresaEmisora.AnyAsync(cancelacion))
+        {
+            contexto.EmpresaEmisora.Add(new EmpresaEmisora
+            {
+                Id = EmpresaEmisora.IdUnico,
+                RazonSocial = "G&T Logística S.A.",
+                Cuit = "30712345671",
+                Domicilio = "Av. Pellegrini 1234, Rosario, Santa Fe",
+                CondicionIva = "IVA Responsable Inscripto",
+                IngresosBrutos = "901-123456-7",
+                InicioActividades = new DateOnly(2020, 1, 1),
+                PuntoDeVenta = "0001",
+                Cbu = "0170099920000012345678",
+                Telefono = "0341-444-4444",
+                Email = "administracion@gtlogistica.com.ar",
+            });
+            await contexto.SaveChangesAsync(cancelacion);
+        }
+
+        // 2. Tipos de Vehículo
+        var semi = await contexto.TiposVehiculo.FirstOrDefaultAsync(t => t.Nombre == "Semirremolque", cancelacion);
+        if (semi is null)
+        {
+            semi = new TipoVehiculo { Nombre = "Semirremolque", Activo = true };
+            contexto.TiposVehiculo.Add(semi);
+        }
+
+        var chasis = await contexto.TiposVehiculo.FirstOrDefaultAsync(t => t.Nombre == "Camión Chasis", cancelacion);
+        if (chasis is null)
+        {
+            chasis = new TipoVehiculo { Nombre = "Camión Chasis", Activo = true };
+            contexto.TiposVehiculo.Add(chasis);
+        }
+        await contexto.SaveChangesAsync(cancelacion);
+
+        // 3. Tipos de Documentación
+        var lnc = await contexto.DocumentacionTipos.FirstOrDefaultAsync(t => t.Nombre == "Licencia Nacional de Conducir", cancelacion);
+        if (lnc is null)
+        {
+            lnc = new DocumentacionTipo
+            {
+                Nombre = "Licencia Nacional de Conducir",
+                DiasAvisoVencimiento = 30,
+                Ambito = DocumentacionAmbito.Chofer,
+                Activo = true,
+            };
+            contexto.DocumentacionTipos.Add(lnc);
+        }
+
+        var seguro = await contexto.DocumentacionTipos.FirstOrDefaultAsync(t => t.Nombre == "Póliza de Seguro", cancelacion);
+        if (seguro is null)
+        {
+            seguro = new DocumentacionTipo
+            {
+                Nombre = "Póliza de Seguro",
+                DiasAvisoVencimiento = 15,
+                Ambito = DocumentacionAmbito.Vehiculo,
+                Activo = true,
+            };
+            contexto.DocumentacionTipos.Add(seguro);
+        }
+
+        var rto = await contexto.DocumentacionTipos.FirstOrDefaultAsync(t => t.Nombre == "Revisión Técnica Obligatoria", cancelacion);
+        if (rto is null)
+        {
+            rto = new DocumentacionTipo
+            {
+                Nombre = "Revisión Técnica Obligatoria",
+                DiasAvisoVencimiento = 30,
+                Ambito = DocumentacionAmbito.Vehiculo,
+                Activo = true,
+            };
+            contexto.DocumentacionTipos.Add(rto);
+        }
+        await contexto.SaveChangesAsync(cancelacion);
+
+        // 4. Transportistas
+        var t1Cuit = GenerarCuitValido("3070987654");
+        var t1 = await contexto.Transportistas.FirstOrDefaultAsync(t => t.Cuit == t1Cuit, cancelacion);
+        if (t1 is null)
+        {
+            t1 = new Transportista
+            {
+                Nombre = "Logística del Centro S.R.L.",
+                Cuit = t1Cuit,
+                Tipo = TipoPersona.Juridica,
+                Telefono = "0341-4567890",
+                Email = "contacto@logisticadelcentro.com.ar",
+                Activo = true,
+            };
+            contexto.Transportistas.Add(t1);
+        }
+
+        var t2Cuit = GenerarCuitValido("3071122334");
+        var t2 = await contexto.Transportistas.FirstOrDefaultAsync(t => t.Cuit == t2Cuit, cancelacion);
+        if (t2 is null)
+        {
+            t2 = new Transportista
+            {
+                Nombre = "Transportes Andinos S.A.",
+                Cuit = t2Cuit,
+                Tipo = TipoPersona.Juridica,
+                Telefono = "0351-4890123",
+                Email = "operaciones@andinos.com.ar",
+                Activo = true,
+            };
+            contexto.Transportistas.Add(t2);
+        }
+        await contexto.SaveChangesAsync(cancelacion);
+
+        // 5. Personas y Choferes
+        var p1 = new Persona
+        {
+            Nombre = "Juan Carlos",
+            Apellido = "Gómez",
+            Dni = "28123456",
+            Tipo = TipoIntegrante.Chofer,
+            Telefono = "3415550101",
+            Email = "jgomez@gtlogistica.local",
+            FechaNacimiento = new DateOnly(1980, 5, 12),
+            Activa = true,
+        };
+        var p2 = new Persona
+        {
+            Nombre = "Roberto",
+            Apellido = "Fernández",
+            Dni = "30987654",
+            Tipo = TipoIntegrante.Chofer,
+            Telefono = "3415550102",
+            Email = "rfernandez@gtlogistica.local",
+            FechaNacimiento = new DateOnly(1984, 8, 22),
+            Activa = true,
+        };
+        var p3 = new Persona
+        {
+            Nombre = "Esteban",
+            Apellido = "Martínez",
+            Dni = "32456789",
+            Tipo = TipoIntegrante.Chofer,
+            Telefono = "3415550103",
+            Email = "emartinez@gtlogistica.local",
+            FechaNacimiento = new DateOnly(1986, 11, 3),
+            Activa = true,
+        };
+        contexto.Personas.AddRange(p1, p2, p3);
+        await contexto.SaveChangesAsync(cancelacion);
+
+        var c1 = new Chofer
+        {
+            PersonaId = p1.Id,
+            Cuil = GenerarCuitValido("2028123456"),
+            TransportistaId = t1.Id,
+            Activo = true,
+        };
+        var c2 = new Chofer
+        {
+            PersonaId = p2.Id,
+            Cuil = GenerarCuitValido("2030987654"),
+            TransportistaId = t1.Id,
+            Activo = true,
+        };
+        var c3 = new Chofer
+        {
+            PersonaId = p3.Id,
+            Cuil = GenerarCuitValido("2032456789"),
+            TransportistaId = t2.Id,
+            Activo = true,
+        };
+        contexto.Choferes.AddRange(c1, c2, c3);
+        await contexto.SaveChangesAsync(cancelacion);
+
+        // Documentación Choferes (c2 con alerta próxima a vencer: 5 días)
+        contexto.Documentaciones.AddRange(
+            new Documentacion
+            {
+                ChoferId = c1.Id,
+                DocumentacionTipoId = lnc.Id,
+                Numero = "LNC-28123456",
+                FechaEmision = hoy.AddDays(-180),
+                FechaVencimiento = hoy.AddDays(180),
+            },
+            new Documentacion
+            {
+                ChoferId = c2.Id,
+                DocumentacionTipoId = lnc.Id,
+                Numero = "LNC-30987654",
+                FechaEmision = hoy.AddDays(-360),
+                FechaVencimiento = hoy.AddDays(5),
+            },
+            new Documentacion
+            {
+                ChoferId = c3.Id,
+                DocumentacionTipoId = lnc.Id,
+                Numero = "LNC-32456789",
+                FechaEmision = hoy.AddDays(-270),
+                FechaVencimiento = hoy.AddDays(90),
+            });
+        await contexto.SaveChangesAsync(cancelacion);
+
+        // 6. Vehículos
+        var v1 = new Vehiculo
+        {
+            Patente = "AF123CD",
+            Marca = "Scania",
+            Modelo = "R450",
+            TipoVehiculoId = semi.Id,
+            TransportistaId = t1.Id,
+            EstadoOperativo = VehiculoEstado.Disponible,
+            Activo = true,
+        };
+        var v2 = new Vehiculo
+        {
+            Patente = "AG456EF",
+            Marca = "Mercedes-Benz",
+            Modelo = "Actros 2045",
+            TipoVehiculoId = semi.Id,
+            TransportistaId = t1.Id,
+            EstadoOperativo = VehiculoEstado.Disponible,
+            Activo = true,
+        };
+        var v3 = new Vehiculo
+        {
+            Patente = "AC789GH",
+            Marca = "Iveco",
+            Modelo = "Stralis 460",
+            TipoVehiculoId = chasis.Id,
+            TransportistaId = t2.Id,
+            EstadoOperativo = VehiculoEstado.Disponible,
+            Activo = true,
+        };
+        contexto.Vehiculos.AddRange(v1, v2, v3);
+        await contexto.SaveChangesAsync(cancelacion);
+
+        // Documentación Vehículos (v2 con póliza próxima a vencer: 7 días)
+        contexto.DocumentacionesVehiculo.AddRange(
+            new DocumentacionVehiculo
+            {
+                VehiculoId = v1.Id,
+                DocumentacionTipoId = seguro.Id,
+                Numero = "POL-99881",
+                FechaEmision = hoy.AddDays(-240),
+                FechaVencimiento = hoy.AddDays(120),
+            },
+            new DocumentacionVehiculo
+            {
+                VehiculoId = v1.Id,
+                DocumentacionTipoId = rto.Id,
+                Numero = "RTO-44551",
+                FechaEmision = hoy.AddDays(-240),
+                FechaVencimiento = hoy.AddDays(120),
+            },
+            new DocumentacionVehiculo
+            {
+                VehiculoId = v2.Id,
+                DocumentacionTipoId = seguro.Id,
+                Numero = "POL-99882",
+                FechaEmision = hoy.AddDays(-350),
+                FechaVencimiento = hoy.AddDays(7),
+            },
+            new DocumentacionVehiculo
+            {
+                VehiculoId = v2.Id,
+                DocumentacionTipoId = rto.Id,
+                Numero = "RTO-44552",
+                FechaEmision = hoy.AddDays(-300),
+                FechaVencimiento = hoy.AddDays(65),
+            },
+            new DocumentacionVehiculo
+            {
+                VehiculoId = v3.Id,
+                DocumentacionTipoId = seguro.Id,
+                Numero = "POL-99883",
+                FechaEmision = hoy.AddDays(-160),
+                FechaVencimiento = hoy.AddDays(200),
+            },
+            new DocumentacionVehiculo
+            {
+                VehiculoId = v3.Id,
+                DocumentacionTipoId = rto.Id,
+                Numero = "RTO-44553",
+                FechaEmision = hoy.AddDays(-180),
+                FechaVencimiento = hoy.AddDays(180),
+            });
+        await contexto.SaveChangesAsync(cancelacion);
+
+        // 7. Clientes
+        var cli1 = new Cliente
+        {
+            RazonSocial = "Distribuidora del Litoral S.A.",
+            Cuit = GenerarCuitValido("3065432109"),
+            Telefono = "0341-4221100",
+            Email = "administracion@distribuidoralitoral.com.ar",
+            Activo = true,
+        };
+        var cli2 = new Cliente
+        {
+            RazonSocial = "Cereales del Sur S.R.L.",
+            Cuit = GenerarCuitValido("3061234567"),
+            Telefono = "0341-4332211",
+            Email = "pagos@cerealesdelsur.com.ar",
+            Activo = true,
+        };
+        var cli3 = new Cliente
+        {
+            RazonSocial = "Industrias Metalúrgicas Pampeanas",
+            Cuit = GenerarCuitValido("3059876543"),
+            Telefono = "02302-445566",
+            Email = "contacto@metalurgicapampeana.com.ar",
+            Activo = true,
+        };
+        contexto.Clientes.AddRange(cli1, cli2, cli3);
+        await contexto.SaveChangesAsync(cancelacion);
+
+        // 8. Viajes
+        var viaje1 = new Viaje
+        {
+            ClienteId = cli1.Id,
+            Fecha = hoy,
+            Origen = "Rosario, Santa Fe",
+            Destino = "Córdoba Capital",
+            Estado = EstadoViaje.Pendiente,
+            Importe = 450000m,
+            DetalleCarga = "Pallets de alimentos secos",
+        };
+        var viaje2 = new Viaje
+        {
+            ClienteId = cli2.Id,
+            Fecha = hoy,
+            Origen = "San Lorenzo, Santa Fe",
+            Destino = "Puerto de Buenos Aires",
+            Estado = EstadoViaje.Pendiente,
+            ChoferId = c1.Id,
+            VehiculoId = v1.Id,
+            TransportistaId = t1.Id,
+            Importe = 380000m,
+            NumeroRemito = "R-0001-00001001",
+            DetalleCarga = "Carga general y granos",
+        };
+        var viaje3 = new Viaje
+        {
+            ClienteId = cli3.Id,
+            Fecha = hoy.AddDays(-1),
+            Origen = "General Pico, La Pampa",
+            Destino = "Rosario, Santa Fe",
+            Estado = EstadoViaje.EnCurso,
+            ChoferId = c3.Id,
+            VehiculoId = v3.Id,
+            TransportistaId = t2.Id,
+            Importe = 520000m,
+            NumeroRemito = "R-0001-00001002",
+            DetalleCarga = "Estructuras metálicas y perfiles",
+        };
+        var viaje4 = new Viaje
+        {
+            ClienteId = cli1.Id,
+            Fecha = hoy.AddDays(-4),
+            Origen = "Rosario, Santa Fe",
+            Destino = "Mendoza Capital",
+            Estado = EstadoViaje.Rendido,
+            ChoferId = c1.Id,
+            VehiculoId = v1.Id,
+            TransportistaId = t1.Id,
+            Importe = 600000m,
+            NumeroRemito = "R-0001-00001003",
+            DetalleCarga = "Bebidas y lácteos",
+        };
+        contexto.Viajes.AddRange(viaje1, viaje2, viaje3, viaje4);
+        await contexto.SaveChangesAsync(cancelacion);
+
+        var admin = await contexto.Usuarios.FirstOrDefaultAsync(
+            u => u.UsernameNormalizado == UsernameAdministrador.ToUpperInvariant(),
+            cancelacion);
+
+        if (admin is not null)
+        {
+            contexto.CambiosDeEstadoViaje.AddRange(
+                new CambioDeEstadoViaje
+                {
+                    ViajeId = viaje3.Id,
+                    EstadoAnterior = EstadoViaje.Pendiente,
+                    EstadoNuevo = EstadoViaje.EnCurso,
+                    UsuarioId = admin.Id,
+                    OcurridoEn = ahora.AddDays(-1),
+                },
+                new CambioDeEstadoViaje
+                {
+                    ViajeId = viaje4.Id,
+                    EstadoAnterior = EstadoViaje.Pendiente,
+                    EstadoNuevo = EstadoViaje.EnCurso,
+                    UsuarioId = admin.Id,
+                    OcurridoEn = ahora.AddDays(-4),
+                },
+                new CambioDeEstadoViaje
+                {
+                    ViajeId = viaje4.Id,
+                    EstadoAnterior = EstadoViaje.EnCurso,
+                    EstadoNuevo = EstadoViaje.Rendido,
+                    UsuarioId = admin.Id,
+                    OcurridoEn = ahora.AddDays(-3),
+                });
+            await contexto.SaveChangesAsync(cancelacion);
+
+            // 9. Liquidación para viaje4
+            var liquidacion = new Liquidacion
+            {
+                TransportistaId = t1.Id,
+                PeriodoMes = (byte)hoy.Month,
+                PeriodoAnio = (short)hoy.Year,
+                ImporteTotal = viaje4.Importe,
+                ImportePagado = 0m,
+                Estado = EstadoLiquidacion.Pendiente,
+            };
+            contexto.Liquidaciones.Add(liquidacion);
+            await contexto.SaveChangesAsync(cancelacion);
+
+            contexto.LiquidacionViajes.Add(new LiquidacionViaje
+            {
+                LiquidacionId = liquidacion.Id,
+                ViajeId = viaje4.Id,
+                Vigente = true,
+            });
+
+            contexto.CambiosDeLiquidacion.Add(new CambioDeLiquidacion
+            {
+                LiquidacionId = liquidacion.Id,
+                Operacion = OperacionDeLiquidacion.Generacion,
+                UsuarioId = admin.Id,
+                OcurridoEn = ahora.AddDays(-2),
+            });
+            await contexto.SaveChangesAsync(cancelacion);
+        }
+    }
+
+    private static string GenerarCuitValido(string prefijoYNumero)
+    {
+        var multiplicadores = new[] { 5, 4, 3, 2, 7, 6, 5, 4, 3, 2 };
+        var suma = 0;
+        for (var i = 0; i < 10; i++)
+        {
+            suma += (prefijoYNumero[i] - '0') * multiplicadores[i];
+        }
+
+        var resto = suma % 11;
+        var digito = resto == 0 ? 0 : resto == 1 ? 9 : 11 - resto;
+
+        return prefijoYNumero + digito;
     }
 }

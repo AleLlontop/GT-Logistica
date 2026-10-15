@@ -182,6 +182,18 @@ export function DialogoOrdenDePago({
             {visible('importe', errorDeImporte) !== null && (
               <p className="campo__error">{errorDeImporte}</p>
             )}
+            <div className="mt-1.5">
+              <button
+                type="button"
+                className="text-[12px] text-azul hover:underline cursor-pointer bg-transparent border-0 p-0 text-left"
+                onClick={() => {
+                  setImporteTexto(PARA_EL_CAMPO.format(restaPagar))
+                  tocar('importe')
+                }}
+              >
+                Pagar saldo restante exacto ({formatearPesos(restaPagar)})
+              </button>
+            </div>
           </div>
 
           <BarraDeAcciones anclaje="contenedor" leyenda={LEYENDA_DE_OBLIGATORIOS}>

@@ -7,8 +7,12 @@ namespace GT.Application.Caja;
 public class ConsultarDetalleCaja(IRepositorioCaja cajas)
 {
     /// <param name="usuarioId">El usuario en sesión: decide <c>PuedeOperar</c> (FR-035).</param>
-    public Task<CajaDetalle?> EjecutarAsync(int id, int usuarioId, CancellationToken cancelacion = default) =>
-        cajas.ObtenerDetalleAsync(id, usuarioId, cancelacion);
+    public Task<CajaDetalle?> EjecutarAsync(
+        int id,
+        int usuarioId,
+        CancellationToken cancelacion = default,
+        bool esSupervisor = false) =>
+        cajas.ObtenerDetalleAsync(id, usuarioId, cancelacion, esSupervisor);
 
     /// <summary>La caja abierta del usuario en sesión, o <c>null</c>: lo que decide *Abrir caja* en pantalla.</summary>
     public Task<CajaDetalle?> AbiertaDeAsync(int usuarioId, CancellationToken cancelacion = default) =>

@@ -124,4 +124,16 @@ describe('DialogoOrdenDePago', () => {
     await waitFor(() => expect(onRegistrada).toHaveBeenCalledWith(registrada))
     expect(onEnviar).toHaveBeenLastCalledWith({ fechaPago: '2026-09-20', importe: 155_000, confirmado: true })
   })
+
+  it('el botón de pagar saldo restante exacto completa el importe exacto', async () => {
+    const usuario = userEvent.setup()
+    renderizar()
+
+    await usuario.clear(screen.getByLabelText('Importe'))
+    await usuario.type(screen.getByLabelText('Importe'), '50000')
+    expect(screen.getByLabelText('Importe')).toHaveValue('50.000')
+
+    await usuario.click(screen.getByRole('button', { name: /Pagar saldo restante exacto/i }))
+    expect(screen.getByLabelText('Importe')).toHaveValue('155.000,00')
+  })
 })

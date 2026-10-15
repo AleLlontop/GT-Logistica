@@ -26,24 +26,65 @@ public class ConsultarAsignables(IRepositorioViajes viajes, TimeProvider reloj)
     /// para quien todavía no eligió un viaje —pero la pantalla de asignación siempre la manda, porque
     /// un viaje retroactivo se asigna con la documentación que estaba vigente ese día.
     /// </param>
+    /// <param name="viajeIdAExcluir">
+    /// Identificador del viaje actual para no advertir sobre sí mismo al reasignar.
+    /// </param>
     public async Task<Asignables> EjecutarAsync(
         DateOnly? fechaDelViaje = null,
+        int? viajeIdAExcluir = null,
         CancellationToken cancelacion = default)
     {
         var fecha = fechaDelViaje ?? MomentoDeLectura.Desde(reloj).Hoy;
 
         var choferes = await viajes.ConsultarChoferesAsignablesAsync(cancelacion);
         var vehiculos = await viajes.ConsultarVehiculosAsignablesAsync(cancelacion);
+        var viajesDeLaFecha = await viajes.ConsultarViajesActivosDeLaFechaAsync(fecha, cancelacion);
+
+        var viajesPorChofer = viajesDeLaFecha
+            .Where(v => v.ChoferId.HasValue && (!viajeIdAExcluir.HasValue || v.Id != viajeIdAExcluir.Value))
+            .GroupBy(v => v.ChoferId!.Value)
+            .ToDictionary(g => g.Key, g => g.First());
+
+        var viajesPorVehiculo = viajesDeLaFecha
+            .Where(v => v.VehiculoId.HasValue && (!viajeIdAExcluir.HasValue || v.Id != viajeIdAExcluir.Value))
+            .GroupBy(v => v.VehiculoId!.Value)
+            .ToDictionary(g => g.Key, g => g.First());
 
         return new Asignables(
-            [.. choferes.Select(chofer => new Asignable(
-                chofer.Id,
-                chofer.Persona is { } persona ? $"{persona.Apellido}, {persona.Nombre}" : $"Chofer {chofer.Id}",
-                Observacion(EvaluadorHabilitacion.ParaChofer(chofer.Documentacion, fecha))))],
-            [.. vehiculos.Select(vehiculo => new Asignable(
-                vehiculo.Id,
-                vehiculo.Patente,
-                Observacion(EvaluadorHabilitacion.ParaVehiculo(vehiculo.Documentacion, fecha))))]);
+            [.. choferes.Select(chofer => {
+                var obsDoc = Observacion(EvaluadorHabilitacion.ParaChofer(chofer.Documentacion, fecha));
+                var obsViaje = viajesPorChofer.TryGetValue(chofer.Id, out var viajeExistente)
+                    ? $"Ya tiene el viaje #{viajeExistente.Numero} asignado para esta fecha"
+                    : null;
+                var observacionFinal = CombinarObservaciones(obsDoc, obsViaje);
+
+                return new Asignable(
+                    chofer.Id,
+                    chofer.Persona is { } persona ? $"{persona.Apellido}, {persona.Nombre}" : $"Chofer {chofer.Id}",
+                    observacionFinal);
+            })],
+            [.. vehiculos.Select(vehiculo => {
+                var obsDoc = Observacion(EvaluadorHabilitacion.ParaVehiculo(vehiculo.Documentacion, fecha));
+                var obsViaje = viajesPorVehiculo.TryGetValue(vehiculo.Id, out var viajeExistente)
+                    ? $"Ya tiene el viaje #{viajeExistente.Numero} asignado para esta fecha"
+                    : null;
+                var observacionFinal = CombinarObservaciones(obsDoc, obsViaje);
+
+                return new Asignable(
+                    vehiculo.Id,
+                    vehiculo.Patente,
+                    observacionFinal);
+            })]);
+    }
+
+    private static string? CombinarObservaciones(string? obs1, string? obs2)
+    {
+        if (obs1 is not null && obs2 is not null)
+        {
+            return $"{obs1} — {obs2}";
+        }
+
+        return obs1 ?? obs2;
     }
 
     /// <summary>

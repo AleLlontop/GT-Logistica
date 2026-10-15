@@ -21,7 +21,7 @@ interface Props {
  */
 export function AsideDeFicha({ destacado, children }: Props) {
   return (
-    <aside className="flex w-[330px] shrink-0 flex-col gap-[18px]">
+    <aside className="flex w-full lg:w-[330px] shrink-0 flex-col gap-[18px]">
       <div className="rounded-card border border-line bg-surface p-[22px] shadow-card">
         {destacado}
       </div>

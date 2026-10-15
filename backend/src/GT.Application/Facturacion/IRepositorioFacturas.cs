@@ -207,6 +207,16 @@ public interface IRepositorioFacturas
         DateTime ocurridoEn,
         CancellationToken cancelacion = default);
 
+    /// <summary>
+    /// Revierte el cobro de una factura y la regresa a pendiente, registrando la operación en el historial.
+    /// </summary>
+    Task RevertirCobroAsync(
+        FacturaCliente factura,
+        string motivo,
+        int usuarioId,
+        DateTime ocurridoEn,
+        CancellationToken cancelacion = default);
+
     // ── Reportes ────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>

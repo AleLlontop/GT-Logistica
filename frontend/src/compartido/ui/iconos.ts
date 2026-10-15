@@ -41,6 +41,7 @@ export {
   ChevronLeft as IconoAnterior,
   ChevronRight as IconoSiguiente,
   ChevronDown as IconoChevronAbajo,
+  Menu as IconoMenu,
 
   // Portapapeles y estados
   Copy as IconoCopiar,

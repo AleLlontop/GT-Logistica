@@ -180,6 +180,7 @@ builder.Services.AddScoped<ConsultarFichaFactura>();
 builder.Services.AddScoped<ServirDocumentoFactura>();
 builder.Services.AddScoped<CorregirFactura>();
 builder.Services.AddScoped<RegistrarCobro>();
+builder.Services.AddScoped<RevertirCobro>();
 builder.Services.AddScoped<AnularFactura>();
 
 // Calificado: el Módulo 3 ya tiene un `ConsultarVencimientos` —el de la documentación de choferes— y
@@ -497,6 +498,15 @@ app.MapearCierreDeCaja();
 // arriba, que ya llevan su restricción de tipo (convención [005]).
 app.MapearReportes();
 
+if (app.Environment.IsDevelopment())
+{
+    app.MapPost("/api/desarrollo/sembrar-demo", async (SembradorInicial sembrador) =>
+    {
+        await sembrador.SembrarDatosDeDemostracionAsync();
+        return Results.Ok(new { mensaje = "Datos de demostración sembrados con éxito." });
+    });
+}
+
 await AplicarMigracionesYSembrarAsync(app);
 
 app.Run();
@@ -538,6 +548,14 @@ static async Task AplicarMigracionesYSembrarAsync(WebApplication app)
     var passwordInicial = app.Configuration[SembradorInicial.VariablePasswordInicial];
 
     await sembrador.SembrarAsync(passwordInicial);
+
+    var sembrarDemo = app.Configuration.GetValue<bool>("GT_SEMBRAR_DATOS_DEMO", false)
+        || Environment.GetEnvironmentVariable("GT_SEMBRAR_DATOS_DEMO") == "true";
+
+    if (sembrarDemo)
+    {
+        await sembrador.SembrarDatosDeDemostracionAsync();
+    }
 }
 
 /// <summary>Expuesto para que los tests de integración puedan levantar la aplicación.</summary>

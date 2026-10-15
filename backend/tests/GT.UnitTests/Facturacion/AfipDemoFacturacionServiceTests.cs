@@ -27,6 +27,7 @@ public class AfipDemoFacturacionServiceTests
         public Task CorregirAsync(FacturaCliente factura, int usuarioId, DateTime ocurridoEn, Func<FacturaCliente, CancellationToken, Task<string>> escribirDocumento, CancellationToken cancelacion = default) => throw new NotImplementedException();
         public Task AnularAsync(FacturaCliente factura, string motivo, int usuarioId, DateTime ocurridoEn, Func<FacturaCliente, CancellationToken, Task<string>> escribirDocumento, CancellationToken cancelacion = default) => throw new NotImplementedException();
         public Task RegistrarCobroAsync(FacturaCliente factura, DateOnly fechaCobro, int usuarioId, DateTime ocurridoEn, CancellationToken cancelacion = default) => throw new NotImplementedException();
+        public Task RevertirCobroAsync(FacturaCliente factura, string motivo, int usuarioId, DateTime ocurridoEn, CancellationToken cancelacion = default) => throw new NotImplementedException();
         public Task<IReadOnlyList<FilaDeVencimiento>> ConsultarVencimientosAsync(DateOnly hoy, CancellationToken cancelacion = default) => throw new NotImplementedException();
         public Task<IReadOnlyList<TotalPorCliente>> ConsultarTotalesAsync(DateOnly desde, DateOnly hasta, CancellationToken cancelacion = default) => throw new NotImplementedException();
     }

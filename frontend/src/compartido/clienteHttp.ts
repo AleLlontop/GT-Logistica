@@ -27,6 +27,14 @@ export class ErrorHttp extends Error {
   }
 }
 
+/**
+ * Extrae el cuerpo del error tipado del backend, o `null` si no es un `ErrorHttp`.
+ * Unifica la traducción de fallos en todos los módulos de frontend.
+ */
+export function extraerDetalleError<T = unknown>(error: unknown): T | null {
+  return error instanceof ErrorHttp ? (error.detalle as T) : null
+}
+
 type ManejadorSesionExpirada = () => void
 
 let alExpirarSesion: ManejadorSesionExpirada | null = null

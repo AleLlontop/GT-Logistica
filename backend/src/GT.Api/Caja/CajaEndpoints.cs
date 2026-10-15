@@ -76,7 +76,11 @@ public static class CajaEndpoints
             return Results.Unauthorized();
         }
 
-        var detalle = await consultar.EjecutarAsync(id, usuarioId, cancelacion);
+        var esSupervisor = principal.HasClaim("permiso", CodigosPermiso.UsuariosGestionar) ||
+            principal.IsInRole(CodigosRol.AdministradorSistema) ||
+            principal.IsInRole(CodigosRol.Gerencia);
+
+        var detalle = await consultar.EjecutarAsync(id, usuarioId, cancelacion, esSupervisor);
 
         return detalle is not null ? Results.Ok(detalle) : RespuestasDeCaja.NoEncontrada();
     }

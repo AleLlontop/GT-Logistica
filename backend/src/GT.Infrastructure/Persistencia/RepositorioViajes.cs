@@ -286,6 +286,16 @@ public class RepositorioViajes(GtDbContext contexto) : IRepositorioViajes
                     viaje.Id != viajeAExcluir,
                 cancelacion);
 
+    public async Task<IReadOnlyList<Viaje>> ConsultarViajesActivosDeLaFechaAsync(
+        DateOnly fecha,
+        CancellationToken cancelacion = default) =>
+        await contexto.Viajes
+            .AsNoTracking()
+            .Where(viaje =>
+                viaje.Fecha == fecha &&
+                (viaje.Estado == EstadoViaje.Pendiente || viaje.Estado == EstadoViaje.EnCurso))
+            .ToListAsync(cancelacion);
+
     /// <summary>
     /// Los dos cuadros del período (FR-046, FR-046a, FR-047).
     ///

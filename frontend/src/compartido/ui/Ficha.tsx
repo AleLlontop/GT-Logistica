@@ -39,7 +39,7 @@ export function FichaEncabezado({
     <header className="mb-[18px] flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="m-0 text-[34px] leading-[1.15] font-extrabold tracking-[-0.04em] text-ink">
+          <h1 className="m-0 text-[26px] sm:text-[34px] leading-[1.15] font-extrabold tracking-[-0.04em] text-ink">
             {identidad}
           </h1>
           {token}
@@ -151,7 +151,7 @@ interface CuerpoProps {
 
 export function FichaCuerpo({ children, aside, className }: CuerpoProps) {
   return (
-    <div className={cn('flex items-start gap-[18px]', className)}>
+    <div className={cn('flex flex-col lg:flex-row items-stretch lg:items-start gap-[18px]', className)}>
       <div className="flex min-w-0 flex-1 flex-col gap-[18px]">{children}</div>
       {aside}
     </div>

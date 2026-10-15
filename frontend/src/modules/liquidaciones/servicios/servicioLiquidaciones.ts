@@ -1,4 +1,4 @@
-import { ErrorHttp, peticion } from '../../../compartido/clienteHttp'
+import { ErrorHttp, extraerDetalleError, peticion } from '../../../compartido/clienteHttp'
 import type { ErrorApi } from '../../../compartido/tipos'
 
 /**
@@ -192,7 +192,7 @@ export function cantidadDeViajes(cantidad: number): string {
 
 /** El cuerpo del error con los campos del módulo, o `null` si no es un error del backend. */
 export function detalleDeError(error: unknown): ErrorDeLiquidacion | null {
-  return error instanceof ErrorHttp ? (error.detalle as ErrorDeLiquidacion) : null
+  return extraerDetalleError<ErrorDeLiquidacion>(error)
 }
 
 /** Arma la query descartando los parámetros vacíos. */

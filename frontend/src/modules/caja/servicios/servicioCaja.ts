@@ -1,4 +1,4 @@
-import { ErrorHttp, peticion } from '../../../compartido/clienteHttp'
+import { ErrorHttp, extraerDetalleError, peticion } from '../../../compartido/clienteHttp'
 import type { ErrorApi } from '../../../compartido/tipos'
 
 /**
@@ -124,7 +124,7 @@ export const MENSAJE_SIN_PERMISO =
 
 /** El cuerpo del error con los campos del módulo, o `null` si no es un error del backend. */
 export function detalleDeError(error: unknown): ErrorDeCaja | null {
-  return error instanceof ErrorHttp ? (error.detalle as ErrorDeCaja) : null
+  return extraerDetalleError<ErrorDeCaja>(error)
 }
 
 /** Un `403`: falta el permiso. "Volvé a intentar" es falso para quien no lo tiene (convención [010]). */

@@ -181,10 +181,12 @@ export interface Asignable {
  * @param fecha La del viaje, en `yyyy-MM-dd`. Sin ella el servidor evalúa contra hoy, que sería una
  * observación equivocada para un viaje retroactivo.
  */
-export function listarAsignables(fecha?: string) {
-  return obtener<Asignables>(
-    fecha === undefined ? '/viajes/asignables' : `/viajes/asignables?fecha=${fecha}`,
-  )
+export function listarAsignables(fecha?: string, viajeId?: number) {
+  const parametros = new URLSearchParams()
+  if (fecha !== undefined) parametros.set('fecha', fecha)
+  if (viajeId !== undefined) parametros.set('viajeId', String(viajeId))
+  const qs = parametros.toString()
+  return obtener<Asignables>(qs ? `/viajes/asignables?${qs}` : '/viajes/asignables')
 }
 
 /**

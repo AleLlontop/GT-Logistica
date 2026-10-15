@@ -32,14 +32,14 @@ export const estilosDeBoton = cva(
     variants: {
       variante: {
         primario:
-          'gap-3 bg-ink font-bold text-white shadow-btn hover:bg-ink/90 active:scale-[0.98] ' +
+          'gap-3 bg-ink font-bold text-white dark:bg-white dark:text-zinc-950 shadow-btn hover:bg-ink/90 dark:hover:bg-zinc-100 active:scale-[0.98] ' +
           'disabled:bg-dim disabled:text-white disabled:shadow-none disabled:hover:bg-dim',
         secundario:
-          'gap-2 bg-surface-mute font-semibold text-ink-soft hover:bg-[#E9EAEF] ' +
+          'gap-2 bg-surface-mute font-semibold text-ink-soft hover:bg-surface-soft ' +
           'active:scale-[0.98] disabled:opacity-50 disabled:hover:bg-surface-mute',
         terciario:
-          'gap-2.5 border border-line bg-white/90 font-semibold text-ink-soft shadow-pill ' +
-          'hover:bg-white active:scale-[0.98] disabled:opacity-50',
+          'gap-2.5 border border-line bg-surface font-semibold text-ink-soft shadow-pill ' +
+          'hover:bg-surface-soft active:scale-[0.98] disabled:opacity-50',
         texto:
           'gap-1.5 font-medium text-brand underline underline-offset-2 hover:text-brand-deep ' +
           'disabled:text-faint disabled:no-underline',
@@ -91,7 +91,7 @@ export function clasesDeBoton(variante: Variante, tamanio?: Tamanio, className?:
  * como acción principal tiene que dibujar el mismo círculo que el botón.
  */
 export const clasesDeCirculoDeIcono = cn(
-  'flex size-8 shrink-0 items-center justify-center rounded-pastilla bg-white/[0.14]',
+  'flex size-8 shrink-0 items-center justify-center rounded-pastilla bg-white/[0.14] dark:bg-black/[0.10]',
   'transition-transform duration-200 ease-gt group-hover:translate-x-0.5',
 )
 
@@ -115,7 +115,7 @@ export function clasesDeControl(conError = false, className?: string) {
   return cn(
     'w-full rounded-field border px-[15px] py-[13px] text-[13.5px] text-ink',
     'placeholder:text-faint transition-shadow duration-200 ease-gt',
-    'focus:border-brand focus:bg-white focus:shadow-focus focus:outline-none',
+    'focus:border-brand focus:bg-surface focus:shadow-focus focus:outline-none',
     'disabled:cursor-not-allowed disabled:opacity-50',
     conError
       ? 'border-danger bg-danger-bg focus:shadow-none'
@@ -139,7 +139,7 @@ export function clasesDeFiltro(activo: boolean, className?: string) {
   return cn(
     'rounded-field border px-3.5 py-2 text-[12.5px] text-ink',
     'placeholder:text-faint transition-shadow duration-200 ease-gt',
-    'focus:border-brand focus:bg-white focus:shadow-focus focus:outline-none',
+    'focus:border-brand focus:bg-surface focus:shadow-focus focus:outline-none',
     activo ? 'border-brand/40 bg-brand-soft font-semibold' : 'border-line-strong bg-surface-soft',
     className,
   )
@@ -196,9 +196,9 @@ export const clasesDeFormulario = cn(
   '[&_input[type=checkbox]]:size-4 [&_input[type=checkbox]]:w-auto [&_input[type=checkbox]]:p-0',
 
   // El anillo de foco, visible por sí solo y no sólo como cambio de color de borde (FR-025).
-  '[&_input:focus]:border-brand [&_input:focus]:bg-white [&_input:focus]:shadow-focus',
-  '[&_select:focus]:border-brand [&_select:focus]:bg-white [&_select:focus]:shadow-focus',
-  '[&_textarea:focus]:border-brand [&_textarea:focus]:bg-white [&_textarea:focus]:shadow-focus',
+  '[&_input:focus]:border-brand [&_input:focus]:bg-surface [&_input:focus]:shadow-focus',
+  '[&_select:focus]:border-brand [&_select:focus]:bg-surface [&_select:focus]:shadow-focus',
+  '[&_textarea:focus]:border-brand [&_textarea:focus]:bg-surface [&_textarea:focus]:shadow-focus',
 
   // Deshabilitado: se ve deshabilitado y no se confunde con uno disponible.
   '[&_:disabled]:cursor-not-allowed [&_:disabled]:opacity-50',

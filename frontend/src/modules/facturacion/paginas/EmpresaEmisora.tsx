@@ -157,7 +157,7 @@ export function EmpresaEmisora() {
       <EncabezadoDePantalla titulo="Empresa emisora" />
 
       {/* Arriba del formulario vacío, con las palabras exactas del contrato (US1 esc. 1). */}
-      {empresa !== null && !empresa.configurada && (
+      {Boolean(empresa && !empresa.configurada) && (
         <p role="status" className={`${clasesDeAvisoDePantalla.advertencia} mb-[18px]`}>
           {MENSAJE_SIN_CONFIGURAR}
         </p>

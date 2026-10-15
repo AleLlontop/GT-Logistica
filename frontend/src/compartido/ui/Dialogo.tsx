@@ -52,7 +52,7 @@ export function Dialogo({ titulo, onCerrar, children, className }: Props) {
             'fixed top-1/2 left-1/2 z-50 w-[min(32rem,calc(100vw-2rem))]',
             '-translate-x-1/2 -translate-y-1/2',
             'max-h-[calc(100vh-2rem)] overflow-y-auto',
-            'rounded-card border border-line bg-white/95 p-[26px] shadow-island',
+            'rounded-card border border-line bg-surface p-[26px] shadow-island',
             className,
           )}
         >

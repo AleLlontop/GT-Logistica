@@ -148,6 +148,13 @@ public interface IRepositorioViajes
         CancellationToken cancelacion = default);
 
     /// <summary>
+    /// Los viajes activos (pendientes o en curso) de una fecha dada, para advertir sobre superposiciones de chofer o vehículo.
+    /// </summary>
+    Task<IReadOnlyList<Viaje>> ConsultarViajesActivosDeLaFechaAsync(
+        DateOnly fecha,
+        CancellationToken cancelacion = default);
+
+    /// <summary>
     /// Cambia el estado del viaje y escribe su línea de historial <b>en la misma transacción</b>
     /// (FR-035).
     ///

@@ -41,7 +41,9 @@ public class ConsultarDetalleAdelanto(IRepositorioAdelantos adelantos)
                 .ThenBy(cambio => cambio.Id)
                 .Select(cambio => new EntradaDeHistorialAdelanto(
                     NombresDeEstadoAdelanto.EnJson(cambio.Operacion),
-                    cambio.Usuario?.Username ?? $"Usuario {cambio.UsuarioId}",
+                    cambio.Usuario?.Persona is { } p
+                        ? $"{p.Apellido}, {p.Nombre} ({cambio.Usuario.Username})"
+                        : cambio.Usuario?.Username ?? $"Usuario {cambio.UsuarioId}",
                     cambio.OcurridoEn,
                     cambio.Operacion switch
                     {

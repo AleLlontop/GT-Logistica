@@ -1,5 +1,5 @@
 import { startOfMonth, subMonths } from 'date-fns'
-import { ErrorHttp, peticion } from '../../../compartido/clienteHttp'
+import { ErrorHttp, extraerDetalleError, peticion } from '../../../compartido/clienteHttp'
 import { enIso } from '../../../compartido/fechas'
 import type { ErrorApi } from '../../../compartido/tipos'
 
@@ -135,7 +135,7 @@ export const MENSAJE_ACCION_SIN_PERMISO = 'No tenés permiso para registrar, apr
 
 /** El cuerpo del error con los campos del módulo, o `null` si no es un error del backend. */
 export function detalleDeError(error: unknown): ErrorDeAdelanto | null {
-  return error instanceof ErrorHttp ? (error.detalle as ErrorDeAdelanto) : null
+  return extraerDetalleError<ErrorDeAdelanto>(error)
 }
 
 /**

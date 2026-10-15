@@ -68,7 +68,7 @@ export function EncabezadoDePantalla({
       {volverA !== undefined && (
         <Link
           to={volverA.ruta}
-          className="inline-flex w-fit items-center gap-2.5 rounded-pastilla border border-line bg-white/90 py-1.5 pr-[18px] pl-1.5 text-[12.5px] font-semibold tracking-tight text-ink-soft no-underline shadow-pill transition-colors duration-200 ease-gt hover:bg-white"
+          className="inline-flex w-fit items-center gap-2.5 rounded-pastilla border border-line bg-surface py-1.5 pr-[18px] pl-1.5 text-[12.5px] font-semibold tracking-tight text-ink-soft no-underline shadow-pill transition-colors duration-200 ease-gt hover:bg-surface-soft"
         >
           <span className="flex size-7 items-center justify-center rounded-pastilla bg-surface-mute">
             <IconoVolver aria-hidden="true" className="size-3 text-muted" />
@@ -79,7 +79,7 @@ export function EncabezadoDePantalla({
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="m-0 text-[34px] leading-[1.15] font-extrabold tracking-[-0.04em] text-ink">
+          <h1 className="m-0 text-[26px] sm:text-[34px] leading-[1.15] font-extrabold tracking-[-0.04em] text-ink">
             {titulo}
           </h1>
           {resumen !== undefined && (

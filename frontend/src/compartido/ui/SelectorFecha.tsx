@@ -105,7 +105,7 @@ export function SelectorFecha({
   const claseSelect = cn(
     'rounded-field border border-line-strong bg-surface-soft px-3 py-2 text-[13px] text-ink',
     'transition-shadow duration-200 ease-gt',
-    'focus:border-brand focus:bg-white focus:shadow-focus focus:outline-none',
+    'focus:border-brand focus:bg-surface focus:shadow-focus focus:outline-none',
     'disabled:cursor-not-allowed disabled:opacity-50',
     conError && 'border-danger bg-danger-bg focus:shadow-none',
   )

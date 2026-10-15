@@ -170,6 +170,8 @@ public record CobroRequest(DateOnly? FechaCobro);
 
 public record AnulacionFacturaRequest(string? Motivo);
 
+public record RevertirCobroRequest(string? Motivo);
+
 // ── Facturas ────────────────────────────────────────────────────────────────────────────────────
 
 /// <summary>Lo mínimo para nombrar una factura desde otra pantalla o desde un mensaje de error.</summary>

@@ -263,4 +263,16 @@
     --shadow-pill: 0 4px 12px rgb(0 0 0 / 0.35);
     --shadow-btn: 0 8px 18px -2px rgb(0 0 0 / 0.50);
   }
+
+  /* Estilos consistentes para elementos desplegables en modo claro y oscuro */
+  select option {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+  }
+
+  html.dark input,
+  html.dark select,
+  html.dark textarea {
+    color-scheme: dark;
+  }
 }

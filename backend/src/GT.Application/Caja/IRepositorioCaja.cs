@@ -21,7 +21,11 @@ public interface IRepositorioCaja
     /// La caja con su responsable y los totales sumados en SQL, sin rastrear. <paramref name="usuarioId"/>
     /// decide <c>PuedeOperar</c>.
     /// </summary>
-    Task<CajaDetalle?> ObtenerDetalleAsync(int id, int usuarioId, CancellationToken cancelacion = default);
+    Task<CajaDetalle?> ObtenerDetalleAsync(
+        int id,
+        int usuarioId,
+        CancellationToken cancelacion = default,
+        bool esSupervisor = false);
 
     /// <summary>La caja abierta del usuario, o <c>null</c> si no tiene ninguna.</summary>
     Task<CajaDetalle?> ObtenerCajaAbiertaDeAsync(int usuarioId, CancellationToken cancelacion = default);
@@ -33,7 +37,11 @@ public interface IRepositorioCaja
     /// Por qué el usuario no puede operar la caja: no existe, está cerrada o es de otro. <c>null</c> si puede.
     /// Es la relectura de las dos escrituras cuando su <c>UPDATE</c> no afectó ninguna fila.
     /// </summary>
-    Task<MotivoNoOperable?> MotivoNoOperableAsync(int id, int usuarioId, CancellationToken cancelacion = default);
+    Task<MotivoNoOperable?> MotivoNoOperableAsync(
+        int id,
+        int usuarioId,
+        CancellationToken cancelacion = default,
+        bool esSupervisor = false);
 
     // ── Abrir (data-model §Abrir) ───────────────────────────────────────────────────────────────
 
@@ -87,7 +95,8 @@ public interface IRepositorioCaja
         int usuarioId,
         decimal saldoFinalConfirmado,
         DateTime ocurridoEn,
-        CancellationToken cancelacion = default);
+        CancellationToken cancelacion = default,
+        bool esSupervisor = false);
 
     // ── Consulta global (FR-023 a FR-025) ───────────────────────────────────────────────────────
 

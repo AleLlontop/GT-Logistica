@@ -177,11 +177,29 @@ describe('AsignacionViaje', () => {
    * La observación se calcula contra la fecha del viaje, así que la pantalla tiene que mandarla: con
    * la de hoy, un viaje retroactivo mostraría observada una unidad que ese día estaba en regla.
    */
-  it('pide la lista con la fecha del viaje', async () => {
+  it('pide la lista con la fecha del viaje y su id', async () => {
     renderizar()
 
     await screen.findByLabelText('Vehículo')
 
-    expect(listarAsignables).toHaveBeenCalledWith('2026-08-10')
+    expect(listarAsignables).toHaveBeenCalledWith('2026-08-10', 7)
+  })
+
+  it('muestra advertencia cuando el chofer o vehículo seleccionado tiene superposición de viaje', async () => {
+    listarAsignables.mockResolvedValue({
+      choferes: [
+        { id: 3, nombre: 'Gómez, Juan', observacion: 'Ya tiene el viaje #1040 asignado para esta fecha' },
+      ],
+      vehiculos: ASIGNABLES.vehiculos,
+    })
+
+    const usuario = userEvent.setup()
+    renderizar()
+
+    await usuario.selectOptions(await screen.findByLabelText('Chofer'), '3')
+
+    expect(
+      await screen.findByText(/Atención: El chofer Gómez, Juan ya tiene el viaje #1040 asignado para esta fecha/i),
+    ).toBeInTheDocument()
   })
 })

@@ -287,9 +287,14 @@ export function corregirFactura(id: number, peticion: CorreccionPeticion) {
 
 // ── Ciclo de vida: cada cambio de estado es un recurso propio (FR-044) ──────────────────────────
 
-/** `pagada` es terminal: no existe ninguna acción que revierta un cobro (FR-043). */
+/** `pagada` admite reversión mediante motivo explícito. */
 export function registrarCobro(id: number, fechaCobro: string) {
   return enviar<FacturaDetalle>(`/facturas/${id}/cobro`, { fechaCobro })
+}
+
+/** Revierte el cobro de una factura pagada a pendiente mediante motivo obligatorio. */
+export function revertirCobro(id: number, motivo: string) {
+  return enviar<FacturaDetalle>(`/facturas/${id}/revertir-cobro`, { motivo })
 }
 
 /** El motivo es obligatorio y la confirmación la pide la pantalla (FR-046). */

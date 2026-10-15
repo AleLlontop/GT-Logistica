@@ -189,7 +189,9 @@ public class RepositorioAdelantos(GtDbContext contexto) : IRepositorioAdelantos
     public Task<Adelanto?> ObtenerDetalleAsync(int id, CancellationToken cancelacion = default) =>
         contexto.Adelantos
             .Include(adelanto => adelanto.Persona)
-            .Include(adelanto => adelanto.Cambios).ThenInclude(cambio => cambio.Usuario)
+            .Include(adelanto => adelanto.Cambios)
+                .ThenInclude(cambio => cambio.Usuario)
+                .ThenInclude(u => u!.Persona)
             .AsNoTracking()
             .FirstOrDefaultAsync(adelanto => adelanto.Id == id, cancelacion);
 

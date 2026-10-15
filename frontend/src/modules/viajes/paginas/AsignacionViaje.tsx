@@ -69,7 +69,7 @@ export function AsignacionViaje() {
     // que el servidor evalúa la documentación de cada unidad. Pedirla antes de saber la fecha
     // devolvería observaciones calculadas contra hoy, equivocadas para un viaje retroactivo.
     obtenerViaje(viajeId)
-      .then(async (viaje) => ({ viaje, asignables: await listarAsignables(viaje.fecha) }))
+      .then(async (viaje) => ({ viaje, asignables: await listarAsignables(viaje.fecha, viaje.id) }))
       .then(({ viaje, asignables }) => {
         if (!vigente) return
 
@@ -138,6 +138,16 @@ export function AsignacionViaje() {
   const sinVehiculos = asignables.vehiculos.length === 0
   const faltaElegir = choferId === '' || vehiculoId === ''
 
+  const choferSeleccionado = asignables.choferes.find((c) => c.id === choferId)
+  const vehiculoSeleccionado = asignables.vehiculos.find((v) => v.id === vehiculoId)
+
+  const superposicionChofer = choferSeleccionado?.observacion?.includes('asignado para esta fecha')
+    ? choferSeleccionado.observacion
+    : null
+  const superposicionVehiculo = vehiculoSeleccionado?.observacion?.includes('asignado para esta fecha')
+    ? vehiculoSeleccionado.observacion
+    : null
+
   return (
     <section>
       <EncabezadoDePantalla titulo={`Asignar chofer y vehículo — viaje ${viaje.numero}`} />
@@ -159,11 +169,21 @@ export function AsignacionViaje() {
         <p
           key={advertencia.mensaje}
           role="status"
-          className={`${clasesDeAvisoDePantalla.advertencia} mb-[18px]`}
-        >
+          className={`${clasesDeAvisoDePantalla.advertencia} mb-[18px]`}>
           {advertencia.mensaje}
         </p>
       ))}
+
+      {superposicionChofer && (
+        <p role="status" className={`${clasesDeAvisoDePantalla.advertencia} mb-[18px]`}>
+          Atención: El chofer {choferSeleccionado?.nombre} {superposicionChofer.toLowerCase()}.
+        </p>
+      )}
+      {superposicionVehiculo && (
+        <p role="status" className={`${clasesDeAvisoDePantalla.advertencia} mb-[18px]`}>
+          Atención: El vehículo {vehiculoSeleccionado?.nombre} {superposicionVehiculo.toLowerCase()}.
+        </p>
+      )}
 
       {sinChoferes && (
         <p role="status" className={`${clasesDeAvisoDePantalla.nota} mb-[18px]`}>

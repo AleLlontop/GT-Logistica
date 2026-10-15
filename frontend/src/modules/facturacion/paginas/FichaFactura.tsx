@@ -17,6 +17,8 @@ import { formatearFecha, formatearInstante, hoyEnIso } from '../../../compartido
 import { formatearPesos } from '../../../compartido/moneda'
 import { ConfirmacionAnulacion } from '../componentes/ConfirmacionAnulacion'
 import { RegistrarCobro } from '../componentes/RegistrarCobro'
+import { Dialogo } from '../../../compartido/ui/Dialogo'
+import { BarraDeAcciones } from '../../../compartido/ui/BarraDeAcciones'
 import {
   NOMBRES_DE_CONDICION_DE_VENTA,
   NOMBRES_DE_ESTADO,
@@ -28,6 +30,7 @@ import {
   nombreDeCliente,
   obtenerFactura,
   registrarCobro,
+  revertirCobro,
   type FacturaDetalle,
 } from '../servicios/servicioFacturas'
 
@@ -76,6 +79,8 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
   const [trabajando, setTrabajando] = useState(false)
   const [cobrando, setCobrando] = useState(false)
   const [anulando, setAnulando] = useState(false)
+  const [revirtiendoCobro, setRevirtiendoCobro] = useState(false)
+  const [motivoReversion, setMotivoReversion] = useState('')
 
   const traer = useCallback(() => {
     obtenerFactura(facturaId)
@@ -137,6 +142,28 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
       )
     } catch (fallo) {
       setAnulando(false)
+      mostrarFallo(fallo)
+    } finally {
+      setTrabajando(false)
+    }
+  }
+
+  async function revertir() {
+    if (!motivoReversion.trim()) return
+
+    setTrabajando(true)
+    setError(null)
+    setAviso(null)
+
+    try {
+      const actualizada = await revertirCobro(facturaId, motivoReversion.trim())
+
+      setFactura(actualizada)
+      setRevirtiendoCobro(false)
+      setMotivoReversion('')
+      setAviso(`Se revirtió el cobro de la factura ${actualizada.numeroComprobante}. Regresó a estado pendiente.`)
+    } catch (fallo) {
+      setRevirtiendoCobro(false)
       mostrarFallo(fallo)
     } finally {
       setTrabajando(false)
@@ -220,6 +247,15 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
                   icono={<IconoEnRegla className="size-3" />}
                 >
                   Registrar cobro
+                </Boton>
+              )}
+
+              {puedeGestionar && factura.estado === 'pagada' && (
+                <Boton
+                  variante="secundario"
+                  onClick={() => setRevirtiendoCobro(true)}
+                >
+                  Revertir cobro
                 </Boton>
               )}
             </>
@@ -565,6 +601,56 @@ export function FichaFactura({ puedeGestionar, puedeAnular }: Props) {
           onConfirmar={anular}
           onCancelar={() => setAnulando(false)}
         />
+      )}
+
+      {revirtiendoCobro && (
+        <Dialogo
+          titulo={`Revertir cobro de la factura ${factura.numeroComprobante}`}
+          onCerrar={() => setRevirtiendoCobro(false)}
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              revertir()
+            }}
+            className="flex flex-col gap-4 mt-2"
+          >
+            <p className="text-[13px] text-ink-soft m-0">
+              Esta acción regresará la factura al estado pendiente o vencida, permitiendo registrar un nuevo cobro o corregir sus datos.
+            </p>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="motivo-reversion" className="text-[12.5px] font-semibold text-ink-soft">
+                Motivo de la reversión *
+              </label>
+              <textarea
+                id="motivo-reversion"
+                rows={3}
+                value={motivoReversion}
+                onChange={(e) => setMotivoReversion(e.target.value)}
+                placeholder="Ej: Cheque rechazado N° 12345 o error al asentar el pago"
+                className="rounded-field border border-line-strong bg-surface-soft px-[15px] py-[13px] text-[13.5px] text-ink focus:border-brand focus:bg-surface focus:shadow-focus"
+                required
+              />
+            </div>
+            <BarraDeAcciones anclaje="contenedor">
+              <Boton
+                type="button"
+                variante="secundario"
+                onClick={() => setRevirtiendoCobro(false)}
+                disabled={trabajando}
+              >
+                Cancelar
+              </Boton>
+              <Boton
+                type="submit"
+                variante="destructivo"
+                disabled={trabajando || !motivoReversion.trim()}
+              >
+                {trabajando ? 'Revirtiendo...' : 'Confirmar reversión'}
+              </Boton>
+            </BarraDeAcciones>
+          </form>
+        </Dialogo>
       )}
     </section>
   )

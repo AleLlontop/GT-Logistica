@@ -27,6 +27,9 @@ public static class CicloDeVidaFacturaEndpoints
         grupo.MapPost("/{id:int}/cobro", RegistrarCobroAsync)
             .RequireAuthorization(PoliticasAutorizacion.Para(CodigosPermiso.FacturacionGestionar));
 
+        grupo.MapPost("/{id:int}/revertir-cobro", RevertirCobroAsync)
+            .RequireAuthorization(PoliticasAutorizacion.Para(CodigosPermiso.FacturacionGestionar));
+
         grupo.MapPost("/{id:int}/anulacion", AnularAsync)
             .RequireAuthorization(PoliticasAutorizacion.Para(CodigosPermiso.FacturacionAnular));
     }
@@ -71,6 +74,25 @@ public static class CicloDeVidaFacturaEndpoints
         }
 
         var resultado = await anular.EjecutarAsync(id, peticion, usuarioId, cancelacion);
+
+        return resultado.Exitoso
+            ? Results.Ok(resultado.Factura)
+            : RespuestasDeFactura.TraducirFallo(resultado);
+    }
+
+    private static async Task<IResult> RevertirCobroAsync(
+        int id,
+        RevertirCobroRequest? peticion,
+        ClaimsPrincipal principal,
+        RevertirCobro revertir,
+        CancellationToken cancelacion)
+    {
+        if (ClaimsSesion.ObtenerIdUsuario(principal) is not { } usuarioId)
+        {
+            return Results.Unauthorized();
+        }
+
+        var resultado = await revertir.EjecutarAsync(id, peticion, usuarioId, cancelacion);
 
         return resultado.Exitoso
             ? Results.Ok(resultado.Factura)

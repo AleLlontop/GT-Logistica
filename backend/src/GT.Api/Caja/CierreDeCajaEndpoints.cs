@@ -33,7 +33,11 @@ public static class CierreDeCajaEndpoints
             return Results.Unauthorized();
         }
 
-        var resultado = await consultar.EjecutarAsync(id, usuarioId, cancelacion);
+        var esSupervisor = principal.HasClaim("permiso", CodigosPermiso.UsuariosGestionar) ||
+            principal.IsInRole(CodigosRol.AdministradorSistema) ||
+            principal.IsInRole(CodigosRol.Gerencia);
+
+        var resultado = await consultar.EjecutarAsync(id, usuarioId, cancelacion, esSupervisor);
 
         return resultado.Exitoso ? Results.Ok(resultado.Resumen) : RespuestasDeCaja.TraducirFallo(resultado);
     }
@@ -51,7 +55,11 @@ public static class CierreDeCajaEndpoints
             return Results.Unauthorized();
         }
 
-        var resultado = await cerrar.EjecutarAsync(id, peticion, usuarioId, cancelacion);
+        var esSupervisor = principal.HasClaim("permiso", CodigosPermiso.UsuariosGestionar) ||
+            principal.IsInRole(CodigosRol.AdministradorSistema) ||
+            principal.IsInRole(CodigosRol.Gerencia);
+
+        var resultado = await cerrar.EjecutarAsync(id, peticion, usuarioId, cancelacion, esSupervisor);
 
         return resultado.Exitoso ? Results.Ok(resultado.Caja) : RespuestasDeCaja.TraducirFallo(resultado);
     }

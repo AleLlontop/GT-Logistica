@@ -13,11 +13,12 @@ public class CerrarCaja(IRepositorioCaja cajas, ConsultarDetalleCaja detalles, T
         int cajaId,
         CierreRequest? peticion,
         int usuarioId,
-        CancellationToken cancelacion = default)
+        CancellationToken cancelacion = default,
+        bool esSupervisor = false)
     {
         if (peticion is not { Confirmado: true, SaldoFinalConfirmado: { } saldoFinalConfirmado })
         {
-            if (await cajas.MotivoNoOperableAsync(cajaId, usuarioId, cancelacion) is { } motivo)
+            if (await cajas.MotivoNoOperableAsync(cajaId, usuarioId, cancelacion, esSupervisor) is { } motivo)
             {
                 return ResultadoCaja.NoOperable(motivo);
             }
@@ -33,7 +34,8 @@ public class CerrarCaja(IRepositorioCaja cajas, ConsultarDetalleCaja detalles, T
             usuarioId,
             saldoFinalConfirmado,
             reloj.GetUtcNow().UtcDateTime,
-            cancelacion);
+            cancelacion,
+            esSupervisor);
 
         if (cierre.NoOperable is { } noOperable)
         {

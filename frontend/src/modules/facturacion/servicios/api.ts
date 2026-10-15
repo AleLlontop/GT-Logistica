@@ -1,4 +1,4 @@
-import { ErrorHttp, peticion } from '../../../compartido/clienteHttp'
+import { ErrorHttp, extraerDetalleError, peticion } from '../../../compartido/clienteHttp'
 import type { CodigoError, ErrorApi } from '../../../compartido/tipos'
 
 /**
@@ -173,7 +173,7 @@ export function esErrorDeFacturas(error: unknown, codigo: CodigoError) {
 
 /** El cuerpo del error con sus campos del módulo, o `null` si no es un error del backend. */
 export function detalleDeError(error: unknown): ErrorDeFactura | null {
-  return error instanceof ErrorHttp ? (error.detalle as ErrorDeFactura) : null
+  return extraerDetalleError<ErrorDeFactura>(error)
 }
 
 // ── Cómo se nombra cada cosa en pantalla (`contracts/README.md`) ─────────────────────────────────

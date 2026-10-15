@@ -14,20 +14,18 @@ public class TransicionesDeFacturaTests
     [Theory]
     [InlineData(EstadoFactura.Pendiente, EstadoFactura.Pagada)]
     [InlineData(EstadoFactura.Pendiente, EstadoFactura.Anulada)]
-    public void Las_DosTransicionesValidas_SePermiten(EstadoFactura actual, EstadoFactura pedido) =>
+    [InlineData(EstadoFactura.Pagada, EstadoFactura.Pendiente)]
+    public void Las_TransicionesValidas_SePermiten(EstadoFactura actual, EstadoFactura pedido) =>
         Assert.True(TransicionesDeFactura.EstaPermitida(actual, pedido));
 
     /// <summary>
-    /// <b>No hay ningún camino de retroceso</b>: no se revierte un cobro, no se devuelve una anulada a
-    /// <c>pendiente</c> y una anulada no pasa a <c>pagada</c>. No están ocultos: no existen (FR-043,
-    /// FR-038).
+    /// No se devuelve una anulada a <c>pendiente</c> ni pasa a <c>pagada</c>, y una pagada no pasa a <c>anulada</c>.
     /// </summary>
     [Theory]
-    [InlineData(EstadoFactura.Pagada, EstadoFactura.Pendiente)]
     [InlineData(EstadoFactura.Anulada, EstadoFactura.Pendiente)]
     [InlineData(EstadoFactura.Pagada, EstadoFactura.Anulada)]
     [InlineData(EstadoFactura.Anulada, EstadoFactura.Pagada)]
-    public void No_HayNingunCaminoDeRetroceso(EstadoFactura actual, EstadoFactura pedido) =>
+    public void TransicionesInvalidas_NoSePermiten(EstadoFactura actual, EstadoFactura pedido) =>
         Assert.False(TransicionesDeFactura.EstaPermitida(actual, pedido));
 
     /// <summary>Nada se transiciona a sí mismo: cobrar una pagada no es una operación válida.</summary>
@@ -39,11 +37,11 @@ public class TransicionesDeFacturaTests
         Assert.False(TransicionesDeFactura.EstaPermitida(estado, estado));
 
     /// <summary>
-    /// El mapa completo, enumerado: de las nueve combinaciones posibles, <b>exactamente dos</b> se
-    /// permiten. Escrito así, agregar una transición sin pensarlo rompe este test.
+    /// El mapa completo, enumerado: de las nueve combinaciones posibles, <b>exactamente tres</b> se
+    /// permiten (incluyendo revertir cobro).
     /// </summary>
     [Fact]
-    public void De_LasNueveCombinaciones_SoloDosSePermiten()
+    public void De_LasNueveCombinaciones_SoloTresSePermiten()
     {
         var estados = Enum.GetValues<EstadoFactura>();
 
@@ -52,9 +50,10 @@ public class TransicionesDeFacturaTests
             .Where(par => TransicionesDeFactura.EstaPermitida(par.actual, par.pedido))
             .ToList();
 
-        Assert.Equal(2, permitidas.Count);
+        Assert.Equal(3, permitidas.Count);
         Assert.Contains((EstadoFactura.Pendiente, EstadoFactura.Pagada), permitidas);
         Assert.Contains((EstadoFactura.Pendiente, EstadoFactura.Anulada), permitidas);
+        Assert.Contains((EstadoFactura.Pagada, EstadoFactura.Pendiente), permitidas);
     }
 
     [Theory]

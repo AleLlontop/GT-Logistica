@@ -104,6 +104,8 @@ internal sealed class RepositorioViajesDoble(PaginaDe<ViajeListado> pagina) : IR
 
     public Task<Viaje?> ViajeEnCursoDelVehiculoAsync(int vehiculoId, int viajeAExcluir, CancellationToken cancelacion = default) => NoLlamado<Viaje?>();
 
+    public Task<IReadOnlyList<Viaje>> ConsultarViajesActivosDeLaFechaAsync(DateOnly fecha, CancellationToken cancelacion = default) => NoLlamado<IReadOnlyList<Viaje>>();
+
     public Task RegistrarCambioDeEstadoAsync(Viaje viaje, EstadoViaje estadoNuevo, int usuarioId, DateTime ocurridoEn, CancellationToken cancelacion = default) => NoLlamado();
 
     public Task<TotalesDelPeriodo> ConsultarTotalesAsync(DateOnly desde, DateOnly hasta, CancellationToken cancelacion = default) => NoLlamado<TotalesDelPeriodo>();
@@ -246,6 +248,8 @@ internal sealed class RepositorioFacturasDoble(IReadOnlyList<FilaDeVencimiento> 
 
     public Task RegistrarCobroAsync(FacturaCliente factura, DateOnly fechaCobro, int usuarioId, DateTime ocurridoEn, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
 
+    public Task RevertirCobroAsync(FacturaCliente factura, string motivo, int usuarioId, DateTime ocurridoEn, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
+
     public Task<IReadOnlyList<TotalPorCliente>> ConsultarTotalesAsync(DateOnly desde, DateOnly hasta, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
 }
 
@@ -269,14 +273,14 @@ internal sealed class RepositorioCajaDoble(PaginaDe<MovimientoListado> pagina, C
         return Task.FromResult(pagina);
     }
 
-    public Task<CajaDetalle?> ObtenerDetalleAsync(int id, int usuarioId, CancellationToken cancelacion = default) =>
+    public Task<CajaDetalle?> ObtenerDetalleAsync(int id, int usuarioId, CancellationToken cancelacion = default, bool esSupervisor = false) =>
         Task.FromResult(detalle);
 
     public Task<CajaDetalle?> ObtenerCajaAbiertaDeAsync(int usuarioId, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
 
     public Task<PaginaDe<CajaListado>> ConsultarCajasAsync(int paginaPedida, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
 
-    public Task<MotivoNoOperable?> MotivoNoOperableAsync(int id, int usuarioId, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
+    public Task<MotivoNoOperable?> MotivoNoOperableAsync(int id, int usuarioId, CancellationToken cancelacion = default, bool esSupervisor = false) => throw new NotSupportedException(Doble.Mensaje);
 
     public Task<bool> ExisteCajaAbiertaAsync(int usuarioId, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
 
@@ -296,7 +300,7 @@ internal sealed class RepositorioCajaDoble(PaginaDe<MovimientoListado> pagina, C
 
     public Task<ResumenDeCierre> ConsultarResumenAsync(int cajaId, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
 
-    public Task<CierreIntentado> CerrarAsync(int cajaId, int usuarioId, decimal saldoFinalConfirmado, DateTime ocurridoEn, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
+    public Task<CierreIntentado> CerrarAsync(int cajaId, int usuarioId, decimal saldoFinalConfirmado, DateTime ocurridoEn, CancellationToken cancelacion = default, bool esSupervisor = false) => throw new NotSupportedException(Doble.Mensaje);
 }
 
 internal static class Doble

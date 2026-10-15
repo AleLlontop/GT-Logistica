@@ -29,6 +29,7 @@ public static class TransicionesDeFactura
         {
             (EstadoFactura.Pendiente, EstadoFactura.Pagada) => true,
             (EstadoFactura.Pendiente, EstadoFactura.Anulada) => true,
+            (EstadoFactura.Pagada, EstadoFactura.Pendiente) => true,
             _ => false,
         };
 

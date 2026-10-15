@@ -6,9 +6,13 @@ namespace GT.Application.Caja;
 /// </summary>
 public class ConsultarResumenDeCierre(IRepositorioCaja cajas)
 {
-    public async Task<ResultadoCaja> EjecutarAsync(int cajaId, int usuarioId, CancellationToken cancelacion = default)
+    public async Task<ResultadoCaja> EjecutarAsync(
+        int cajaId,
+        int usuarioId,
+        CancellationToken cancelacion = default,
+        bool esSupervisor = false)
     {
-        if (await cajas.MotivoNoOperableAsync(cajaId, usuarioId, cancelacion) is { } motivo)
+        if (await cajas.MotivoNoOperableAsync(cajaId, usuarioId, cancelacion, esSupervisor) is { } motivo)
         {
             return ResultadoCaja.NoOperable(motivo);
         }

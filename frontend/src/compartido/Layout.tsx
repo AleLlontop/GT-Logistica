@@ -1,6 +1,8 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Menu } from './Menu'
 import type { OpcionMenu } from './tipos'
+import { IconoCerrar, IconoMenu } from './ui/iconos'
+import { InterruptorModoOscuro } from './ui/InterruptorModoOscuro'
 
 interface Props {
   username: string
@@ -12,30 +14,70 @@ interface Props {
 /**
  * Estructura común a todas las pantallas con sesión abierta.
  *
- * **La barra superior se retira** (FR-010). Era la última superficie del sistema que no era ni la
- * navegación ni el contenido: una franja blanca con la marca a la izquierda y las acciones de cuenta
- * a la derecha, que le comía 56 px de alto a todas las pantallas para repetir lo que la isla de
- * navegación ya puede decir. La marca sube al encabezado de la isla y el bloque de usuario —con
- * *Cambiar contraseña* y *Cerrar sesión*— baja a su pie.
- *
- * El botón de cerrar sesión sigue estando disponible desde cualquier lugar del sistema (FR-013 del
- * Módulo 1) y *Cambiar contraseña* sigue **fuera** del menú calculado por el servidor: ese menú sale
- * de los permisos, y cambiar la contraseña propia no exige ninguno (FR-029 del Módulo 2). Lo que
- * cambia es dónde viven, no que existan.
- *
- * **La columna principal queda transparente** (FR-011): el lienzo se ve a través. Eso convierte al
- * lienzo en un fondo de texto real, y por eso acá sólo puede ir texto en `ink` o `ink-soft`
- * (FR-007b). Los dos únicos textos que quedan directamente sobre él son el título de página y su
- * bajada, que `EncabezadoDePantalla` dibuja en esos dos tonos.
+ * Adaptable a dispositivos móviles y escritorio (responsive).
  */
 export function Layout({ username, opcionesMenu, onCerrarSesion, children }: Props) {
-  return (
-    <div className="flex min-h-screen gap-[18px] p-[18px]">
-      <Menu opciones={opcionesMenu} username={username} onCerrarSesion={onCerrarSesion} />
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
 
-      <main className="min-w-0 flex-1 px-10 py-6">
-        <div className="mx-auto max-w-lectura">{children}</div>
-      </main>
+  return (
+    <div className="min-h-screen text-ink">
+      {/* Barra superior en pantallas chicas (< lg) */}
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-surface px-4 py-2.5 shadow-sm lg:hidden">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            aria-label={menuMovilAbierto ? 'Cerrar menú' : 'Abrir menú'}
+            onClick={() => setMenuMovilAbierto((prev) => !prev)}
+            className="flex size-8 items-center justify-center rounded-pastilla border border-line bg-surface-mute text-ink hover:bg-surface-soft transition-colors cursor-pointer"
+          >
+            {menuMovilAbierto ? (
+              <IconoCerrar className="size-4" aria-hidden="true" />
+            ) : (
+              <IconoMenu className="size-4" aria-hidden="true" />
+            )}
+          </button>
+          <span className="text-[13.5px] font-bold tracking-tight text-ink">
+            Sistema Integral de Gestión
+          </span>
+        </div>
+
+        <InterruptorModoOscuro />
+      </header>
+
+      <div className="flex min-h-screen gap-[18px] p-3 md:p-[18px]">
+        {/* Menú en escritorio (isla flotante fija) */}
+        <aside className="hidden lg:block shrink-0">
+          <Menu opciones={opcionesMenu} username={username} onCerrarSesion={onCerrarSesion} />
+        </aside>
+
+        {/* Menú en móvil / tablet (drawer flotante con backdrop) */}
+        {menuMovilAbierto && (
+          <div
+            className="fixed inset-0 z-50 flex lg:hidden bg-black/60 backdrop-blur-xs p-3"
+            onClick={() => setMenuMovilAbierto(false)}
+          >
+            <div
+              className="relative max-h-full overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Menu
+                opciones={opcionesMenu}
+                username={username}
+                onCerrarSesion={() => {
+                  setMenuMovilAbierto(false)
+                  onCerrarSesion()
+                }}
+                onNavegar={() => setMenuMovilAbierto(false)}
+                onCerrar={() => setMenuMovilAbierto(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        <main className="min-w-0 flex-1 px-1 py-2 sm:px-4 sm:py-3 md:px-6 md:py-6 lg:px-10">
+          <div className="mx-auto max-w-lectura">{children}</div>
+        </main>
+      </div>
     </div>
   )
 }

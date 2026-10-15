@@ -73,8 +73,12 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
 
     // ── Consulta de cajas ───────────────────────────────────────────────────────────────────────
 
-    public Task<CajaDetalle?> ObtenerDetalleAsync(int id, int usuarioId, CancellationToken cancelacion = default) =>
-        DetalleAsync(contexto.Cajas.Where(caja => caja.Id == id), usuarioId, cancelacion);
+    public Task<CajaDetalle?> ObtenerDetalleAsync(
+        int id,
+        int usuarioId,
+        CancellationToken cancelacion = default,
+        bool esSupervisor = false) =>
+        DetalleAsync(contexto.Cajas.Where(caja => caja.Id == id), usuarioId, cancelacion, esSupervisor);
 
     public Task<CajaDetalle?> ObtenerCajaAbiertaDeAsync(int usuarioId, CancellationToken cancelacion = default) =>
         DetalleAsync(
@@ -90,7 +94,8 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
     private async Task<CajaDetalle?> DetalleAsync(
         IQueryable<Caja> consulta,
         int usuarioId,
-        CancellationToken cancelacion)
+        CancellationToken cancelacion,
+        bool esSupervisor = false)
     {
         var fila = await consulta
             .Select(caja => new
@@ -129,7 +134,7 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
             fila.Ingresos,
             fila.Egresos,
             ReglasDeCaja.SaldoFinal(fila.SaldoInicial, fila.Ingresos, fila.Egresos),
-            fila.Estado == EstadoCaja.Abierta && fila.UsuarioResponsableId == usuarioId);
+            fila.Estado == EstadoCaja.Abierta && (fila.UsuarioResponsableId == usuarioId || esSupervisor));
     }
 
     public async Task<PaginaDe<CajaListado>> ConsultarCajasAsync(int pagina, CancellationToken cancelacion = default)
@@ -178,7 +183,8 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
     public async Task<MotivoNoOperable?> MotivoNoOperableAsync(
         int id,
         int usuarioId,
-        CancellationToken cancelacion = default)
+        CancellationToken cancelacion = default,
+        bool esSupervisor = false)
     {
         var leida = await contexto.Cajas
             .Where(caja => caja.Id == id)
@@ -190,7 +196,7 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
         {
             null => MotivoNoOperable.NoEncontrada,
             { Estado: EstadoCaja.Cerrada } => MotivoNoOperable.Cerrada,
-            _ when leida.UsuarioResponsableId != usuarioId => MotivoNoOperable.Ajena,
+            _ when leida.UsuarioResponsableId != usuarioId && !esSupervisor => MotivoNoOperable.Ajena,
             _ => null,
         };
     }
@@ -359,17 +365,18 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
         int usuarioId,
         decimal saldoFinalConfirmado,
         DateTime ocurridoEn,
-        CancellationToken cancelacion = default)
+        CancellationToken cancelacion = default,
+        bool esSupervisor = false)
     {
         await using var transaccion = await contexto.Database.BeginTransactionAsync(cancelacion);
 
-        if (!await TomarCajaAsync(cajaId, usuarioId, cancelacion))
+        if (!await TomarCajaAsync(cajaId, usuarioId, cancelacion, esSupervisor))
         {
             await transaccion.RollbackAsync(cancelacion);
 
             return new CierreIntentado(
                 false,
-                await MotivoNoOperableAsync(cajaId, usuarioId, cancelacion) ?? MotivoNoOperable.Cerrada);
+                await MotivoNoOperableAsync(cajaId, usuarioId, cancelacion, esSupervisor) ?? MotivoNoOperable.Cerrada);
         }
 
         // Con el lock tomado: un movimiento que entró antes ya está confirmado y se ve, y uno que llega después
@@ -434,13 +441,17 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
     /// El <c>UPDATE</c> que no cambia nada: toma el mismo lock de fila que uno real y verifica, en el mismo
     /// paso, que la caja siga abierta y sea del usuario (research §2, FR-035). <c>true</c> si afectó una fila.
     /// </summary>
-    private async Task<bool> TomarCajaAsync(int cajaId, int usuarioId, CancellationToken cancelacion)
+    private async Task<bool> TomarCajaAsync(
+        int cajaId,
+        int usuarioId,
+        CancellationToken cancelacion,
+        bool esSupervisor = false)
     {
         var afectadas = await contexto.Cajas
             .Where(caja =>
                 caja.Id == cajaId &&
                 caja.Estado == EstadoCaja.Abierta &&
-                caja.UsuarioResponsableId == usuarioId)
+                (caja.UsuarioResponsableId == usuarioId || esSupervisor))
             .ExecuteUpdateAsync(cambio => cambio.SetProperty(caja => caja.Estado, caja => caja.Estado), cancelacion);
 
         return afectadas == 1;

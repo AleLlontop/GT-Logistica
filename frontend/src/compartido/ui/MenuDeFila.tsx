@@ -167,7 +167,7 @@ export function MenuDeFila({ etiqueta, items }: Props) {
            * Regla 7: no es un diálogo. No hay overlay, no hay `aria-modal` y el foco no queda
            * retenido — el fondo se sigue pudiendo usar, y salir del menú lo cierra.
            */
-          className="absolute z-[60] mt-1 flex min-w-[11rem] flex-col rounded-card border border-line bg-white/95 py-1.5 shadow-island"
+          className="absolute z-[60] mt-1 flex min-w-[11rem] flex-col rounded-card border border-line bg-surface py-1.5 shadow-island"
         >
           {items.map((item) => {
             const clases = cn(

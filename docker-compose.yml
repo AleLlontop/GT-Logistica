@@ -47,6 +47,8 @@ services:
       # (Módulo 3). Queda fuera de la raíz web y fuera del repositorio: los archivos
       # se sirven sólo por un endpoint que exige sesión y permiso.
       GT_ARCHIVOS_RUTA: ${GT_ARCHIVOS_RUTA:-/var/gt/archivos}
+      # Siembra datos de demostración en desarrollo si la base está vacía
+      GT_SEMBRAR_DATOS_DEMO: ${GT_SEMBRAR_DATOS_DEMO:-true}
     ports:
       - "8080:8080"
     volumes:

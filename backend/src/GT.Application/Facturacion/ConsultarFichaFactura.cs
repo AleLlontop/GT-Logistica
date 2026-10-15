@@ -131,7 +131,9 @@ public class ConsultarFichaFactura(IRepositorioFacturas facturas, TimeProvider r
                 .Select(cambio => new EntradaDeHistorial(
                     NombresDeEstadoFactura.EnJson(cambio.EstadoAnterior),
                     NombresDeEstadoFactura.EnJson(cambio.EstadoNuevo),
-                    cambio.Usuario?.Username ?? $"Usuario {cambio.UsuarioId}",
+                    cambio.Usuario?.Persona is { } p
+                        ? $"{p.Apellido}, {p.Nombre} ({cambio.Usuario.Username})"
+                        : cambio.Usuario?.Username ?? $"Usuario {cambio.UsuarioId}",
                     cambio.OcurridoEn))]);
     }
 }

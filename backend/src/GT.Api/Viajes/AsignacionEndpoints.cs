@@ -40,8 +40,9 @@ public static class AsignacionEndpoints
     private static async Task<IResult> ListarAsignablesAsync(
         ConsultarAsignables consultar,
         CancellationToken cancelacion,
-        DateOnly? fecha = null) =>
-        Results.Ok(await consultar.EjecutarAsync(fecha, cancelacion));
+        DateOnly? fecha = null,
+        int? viajeId = null) =>
+        Results.Ok(await consultar.EjecutarAsync(fecha, viajeId, cancelacion));
 
     /// <summary>
     /// Devuelve el sobre <c>{ viaje, advertencias }</c>: es una de las tres operaciones que pueden
