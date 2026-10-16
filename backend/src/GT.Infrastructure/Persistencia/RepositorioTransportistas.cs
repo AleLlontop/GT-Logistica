@@ -27,9 +27,39 @@ public class RepositorioTransportistas(GtDbContext contexto) : IRepositorioTrans
 
     public async Task GuardarCambiosAsync(CancellationToken cancelacion)
     {
+        contexto.ChangeTracker.DetectChanges();
+        // Sólo modificaciones de identidad/contacto. Alta y baja conservan sus reglas existentes.
+        var modificados = contexto.ChangeTracker.Entries<Transportista>()
+            .Where(e => e.State == EntityState.Modified &&
+                new[] { nameof(Transportista.Cuit), nameof(Transportista.Nombre), nameof(Transportista.Telefono), nameof(Transportista.Email), nameof(Transportista.Tipo) }
+                    .Any(nombre => e.Property(nombre).IsModified)).ToList();
+        await using var transaccion = modificados.Count > 0
+            ? await contexto.Database.BeginTransactionAsync(cancelacion) : null;
+        if (modificados.Count > 0)
+        {
+            await new CoordinadorIdentidadProveedor(contexto).AdquirirAsync(async () =>
+            {
+                var ids = modificados.Select(e => e.Entity.Id).ToArray();
+                var anteriores = await contexto.Transportistas.AsNoTracking().Where(t => ids.Contains(t.Id)).Select(t => t.Cuit).ToListAsync(cancelacion);
+                return anteriores.Concat(modificados.Select(e => e.Entity.Cuit));
+            }, cancelacion);
+            foreach (var entrada in modificados.OrderBy(e => e.Entity.Id))
+            {
+                var transportista = entrada.Entity;
+                await contexto.Transportistas.Where(t => t.Id == transportista.Id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(t => t.Cuit, t => t.Cuit), cancelacion);
+                var cuitActual = await contexto.Transportistas.AsNoTracking().Where(t => t.Id == transportista.Id)
+                    .Select(t => t.Cuit).SingleAsync(cancelacion);
+                // Cambiar sólo contacto conserva las reglas anteriores, incluso sin Fletero vinculado.
+                if (cuitActual != transportista.Cuit && await contexto.Proveedores.AnyAsync(p => p.TransportistaId != transportista.Id &&
+                    (p.Tipo == GT.Domain.Proveedores.TipoProveedor.Fletero ? p.Transportista!.Cuit : p.Cuit) == transportista.Cuit, cancelacion))
+                    throw new CuitDuplicadoException(new InvalidOperationException("CUIT efectivo de otro proveedor."));
+            }
+        }
         try
         {
             await contexto.SaveChangesAsync(cancelacion);
+            if (transaccion is not null) await transaccion.CommitAsync(cancelacion);
         }
         catch (DbUpdateException excepcion) when (EsCuitDuplicado(excepcion))
         {

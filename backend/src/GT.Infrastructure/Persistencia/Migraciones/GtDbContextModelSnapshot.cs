@@ -1004,6 +1004,179 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.ToTable("Personas", (string)null);
                 });
 
+            modelBuilder.Entity("GT.Domain.Proveedores.FacturaProveedor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArchivoNombre")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("ArchivoRuta")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("ArchivoTipoContenido")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Cae")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Detalle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("FechaVencimientoCae")
+                        .HasColumnType("date");
+
+                    b.Property<decimal?>("ImporteLiquidacionAlRegistrar")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ImporteTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Iva")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("LiquidacionId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Neto")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("ProveedorCuit")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(11)");
+
+                    b.Property<int>("ProveedorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProveedorRazonSocial")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("TipoProveedorAlRegistrar")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LiquidacionId")
+                        .IsUnique()
+                        .HasFilter("[LiquidacionId] IS NOT NULL");
+
+                    b.HasIndex("Fecha", "Id")
+                        .IsDescending();
+
+                    b.HasIndex("ProveedorId", "Numero")
+                        .IsUnique();
+
+                    b.ToTable("FacturasProveedor", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_FacturasProveedor_Archivo", "([ArchivoRuta] IS NULL AND [ArchivoNombre] IS NULL AND [ArchivoTipoContenido] IS NULL) OR ([ArchivoRuta] IS NOT NULL AND LEN([ArchivoRuta]) > 0 AND [ArchivoNombre] IS NOT NULL AND LEN([ArchivoNombre]) > 0 AND [ArchivoTipoContenido] IS NOT NULL AND [ArchivoTipoContenido] = N'application/pdf')");
+
+                            t.HasCheckConstraint("CK_FacturasProveedor_Estado", "[Estado] = 0");
+
+                            t.HasCheckConstraint("CK_FacturasProveedor_Fechas", "[FechaVencimientoCae] >= [Fecha]");
+
+                            t.HasCheckConstraint("CK_FacturasProveedor_Importes", "[Neto] > 0 AND [Iva] = ROUND([Neto] * 0.21, 2) AND [ImporteTotal] = [Neto] + [Iva]");
+
+                            t.HasCheckConstraint("CK_FacturasProveedor_Liquidacion", "([TipoProveedorAlRegistrar] = 0 AND [LiquidacionId] IS NOT NULL AND [ImporteLiquidacionAlRegistrar] IS NOT NULL AND [ImporteLiquidacionAlRegistrar] = [ImporteTotal]) OR ([TipoProveedorAlRegistrar] = 1 AND [LiquidacionId] IS NULL AND [ImporteLiquidacionAlRegistrar] IS NULL)");
+
+                            t.HasCheckConstraint("CK_FacturasProveedor_Textos", "LEN(LTRIM(RTRIM([Numero]))) > 0 AND LEN(LTRIM(RTRIM([Detalle]))) > 0 AND LEN(LTRIM(RTRIM([Cae]))) > 0");
+                        });
+                });
+
+            modelBuilder.Entity("GT.Domain.Proveedores.Proveedor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Cuit")
+                        .HasMaxLength(11)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(11)");
+
+                    b.Property<string>("Direccion")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<string>("NombreComercial")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RazonSocial")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Telefono")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TransportistaId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Cuit")
+                        .IsUnique()
+                        .HasFilter("[Cuit] IS NOT NULL");
+
+                    b.HasIndex("TransportistaId")
+                        .IsUnique()
+                        .HasFilter("[TransportistaId] IS NOT NULL");
+
+                    b.ToTable("Proveedores", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Proveedores_Identidad", "([Tipo] = 0 AND [TransportistaId] IS NOT NULL AND [RazonSocial] IS NULL AND [Cuit] IS NULL AND [Telefono] IS NULL AND [Email] IS NULL) OR ([Tipo] = 1 AND [TransportistaId] IS NULL AND [RazonSocial] IS NOT NULL AND LEN(LTRIM(RTRIM([RazonSocial]))) > 0 AND [Cuit] IS NOT NULL AND LEN([Cuit]) = 11)");
+
+                            t.HasCheckConstraint("CK_Proveedores_Tipo", "[Tipo] IN (0, 1)");
+
+                            t.HasCheckConstraint("CK_Proveedores_Version", "[Version] > 0");
+                        });
+                });
+
             modelBuilder.Entity("GT.Domain.Usuarios.Permiso", b =>
                 {
                     b.Property<int>("Id")
@@ -1603,6 +1776,34 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Navigation("Liquidacion");
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("GT.Domain.Proveedores.FacturaProveedor", b =>
+                {
+                    b.HasOne("GT.Domain.Liquidaciones.Liquidacion", "Liquidacion")
+                        .WithMany()
+                        .HasForeignKey("LiquidacionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("GT.Domain.Proveedores.Proveedor", "Proveedor")
+                        .WithMany()
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Liquidacion");
+
+                    b.Navigation("Proveedor");
+                });
+
+            modelBuilder.Entity("GT.Domain.Proveedores.Proveedor", b =>
+                {
+                    b.HasOne("GT.Domain.Choferes.Transportista", "Transportista")
+                        .WithMany()
+                        .HasForeignKey("TransportistaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Transportista");
                 });
 
             modelBuilder.Entity("GT.Domain.Usuarios.Usuario", b =>

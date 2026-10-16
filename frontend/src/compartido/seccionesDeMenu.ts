@@ -45,6 +45,7 @@ const SECCION_POR_CODIGO: Record<string, NombreDeSeccion> = {
 
   // Los padrones sobre los que se opera
   clientes: 'Padrones',
+  proveedores: 'Padrones',
   choferes: 'Padrones',
   flota: 'Padrones',
   transportistas: 'Padrones',

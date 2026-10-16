@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
+import { PadronProveedores } from './modules/proveedores/paginas/PadronProveedores'
+import { FormularioProveedor } from './modules/proveedores/paginas/FormularioProveedor'
+import { DetalleProveedor } from './modules/proveedores/paginas/DetalleProveedor'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './compartido/Layout'
 import { Lienzo } from './compartido/ui/Lienzo'
@@ -1105,6 +1108,12 @@ export default function App() {
           }
         />
 
+        {[
+          { ruta: '/proveedores', pantalla: <PadronProveedores /> },
+          { ruta: '/proveedores/nuevo', pantalla: <FormularioProveedor puedeGestionar={sesion?.permisos.includes('proveedores.gestionar') ?? false} /> },
+          { ruta: '/proveedores/:id/editar', pantalla: <FormularioProveedor puedeGestionar={sesion?.permisos.includes('proveedores.gestionar') ?? false} /> },
+          { ruta: '/proveedores/:id', pantalla: <DetalleProveedor /> },
+        ].map(({ ruta, pantalla }) => <Route key={ruta} path={ruta} element={<RutaProtegida sesion={sesion}>{sesion !== null && <Layout username={sesion.username} opcionesMenu={sesion.opcionesMenu} onCerrarSesion={alCerrarSesion}>{pantalla}</Layout>}</RutaProtegida>} />)}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

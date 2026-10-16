@@ -29,6 +29,8 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
     private static readonly (string Codigo, string Modulo, string Descripcion)[] PermisosDelSistema =
     [
+        // US1 de 013: sólo el padrón está implementado. Facturas se habilita en su propia historia.
+        (CodigosPermiso.ProveedoresGestionar, "Proveedores", "Administrar el padrón de proveedores"),
         (CodigosPermiso.UsuariosGestionar, "Usuarios",
             "Crear, consultar, modificar y dar de baja usuarios y sus roles"),
 
@@ -134,6 +136,7 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
     {
         [CodigosRol.AdministradorSistema] =
         [
+            CodigosPermiso.ProveedoresGestionar,
             CodigosPermiso.UsuariosGestionar,
             CodigosPermiso.ChoferesGestionar,
             CodigosPermiso.ChoferesVencimientosConsultar,
@@ -166,6 +169,7 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
         [CodigosRol.Administracion] =
         [
+            CodigosPermiso.ProveedoresGestionar,
             CodigosPermiso.ViajesConsultar,
             CodigosPermiso.FacturacionGestionar,
             CodigosPermiso.FacturacionConsultar,

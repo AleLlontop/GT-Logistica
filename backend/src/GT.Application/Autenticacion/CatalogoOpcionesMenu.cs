@@ -16,6 +16,7 @@ public static class CatalogoOpcionesMenu
 {
     private static readonly (string Permiso, OpcionMenuDto Opcion)[] Catalogo =
     [
+        (CodigosPermiso.ProveedoresGestionar, new OpcionMenuDto("proveedores", "Proveedores", "/proveedores")),
         (CodigosPermiso.UsuariosGestionar,
             new OpcionMenuDto("usuarios", "Gestión de usuarios", "/usuarios")),
 
