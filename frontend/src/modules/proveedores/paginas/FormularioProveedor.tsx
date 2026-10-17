@@ -87,6 +87,7 @@ export function FormularioProveedor({ puedeGestionar = true }: { puedeGestionar?
     <EncabezadoDePantalla titulo={id === undefined ? 'Nuevo proveedor' : 'Editar proveedor'} volverA={{ ruta: '/proveedores', etiqueta: 'Volver a proveedores' }} />
     {!puedeGestionar ? <p role="alert">{SIN_PERMISO}</p> : <>
     {error && <p role="alert">{error}</p>}
+    {Object.values(errores).some(Boolean) && <p role="alert">Revisá los campos marcados.</p>}
     {cargando ? <p role="status">Cargando proveedor…</p> : (id === undefined || origen) && <form onSubmit={enviar} noValidate className="overflow-hidden rounded-card border border-line bg-surface shadow-card">
       <SeccionNumerada numero={1} titulo="Identificación">
         <Campo id="tipo" etiqueta="Tipo" obligatorio><select id="tipo" required disabled={bloqueado} className={clasesDeControl()} value={datos.tipo} onChange={e => { setSeleccionLista(false); setDatos(d => ({ ...d, tipo: e.target.value as ProveedorPeticion['tipo'], transportistaId: undefined })); setErrores({}) }}><option value="proveedorNormal">Proveedor normal</option><option value="fletero">Fletero</option></select></Campo>

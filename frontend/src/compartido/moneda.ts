@@ -26,7 +26,8 @@ const FORMATEADOR = new Intl.NumberFormat('es-AR', {
  * es un caso válido del negocio, y dejarlo en blanco lo confundiría con un dato que falta cargar
  * (FR-013).
  */
-export function formatearPesos(importe: number): string {
+export function formatearPesos(importe: number | string): string {
+  if (typeof importe === 'string') return `$ ${decimalExacto(importe)}`
   // `Intl` intercala un espacio duro entre el símbolo y el número; se normaliza a un espacio común
   // para que lo que se ve sea también lo que un test puede escribir.
   return FORMATEADOR.format(importe).replace(/ /g, ' ')
@@ -41,6 +42,14 @@ const FORMATEADOR_CAMPO = new Intl.NumberFormat('es-AR', {
 /**
  * Un importe formateado para rellenar un campo numérico: `1.240.000,00`.
  */
-export function formatearParaCampo(importe: number): string {
+export function formatearParaCampo(importe: number | string): string {
+  if (typeof importe === 'string') return decimalExacto(importe)
   return FORMATEADOR_CAMPO.format(importe)
+}
+
+/** 013: la cadena canónica conserva todos sus dígitos, incluso fuera de la precisión de number. */
+function decimalExacto(importe: string): string {
+  if (!/^(0|[1-9]\d*)\.\d{2}$/.test(importe)) throw new Error('Importe decimal inválido.')
+  const [entero, centavos] = importe.split('.')
+  return `${entero.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${centavos}`
 }

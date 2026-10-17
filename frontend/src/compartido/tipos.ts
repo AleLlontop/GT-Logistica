@@ -17,6 +17,12 @@ export interface ErrorApi {
 }
 
 export type CodigoError =
+  // Módulo 13
+  | 'importe_distinto'
+  | 'liquidacion_no_disponible'
+  | 'transportista_no_externo'
+  | 'emisor_sin_configurar'
+  | 'proveedor_inactivo'
   // Módulo 1
   | 'datos_incompletos'
   | 'credenciales_invalidas'

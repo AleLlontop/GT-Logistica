@@ -43,7 +43,7 @@ describe('Administración de proveedores US1', () => {
     vi.mocked(api.listarProveedores).mockResolvedValue(pagina([]))
     await u.click(screen.getByRole('button', { name: 'Buscar' }))
     await waitFor(() => expect(api.listarProveedores).toHaveBeenLastCalledWith(expect.objectContaining({ q: 'Acopio', estado: 'inactivo', tipo: 'proveedorNormal', pagina: 1 })))
-    expect(await screen.findByText('No hay proveedores que coincidan con los filtros.')).toBeInTheDocument()
+    expect(await screen.findByText('No hay proveedores que coincidan con los filtros.')).toHaveAttribute('role', 'status')
   })
 
   it('sale del alta normal al detalle y conserva campos ante rechazo', async () => {
@@ -57,6 +57,17 @@ describe('Administración de proveedores US1', () => {
     await u.click(screen.getByRole('button', { name: 'Guardar proveedor' }))
     expect(await screen.findByRole('heading', { name: 'Acopio' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Guardar proveedor' })).not.toBeInTheDocument()
+  })
+
+  it('anuncia los errores del alta y los asocia a los campos sin enviar datos incompletos', async () => {
+    const u = userEvent.setup(); abrir('/proveedores/nuevo')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    await u.click(screen.getByRole('button', { name: 'Guardar proveedor' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('Revisá los campos marcados.')
+    const cuit = screen.getByLabelText('CUIT')
+    expect(cuit).toHaveAttribute('aria-invalid', 'true')
+    expect(document.getElementById(cuit.getAttribute('aria-describedby')!)).toHaveTextContent('Escribí el CUIT.')
+    expect(api.guardarProveedor).not.toHaveBeenCalled()
   })
 
   it('baja cancelada no escribe, confirmada sí; reactivar es separado', async () => {

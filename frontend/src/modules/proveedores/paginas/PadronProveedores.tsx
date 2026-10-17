@@ -12,7 +12,7 @@ import { FilaNavegable } from '../../../compartido/ui/FilaNavegable'
 import { EnlaceDeFila } from '../../../compartido/ui/EnlaceDeFila'
 import { MenuDeFila } from '../../../compartido/ui/MenuDeFila'
 import { Estado } from '../../../compartido/ui/Estado'
-import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { MensajeListado } from '../componentes/MensajeListado'
 import { Paginacion } from '../../../compartido/ui/Paginacion'
 import { DialogoConfirmacion } from '../../../compartido/ui/DialogoConfirmacion'
 import { formatearCuit } from '../../../compartido/cuit'
@@ -20,7 +20,7 @@ import { listarProveedores, obtenerProveedor, cambiarEstadoProveedor, mensajePro
 import type { Pagina, ProveedorResumen, ProveedorDetalle } from '../servicios/tipos'
 
 const INICIAL: FiltrosProveedor = { q: '', razonSocial: '', nombreComercial: '', cuit: '', tipo: '', estado: '', pagina: 1 }
-export function PadronProveedores() {
+export function PadronProveedores({ puedeGestionar = true }: { puedeGestionar?: boolean }) {
   const [campos, setCampos] = useState(INICIAL)
   const [filtros, setFiltros] = useState(INICIAL)
   const [resultado, setResultado] = useState<Pagina<ProveedorResumen> | null>(null)
@@ -55,7 +55,7 @@ export function PadronProveedores() {
   }
   const filtrado = Object.entries(filtros).some(([k, v]) => k !== 'pagina' && Boolean(v))
   return <>
-    <EncabezadoDePantalla titulo="Proveedores" accionPrincipal={<Link className={clasesDeBoton('primario')} to="/proveedores/nuevo">Nuevo proveedor<span className={clasesDeCirculoDeIcono}><IconoNuevo aria-hidden="true" className="size-4" /></span></Link>} />
+    <EncabezadoDePantalla titulo="Proveedores" accionPrincipal={puedeGestionar ? <Link className={clasesDeBoton('primario')} to="/proveedores/nuevo">Nuevo proveedor<span className={clasesDeCirculoDeIcono}><IconoNuevo aria-hidden="true" className="size-4" /></span></Link> : undefined} />
     {mensaje && <p role="status">{mensaje}</p>}{error && <p role="alert">{error}</p>}
     <Listado><form onSubmit={buscar}><Filtros declaracion={`Estado: ${filtros.estado || 'Todos'}. ${filtrado ? 'Filtros aplicados.' : 'Sin filtros aplicados.'}`} resumen={`${resultado?.total ?? 0} proveedores. Orden: razón social e identificador.`}>
       <FranjaDeBusqueda><Campo id="buscar" etiqueta="Buscar proveedores" ancho="completo"><input id="buscar" className={clasesDeFiltro(Boolean(campos.q))} value={campos.q} onChange={e => setCampos({ ...campos, q: e.target.value })} /></Campo></FranjaDeBusqueda>
@@ -67,10 +67,10 @@ export function PadronProveedores() {
       </FranjaDeFiltros>
     </Filtros></form>
     {cargando ? <p role="status" className="p-5">Cargando proveedores…</p> : !error && resultado && (resultado.items.length === 0
-      ? <EstadoVacio caso={filtrado ? 'sinCoincidencias' : 'vacio'}><p role="status">{filtrado ? 'No hay proveedores que coincidan con los filtros.' : 'Todavía no hay proveedores registrados.'}</p></EstadoVacio>
+      ? <MensajeListado caso={filtrado ? 'sinCoincidencias' : 'vacio'}>{filtrado ? 'No hay proveedores que coincidan con los filtros.' : 'Todavía no hay proveedores registrados.'}</MensajeListado>
       : <TablaDesplazable><table><caption>Proveedores</caption><thead><tr>{['Razón social', 'Nombre comercial', 'CUIT', 'Tipo', 'Estado', 'Acciones'].map(t => <th key={t} scope="col">{t}</th>)}</tr></thead><tbody>{resultado.items.map(p => <FilaNavegable key={p.id} a={`/proveedores/${p.id}`}>
         <td><EnlaceDeFila a={`/proveedores/${p.id}`}>{p.razonSocial}</EnlaceDeFila></td><td>{p.nombreComercial ?? '—'}</td><td className="font-mono">{formatearCuit(p.cuit)}</td><td>{p.tipo === 'fletero' ? 'Fletero' : 'Proveedor normal'}</td><td><Estado forma="punto" valor={p.estado} texto={p.estado === 'activo' ? 'Activo' : 'Inactivo'} /></td>
-        <td><MenuDeFila etiqueta={`Acciones de ${p.razonSocial}`} items={[{ etiqueta: 'Editar', a: `/proveedores/${p.id}/editar` }, { etiqueta: p.estado === 'activo' ? 'Dar de baja' : 'Reactivar', destructivo: p.estado === 'activo', disabled: ocupado, onSeleccionar: () => void estado(p.id, p.estado !== 'activo') }]} /></td>
+        <td>{puedeGestionar && <MenuDeFila etiqueta={`Acciones de ${p.razonSocial}`} items={[{ etiqueta: 'Editar', a: `/proveedores/${p.id}/editar` }, { etiqueta: p.estado === 'activo' ? 'Dar de baja' : 'Reactivar', destructivo: p.estado === 'activo', disabled: ocupado, onSeleccionar: () => void estado(p.id, p.estado !== 'activo') }]} />}</td>
       </FilaNavegable>)}</tbody></table></TablaDesplazable>)}
     {!cargando && !error && resultado && <Paginacion {...resultado} nombrePlural="proveedores" onCambiarPagina={pagina => setFiltros({ ...filtros, pagina })} />}
     </Listado>

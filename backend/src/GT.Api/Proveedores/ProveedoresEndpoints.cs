@@ -8,6 +8,16 @@ public static class ProveedoresEndpoints
 {
     public static void MapearProveedores(this IEndpointRouteBuilder rutas)
     {
+        rutas.MapGet("/api/proveedores/{id:int}/liquidaciones-disponibles",async(int id,ConsultarLiquidacionesDisponibles consultar,CancellationToken ct)=>
+        {
+            try { return RespuestasProveedor.Json(await consultar.EjecutarAsync(id,ct)); }
+            catch(ProveedorException error) { return RespuestasProveedor.Error(error); }
+        }).RequireAuthorization(PoliticasAutorizacion.Para(CodigosPermiso.ProveedoresFacturasCargar));
+        rutas.MapGet("/api/proveedores/busqueda",async(string? q,bool? soloActivos,int? pagina,IRepositorioProveedores repo,CancellationToken ct)=>
+        {
+            try { return Results.Ok(await repo.ConsultarAsync(new(Q:q,Estado:(soloActivos??false)?"activo":null,Pagina:pagina??1),ct)); }
+            catch(ProveedorException error) { return RespuestasProveedor.Error(error); }
+        }).RequireAuthorization(PoliticasAutorizacion.BuscarProveedores);
         var grupo = rutas.MapGroup("/api/proveedores")
             .RequireAuthorization(PoliticasAutorizacion.Para(CodigosPermiso.ProveedoresGestionar));
         grupo.MapGet("/", (string? q, string? razonSocial, string? nombreComercial, string? cuit, string? tipo, string? estado,

@@ -46,6 +46,12 @@ export interface FacturaProveedorResumen {
   importeTotal: ImporteDecimal
   estado: 'pendiente'
 }
+export interface FiltrosFacturaProveedor {
+  desde?: string
+  hasta?: string
+  proveedorId?: number
+  estado?: 'pendiente'
+}
 export interface DetalleFacturaProveedor extends FacturaProveedorResumen {
   tipoProveedorAlRegistrar: TipoProveedor
   detalle: string
