@@ -106,7 +106,7 @@
 - [x] T042 [US3] Integrar validaciones y conflicto 409 en `backend/src/GT.Application/Proveedores/CargarFacturaProveedor.cs` y `backend/src/GT.Api/Proveedores/FacturasProveedorEndpoints.cs`: «exactamente una» liquidación para Fletero, ninguna normal, total actual igual a factura; mensaje armado con importeTotalFactura/importeTotalLiquidacion, sin ajustar neto ni aceptar confirmado como excepción.
 - [x] T043 [US3] Mapear GET `/{id:int}/liquidaciones-disponibles` sólo con cargar en `backend/src/GT.Api/Proveedores/ProveedoresEndpoints.cs` e integrar consulta en `frontend/src/modules/proveedores/servicios/facturasProveedor.ts`; diferenciar 400/409/404 según contrato, sin endpoint o permiso de pago nuevo.
 - [x] T044 [US3] Completar selector nativo de liquidación en `frontend/src/modules/proveedores/paginas/CargarFacturaProveedor.tsx`: número/período/total, required sólo Fletero, limpieza al cambiar proveedor, carga/vacío/conflicto anunciados y bloqueo de guardar sin disponibles; conservar datos del operador y usar importes recibidos del servidor.
-- [ ] T045 [US3] Ejecutar T037–T039 y regresión existente en `backend/tests/GT.IntegrationTests/Liquidaciones/`, verificando también T024/T025/T035; confirmar que el PDF, fila y vínculo son todo o nada, la liquidación asociada deja de ofrecerse y sus operaciones posteriores conservan sus reglas.
+- [x] T045 [US3] Ejecutar T037–T039 y regresión existente en `backend/tests/GT.IntegrationTests/Liquidaciones/`, verificando también T024/T025/T035; confirmar que el PDF, fila y vínculo son todo o nada, la liquidación asociada deja de ofrecerse y sus operaciones posteriores conservan sus reglas.
 
 **Estado US3 (2026-10-17)**: T037–T044 completas. T045 parcialmente validada: unitarios afectados 71/71, frontend completo 530/530, build/lint y doce escenarios SQL/HTTP independientes aprobados en base local aislada. Queda pendiente la regresión SQL original: 120 casos bloqueados en preparación por el fixture exclusivo de compose/sa/GT_SQL_PASSWORD, sin adaptación artificial. Sólo los dos fallos previos de Reportes en unitarios completos (539/541). Evidencia e inventario en quickstart.md, apartado US3. T046 no iniciada; sin pagos nuevos, Docker ni commit.
 
@@ -156,7 +156,7 @@
 
 **Objetivo**: verificar las cinco historias juntas, completar evidencia y mantenimiento transversal; no añadir funcionalidad de pagos ni mejoras fuera de spec.
 
-- [ ] T062 Ejecutar `dotnet test` desde backend y `npm test`, `npm run build`, `npm run lint` desde frontend, con evidencia en `specs/013-gestion-proveedores/quickstart.md`; incluir regresión de Transportistas, Liquidaciones, Facturación, adjuntos y menú sin alterar aserciones para esconder cambios ajenos.
+- [x] T062 Ejecutar `dotnet test` desde backend y `npm test`, `npm run build`, `npm run lint` desde frontend, con evidencia en `specs/013-gestion-proveedores/quickstart.md`; incluir regresión de Transportistas, Liquidaciones, Facturación, adjuntos y menú sin alterar aserciones para esconder cambios ajenos.
 - [x] T063 Validar SC-001 con 1.000 proveedores y al menos 100 búsquedas por los tres datos en `specs/013-gestion-proveedores/quickstart.md`: 95% <2 segundos desde fin de escritura, incluyendo debounce/red/render; revisar SQL generado de filtros/paginación y medir antes de añadir índices, sin ampliar scope ni precargar todo el padrón.
 - [x] T064 Revisar UI de las seis pantallas contra `specs/013-gestion-proveedores/plan.md`, `.claude/skills/gt-ui/SKILL.md` y `references/tokens.md`: 1280 px, teclado, contraste sobre fondo real, una primaria máxima, required/nombres accesibles y regiones vivas; registrar evidencia en `specs/013-gestion-proveedores/quickstart.md`, sin rediseñar pantallas previas.
 - [x] T065 Completar validación manual de GFP_01/GFP_02 y SC-001–SC-007 en `specs/013-gestion-proveedores/quickstart.md`, revisando trazabilidad inferior y sólo los dos cambios de FR-037; confirmar ausencia de Gestión de Pagos, endpoints de edición/anulación de estas facturas, impuestos nuevos y generación fiscal. No marcar validaciones no ejecutadas como aprobadas.
@@ -227,3 +227,7 @@ Continuar US2 → US3 para GFP_01 completo, luego cerrar US4 y US5. Cada checkpo
 | SC-007 | T037–T045 |
 
 **Control de alcance**: la generación original de tareas no implementó código. Durante implementación las casillas se marcan sólo con ejecución y verificación reales; el estado y los límites de validación se registran al inicio y en quickstart. No ampliar la spec para completar una tarea.
+
+## Cierre documental final — 2026-10-18
+
+T045 y T062 completas. La validación final informada por el usuario en Arch Linux, con Docker Compose y SQL Server 2022 healthy, aprobó el backend completo (1567/1567, incluidas las pruebas de integración contra SQL Server real), frontend (72 archivos, 552 tests), build y lint (0 warnings, 0 errors). La evidencia final en `quickstart.md` reemplaza los pendientes de las entradas históricas anteriores. Feature 013 cerrada documentalmente; sin cambios adicionales de código ni commit.

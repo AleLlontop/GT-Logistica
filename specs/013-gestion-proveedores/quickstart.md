@@ -2,7 +2,7 @@
 
 Guía y registro de verificaciones. Referencias: [contratos](contracts/README.md), [modelo](data-model.md), [spec](spec.md).
 
-**Estado del cierre, 2026-10-17**: T063, T064, T065 y T066 completas. T065 incorpora la validación manual informada por el usuario, realizada por un empleado desde la interfaz, sin herramientas ni asistencia técnica, incluida SC-005. T045 y T062 siguen pendientes por la regresión del fixture original. Las secciones anteriores al cierre conservan el estado histórico de cada bloque. Ver al final los resultados de T062–T066 y la [evidencia de performance/UI](evidencia-cierre.json).
+**Estado final del cierre, 2026-10-18**: T045 y T062 completas; junto con T063–T066, queda cerrada documentalmente la feature 013. La evidencia final informada por el usuario se registra al final de este documento y reemplaza los pendientes de las entradas históricas. Las secciones anteriores conservan el estado de cada ejecución. Ver también la [evidencia de performance/UI](evidencia-cierre.json).
 
 ## Ejecución parcial previa 2026-10-16
 
@@ -548,3 +548,22 @@ Archivos modificados en T062–T066:
 - `specs/013-gestion-proveedores/tasks.md`
 
 Este inventario corresponde sólo al cierre; el workspace conserva cambios anteriores de la feature. La actualización posterior de aceptación manual modificó exclusivamente quickstart.md y tasks.md; no cambió implementación ni evidencia técnica previa. `backend/cierre-013.tmp` no existe ni forma parte de los cambios. Estado final: **T063/T064/T065/T066 completas; T045/T062 sin marcar**. No se declara cerrada la feature mientras continúen esos pendientes. Sin commit.
+
+
+## Evidencia final de cierre — 2026-10-18
+
+Resultados finales informados por el usuario, registrados en esta actualización documental:
+
+| Verificación | Resultado |
+|---|---|
+| Entorno | Arch Linux. |
+| Servicios | Docker Compose con SQL Server 2022 healthy. |
+| `dotnet test` completo desde `backend` | 1567 total, 1567 correctos, 0 errores, 0 omitidos. |
+| `GT.IntegrationTests` | Ejecutados correctamente contra SQL Server real. |
+| Frontend `npm test` | 72 archivos / 552 tests aprobados. |
+| Frontend `npm run build` | Aprobado. |
+| Frontend `npm run lint` | Aprobado, 0 warnings y 0 errors. |
+
+Durante el cierre se corrigió una **regresión preexistente de Reportes**: las consultas de vencimientos de Choferes y Flota usaban el reloj del sistema en lugar de la fecha del reporte. Esa regresión no se atribuye a la feature 013.
+
+Esta evidencia completa **T045 y T062** y reemplaza los bloqueos y pendientes consignados en los registros históricos de este documento. Con T063–T066 ya completas, la **feature 013 queda cerrada documentalmente**. Esta actualización sólo modifica `tasks.md` y `quickstart.md`; no ejecuta nuevamente las verificaciones informadas, no modifica código y no hace commit.
