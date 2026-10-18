@@ -33,7 +33,7 @@ public class FuenteReporteVencimientosFlota(
         string generadoPor,
         CancellationToken cancelacion = default)
     {
-        var alertas = await consulta.EjecutarAsync(cancelacion);
+        var alertas = await consulta.EjecutarAsync(cancelacion, fecha: armado.Fecha);
 
         if (armado.SuperaElTope(alertas.Count))
         {

@@ -29,6 +29,9 @@ public class ArmadoDeReporte(
     /// <summary>Cuántas filas pedirle a la consulta paginada: las del tope, en una sola vuelta.</summary>
     public int TamanioParaTraerTodo => opciones.TopeDeFilas;
 
+    /// <summary>Día del reporte en Argentina para evaluar los vencimientos con su mismo reloj.</summary>
+    public DateOnly Fecha => GT.Domain.Choferes.FechaHoyArgentina.Desde(reloj.GetUtcNow());
+
     public ResultadoReporte Entregar(
         TipoDeReporte tipo,
         FormatoDeReporte formato,

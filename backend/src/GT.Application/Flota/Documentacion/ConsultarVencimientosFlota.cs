@@ -31,9 +31,9 @@ namespace GT.Application.Flota.Documentacion;
 /// </summary>
 public class ConsultarVencimientosFlota(IRepositorioDocumentacionVehiculo repositorio)
 {
-    public async Task<List<AlertaVencimientoFlota>> EjecutarAsync(CancellationToken cancelacion = default)
+    public async Task<List<AlertaVencimientoFlota>> EjecutarAsync(CancellationToken cancelacion = default, DateOnly? fecha = null)
     {
-        var hoy = FechaHoyArgentina.Hoy();
+        var hoy = fecha ?? FechaHoyArgentina.Hoy();
         var candidatos = await repositorio.ConsultarVigentesDeVehiculosActivosAsync(cancelacion);
 
         return candidatos
