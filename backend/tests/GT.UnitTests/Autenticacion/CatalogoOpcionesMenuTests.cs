@@ -17,6 +17,22 @@ namespace GT.UnitTests.Autenticacion;
 /// </summary>
 public class CatalogoOpcionesMenuTests
 {
+    [Theory]
+    [InlineData(CodigosPermiso.ProveedoresGestionar, "proveedores", "/proveedores")]
+    [InlineData(CodigosPermiso.ProveedoresFacturasCargar, "cargar-factura-proveedor", "/proveedores/facturas/nueva")]
+    [InlineData(CodigosPermiso.ProveedoresFacturasConsultar, "consultar-facturas-proveedores", "/proveedores/facturas")]
+    public void CadaPermisoDeProveedoresAbreUnaSolaPantalla(string permiso, string codigo, string ruta)
+    {
+        var opcion = Assert.Single(CatalogoOpcionesMenu.Autorizadas([permiso]));
+        Assert.Equal(codigo, opcion.Codigo); Assert.Equal(ruta, opcion.Ruta);
+    }
+
+    [Fact]
+    public void PermisosDeOtrosModulosNoAbrenProveedores()
+    {
+        var opciones = CatalogoOpcionesMenu.Autorizadas([CodigosPermiso.ChoferesGestionar, CodigosPermiso.LiquidacionesConsultar, CodigosPermiso.LiquidacionesGestionar]);
+        Assert.DoesNotContain(opciones, o => o.Ruta.StartsWith("/proveedores"));
+    }
     [Fact]
     public void Autorizadas_IncluyeVencimientosDeChoferes_ConSuPermisoDeLectura()
     {

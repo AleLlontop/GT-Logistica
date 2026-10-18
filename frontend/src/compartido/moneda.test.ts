@@ -25,3 +25,8 @@ describe('formatearPesos', () => {
     expect(formatearPesos(1234.567)).toBe('$ 1.234,57')
   })
 })
+// 013: cadenas monetarias exactas; los casos anteriores para number se conservan.
+it('conserva los centavos de cadenas grandes sin convertir a number', () => {
+  expect(formatearPesos('100000000000000.01')).toBe('$ 100.000.000.000.000,01')
+  expect(formatearPesos('100000000000000.02')).toBe('$ 100.000.000.000.000,02')
+})

@@ -77,6 +77,15 @@ builder.Services.AddScoped<ConsultarRoles>();
 // ── Módulo 3: gestión de choferes ──────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IRepositorioChoferes, RepositorioChoferes>();
 builder.Services.AddScoped<IRepositorioTransportistas, RepositorioTransportistas>();
+builder.Services.AddScoped<GT.Application.Proveedores.IRepositorioProveedores, RepositorioProveedores>();
+builder.Services.AddScoped<GT.Application.Proveedores.GestionarProveedores>();
+builder.Services.AddScoped<GT.Application.Proveedores.IRepositorioFacturasProveedor, RepositorioFacturasProveedor>();
+builder.Services.AddScoped<GT.Application.Proveedores.PrepararPdfFacturaProveedor>();
+builder.Services.AddScoped<GT.Application.Proveedores.CargarFacturaProveedor>();
+builder.Services.AddScoped<GT.Application.Proveedores.ConsultarLiquidacionesDisponibles>();
+builder.Services.AddScoped<GT.Application.Proveedores.ConsultarFacturasProveedor>();
+builder.Services.AddScoped<GT.Application.Proveedores.AbrirPdfFacturaProveedor>();
+builder.Services.AddScoped<GT.Application.Proveedores.IRegistroErroresFacturaProveedor, RegistroErroresFacturaProveedor>();
 builder.Services.AddScoped<ConsultarTransportistas>();
 builder.Services.AddScoped<ConsultarTransportistaPorId>();
 builder.Services.AddScoped<CrearTransportista>();
@@ -340,6 +349,7 @@ builder.Services
 // FR-008: la autorización se evalúa en el servidor por permiso, no por rol, y sin importar si la
 // opción estaba visible u oculta en el menú del cliente.
 builder.Services.AddSingleton<IAuthorizationHandler, PermisoHandler>();
+builder.Services.AddAuthorization(opciones => opciones.AgregarPoliticasDeProveedores());
 builder.Services.AddAuthorization(opciones =>
     opciones.AgregarPoliticasDePermisos(
         CodigosPermiso.UsuariosGestionar,
@@ -451,6 +461,8 @@ app.MapearRoles();
 app.MapearMiCuenta();
 app.MapearPersonas();
 app.MapearTransportistas();
+GT.Api.Proveedores.ProveedoresEndpoints.MapearProveedores(app);
+GT.Api.Proveedores.FacturasProveedorEndpoints.MapearFacturasProveedor(app);
 app.MapearChoferes();
 app.MapearTiposDocumentacion();
 app.MapearDocumentacion();

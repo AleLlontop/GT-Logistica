@@ -34,6 +34,20 @@ public class PermisoHandler : AuthorizationHandler<PermisoRequirement>
 
 public static class PoliticasAutorizacion
 {
+    public const string BuscarProveedores = "proveedores:busqueda";
+
+    public static void AgregarPoliticasDeProveedores(this AuthorizationOptions opciones)
+    {
+        string[] permisos = [
+            GT.Domain.Usuarios.CodigosPermiso.ProveedoresGestionar,
+            GT.Domain.Usuarios.CodigosPermiso.ProveedoresFacturasCargar,
+            GT.Domain.Usuarios.CodigosPermiso.ProveedoresFacturasConsultar];
+        opciones.AgregarPoliticasDePermisos(permisos);
+        opciones.AddPolicy(BuscarProveedores, politica => politica
+            .RequireAuthenticatedUser()
+            .RequireAssertion(contexto => permisos.Any(codigo => ClaimsSesion.Tiene(contexto.User, codigo))));
+    }
+
     /// <summary>Nombre de política para un permiso. Se usa como <c>RequireAuthorization(Para(...))</c>.</summary>
     public static string Para(string codigoPermiso) => $"permiso:{codigoPermiso}";
 

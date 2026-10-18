@@ -28,9 +28,9 @@ public record AlertaVencimiento(
 /// </summary>
 public class ConsultarVencimientos(IRepositorioDocumentacion repositorio)
 {
-    public async Task<List<AlertaVencimiento>> EjecutarAsync(CancellationToken cancelacion = default)
+    public async Task<List<AlertaVencimiento>> EjecutarAsync(CancellationToken cancelacion = default, DateOnly? fecha = null)
     {
-        var hoy = FechaHoyArgentina.Hoy();
+        var hoy = fecha ?? FechaHoyArgentina.Hoy();
         var candidatos = await repositorio.ConsultarVigentesDeChoferesActivosAsync(cancelacion);
 
         return candidatos

@@ -1,0 +1,1410 @@
+{
+  "fecha": "2026-10-17",
+  "entorno": {
+    "sql": "SQLEXPRESS02, Windows Authentication, base descartable",
+    "api": "localhost:5006",
+    "frontend": "localhost:5174, Vite",
+    "viewport": [
+      1280,
+      900
+    ],
+    "navegador": "Microsoft Edge 155.0.4283.45 headless, CDP, perfil temporal"
+  },
+  "performance": {
+    "proveedores": 1000,
+    "metodo": "Evento input final a dos requestAnimationFrame posteriores al resultado visible; incluye debounce de 250 ms, red, SQL y render; p95 por rango mas cercano.",
+    "summary": {
+      "count": 120,
+      "under2s": 120,
+      "percentage": 100,
+      "worst": 433.59999990463257,
+      "p95": 382.10000002384186,
+      "maxOptions": 20,
+      "searchRequests": 120
+    },
+    "results": [
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo01",
+        "ms": 433.59999990463257,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector01",
+        "ms": 348.10000002384186,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000015",
+        "ms": 362.3000000715256,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo02",
+        "ms": 344.2999999523163,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector02",
+        "ms": 364.10000002384186,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000023",
+        "ms": 314.39999997615814,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo03",
+        "ms": 365.09999990463257,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector03",
+        "ms": 313.2999999523163,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000031",
+        "ms": 332.10000002384186,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo04",
+        "ms": 364.6999999284744,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector04",
+        "ms": 365,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000049",
+        "ms": 347.09999990463257,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo05",
+        "ms": 364.7999999523163,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector05",
+        "ms": 364.2999999523163,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000058",
+        "ms": 347.5,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo06",
+        "ms": 348,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector06",
+        "ms": 364.7000000476837,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000066",
+        "ms": 414.8000000715256,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo07",
+        "ms": 348.39999997615814,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector07",
+        "ms": 346.89999997615814,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000074",
+        "ms": 349.3000000715256,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo08",
+        "ms": 348.40000009536743,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector08",
+        "ms": 313.60000002384186,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000082",
+        "ms": 331.2000000476837,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo09",
+        "ms": 314.89999997615814,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector09",
+        "ms": 382,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000090",
+        "ms": 347,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo10",
+        "ms": 365.40000009536743,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector10",
+        "ms": 327.39999997615814,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000104",
+        "ms": 313.5,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo11",
+        "ms": 364.89999997615814,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector11",
+        "ms": 382.10000002384186,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000112",
+        "ms": 347.5,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo12",
+        "ms": 364.60000002384186,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector12",
+        "ms": 331.6999999284744,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000120",
+        "ms": 364.10000002384186,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo13",
+        "ms": 361.2000000476837,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector13",
+        "ms": 331.10000002384186,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000139",
+        "ms": 364,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo14",
+        "ms": 315.39999997615814,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector14",
+        "ms": 413.5,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000147",
+        "ms": 316,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo15",
+        "ms": 362.89999997615814,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector15",
+        "ms": 331.39999997615814,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000155",
+        "ms": 343.2000000476837,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo16",
+        "ms": 363.2000000476837,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector16",
+        "ms": 315.09999990463257,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000163",
+        "ms": 313.89999997615814,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo17",
+        "ms": 314.39999997615814,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector17",
+        "ms": 328.5,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000171",
+        "ms": 364.39999997615814,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo18",
+        "ms": 313.5,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector18",
+        "ms": 348.5,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000189",
+        "ms": 313.10000002384186,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo19",
+        "ms": 315.10000002384186,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector19",
+        "ms": 328,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000198",
+        "ms": 314.40000009536743,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo20",
+        "ms": 364.5,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector20",
+        "ms": 348.2000000476837,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000201",
+        "ms": 315.39999997615814,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo21",
+        "ms": 362.7999999523163,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector21",
+        "ms": 316,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000219",
+        "ms": 331.10000002384186,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo22",
+        "ms": 364,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector22",
+        "ms": 364,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000228",
+        "ms": 365.39999997615814,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo23",
+        "ms": 365.89999997615814,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector23",
+        "ms": 347.10000002384186,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000236",
+        "ms": 348.6999999284744,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo24",
+        "ms": 380.7999999523163,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector24",
+        "ms": 364.60000002384186,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000244",
+        "ms": 349.10000002384186,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo25",
+        "ms": 365.2999999523163,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector25",
+        "ms": 361.2999999523163,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000252",
+        "ms": 364.39999997615814,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo26",
+        "ms": 364.6999999284744,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector26",
+        "ms": 414.1999999284744,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000260",
+        "ms": 347,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo27",
+        "ms": 348.60000002384186,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector27",
+        "ms": 331.7000000476837,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000279",
+        "ms": 364.8000000715256,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo28",
+        "ms": 348.10000002384186,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector28",
+        "ms": 365.2000000476837,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000287",
+        "ms": 347.7000000476837,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo29",
+        "ms": 348,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector29",
+        "ms": 331,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000295",
+        "ms": 313,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo30",
+        "ms": 314.7999999523163,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector30",
+        "ms": 347.60000002384186,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000309",
+        "ms": 348.5,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo31",
+        "ms": 365.2000000476837,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector31",
+        "ms": 376.8000000715256,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000317",
+        "ms": 331.10000002384186,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo32",
+        "ms": 365.6999999284744,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector32",
+        "ms": 363.6999999284744,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000325",
+        "ms": 379.7999999523163,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo33",
+        "ms": 314.5,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector33",
+        "ms": 348.6999999284744,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000333",
+        "ms": 313.8000000715256,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo34",
+        "ms": 347.7999999523163,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector34",
+        "ms": 313.2999999523163,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000341",
+        "ms": 357.2000000476837,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo35",
+        "ms": 392.10000002384186,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector35",
+        "ms": 331.10000002384186,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000359",
+        "ms": 347.90000009536743,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo36",
+        "ms": 364.89999997615814,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector36",
+        "ms": 365,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000368",
+        "ms": 407.6999999284744,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo37",
+        "ms": 329.39999997615814,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector00",
+        "ms": 361.8000000715256,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000376",
+        "ms": 330.10000002384186,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo38",
+        "ms": 365.2000000476837,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector01",
+        "ms": 348.6999999284744,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000384",
+        "ms": 331.89999997615814,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo39",
+        "ms": 347.60000002384186,
+        "options": 20,
+        "message": "25 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector02",
+        "ms": 315.39999997615814,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000392",
+        "ms": 363.8000000715256,
+        "options": 1,
+        "message": "1 coincidencias."
+      },
+      {
+        "tipo": "razonSocial",
+        "q": "Grupo00",
+        "ms": 315.1999999284744,
+        "options": 20,
+        "message": "24 coincidencias."
+      },
+      {
+        "tipo": "nombreComercial",
+        "q": "Sector03",
+        "ms": 348,
+        "options": 20,
+        "message": "27 coincidencias."
+      },
+      {
+        "tipo": "cuit",
+        "q": "30000000406",
+        "ms": 331.7999999523163,
+        "options": 1,
+        "message": "1 coincidencias."
+      }
+    ]
+  },
+  "ui": [
+    {
+      "pantalla": "padron",
+      "ancho": 1280,
+      "overflow": false,
+      "primarias": [
+        "Nuevo proveedor"
+      ],
+      "filasConTabindex": 0,
+      "campos": [
+        {
+          "id": "buscar",
+          "tag": "INPUT",
+          "type": "text",
+          "required": false,
+          "label": "Buscar proveedores",
+          "invalid": null,
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "f-razonSocial",
+          "tag": "INPUT",
+          "type": "text",
+          "required": false,
+          "label": "RazÃ³n social",
+          "invalid": null,
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "f-nombreComercial",
+          "tag": "INPUT",
+          "type": "text",
+          "required": false,
+          "label": "Nombre comercial",
+          "invalid": null,
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "f-cuit",
+          "tag": "INPUT",
+          "type": "text",
+          "required": false,
+          "label": "CUIT",
+          "invalid": null,
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "tipo",
+          "tag": "SELECT",
+          "type": "select-one",
+          "required": false,
+          "label": "Tipo",
+          "invalid": null,
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "estado",
+          "tag": "SELECT",
+          "type": "select-one",
+          "required": false,
+          "label": "Estado",
+          "invalid": null,
+          "described": null,
+          "disabled": false
+        }
+      ],
+      "pasosTabHastaRepetir": 80,
+      "contrasteMinimo": 4.510246036477672,
+      "contrastesBajo45": []
+    },
+    {
+      "pantalla": "nuevo-proveedor",
+      "ancho": 1280,
+      "overflow": false,
+      "primarias": [
+        "Guardar proveedor"
+      ],
+      "filasConTabindex": 0,
+      "campos": [
+        {
+          "id": "tipo",
+          "tag": "SELECT",
+          "type": "select-one",
+          "required": true,
+          "label": "Tipo",
+          "invalid": null,
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "razonSocial",
+          "tag": "INPUT",
+          "type": "text",
+          "required": true,
+          "label": "RazÃ³n social",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "cuit",
+          "tag": "INPUT",
+          "type": "text",
+          "required": true,
+          "label": "CUIT",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "nombreComercial",
+          "tag": "INPUT",
+          "type": "text",
+          "required": false,
+          "label": "Nombre comercial",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "telefono",
+          "tag": "INPUT",
+          "type": "text",
+          "required": false,
+          "label": "TelÃ©fono",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "email",
+          "tag": "INPUT",
+          "type": "email",
+          "required": false,
+          "label": "Email",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "direccion",
+          "tag": "INPUT",
+          "type": "text",
+          "required": false,
+          "label": "DirecciÃ³n",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        }
+      ],
+      "pasosTabHastaRepetir": 40,
+      "contrasteMinimo": 4.5810556561621185,
+      "contrastesBajo45": []
+    },
+    {
+      "pantalla": "proveedor",
+      "ancho": 1280,
+      "overflow": false,
+      "primarias": [],
+      "filasConTabindex": 0,
+      "campos": [],
+      "pasosTabHastaRepetir": 33,
+      "contrasteMinimo": 4.544211891644821,
+      "contrastesBajo45": []
+    },
+    {
+      "pantalla": "editar-proveedor",
+      "ancho": 1280,
+      "overflow": false,
+      "primarias": [
+        "Guardar cambios"
+      ],
+      "filasConTabindex": 0,
+      "campos": [
+        {
+          "id": "tipo",
+          "tag": "SELECT",
+          "type": "select-one",
+          "required": true,
+          "label": "Tipo",
+          "invalid": null,
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "razonSocial",
+          "tag": "INPUT",
+          "type": "text",
+          "required": true,
+          "label": "RazÃ³n social",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "cuit",
+          "tag": "INPUT",
+          "type": "text",
+          "required": true,
+          "label": "CUIT",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "nombreComercial",
+          "tag": "INPUT",
+          "type": "text",
+          "required": false,
+          "label": "Nombre comercial",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "telefono",
+          "tag": "INPUT",
+          "type": "text",
+          "required": false,
+          "label": "TelÃ©fono",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "email",
+          "tag": "INPUT",
+          "type": "email",
+          "required": false,
+          "label": "Email",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "direccion",
+          "tag": "INPUT",
+          "type": "text",
+          "required": false,
+          "label": "DirecciÃ³n",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        }
+      ],
+      "pasosTabHastaRepetir": 40,
+      "contrasteMinimo": 4.5810556561621185,
+      "contrastesBajo45": []
+    },
+    {
+      "pantalla": "carga-normal",
+      "ancho": 1280,
+      "overflow": false,
+      "primarias": [
+        "Guardar factura"
+      ],
+      "filasConTabindex": 0,
+      "campos": [
+        {
+          "id": "_r_0_",
+          "tag": "INPUT",
+          "type": "text",
+          "required": true,
+          "label": "Proveedor",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "numero",
+          "tag": "INPUT",
+          "type": "text",
+          "required": true,
+          "label": "NÃºmero de factura",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "fecha",
+          "tag": "INPUT",
+          "type": "date",
+          "required": true,
+          "label": "Fecha de factura",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "detalle",
+          "tag": "TEXTAREA",
+          "type": "textarea",
+          "required": true,
+          "label": "Detalle",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "cae",
+          "tag": "INPUT",
+          "type": "text",
+          "required": true,
+          "label": "CAE",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "fechaVencimientoCae",
+          "tag": "INPUT",
+          "type": "date",
+          "required": true,
+          "label": "Vencimiento del CAE",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "neto",
+          "tag": "INPUT",
+          "type": "text",
+          "required": true,
+          "label": "Neto",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "archivo",
+          "tag": "INPUT",
+          "type": "file",
+          "required": false,
+          "label": "PDF",
+          "invalid": null,
+          "described": "archivo-ayuda",
+          "disabled": false
+        }
+      ],
+      "pasosTabHastaRepetir": 43,
+      "contrasteMinimo": 4.544211891644821,
+      "contrastesBajo45": []
+    },
+    {
+      "pantalla": "consulta",
+      "ancho": 1280,
+      "overflow": false,
+      "primarias": [],
+      "filasConTabindex": 0,
+      "campos": [
+        {
+          "id": "_r_0_",
+          "tag": "INPUT",
+          "type": "text",
+          "required": false,
+          "label": "Proveedor",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "desde",
+          "tag": "INPUT",
+          "type": "date",
+          "required": false,
+          "label": "Desde",
+          "invalid": "false",
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "hasta",
+          "tag": "INPUT",
+          "type": "date",
+          "required": false,
+          "label": "Hasta",
+          "invalid": null,
+          "described": null,
+          "disabled": false
+        },
+        {
+          "id": "estado",
+          "tag": "SELECT",
+          "type": "select-one",
+          "required": false,
+          "label": "Estado",
+          "invalid": null,
+          "described": null,
+          "disabled": false
+        }
+      ],
+      "pasosTabHastaRepetir": 59,
+      "contrasteMinimo": 4.510246036477672,
+      "contrastesBajo45": []
+    },
+    {
+      "pantalla": "factura-normal",
+      "ancho": 1280,
+      "overflow": false,
+      "primarias": [],
+      "filasConTabindex": 0,
+      "campos": [],
+      "pasosTabHastaRepetir": 32,
+      "contrasteMinimo": 4.544211891644821,
+      "contrastesBajo45": []
+    }
+  ],
+  "estados": [
+    {
+      "name": "padron-sin-coincidencias",
+      "live": [
+        {
+          "tag": "P",
+          "role": "status",
+          "text": "No hay proveedores que coincidan con los filtros."
+        }
+      ]
+    },
+    {
+      "name": "consulta-sin-coincidencias",
+      "live": [
+        {
+          "tag": "SPAN",
+          "role": "status",
+          "text": "Filtros aplicados: Desde: 01/01/2000 Â· Hasta: 01/01/2000 Â· Estado: Pendiente"
+        },
+        {
+          "tag": "SPAN",
+          "role": "status",
+          "text": "0 facturas"
+        },
+        {
+          "tag": "P",
+          "role": "status",
+          "text": "Ninguna factura coincide con los filtros aplicados. ProbÃ¡ limpiarlos."
+        }
+      ]
+    },
+    {
+      "name": "autocomplete-vacio",
+      "live": [
+        {
+          "tag": "P",
+          "role": "status",
+          "text": "No hay proveedores que coincidan."
+        }
+      ]
+    },
+    {
+      "name": "consulta-cargando",
+      "live": [
+        {
+          "tag": "SPAN",
+          "role": "status",
+          "text": "Sin restricciones de fecha, proveedor ni estado."
+        },
+        {
+          "tag": "P",
+          "role": "status",
+          "text": "Cargando facturasâ€¦"
+        }
+      ]
+    },
+    {
+      "name": "padron-error",
+      "live": [
+        {
+          "tag": "P",
+          "role": "alert",
+          "text": "Servicio temporal no disponible"
+        }
+      ]
+    },
+    {
+      "name": "consulta-403",
+      "live": [
+        {
+          "tag": "P",
+          "role": "alert",
+          "text": "No tenÃ©s permiso para consultar facturas de proveedores. Pedile acceso a un administrador."
+        },
+        {
+          "tag": "SPAN",
+          "role": "status",
+          "text": "Sin restricciones de fecha, proveedor ni estado."
+        }
+      ]
+    },
+    {
+      "name": "fletero-conflicto-importe",
+      "live": [
+        {
+          "tag": "P",
+          "role": "alert",
+          "text": "RevisÃ¡ los campos marcados."
+        }
+      ]
+    },
+    {
+      "name": "fletero-post",
+      "live": [
+        {
+          "tag": "P",
+          "role": "status",
+          "text": "Factura registrada."
+        }
+      ]
+    },
+    {
+      "name": "fletero-sin-disponibles",
+      "live": [
+        {
+          "tag": "P",
+          "role": "status",
+          "text": "No hay liquidaciones Pendientes disponibles para este Fletero. No se puede guardar la factura."
+        }
+      ]
+    }
+  ],
+  "teclado": [
+    "Autocomplete 20/5 y anterior",
+    "Autocomplete Escape y selecciÃ³n accesible",
+    {
+      "fecha": {
+        "activo": true,
+        "borde": "rgb(68, 83, 168)",
+        "fondo": "rgb(255, 255, 255)",
+        "focusWithin": true
+      }
+    },
+    "Tipo y Transportista con teclado nativo",
+    "DiÃ¡logo baja foco inicial, Escape y devoluciÃ³n de foco, sin escritura"
+  ],
+  "limites": [
+    "No reemplaza aceptacion de SC-005 por un empleado sin asistencia tecnica.",
+    "No equivale a regresion del fixture original de integracion, bloqueado por GT_SQL_PASSWORD."
+  ]
+}

@@ -14,6 +14,8 @@ namespace GT.Infrastructure.Persistencia;
 
 public class GtDbContext(DbContextOptions<GtDbContext> opciones) : DbContext(opciones)
 {
+    public DbSet<GT.Domain.Proveedores.Proveedor> Proveedores => Set<GT.Domain.Proveedores.Proveedor>();
+    public DbSet<GT.Domain.Proveedores.FacturaProveedor> FacturasProveedor => Set<GT.Domain.Proveedores.FacturaProveedor>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     public DbSet<Rol> Roles => Set<Rol>();

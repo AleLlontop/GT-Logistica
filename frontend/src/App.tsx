@@ -1,4 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
+import { PadronProveedores } from './modules/proveedores/paginas/PadronProveedores'
+import { FormularioProveedor } from './modules/proveedores/paginas/FormularioProveedor'
+import { DetalleProveedor } from './modules/proveedores/paginas/DetalleProveedor'
+import { CargarFacturaProveedor } from './modules/proveedores/paginas/CargarFacturaProveedor'
+import { DetalleFacturaProveedor } from './modules/proveedores/paginas/DetalleFacturaProveedor'
+import { ConsultarFacturasProveedor } from './modules/proveedores/paginas/ConsultarFacturasProveedor'
+import { ResultadoFacturaProvider } from './modules/proveedores/componentes/ResultadoFacturaContexto'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './compartido/Layout'
 import { Lienzo } from './compartido/ui/Lienzo'
@@ -129,7 +136,7 @@ export default function App() {
       */}
       <Lienzo />
 
-      <Routes>
+      <ResultadoFacturaProvider key={sesion?.username ?? 'sin-sesion'}><Routes>
         <Route
           path="/ingresar"
           element={
@@ -1105,8 +1112,17 @@ export default function App() {
           }
         />
 
+        {[
+          { ruta: '/proveedores', pantalla: <PadronProveedores puedeGestionar={sesion?.permisos.includes('proveedores.gestionar') ?? false} /> },
+          { ruta: '/proveedores/nuevo', pantalla: <FormularioProveedor puedeGestionar={sesion?.permisos.includes('proveedores.gestionar') ?? false} /> },
+          { ruta: '/proveedores/:id/editar', pantalla: <FormularioProveedor puedeGestionar={sesion?.permisos.includes('proveedores.gestionar') ?? false} /> },
+          { ruta: '/proveedores/:id', pantalla: <DetalleProveedor /> },
+          { ruta: '/proveedores/facturas/nueva', pantalla: <CargarFacturaProveedor puedeCargar={sesion?.permisos.includes('proveedores.facturas.cargar') ?? false} /> },
+          { ruta: '/proveedores/facturas', pantalla: <ConsultarFacturasProveedor /> },
+          { ruta: '/proveedores/facturas/:id', pantalla: <DetalleFacturaProveedor puedeConsultar={sesion?.permisos.includes('proveedores.facturas.consultar') ?? false} puedeGestionarProveedores={sesion?.permisos.includes('proveedores.gestionar') ?? false} puedeConsultarLiquidaciones={sesion?.permisos.includes('liquidaciones.consultar') ?? false} /> },
+        ].map(({ ruta, pantalla }) => <Route key={ruta} path={ruta} element={<RutaProtegida sesion={sesion}>{sesion !== null && <Layout username={sesion.username} opcionesMenu={sesion.opcionesMenu} onCerrarSesion={alCerrarSesion}>{pantalla}</Layout>}</RutaProtegida>} />)}
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      </Routes></ResultadoFacturaProvider>
     </BrowserRouter>
   )
 }
