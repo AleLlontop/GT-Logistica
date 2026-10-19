@@ -27,6 +27,8 @@ public static class CatalogoOpcionesMenu
         (CodigosPermiso.UsuariosGestionar,
             new OpcionMenuDto("personas", "Personas", "/personas")),
 
+        (CodigosPermiso.EmpleadosConsultar,
+            new OpcionMenuDto("empleados", "Empleados", "/empleados")),
         // Módulo 3. Las tres entradas van atadas al mismo permiso `choferes.gestionar`, que otorgan
         // Tráfico y Administrador del sistema: es el primer módulo cuyo acceso no es exclusivo del
         // administrador (FR-027, contracts/README.md).

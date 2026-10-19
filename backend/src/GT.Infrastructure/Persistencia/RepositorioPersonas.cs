@@ -92,6 +92,13 @@ public class RepositorioPersonas(GtDbContext contexto) : IRepositorioPersonas
             .Where(usuario => usuario.PersonaId == personaId)
             .Select(usuario => (string?)usuario.Username)
             .FirstOrDefaultAsync(cancelacion);
+    public Task<int?> IdUsuarioVinculadoAsync(
+        int personaId,
+        CancellationToken cancelacion = default) =>
+        contexto.Usuarios
+            .Where(usuario => usuario.PersonaId == personaId)
+            .Select(usuario => (int?)usuario.Id)
+            .FirstOrDefaultAsync(cancelacion);
 
     public Task<bool> EsChoferAsync(int personaId, CancellationToken cancelacion = default) =>
         contexto.Choferes.AnyAsync(chofer => chofer.PersonaId == personaId, cancelacion);

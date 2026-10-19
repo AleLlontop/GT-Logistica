@@ -45,6 +45,9 @@ public interface IRepositorioPersonas
         int personaId,
         CancellationToken cancelacion = default);
 
+    Task<int?> IdUsuarioVinculadoAsync(
+        int personaId,
+        CancellationToken cancelacion = default);
     /// <summary>
     /// <c>true</c> si esta persona está registrada como chofer (Módulo 3), activo o inactivo.
     ///

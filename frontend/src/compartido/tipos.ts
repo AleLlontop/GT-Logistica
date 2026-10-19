@@ -17,6 +17,8 @@ export interface ErrorApi {
 }
 
 export type CodigoError =
+  // Módulo 14: Gestión de empleados
+  | 'empleado_con_caja_abierta'
   // Módulo 13
   | 'importe_distinto'
   | 'liquidacion_no_disponible'
