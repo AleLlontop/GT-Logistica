@@ -30,3 +30,9 @@ it('conserva los centavos de cadenas grandes sin convertir a number', () => {
   expect(formatearPesos('100000000000000.01')).toBe('$ 100.000.000.000.000,01')
   expect(formatearPesos('100000000000000.02')).toBe('$ 100.000.000.000.000,02')
 })
+
+it('[014] presenta saldo negativo exacto sin convertirlo a number ni aceptar importe malformado', () => {
+  expect(formatearPesos('-10.01')).toBe(formatearPesos(-10.01))
+  expect(formatearPesos('-9999999999999999.99')).toBe('-$ 9.999.999.999.999.999,99')
+  expect(() => formatearPesos('-1.001')).toThrow('Importe decimal inválido.')
+})

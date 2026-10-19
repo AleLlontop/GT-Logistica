@@ -37,6 +37,8 @@ public static class NombresDeEstadoLiquidacion
         OperacionDeLiquidacion.Edicion => "edicion",
         OperacionDeLiquidacion.Anulacion => "anulacion",
         OperacionDeLiquidacion.Pagada => "pagada",
+        OperacionDeLiquidacion.PagoPorOPP => "pagoPorOPP",
+        OperacionDeLiquidacion.ReversionPagoPorOPP => "reversionPagoPorOPP",
         _ => throw new ArgumentOutOfRangeException(nameof(operacion), operacion, null),
     };
 

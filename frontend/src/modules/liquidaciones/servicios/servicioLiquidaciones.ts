@@ -12,7 +12,7 @@ import type { ErrorApi } from '../../../compartido/tipos'
 
 export type EstadoLiquidacion = 'pendiente' | 'pagada' | 'anulada'
 
-export type OperacionDeLiquidacion = 'generacion' | 'edicion' | 'anulacion' | 'pagada'
+export type OperacionDeLiquidacion = 'generacion' | 'edicion' | 'anulacion' | 'pagada' | 'pagoPorOPP' | 'reversionPagoPorOPP'
 
 export type MotivoDeBloqueo = 'pagada' | 'anulada' | 'conOrdenesDePago' | 'transportistaNoLiquidable'
 
@@ -65,6 +65,9 @@ export interface LiquidacionListado {
 }
 
 export interface OrdenDePago {
+  vigente?: boolean
+  ordenPagoProveedor?: { id: number; numero: string } | null
+  revertidaEn?: string | null
   id: number
   numero: string
   fechaPago: string
@@ -75,6 +78,8 @@ export interface OrdenDePago {
 }
 
 export interface CambioDeLiquidacion {
+  pago?: { id: number; numero: string } | null
+  ordenPagoProveedor?: { id: number; numero: string } | null
   operacion: OperacionDeLiquidacion
   usuario: string
   ocurridoEn: string

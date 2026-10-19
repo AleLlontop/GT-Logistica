@@ -21,4 +21,7 @@ public enum OperacionDeLiquidacion : byte
     /// Las órdenes parciales no agregan entrada: ya las lista su propia sección del detalle.
     /// </summary>
     Pagada = 3,
+
+    PagoPorOPP = 4,
+    ReversionPagoPorOPP = 5,
 }

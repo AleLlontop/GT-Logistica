@@ -15,6 +15,7 @@ import type { OpcionMenu } from './tipos'
 
 export type NombreDeSeccion =
   | 'Operación'
+  | 'Gestión de pagos'
   | 'Padrones'
   | 'Seguimiento'
   | 'Configuración'
@@ -23,6 +24,7 @@ export type NombreDeSeccion =
 /** El orden de las secciones en pantalla. La última recibe los códigos desconocidos. */
 export const SECCIONES: NombreDeSeccion[] = [
   'Operación',
+  'Gestión de pagos',
   'Padrones',
   'Seguimiento',
   'Configuración',
@@ -30,6 +32,10 @@ export const SECCIONES: NombreDeSeccion[] = [
 ]
 
 const SECCION_POR_CODIGO: Record<string, NombreDeSeccion> = {
+  'generar-orden-proveedor': 'Gestión de pagos',
+  'bancos-pagos': 'Gestión de pagos',
+  'consultar-ordenes-proveedor': 'Gestión de pagos',
+  'cheques-por-vencer': 'Gestión de pagos',
   // Lo que se opera todos los días
   viajes: 'Operación',
   facturas: 'Operación',

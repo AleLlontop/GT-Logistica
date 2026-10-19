@@ -13,6 +13,14 @@ public class OrdenDePago
 {
     public int Id { get; set; }
 
+    // [014] Sólo las OP originadas por una OPP pueden revertirse, conservando el pago histórico.
+    public int? OrdenPagoProveedorId { get; set; }
+    public GT.Domain.Pagos.OrdenPagoProveedor? OrdenPagoProveedor { get; set; }
+    public bool Vigente { get; set; } = true;
+    public int? RevertidaPorId { get; set; }
+    public Usuario? RevertidaPor { get; set; }
+    public DateTime? RevertidaEn { get; set; }
+
     /// <summary>
     /// Sale de la secuencia <c>NumeroDeOrdenDePago</c> (FR-039) y se muestra como <c>OP-{Numero}</c>. Sin
     /// <c>required</c> y con <c>private set</c> por el mismo motivo que <see cref="Liquidacion.Numero"/>.

@@ -43,6 +43,14 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSingleton<GT.Application.Pagos.ISerializadorPagos, GT.Api.Pagos.SerializadorPagos>();
+builder.Services.AddScoped<GT.Application.Pagos.IRepositorioPagos, GT.Infrastructure.Persistencia.RepositorioPagos>();
+builder.Services.AddScoped<GT.Application.Pagos.GestionBancosPagos>();
+builder.Services.AddScoped<GT.Application.Pagos.GenerarOrdenProveedor>();
+builder.Services.AddScoped<GT.Application.Pagos.AnularOrdenProveedor>();
+builder.Services.AddScoped<GT.Application.Pagos.ConsultarOrdenesProveedor>();
+builder.Services.AddScoped<GT.Application.Pagos.ConsultarChequesPagos>();
+builder.Services.AddScoped<GT.Application.Pagos.CambiarEstadoChequePago>();
 
 // ── Persistencia ────────────────────────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<GtDbContext>(opciones =>
@@ -350,6 +358,7 @@ builder.Services
 // opción estaba visible u oculta en el menú del cliente.
 builder.Services.AddSingleton<IAuthorizationHandler, PermisoHandler>();
 builder.Services.AddAuthorization(opciones => opciones.AgregarPoliticasDeProveedores());
+builder.Services.AddAuthorization(opciones => opciones.AgregarPoliticasDePagos());
 builder.Services.AddAuthorization(opciones =>
     opciones.AgregarPoliticasDePermisos(
         CodigosPermiso.UsuariosGestionar,
@@ -461,6 +470,10 @@ app.MapearRoles();
 app.MapearMiCuenta();
 app.MapearPersonas();
 app.MapearTransportistas();
+GT.Api.Pagos.BancosPagosEndpoints.MapearBancosPagos(app);
+GT.Api.Pagos.ReferenciasPagosEndpoints.MapearReferenciasPagos(app);
+GT.Api.Pagos.OrdenesPagosEndpoints.MapearOrdenesPagos(app);
+GT.Api.Pagos.ChequesPagosEndpoints.MapearChequesPagos(app);
 GT.Api.Proveedores.ProveedoresEndpoints.MapearProveedores(app);
 GT.Api.Proveedores.FacturasProveedorEndpoints.MapearFacturasProveedor(app);
 app.MapearChoferes();

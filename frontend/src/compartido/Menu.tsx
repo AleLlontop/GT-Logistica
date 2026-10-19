@@ -20,6 +20,7 @@ interface Props {
 
 const ICONO_DE_SECCION: Record<NombreDeSeccion, typeof IconoOperacion> = {
   'Operación': IconoOperacion,
+  'Gestión de pagos': IconoOperacion,
   Padrones: IconoPadrones,
   Seguimiento: IconoSeguimiento,
   'Configuración': IconoConfiguracion,

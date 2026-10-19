@@ -1,3 +1,5 @@
+using GT.Application.Pagos;
+using GT.Domain.Pagos;
 using GT.Domain.Choferes;
 using GT.Domain.Liquidaciones;
 
@@ -90,7 +92,7 @@ public class ConsultarDetalleLiquidacion(IRepositorioLiquidaciones liquidaciones
                     orden.FechaPago.ToString("yyyy-MM-dd"),
                     orden.Importe,
                     orden.Usuario?.Username ?? $"Usuario {orden.UsuarioId}",
-                    orden.RegistradaEn))],
+                    orden.RegistradaEn, orden.Vigente, Origen(orden), orden.RevertidaEn))],
 
             // De la más vieja a la más nueva (FR-033).
             [.. liquidacion.Cambios
@@ -101,7 +103,10 @@ public class ConsultarDetalleLiquidacion(IRepositorioLiquidaciones liquidaciones
                     cambio.Usuario?.Username ?? $"Usuario {cambio.UsuarioId}",
                     cambio.OcurridoEn,
                     NumerosDe(cambio, agregado: false),
-                    NumerosDe(cambio, agregado: true)))],
+                    NumerosDe(cambio, agregado: true),
+                    cambio.OrdenDePagoId is { } pagoId ? new ReferenciaPago(pagoId,
+                        NumerosVisibles.OrdenDePago(liquidacion.OrdenesDePago.Single(o => o.Id == pagoId).Numero)) : null,
+                    cambio.OrdenDePagoId is { } origenId ? Origen(liquidacion.OrdenesDePago.Single(o => o.Id == origenId)) : null))],
 
             ReglasDeLiquidacion.MotivoNoEditable(
                 liquidacion.Estado,
@@ -116,4 +121,8 @@ public class ConsultarDetalleLiquidacion(IRepositorioLiquidaciones liquidaciones
             .Where(viaje => viaje.Agregado == agregado)
             .Select(viaje => viaje.Viaje!.Numero)
             .Order()];
+    private static ReferenciaPago? Origen(OrdenDePago orden) => orden.OrdenPagoProveedorId is null ? null
+        : orden.OrdenPagoProveedor is { } opp ? new(opp.Id, NumeroVisiblePagoProveedor.Desde(opp.Numero))
+        : throw new InvalidOperationException("Falta cargar el origen de la OP automática.");
+
 }

@@ -29,6 +29,13 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
     private static readonly (string Codigo, string Modulo, string Descripcion)[] PermisosDelSistema =
     [
+        (CodigosPermiso.PagosGenerar, "Pagos", "Generar orden"),
+        (CodigosPermiso.PagosConsultar, "Pagos", "Consultar órdenes"),
+        (CodigosPermiso.PagosAnular, "Pagos", "Anular OPP"),
+        (CodigosPermiso.PagosChequesConsultar, "Pagos", "Consultar cheques"),
+        (CodigosPermiso.PagosChequesCambiarEstado, "Pagos", "Cambiar estado de cheque"),
+        (CodigosPermiso.PagosBancosConsultar, "Pagos", "Consultar bancos"),
+        (CodigosPermiso.PagosBancosGestionar, "Pagos", "Gestionar bancos"),
         // 013: permisos independientes; las tres pantallas ya están implementadas.
         (CodigosPermiso.ProveedoresGestionar, "Proveedores", "Administrar el padrón de proveedores"),
         (CodigosPermiso.ProveedoresFacturasCargar, "Proveedores", "Cargar facturas recibidas de proveedores"),
@@ -138,6 +145,13 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
     {
         [CodigosRol.AdministradorSistema] =
         [
+            CodigosPermiso.PagosGenerar,
+            CodigosPermiso.PagosConsultar,
+            CodigosPermiso.PagosAnular,
+            CodigosPermiso.PagosChequesConsultar,
+            CodigosPermiso.PagosChequesCambiarEstado,
+            CodigosPermiso.PagosBancosConsultar,
+            CodigosPermiso.PagosBancosGestionar,
             CodigosPermiso.ProveedoresGestionar,
             CodigosPermiso.ProveedoresFacturasCargar,
             CodigosPermiso.ProveedoresFacturasConsultar,
@@ -173,6 +187,13 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
         [CodigosRol.Administracion] =
         [
+            CodigosPermiso.PagosGenerar,
+            CodigosPermiso.PagosConsultar,
+            CodigosPermiso.PagosAnular,
+            CodigosPermiso.PagosChequesConsultar,
+            CodigosPermiso.PagosChequesCambiarEstado,
+            CodigosPermiso.PagosBancosConsultar,
+            CodigosPermiso.PagosBancosGestionar,
             CodigosPermiso.ProveedoresGestionar,
             CodigosPermiso.ProveedoresFacturasCargar,
             CodigosPermiso.ProveedoresFacturasConsultar,

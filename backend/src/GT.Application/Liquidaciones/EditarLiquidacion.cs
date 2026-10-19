@@ -147,7 +147,7 @@ public class EditarLiquidacion(
                     motivo.Value),
                 Motivo: motivo,
                 CantidadOrdenesDePago: motivo is MotivoDeBloqueoLiquidacion.ConOrdenesDePago
-                    ? liquidacion.OrdenesDePago.Count
+                    ? liquidacion.OrdenesDePago.Count(orden => orden.Vigente)
                     : null,
                 ImportePagado: motivo is MotivoDeBloqueoLiquidacion.ConOrdenesDePago
                     ? liquidacion.ImportePagado

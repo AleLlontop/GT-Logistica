@@ -23,8 +23,8 @@ public class ConsultarFacturasProveedor(IRepositorioFacturasProveedor repositori
         if (filtros.Desde > filtros.Hasta) throw Invalido("desde", "La fecha desde no puede ser posterior a la fecha hasta.");
         if (filtros.Pagina < 1) throw Invalido("pagina", "La página debe ser mayor a cero.");
         if (filtros.ProveedorId is <= 0) throw Invalido("proveedorId", "Elegí un proveedor válido.");
-        if (!string.IsNullOrWhiteSpace(filtros.Estado) && filtros.Estado != "pendiente")
-            throw Invalido("estado", "Elegí Pendiente o sin restricción de estado.");
+        if (!string.IsNullOrWhiteSpace(filtros.Estado) && filtros.Estado is not ("pendiente" or "pagada"))
+            throw Invalido("estado", "Elegí Pendiente, Pagada o sin restricción de estado.");
     }
     private static ProveedorException Invalido(string campo, string mensaje) => new("datos_invalidos", mensaje, campo);
     public static ProveedorException NoEncontrada() => new("no_encontrado", "No encontramos esa factura de proveedor.", tipo: TipoErrorProveedor.NoEncontrado);
