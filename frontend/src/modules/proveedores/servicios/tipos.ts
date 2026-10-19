@@ -44,13 +44,13 @@ export interface FacturaProveedorResumen {
   proveedorRazonSocial: string
   proveedorCuit: string
   importeTotal: ImporteDecimal
-  estado: 'pendiente'
+  estado: 'pendiente' | 'pagada'
 }
 export interface FiltrosFacturaProveedor {
   desde?: string
   hasta?: string
   proveedorId?: number
-  estado?: 'pendiente'
+  estado?: 'pendiente' | 'pagada'
 }
 export interface DetalleFacturaProveedor extends FacturaProveedorResumen {
   tipoProveedorAlRegistrar: TipoProveedor

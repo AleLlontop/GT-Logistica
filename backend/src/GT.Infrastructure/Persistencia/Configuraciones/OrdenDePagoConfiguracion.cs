@@ -13,7 +13,11 @@ public class OrdenDePagoConfiguracion : IEntityTypeConfiguration<OrdenDePago>
     {
         tabla.ToTable(
             "OrdenesDePago",
-            constructor => constructor.HasCheckConstraint("CK_OrdenesDePago_Importe", "[Importe] > 0"));
+            constructor =>
+            {
+                constructor.HasCheckConstraint("CK_OrdenesDePago_Importe", "[Importe] > 0");
+                constructor.HasCheckConstraint("CK_OrdenesDePago_Vigencia", "([Vigente]=1 AND [RevertidaPorId] IS NULL AND [RevertidaEn] IS NULL) OR ([Vigente]=0 AND [OrdenPagoProveedorId] IS NOT NULL AND [RevertidaPorId] IS NOT NULL AND [RevertidaEn] IS NOT NULL)");
+            });
 
         tabla.HasKey(orden => orden.Id);
 
@@ -22,6 +26,11 @@ public class OrdenDePagoConfiguracion : IEntityTypeConfiguration<OrdenDePago>
             .ValueGeneratedOnAdd()
             .IsRequired();
 
+        tabla.Property(orden => orden.Vigente).HasDefaultValue(true).HasSentinel(true);
+        tabla.HasOne(orden => orden.OrdenPagoProveedor).WithMany().HasForeignKey(orden => orden.OrdenPagoProveedorId).OnDelete(DeleteBehavior.Restrict);
+        tabla.HasOne(orden => orden.RevertidaPor).WithMany().HasForeignKey(orden => orden.RevertidaPorId).OnDelete(DeleteBehavior.Restrict);
+        tabla.HasIndex(orden => new { orden.OrdenPagoProveedorId, orden.LiquidacionId }).IsUnique()
+            .HasFilter("[OrdenPagoProveedorId] IS NOT NULL").HasDatabaseName("IX_OP_Origen_Liquidacion");
         tabla.Property(orden => orden.LiquidacionId).IsRequired();
         tabla.Property(orden => orden.FechaPago).IsRequired();
         tabla.Property(orden => orden.Importe).HasColumnType("decimal(18,2)").IsRequired();

@@ -24,8 +24,12 @@ public class CambioDeLiquidacionConfiguracion : IEntityTypeConfiguration<CambioD
         // ⚠ El 1 es `OperacionDeLiquidacion.Edicion` escrito a mano.
         tabla.HasIndex(cambio => new { cambio.LiquidacionId, cambio.Operacion })
             .IsUnique()
-            .HasFilter("[Operacion] <> 1")
+            .HasFilter("[Operacion] IN (0,2,3)")
             .HasDatabaseName(IndiceUnica);
+
+        tabla.HasIndex(cambio => new { cambio.OrdenDePagoId, cambio.Operacion }).IsUnique()
+            .HasFilter("[OrdenDePagoId] IS NOT NULL").HasDatabaseName("IX_CambiosLiquidacion_OP_Operacion");
+        tabla.HasOne(cambio => cambio.OrdenDePago).WithMany().HasForeignKey(cambio => cambio.OrdenDePagoId).OnDelete(DeleteBehavior.Restrict);
 
         tabla.HasOne(cambio => cambio.Liquidacion)
             .WithMany(liquidacion => liquidacion.Cambios)

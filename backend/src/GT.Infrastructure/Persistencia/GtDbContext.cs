@@ -5,6 +5,7 @@ using GT.Domain.Facturacion;
 using GT.Domain.Flota;
 using GT.Domain.Liquidaciones;
 using GT.Domain.Personas;
+using GT.Domain.Pagos;
 using GT.Domain.Usuarios;
 using GT.Domain.Viajes;
 using GT.Infrastructure.Persistencia.Configuraciones;
@@ -16,6 +17,15 @@ public class GtDbContext(DbContextOptions<GtDbContext> opciones) : DbContext(opc
 {
     public DbSet<GT.Domain.Proveedores.Proveedor> Proveedores => Set<GT.Domain.Proveedores.Proveedor>();
     public DbSet<GT.Domain.Proveedores.FacturaProveedor> FacturasProveedor => Set<GT.Domain.Proveedores.FacturaProveedor>();
+    public DbSet<OrdenPagoProveedor> OrdenesPagoProveedor => Set<OrdenPagoProveedor>();
+    public DbSet<OrdenPagoProveedorFactura> OrdenPagoProveedorFacturas => Set<OrdenPagoProveedorFactura>();
+    public DbSet<Banco> Bancos => Set<Banco>();
+    public DbSet<MedioPagoProveedor> MediosPagoProveedor => Set<MedioPagoProveedor>();
+    public DbSet<Cheque> Cheques => Set<Cheque>();
+    public DbSet<Transferencia> Transferencias => Set<Transferencia>();
+    public DbSet<Efectivo> Efectivos => Set<Efectivo>();
+    public DbSet<CambioEstadoCheque> HistorialEstadosCheque => Set<CambioEstadoCheque>();
+    public DbSet<ResultadoOperacionPago> ResultadosOperacionPago => Set<ResultadoOperacionPago>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     public DbSet<Rol> Roles => Set<Rol>();
@@ -136,6 +146,7 @@ public class GtDbContext(DbContextOptions<GtDbContext> opciones) : DbContext(opc
         //
         // El `NO CACHE` que elimina ese salto no tiene API fluida: lo aplica la migración con un
         // ALTER, y va acompañado de un test que verifica que la numeración avanza de a uno.
+        modelo.HasSequence<int>(OrdenPagoProveedorConfiguracion.Secuencia).StartsAt(1).IncrementsBy(1);
         modelo.HasSequence<int>(ViajeConfiguracion.Secuencia).StartsAt(1).IncrementsBy(1);
 
         // Módulo 9: el mismo mecanismo y la misma trampa del número de viaje. La migración les aplica el

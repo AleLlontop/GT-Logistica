@@ -190,6 +190,7 @@ public class RepositorioLiquidaciones(GtDbContext contexto) : IRepositorioLiquid
             .Include(liquidacion => liquidacion.Transportista)
             .Include(liquidacion => liquidacion.Viajes).ThenInclude(vinculo => vinculo.Viaje)
             .Include(liquidacion => liquidacion.OrdenesDePago).ThenInclude(orden => orden.Usuario)
+            .Include(liquidacion => liquidacion.OrdenesDePago).ThenInclude(orden => orden.OrdenPagoProveedor)
             .Include(liquidacion => liquidacion.Cambios).ThenInclude(cambio => cambio.Usuario)
             .Include(liquidacion => liquidacion.Cambios)
                 .ThenInclude(cambio => cambio.Viajes)
@@ -381,66 +382,15 @@ public class RepositorioLiquidaciones(GtDbContext contexto) : IRepositorioLiquid
     {
         await using var transaccion = await contexto.Database.BeginTransactionAsync(cancelacion);
 
-        // Lo que cierra SC-007: el importe tiene que entrar **en el saldo confirmado**, no en el que se leyó.
-        // El `CASE` del estado es la segunda escritura de `ReglasDeLiquidacion.EstadoTrasPago`, y los dos
-        // lados de un `SET` leen los valores de antes del `UPDATE`.
-        var afectadas = await contexto.Liquidaciones
-            .Where(liquidacion =>
-                liquidacion.Id == id &&
-                liquidacion.Estado == EstadoLiquidacion.Pendiente &&
-                liquidacion.ImportePagado + importe <= liquidacion.ImporteTotal)
-            .ExecuteUpdateAsync(
-                cambio => cambio
-                    .SetProperty(
-                        liquidacion => liquidacion.ImportePagado,
-                        liquidacion => liquidacion.ImportePagado + importe)
-                    .SetProperty(
-                        liquidacion => liquidacion.Estado,
-                        liquidacion => liquidacion.ImportePagado + importe == liquidacion.ImporteTotal
-                            ? EstadoLiquidacion.Pagada
-                            : EstadoLiquidacion.Pendiente),
-                cancelacion);
-
-        if (afectadas != 1)
+        var orden = await new PrimitivasPagosLiquidacion(contexto).RegistrarAsync(
+            id, fechaPago, importe, usuarioId, registradaEn, ct: cancelacion);
+        if (orden is null)
         {
             await transaccion.RollbackAsync(cancelacion);
-
             return null;
         }
-
-        // La fila está bloqueada por esta transacción: lo que se lee es lo que dejó el `UPDATE`.
-        var estado = await contexto.Liquidaciones
-            .Where(liquidacion => liquidacion.Id == id)
-            .Select(liquidacion => liquidacion.Estado)
-            .FirstAsync(cancelacion);
-
-        var orden = new OrdenDePago
-        {
-            LiquidacionId = id,
-            FechaPago = fechaPago,
-            Importe = importe,
-            UsuarioId = usuarioId,
-            RegistradaEn = registradaEn,
-        };
-
-        contexto.OrdenesDePago.Add(orden);
-
-        // El paso a pagada entra en el historial con el usuario y el instante de esta orden; las parciales
-        // no agregan entrada (FR-033).
-        if (estado is EstadoLiquidacion.Pagada)
-        {
-            contexto.CambiosDeLiquidacion.Add(new CambioDeLiquidacion
-            {
-                LiquidacionId = id,
-                Operacion = OperacionDeLiquidacion.Pagada,
-                UsuarioId = usuarioId,
-                OcurridoEn = registradaEn,
-            });
-        }
-
-        await contexto.SaveChangesAsync(cancelacion);
+        var estado = await contexto.Liquidaciones.Where(x => x.Id == id).Select(x => x.Estado).SingleAsync(cancelacion);
         await transaccion.CommitAsync(cancelacion);
-
         return new OrdenRegistrada(orden.Numero, estado);
     }
 

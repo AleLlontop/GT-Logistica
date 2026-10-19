@@ -1,3 +1,5 @@
+using GT.Application.Pagos;
+
 using GT.Domain.Liquidaciones;
 
 namespace GT.Application.Liquidaciones;
@@ -80,7 +82,10 @@ public record OrdenDePagoDetalle(
     string FechaPago,
     decimal Importe,
     string RegistradaPor,
-    DateTime RegistradaEn);
+    DateTime RegistradaEn,
+    bool Vigente = true,
+    ReferenciaPago? OrdenPagoProveedor = null,
+    DateTime? RevertidaEn = null);
 
 /// <param name="ViajesQuitados">Números de viaje. Vacío salvo en una <c>edicion</c> (FR-033).</param>
 public record EntradaDeHistorialLiquidacion(
@@ -88,7 +93,9 @@ public record EntradaDeHistorialLiquidacion(
     string Usuario,
     DateTime OcurridoEn,
     IReadOnlyList<int> ViajesQuitados,
-    IReadOnlyList<int> ViajesAgregados);
+    IReadOnlyList<int> ViajesAgregados,
+    ReferenciaPago? Pago = null,
+    ReferenciaPago? OrdenPagoProveedor = null);
 
 /// <summary>Detalle completo (FR-025). Es también la respuesta de las cuatro escrituras, releída.</summary>
 /// <param name="FechaGeneracion">Fecha de Argentina del instante de la entrada <c>generacion</c>.</param>

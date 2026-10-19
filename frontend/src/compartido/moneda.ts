@@ -27,7 +27,8 @@ const FORMATEADOR = new Intl.NumberFormat('es-AR', {
  * (FR-013).
  */
 export function formatearPesos(importe: number | string): string {
-  if (typeof importe === 'string') return `$ ${decimalExacto(importe)}`
+  if (typeof importe === 'string') return importe.startsWith('-')
+    ? `-$ ${decimalExacto(importe.slice(1))}` : `$ ${decimalExacto(importe)}`
   // `Intl` intercala un espacio duro entre el símbolo y el número; se normaliza a un espacio común
   // para que lo que se ve sea también lo que un test puede escribir.
   return FORMATEADOR.format(importe).replace(/ /g, ' ')

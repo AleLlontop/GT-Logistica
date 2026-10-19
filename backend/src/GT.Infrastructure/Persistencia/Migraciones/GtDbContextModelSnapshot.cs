@@ -26,6 +26,8 @@ namespace GT.Infrastructure.Persistencia.Migraciones
 
             modelBuilder.HasSequence<int>("NumeroDeOrdenDePago");
 
+            modelBuilder.HasSequence<int>("NumeroDeOrdenPagoProveedor");
+
             modelBuilder.HasSequence<int>("NumeroDeViaje");
 
             modelBuilder.Entity("GT.Domain.Adelantos.Adelanto", b =>
@@ -192,6 +194,9 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Property<int?>("OrdenDePagoId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("OrdenPagoProveedorId")
+                        .HasColumnType("int");
+
                     b.Property<byte>("Tipo")
                         .HasColumnType("tinyint");
 
@@ -212,13 +217,18 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.HasIndex("CajaId", "Fecha")
                         .HasDatabaseName("IX_MovimientosDeCaja_Caja_Fecha");
 
+                    b.HasIndex("OrdenPagoProveedorId", "Tipo")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Movimientos_OPP_Tipo")
+                        .HasFilter("[OrdenPagoProveedorId] IS NOT NULL");
+
                     b.ToTable("MovimientosDeCaja", null, t =>
                         {
                             t.HasCheckConstraint("CK_MovimientosDeCaja_Concepto", "LEN(LTRIM(RTRIM([Concepto]))) > 0");
 
                             t.HasCheckConstraint("CK_MovimientosDeCaja_Importe", "[Importe] > 0");
 
-                            t.HasCheckConstraint("CK_MovimientosDeCaja_Referencia", "([Tipo] = 0 AND [OrdenDePagoId] IS NULL) OR ([Tipo] = 1 AND [FacturaId] IS NULL)");
+                            t.HasCheckConstraint("CK_MovimientosDeCaja_Referencia", "([OrdenPagoProveedorId] IS NULL AND (([Tipo] = 0 AND [OrdenDePagoId] IS NULL) OR ([Tipo] = 1 AND [FacturaId] IS NULL))) OR ([OrdenPagoProveedorId] IS NOT NULL AND [Tipo] IN(0,1) AND [OrdenDePagoId] IS NULL AND [FacturaId] IS NULL)");
                         });
                 });
 
@@ -781,6 +791,9 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Property<byte>("Operacion")
                         .HasColumnType("tinyint");
 
+                    b.Property<int?>("OrdenDePagoId")
+                        .HasColumnType("int");
+
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
@@ -791,7 +804,12 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.HasIndex("LiquidacionId", "Operacion")
                         .IsUnique()
                         .HasDatabaseName("IX_CambiosDeLiquidacion_Unica")
-                        .HasFilter("[Operacion] <> 1");
+                        .HasFilter("[Operacion] IN (0,2,3)");
+
+                    b.HasIndex("OrdenDePagoId", "Operacion")
+                        .IsUnique()
+                        .HasDatabaseName("IX_CambiosLiquidacion_OP_Operacion")
+                        .HasFilter("[OrdenDePagoId] IS NOT NULL");
 
                     b.ToTable("CambiosDeLiquidacion", (string)null);
                 });
@@ -931,11 +949,25 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                         .HasColumnType("int")
                         .HasDefaultValueSql("NEXT VALUE FOR dbo.NumeroDeOrdenDePago");
 
+                    b.Property<int?>("OrdenPagoProveedorId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("RegistradaEn")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("RevertidaEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("RevertidaPorId")
+                        .HasColumnType("int");
+
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("Vigente")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.HasKey("Id");
 
@@ -946,11 +978,316 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                         .IsUnique()
                         .HasDatabaseName("IX_OrdenesDePago_Numero");
 
+                    b.HasIndex("RevertidaPorId");
+
                     b.HasIndex("UsuarioId");
+
+                    b.HasIndex("OrdenPagoProveedorId", "LiquidacionId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_OP_Origen_Liquidacion")
+                        .HasFilter("[OrdenPagoProveedorId] IS NOT NULL");
 
                     b.ToTable("OrdenesDePago", null, t =>
                         {
                             t.HasCheckConstraint("CK_OrdenesDePago_Importe", "[Importe] > 0");
+
+                            t.HasCheckConstraint("CK_OrdenesDePago_Vigencia", "([Vigente]=1 AND [RevertidaPorId] IS NULL AND [RevertidaEn] IS NULL) OR ([Vigente]=0 AND [OrdenPagoProveedorId] IS NOT NULL AND [RevertidaPorId] IS NOT NULL AND [RevertidaEn] IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.Banco", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Bancos_Nombre");
+
+                    b.ToTable("Bancos", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Bancos_Nombre", "DATALENGTH([Nombre]) > 0 AND DATALENGTH([Nombre]) <= 400 AND DATALENGTH([Nombre]) = DATALENGTH(TRIM(NCHAR(9)+NCHAR(10)+NCHAR(11)+NCHAR(12)+NCHAR(13)+NCHAR(32)+NCHAR(133)+NCHAR(160)+NCHAR(5760)+NCHAR(8192)+NCHAR(8193)+NCHAR(8194)+NCHAR(8195)+NCHAR(8196)+NCHAR(8197)+NCHAR(8198)+NCHAR(8199)+NCHAR(8200)+NCHAR(8201)+NCHAR(8202)+NCHAR(8232)+NCHAR(8233)+NCHAR(8239)+NCHAR(8287)+NCHAR(12288) FROM [Nombre] COLLATE Latin1_General_100_BIN2))");
+                        });
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.CambioEstadoCheque", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("ChequeId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("EstadoAnterior")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("EstadoNuevo")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime>("OcurridoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Tipo")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("ChequeId", "Id");
+
+                    b.HasIndex("ChequeId", "Tipo");
+
+                    b.ToTable("HistorialEstadosCheque", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_HistorialCheque_Arista", "([EstadoAnterior]=0 AND [EstadoNuevo] IN(1,5)) OR ([EstadoAnterior]=1 AND [EstadoNuevo] IN(2,5)) OR ([EstadoAnterior]=2 AND [EstadoNuevo] IN(3,4))");
+
+                            t.HasCheckConstraint("CK_HistorialCheque_Tipo", "[Tipo]=0");
+                        });
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.MedioPagoProveedor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("Importe")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("OrdenPagoProveedorId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("RenglonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte>("Tipo")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrdenPagoProveedorId", "RenglonId")
+                        .IsUnique();
+
+                    b.ToTable("MediosPagoProveedor", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Cheque_Numero", "[Tipo]<>0 OR ([NumeroCheque] IS NOT NULL AND DATALENGTH([NumeroCheque]) > 0 AND DATALENGTH([NumeroCheque]) <= 400 AND DATALENGTH([NumeroCheque]) = DATALENGTH(TRIM(NCHAR(9)+NCHAR(10)+NCHAR(11)+NCHAR(12)+NCHAR(13)+NCHAR(32)+NCHAR(133)+NCHAR(160)+NCHAR(5760)+NCHAR(8192)+NCHAR(8193)+NCHAR(8194)+NCHAR(8195)+NCHAR(8196)+NCHAR(8197)+NCHAR(8198)+NCHAR(8199)+NCHAR(8200)+NCHAR(8201)+NCHAR(8202)+NCHAR(8232)+NCHAR(8233)+NCHAR(8239)+NCHAR(8287)+NCHAR(12288) FROM [NumeroCheque] COLLATE Latin1_General_100_BIN2)))");
+
+                            t.HasCheckConstraint("CK_MedioPago_Campos", "([Tipo]=0 AND [BancoId] IS NOT NULL AND [NumeroCheque] IS NOT NULL AND [FechaVencimiento] IS NOT NULL AND [EstadoCheque] IS NOT NULL AND [EstadoCheque] IN(0,1,2,3,4,5) AND [FechaVencimiento]>=[Fecha] AND [CbuOrigen] IS NULL AND [CbuDestino] IS NULL AND [NumeroComprobante] IS NULL AND [Observaciones] IS NULL) OR ([Tipo]=1 AND [CbuOrigen] IS NOT NULL AND [CbuDestino] IS NOT NULL AND [NumeroComprobante] IS NOT NULL AND LEN(LTRIM(RTRIM([NumeroComprobante])))>0 AND [BancoId] IS NULL AND [NumeroCheque] IS NULL AND [FechaVencimiento] IS NULL AND [EstadoCheque] IS NULL AND [DetalleCheque] IS NULL) OR ([Tipo]=2 AND [BancoId] IS NULL AND [NumeroCheque] IS NULL AND [FechaVencimiento] IS NULL AND [EstadoCheque] IS NULL AND [DetalleCheque] IS NULL AND [CbuOrigen] IS NULL AND [CbuDestino] IS NULL AND [NumeroComprobante] IS NULL AND [Observaciones] IS NULL)");
+
+                            t.HasCheckConstraint("CK_MedioPago_Importe", "[Importe]>0");
+
+                            t.HasCheckConstraint("CK_MedioPago_Tipo", "[Tipo] IN (0,1,2)");
+
+                            t.HasCheckConstraint("CK_Transferencia_Cbu", "[Tipo]<>1 OR ([CbuOrigen] IS NOT NULL AND [CbuDestino] IS NOT NULL AND DATALENGTH([CbuOrigen])=22 AND DATALENGTH([CbuDestino])=22 AND [CbuOrigen] COLLATE Latin1_General_100_BIN2 NOT LIKE '%[^0-9]%' AND [CbuDestino] COLLATE Latin1_General_100_BIN2 NOT LIKE '%[^0-9]%')");
+                        });
+
+                    b.HasDiscriminator<byte>("Tipo");
+
+                    b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.OrdenPagoProveedor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("AnuladaEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("AnuladaPorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Detalle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("Estado")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("ImporteTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("MotivoAnulacion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Numero")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValueSql("NEXT VALUE FOR dbo.NumeroDeOrdenPagoProveedor");
+
+                    b.Property<bool>("ProveedorActivoAlGenerar")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ProveedorCuit")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(11)");
+
+                    b.Property<int>("ProveedorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProveedorRazonSocial")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("RegistradaEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TipoProveedorAlRegistrar")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AnuladaPorId");
+
+                    b.HasIndex("Numero")
+                        .IsUnique();
+
+                    b.HasIndex("ProveedorId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("Fecha", "Id")
+                        .IsDescending();
+
+                    b.ToTable("OrdenesPagoProveedor", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OPP_Estado", "([Estado]=0 AND [MotivoAnulacion] IS NULL AND [AnuladaPorId] IS NULL AND [AnuladaEn] IS NULL) OR ([Estado]=1 AND [MotivoAnulacion] IS NOT NULL AND LEN(LTRIM(RTRIM([MotivoAnulacion])))>0 AND [AnuladaPorId] IS NOT NULL AND [AnuladaEn] IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_OPP_Importe", "[ImporteTotal] > 0");
+                        });
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.OrdenPagoProveedorFactura", b =>
+                {
+                    b.Property<int>("OrdenPagoProveedorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FacturaProveedorId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ImporteTotalAlPagar")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("Vigente")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.HasKey("OrdenPagoProveedorId", "FacturaProveedorId");
+
+                    b.HasIndex("FacturaProveedorId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_OPPFactura_Vigente")
+                        .HasFilter("[Vigente]=1");
+
+                    b.ToTable("OrdenPagoProveedorFacturas", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OPPFactura_Importe", "[ImporteTotalAlPagar]>0");
+                        });
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.ResultadoOperacionPago", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("Clave")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CompletadaEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ContenidoCanonico")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<short>("EstadoHttp")
+                        .HasColumnType("smallint");
+
+                    b.Property<byte[]>("Hash")
+                        .IsRequired()
+                        .HasColumnType("binary(32)");
+
+                    b.Property<byte>("Operacion")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("OrdenPagoProveedorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ResultadoJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VersionCanonica")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrdenPagoProveedorId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("Operacion", "Clave")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ResultadoPago_Operacion_Clave");
+
+                    b.ToTable("ResultadosOperacionPago", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ResultadoPago_Json", "ISJSON([ContenidoCanonico])=1 AND ISJSON([ResultadoJson])=1");
+
+                            t.HasCheckConstraint("CK_ResultadoPago_Operacion", "[Operacion] IN(0,1) AND [VersionCanonica]>0 AND [EstadoHttp] IN(200,201)");
                         });
                 });
 
@@ -1098,7 +1435,7 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                         {
                             t.HasCheckConstraint("CK_FacturasProveedor_Archivo", "([ArchivoRuta] IS NULL AND [ArchivoNombre] IS NULL AND [ArchivoTipoContenido] IS NULL) OR ([ArchivoRuta] IS NOT NULL AND LEN([ArchivoRuta]) > 0 AND [ArchivoNombre] IS NOT NULL AND LEN([ArchivoNombre]) > 0 AND [ArchivoTipoContenido] IS NOT NULL AND [ArchivoTipoContenido] = N'application/pdf')");
 
-                            t.HasCheckConstraint("CK_FacturasProveedor_Estado", "[Estado] = 0");
+                            t.HasCheckConstraint("CK_FacturasProveedor_Estado", "[Estado] IN (0,1)");
 
                             t.HasCheckConstraint("CK_FacturasProveedor_Fechas", "[FechaVencimientoCae] >= [Fecha]");
 
@@ -1504,6 +1841,108 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.ToTable("UsuarioRoles", (string)null);
                 });
 
+            modelBuilder.Entity("GT.Domain.Pagos.Cheque", b =>
+                {
+                    b.HasBaseType("GT.Domain.Pagos.MedioPagoProveedor");
+
+                    b.Property<int>("BancoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DetalleCheque")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("EstadoCheque")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateOnly>("FechaVencimiento")
+                        .HasColumnType("date");
+
+                    b.Property<string>("NumeroCheque")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.HasIndex("BancoId", "NumeroCheque")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Cheques_Banco_Numero")
+                        .HasFilter("[Tipo]=0");
+
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("CK_Cheque_Numero", "[Tipo]<>0 OR ([NumeroCheque] IS NOT NULL AND DATALENGTH([NumeroCheque]) > 0 AND DATALENGTH([NumeroCheque]) <= 400 AND DATALENGTH([NumeroCheque]) = DATALENGTH(TRIM(NCHAR(9)+NCHAR(10)+NCHAR(11)+NCHAR(12)+NCHAR(13)+NCHAR(32)+NCHAR(133)+NCHAR(160)+NCHAR(5760)+NCHAR(8192)+NCHAR(8193)+NCHAR(8194)+NCHAR(8195)+NCHAR(8196)+NCHAR(8197)+NCHAR(8198)+NCHAR(8199)+NCHAR(8200)+NCHAR(8201)+NCHAR(8202)+NCHAR(8232)+NCHAR(8233)+NCHAR(8239)+NCHAR(8287)+NCHAR(12288) FROM [NumeroCheque] COLLATE Latin1_General_100_BIN2)))");
+
+                            t.HasCheckConstraint("CK_MedioPago_Campos", "([Tipo]=0 AND [BancoId] IS NOT NULL AND [NumeroCheque] IS NOT NULL AND [FechaVencimiento] IS NOT NULL AND [EstadoCheque] IS NOT NULL AND [EstadoCheque] IN(0,1,2,3,4,5) AND [FechaVencimiento]>=[Fecha] AND [CbuOrigen] IS NULL AND [CbuDestino] IS NULL AND [NumeroComprobante] IS NULL AND [Observaciones] IS NULL) OR ([Tipo]=1 AND [CbuOrigen] IS NOT NULL AND [CbuDestino] IS NOT NULL AND [NumeroComprobante] IS NOT NULL AND LEN(LTRIM(RTRIM([NumeroComprobante])))>0 AND [BancoId] IS NULL AND [NumeroCheque] IS NULL AND [FechaVencimiento] IS NULL AND [EstadoCheque] IS NULL AND [DetalleCheque] IS NULL) OR ([Tipo]=2 AND [BancoId] IS NULL AND [NumeroCheque] IS NULL AND [FechaVencimiento] IS NULL AND [EstadoCheque] IS NULL AND [DetalleCheque] IS NULL AND [CbuOrigen] IS NULL AND [CbuDestino] IS NULL AND [NumeroComprobante] IS NULL AND [Observaciones] IS NULL)");
+
+                            t.HasCheckConstraint("CK_MedioPago_Importe", "[Importe]>0");
+
+                            t.HasCheckConstraint("CK_MedioPago_Tipo", "[Tipo] IN (0,1,2)");
+
+                            t.HasCheckConstraint("CK_Transferencia_Cbu", "[Tipo]<>1 OR ([CbuOrigen] IS NOT NULL AND [CbuDestino] IS NOT NULL AND DATALENGTH([CbuOrigen])=22 AND DATALENGTH([CbuDestino])=22 AND [CbuOrigen] COLLATE Latin1_General_100_BIN2 NOT LIKE '%[^0-9]%' AND [CbuDestino] COLLATE Latin1_General_100_BIN2 NOT LIKE '%[^0-9]%')");
+                        });
+
+                    b.HasDiscriminator().HasValue((byte)0);
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.Efectivo", b =>
+                {
+                    b.HasBaseType("GT.Domain.Pagos.MedioPagoProveedor");
+
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("CK_Cheque_Numero", "[Tipo]<>0 OR ([NumeroCheque] IS NOT NULL AND DATALENGTH([NumeroCheque]) > 0 AND DATALENGTH([NumeroCheque]) <= 400 AND DATALENGTH([NumeroCheque]) = DATALENGTH(TRIM(NCHAR(9)+NCHAR(10)+NCHAR(11)+NCHAR(12)+NCHAR(13)+NCHAR(32)+NCHAR(133)+NCHAR(160)+NCHAR(5760)+NCHAR(8192)+NCHAR(8193)+NCHAR(8194)+NCHAR(8195)+NCHAR(8196)+NCHAR(8197)+NCHAR(8198)+NCHAR(8199)+NCHAR(8200)+NCHAR(8201)+NCHAR(8202)+NCHAR(8232)+NCHAR(8233)+NCHAR(8239)+NCHAR(8287)+NCHAR(12288) FROM [NumeroCheque] COLLATE Latin1_General_100_BIN2)))");
+
+                            t.HasCheckConstraint("CK_MedioPago_Campos", "([Tipo]=0 AND [BancoId] IS NOT NULL AND [NumeroCheque] IS NOT NULL AND [FechaVencimiento] IS NOT NULL AND [EstadoCheque] IS NOT NULL AND [EstadoCheque] IN(0,1,2,3,4,5) AND [FechaVencimiento]>=[Fecha] AND [CbuOrigen] IS NULL AND [CbuDestino] IS NULL AND [NumeroComprobante] IS NULL AND [Observaciones] IS NULL) OR ([Tipo]=1 AND [CbuOrigen] IS NOT NULL AND [CbuDestino] IS NOT NULL AND [NumeroComprobante] IS NOT NULL AND LEN(LTRIM(RTRIM([NumeroComprobante])))>0 AND [BancoId] IS NULL AND [NumeroCheque] IS NULL AND [FechaVencimiento] IS NULL AND [EstadoCheque] IS NULL AND [DetalleCheque] IS NULL) OR ([Tipo]=2 AND [BancoId] IS NULL AND [NumeroCheque] IS NULL AND [FechaVencimiento] IS NULL AND [EstadoCheque] IS NULL AND [DetalleCheque] IS NULL AND [CbuOrigen] IS NULL AND [CbuDestino] IS NULL AND [NumeroComprobante] IS NULL AND [Observaciones] IS NULL)");
+
+                            t.HasCheckConstraint("CK_MedioPago_Importe", "[Importe]>0");
+
+                            t.HasCheckConstraint("CK_MedioPago_Tipo", "[Tipo] IN (0,1,2)");
+
+                            t.HasCheckConstraint("CK_Transferencia_Cbu", "[Tipo]<>1 OR ([CbuOrigen] IS NOT NULL AND [CbuDestino] IS NOT NULL AND DATALENGTH([CbuOrigen])=22 AND DATALENGTH([CbuDestino])=22 AND [CbuOrigen] COLLATE Latin1_General_100_BIN2 NOT LIKE '%[^0-9]%' AND [CbuDestino] COLLATE Latin1_General_100_BIN2 NOT LIKE '%[^0-9]%')");
+                        });
+
+                    b.HasDiscriminator().HasValue((byte)2);
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.Transferencia", b =>
+                {
+                    b.HasBaseType("GT.Domain.Pagos.MedioPagoProveedor");
+
+                    b.Property<string>("CbuDestino")
+                        .IsRequired()
+                        .HasMaxLength(22)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(22)");
+
+                    b.Property<string>("CbuOrigen")
+                        .IsRequired()
+                        .HasMaxLength(22)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(22)");
+
+                    b.Property<string>("NumeroComprobante")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Observaciones")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("CK_Cheque_Numero", "[Tipo]<>0 OR ([NumeroCheque] IS NOT NULL AND DATALENGTH([NumeroCheque]) > 0 AND DATALENGTH([NumeroCheque]) <= 400 AND DATALENGTH([NumeroCheque]) = DATALENGTH(TRIM(NCHAR(9)+NCHAR(10)+NCHAR(11)+NCHAR(12)+NCHAR(13)+NCHAR(32)+NCHAR(133)+NCHAR(160)+NCHAR(5760)+NCHAR(8192)+NCHAR(8193)+NCHAR(8194)+NCHAR(8195)+NCHAR(8196)+NCHAR(8197)+NCHAR(8198)+NCHAR(8199)+NCHAR(8200)+NCHAR(8201)+NCHAR(8202)+NCHAR(8232)+NCHAR(8233)+NCHAR(8239)+NCHAR(8287)+NCHAR(12288) FROM [NumeroCheque] COLLATE Latin1_General_100_BIN2)))");
+
+                            t.HasCheckConstraint("CK_MedioPago_Campos", "([Tipo]=0 AND [BancoId] IS NOT NULL AND [NumeroCheque] IS NOT NULL AND [FechaVencimiento] IS NOT NULL AND [EstadoCheque] IS NOT NULL AND [EstadoCheque] IN(0,1,2,3,4,5) AND [FechaVencimiento]>=[Fecha] AND [CbuOrigen] IS NULL AND [CbuDestino] IS NULL AND [NumeroComprobante] IS NULL AND [Observaciones] IS NULL) OR ([Tipo]=1 AND [CbuOrigen] IS NOT NULL AND [CbuDestino] IS NOT NULL AND [NumeroComprobante] IS NOT NULL AND LEN(LTRIM(RTRIM([NumeroComprobante])))>0 AND [BancoId] IS NULL AND [NumeroCheque] IS NULL AND [FechaVencimiento] IS NULL AND [EstadoCheque] IS NULL AND [DetalleCheque] IS NULL) OR ([Tipo]=2 AND [BancoId] IS NULL AND [NumeroCheque] IS NULL AND [FechaVencimiento] IS NULL AND [EstadoCheque] IS NULL AND [DetalleCheque] IS NULL AND [CbuOrigen] IS NULL AND [CbuDestino] IS NULL AND [NumeroComprobante] IS NULL AND [Observaciones] IS NULL)");
+
+                            t.HasCheckConstraint("CK_MedioPago_Importe", "[Importe]>0");
+
+                            t.HasCheckConstraint("CK_MedioPago_Tipo", "[Tipo] IN (0,1,2)");
+
+                            t.HasCheckConstraint("CK_Transferencia_Cbu", "[Tipo]<>1 OR ([CbuOrigen] IS NOT NULL AND [CbuDestino] IS NOT NULL AND DATALENGTH([CbuOrigen])=22 AND DATALENGTH([CbuDestino])=22 AND [CbuOrigen] COLLATE Latin1_General_100_BIN2 NOT LIKE '%[^0-9]%' AND [CbuDestino] COLLATE Latin1_General_100_BIN2 NOT LIKE '%[^0-9]%')");
+                        });
+
+                    b.HasDiscriminator().HasValue((byte)1);
+                });
+
             modelBuilder.Entity("GT.Domain.Adelantos.Adelanto", b =>
                 {
                     b.HasOne("GT.Domain.Personas.Persona", "Persona")
@@ -1563,6 +2002,11 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                         .HasForeignKey("OrdenDePagoId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("GT.Domain.Pagos.OrdenPagoProveedor", "OrdenPagoProveedor")
+                        .WithMany()
+                        .HasForeignKey("OrdenPagoProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("GT.Domain.Usuarios.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
@@ -1574,6 +2018,8 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Navigation("Factura");
 
                     b.Navigation("OrdenDePago");
+
+                    b.Navigation("OrdenPagoProveedor");
 
                     b.Navigation("Usuario");
                 });
@@ -1699,6 +2145,11 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("GT.Domain.Liquidaciones.OrdenDePago", "OrdenDePago")
+                        .WithMany()
+                        .HasForeignKey("OrdenDePagoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("GT.Domain.Usuarios.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
@@ -1706,6 +2157,8 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                         .IsRequired();
 
                     b.Navigation("Liquidacion");
+
+                    b.Navigation("OrdenDePago");
 
                     b.Navigation("Usuario");
                 });
@@ -1767,6 +2220,16 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("GT.Domain.Pagos.OrdenPagoProveedor", "OrdenPagoProveedor")
+                        .WithMany()
+                        .HasForeignKey("OrdenPagoProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("GT.Domain.Usuarios.Usuario", "RevertidaPor")
+                        .WithMany()
+                        .HasForeignKey("RevertidaPorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("GT.Domain.Usuarios.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
@@ -1774,6 +2237,105 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                         .IsRequired();
 
                     b.Navigation("Liquidacion");
+
+                    b.Navigation("OrdenPagoProveedor");
+
+                    b.Navigation("RevertidaPor");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.CambioEstadoCheque", b =>
+                {
+                    b.HasOne("GT.Domain.Usuarios.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Pagos.MedioPagoProveedor", "Cheque")
+                        .WithMany()
+                        .HasForeignKey("ChequeId", "Tipo")
+                        .HasPrincipalKey("Id", "Tipo")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cheque");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.MedioPagoProveedor", b =>
+                {
+                    b.HasOne("GT.Domain.Pagos.OrdenPagoProveedor", "OrdenPagoProveedor")
+                        .WithMany("Medios")
+                        .HasForeignKey("OrdenPagoProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OrdenPagoProveedor");
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.OrdenPagoProveedor", b =>
+                {
+                    b.HasOne("GT.Domain.Usuarios.Usuario", "AnuladaPor")
+                        .WithMany()
+                        .HasForeignKey("AnuladaPorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("GT.Domain.Proveedores.Proveedor", "Proveedor")
+                        .WithMany()
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Usuarios.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AnuladaPor");
+
+                    b.Navigation("Proveedor");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.OrdenPagoProveedorFactura", b =>
+                {
+                    b.HasOne("GT.Domain.Proveedores.FacturaProveedor", "FacturaProveedor")
+                        .WithMany()
+                        .HasForeignKey("FacturaProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Pagos.OrdenPagoProveedor", "OrdenPagoProveedor")
+                        .WithMany("Facturas")
+                        .HasForeignKey("OrdenPagoProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FacturaProveedor");
+
+                    b.Navigation("OrdenPagoProveedor");
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.ResultadoOperacionPago", b =>
+                {
+                    b.HasOne("GT.Domain.Pagos.OrdenPagoProveedor", "OrdenPagoProveedor")
+                        .WithMany()
+                        .HasForeignKey("OrdenPagoProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GT.Domain.Usuarios.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OrdenPagoProveedor");
 
                     b.Navigation("Usuario");
                 });
@@ -1904,6 +2466,17 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("GT.Domain.Pagos.Cheque", b =>
+                {
+                    b.HasOne("GT.Domain.Pagos.Banco", "Banco")
+                        .WithMany()
+                        .HasForeignKey("BancoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Banco");
+                });
+
             modelBuilder.Entity("GT.Domain.Adelantos.Adelanto", b =>
                 {
                     b.Navigation("Cambios");
@@ -1960,6 +2533,13 @@ namespace GT.Infrastructure.Persistencia.Migraciones
                     b.Navigation("OrdenesDePago");
 
                     b.Navigation("Viajes");
+                });
+
+            modelBuilder.Entity("GT.Domain.Pagos.OrdenPagoProveedor", b =>
+                {
+                    b.Navigation("Facturas");
+
+                    b.Navigation("Medios");
                 });
 
             modelBuilder.Entity("GT.Domain.Personas.Persona", b =>

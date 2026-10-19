@@ -1,3 +1,5 @@
+using GT.Application.Pagos;
+
 namespace GT.Application.Caja;
 
 // ── Entradas ────────────────────────────────────────────────────────────────────────────────────
@@ -74,7 +76,8 @@ public record MovimientoListado(
     decimal Importe,
     string Concepto,
     UsuarioResumen Responsable,
-    string? Referencia);
+    string? Referencia,
+    ReferenciaPago? OrdenPagoProveedor = null);
 
 /// <summary>
 /// Lo que se muestra antes de cerrar (FR-016), y lo que traen los dos <c>409</c> del cierre. Los movimientos

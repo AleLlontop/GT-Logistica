@@ -46,7 +46,7 @@ export function ConsultarFacturasProveedor() {
     if (desde) filtros.desde = desde
     if (hasta) filtros.hasta = hasta
     if (proveedor) filtros.proveedorId = proveedor.id
-    if (estado === 'pendiente') filtros.estado = estado
+    if (estado === 'pendiente' || estado === 'pagada') filtros.estado = estado
     setAplicados({ filtros, proveedor }); setPagina(1)
   }
   function limpiar() {
@@ -55,7 +55,7 @@ export function ConsultarFacturasProveedor() {
   }
   const filtrando = Object.keys(aplicados.filtros).length > 0
   const resumen = [aplicados.filtros.desde && `Desde: ${formatearFecha(aplicados.filtros.desde)}`, aplicados.filtros.hasta && `Hasta: ${formatearFecha(aplicados.filtros.hasta)}`,
-    aplicados.proveedor && `Proveedor: ${aplicados.proveedor.razonSocial}`, aplicados.filtros.estado && 'Estado: Pendiente'].filter(Boolean).join(' · ')
+    aplicados.proveedor && `Proveedor: ${aplicados.proveedor.razonSocial}`, aplicados.filtros.estado && `Estado: ${aplicados.filtros.estado === 'pagada' ? 'Pagada' : 'Pendiente'}`].filter(Boolean).join(' · ')
   return <>
     <EncabezadoDePantalla titulo="Consultar facturas de proveedores" />
     {error && <p role="alert">{error}</p>}
@@ -68,7 +68,7 @@ export function ConsultarFacturasProveedor() {
           <FranjaDeFiltros>
             <Campo id="desde" etiqueta="Desde" ancho="corto" error={errorRango}><input id="desde" type="date" value={desde} className={clasesDeControl(Boolean(errorRango))} aria-invalid={Boolean(errorRango)} aria-describedby={errorRango ? 'desde-error' : undefined} onChange={e => setDesde(e.target.value)} /></Campo>
             <Campo id="hasta" etiqueta="Hasta" ancho="corto"><input id="hasta" type="date" value={hasta} className={clasesDeControl(false)} onChange={e => setHasta(e.target.value)} /></Campo>
-            <Campo id="estado" etiqueta="Estado" ancho="corto"><select id="estado" value={estado} className={clasesDeControl(false)} onChange={e => setEstado(e.target.value)}><option value="">Sin restricción</option><option value="pendiente">Pendiente</option></select></Campo>
+            <Campo id="estado" etiqueta="Estado" ancho="corto"><select id="estado" value={estado} className={clasesDeControl(false)} onChange={e => setEstado(e.target.value)}><option value="">Sin restricción</option><option value="pendiente">Pendiente</option><option value="pagada">Pagada</option></select></Campo>
             <Boton variante="secundario" type="submit">Aplicar filtros</Boton><Boton variante="terciario" onClick={limpiar}>Limpiar filtros</Boton>
           </FranjaDeFiltros>
           {errorRango && <p role="alert">Revisá el rango de fechas.</p>}
@@ -83,7 +83,7 @@ export function ConsultarFacturasProveedor() {
         <tbody>{resultado.items.map(f => <FilaNavegable key={f.id} a={`/proveedores/facturas/${f.id}`}>
           <td><Link className="font-mono font-semibold underline" to={`/proveedores/facturas/${f.id}`}>{f.numero}</Link></td><td>{formatearFecha(f.fecha)}</td>
           <td><span className="block font-semibold">{f.proveedorRazonSocial}</span><span className="font-mono text-faint">{formatearCuit(f.proveedorCuit)}</span></td>
-          <td className="text-right font-bold whitespace-nowrap">{formatearPesos(f.importeTotal)}</td><td><Estado valor={f.estado} texto="Pendiente" forma="pastilla" /></td>
+          <td className="text-right font-bold whitespace-nowrap">{formatearPesos(f.importeTotal)}</td><td><Estado valor={f.estado} texto={f.estado === 'pagada' ? 'Pagada' : 'Pendiente'} forma="pastilla" /></td>
         </FilaNavegable>)}</tbody>
       </table></TablaDesplazable>)}
     </Listado>

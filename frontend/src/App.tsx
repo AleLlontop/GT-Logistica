@@ -1,3 +1,13 @@
+import { ResultadoPagoProvider } from './modules/pagos/componentes/ResultadoPagoContexto'
+import { ConsultarOrdenes } from './modules/pagos/paginas/ConsultarOrdenes'
+import { ChequesPorVencer } from './modules/pagos/paginas/ChequesPorVencer'
+import { DetalleCheque } from './modules/pagos/paginas/DetalleCheque'
+import { DetalleOrden } from './modules/pagos/paginas/DetalleOrden'
+import { GenerarOrden } from './modules/pagos/paginas/GenerarOrden'
+import { Bancos } from './modules/pagos/paginas/Bancos'
+import { DetalleBanco } from './modules/pagos/paginas/DetalleBanco'
+import { FormularioBanco } from './modules/pagos/paginas/FormularioBanco'
+import { opcionesDisponiblesPagos } from './modules/pagos/servicios/menuPagos'
 import { useCallback, useEffect, useState } from 'react'
 import { PadronProveedores } from './modules/proveedores/paginas/PadronProveedores'
 import { FormularioProveedor } from './modules/proveedores/paginas/FormularioProveedor'
@@ -128,6 +138,10 @@ export default function App() {
   // (FR-015): acá no se combina nada.
   const puedeEmitirReportes = tienePermiso(sesion, Permisos.reportesEmitir)
 
+  const opcionesMenu = opcionesDisponiblesPagos(sesion?.opcionesMenu ?? [])
+  const puedeGestionarBancos = tienePermiso(sesion, Permisos.pagosBancosGestionar)
+  const puedeConsultarPagos = tienePermiso(sesion, Permisos.pagosConsultar)
+
   return (
     <BrowserRouter>
       {/*
@@ -136,7 +150,7 @@ export default function App() {
       */}
       <Lienzo />
 
-      <ResultadoFacturaProvider key={sesion?.username ?? 'sin-sesion'}><Routes>
+      <ResultadoFacturaProvider key={sesion?.username ?? 'sin-sesion'}><ResultadoPagoProvider key={sesion?.username ?? 'sin-sesion'}><Routes>
         <Route
           path="/ingresar"
           element={
@@ -156,10 +170,10 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
-                  <PantallaInicio sesion={sesion} />
+                  <PantallaInicio sesion={{ ...sesion, opcionesMenu }} />
                 </Layout>
               )}
             </RutaProtegida>
@@ -173,7 +187,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ListadoUsuarios />
@@ -190,7 +204,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioUsuario />
@@ -207,7 +221,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <DetalleUsuario />
@@ -224,7 +238,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioUsuario />
@@ -241,7 +255,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <PanelRoles />
@@ -258,7 +272,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ListadoPersonas />
@@ -275,7 +289,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioPersona />
@@ -292,7 +306,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioPersona />
@@ -311,7 +325,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ListadoChoferes />
@@ -328,7 +342,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <PanelVencimientos
@@ -348,7 +362,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioChofer />
@@ -365,7 +379,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FichaChofer />
@@ -382,7 +396,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioChofer />
@@ -399,7 +413,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ListadoTransportistas />
@@ -416,7 +430,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioTransportista />
@@ -433,7 +447,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioTransportista />
@@ -452,7 +466,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ListadoFlota />
@@ -469,7 +483,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <PanelVencimientosFlota
@@ -489,7 +503,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioVehiculo />
@@ -506,7 +520,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FichaVehiculo />
@@ -523,7 +537,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioVehiculo />
@@ -540,7 +554,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ListadoTiposVehiculo />
@@ -560,7 +574,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ListadoViajes
@@ -580,7 +594,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <TotalesPeriodo />
@@ -597,7 +611,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioViaje />
@@ -614,7 +628,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FichaViaje puedeGestionar={puedeGestionarViajes} />
@@ -631,7 +645,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <AsignacionViaje />
@@ -648,7 +662,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioViaje />
@@ -665,7 +679,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ListadoClientes puedeGestionar={puedeGestionarViajes} />
@@ -682,7 +696,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioCliente />
@@ -699,7 +713,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FormularioCliente />
@@ -720,7 +734,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ListadoFacturas puedeGestionar={puedeGestionarFacturas} />
@@ -737,7 +751,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <PanelVencimientosFacturas puedeEmitirReportes={puedeEmitirReportes} />
@@ -754,7 +768,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <TotalesFacturados />
@@ -771,7 +785,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <AltaFactura />
@@ -788,7 +802,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <FichaFactura
@@ -808,7 +822,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <CorreccionFactura />
@@ -825,7 +839,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <EmpresaEmisora />
@@ -847,7 +861,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ListadoLiquidaciones puedeGestionar={puedeGestionarLiquidaciones} />
@@ -864,7 +878,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <GenerarLiquidacion />
@@ -881,7 +895,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <DetalleLiquidacion puedeGestionar={puedeGestionarLiquidaciones} />
@@ -898,7 +912,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <EditarLiquidacion />
@@ -921,7 +935,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ListadoAdelantos puedeGestionar={puedeGestionarAdelantos} />
@@ -938,7 +952,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <RegistrarAdelanto puedeGestionar={puedeGestionarAdelantos} />
@@ -955,7 +969,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <DetalleAdelanto puedeGestionar={puedeGestionarAdelantos} />
@@ -982,7 +996,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ConsultaDeCajas puedeGestionar={puedeGestionarCaja} />
@@ -999,7 +1013,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <AbrirCaja puedeGestionar={puedeGestionarCaja} />
@@ -1016,7 +1030,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <DetalleDeCaja puedeGestionar={puedeGestionarCaja} />
@@ -1033,7 +1047,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <RegistrarMovimiento puedeGestionar={puedeGestionarCaja} />
@@ -1050,7 +1064,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ResumenDeCierre />
@@ -1067,7 +1081,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <ConsultaDeMovimientos puedeEmitirReportes={puedeEmitirReportes} />
@@ -1084,7 +1098,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <TiposDocumentacion />
@@ -1102,7 +1116,7 @@ export default function App() {
               {sesion !== null && (
                 <Layout
                   username={sesion.username}
-                  opcionesMenu={sesion.opcionesMenu}
+                  opcionesMenu={opcionesMenu}
                   onCerrarSesion={alCerrarSesion}
                 >
                   <CambiarPassword />
@@ -1113,6 +1127,15 @@ export default function App() {
         />
 
         {[
+          { ruta: '/pagos/nueva', pantalla: <GenerarOrden puedeGenerar={tienePermiso(sesion, Permisos.pagosGenerar)} puedeConsultar={puedeConsultarPagos} puedeGestionarBancos={puedeGestionarBancos} /> },
+          { ruta: '/pagos/bancos', pantalla: <Bancos puedeGestionar={puedeGestionarBancos} /> },
+          { ruta: '/pagos/bancos/nuevo', pantalla: <FormularioBanco puedeGestionar={puedeGestionarBancos} /> },
+          { ruta: '/pagos/bancos/:id/editar', pantalla: <FormularioBanco puedeGestionar={puedeGestionarBancos} /> },
+          { ruta: '/pagos/bancos/:id', pantalla: <DetalleBanco puedeGestionar={puedeGestionarBancos} /> },
+          { ruta: '/pagos/ordenes', pantalla: <ConsultarOrdenes /> },
+          { ruta: '/pagos/cheques', pantalla: <ChequesPorVencer /> },
+          { ruta: '/pagos/cheques/:id', pantalla: <DetalleCheque puedeCambiar={tienePermiso(sesion, Permisos.pagosChequesCambiarEstado)} puedeConsultarOrden={puedeConsultarPagos} /> },
+          { ruta: '/pagos/ordenes/:id', pantalla: <DetalleOrden puedeConsultar={puedeConsultarPagos} puedeAnular={tienePermiso(sesion, Permisos.pagosAnular)} puedeVerFacturas={tienePermiso(sesion, 'proveedores.facturas.consultar')} puedeVerLiquidaciones={tienePermiso(sesion, 'liquidaciones.consultar')} puedeVerCaja={tienePermiso(sesion, 'caja.consultar')} puedeVerCheques={tienePermiso(sesion, Permisos.pagosChequesConsultar)} /> },
           { ruta: '/proveedores', pantalla: <PadronProveedores puedeGestionar={sesion?.permisos.includes('proveedores.gestionar') ?? false} /> },
           { ruta: '/proveedores/nuevo', pantalla: <FormularioProveedor puedeGestionar={sesion?.permisos.includes('proveedores.gestionar') ?? false} /> },
           { ruta: '/proveedores/:id/editar', pantalla: <FormularioProveedor puedeGestionar={sesion?.permisos.includes('proveedores.gestionar') ?? false} /> },
@@ -1120,9 +1143,9 @@ export default function App() {
           { ruta: '/proveedores/facturas/nueva', pantalla: <CargarFacturaProveedor puedeCargar={sesion?.permisos.includes('proveedores.facturas.cargar') ?? false} /> },
           { ruta: '/proveedores/facturas', pantalla: <ConsultarFacturasProveedor /> },
           { ruta: '/proveedores/facturas/:id', pantalla: <DetalleFacturaProveedor puedeConsultar={sesion?.permisos.includes('proveedores.facturas.consultar') ?? false} puedeGestionarProveedores={sesion?.permisos.includes('proveedores.gestionar') ?? false} puedeConsultarLiquidaciones={sesion?.permisos.includes('liquidaciones.consultar') ?? false} /> },
-        ].map(({ ruta, pantalla }) => <Route key={ruta} path={ruta} element={<RutaProtegida sesion={sesion}>{sesion !== null && <Layout username={sesion.username} opcionesMenu={sesion.opcionesMenu} onCerrarSesion={alCerrarSesion}>{pantalla}</Layout>}</RutaProtegida>} />)}
+        ].map(({ ruta, pantalla }) => <Route key={ruta} path={ruta} element={<RutaProtegida sesion={sesion}>{sesion !== null && <Layout username={sesion.username} opcionesMenu={opcionesMenu} onCerrarSesion={alCerrarSesion}>{pantalla}</Layout>}</RutaProtegida>} />)}
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes></ResultadoFacturaProvider>
+      </Routes></ResultadoPagoProvider></ResultadoFacturaProvider>
     </BrowserRouter>
   )
 }

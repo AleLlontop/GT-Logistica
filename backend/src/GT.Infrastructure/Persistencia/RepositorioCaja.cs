@@ -1,3 +1,5 @@
+using GT.Application.Pagos;
+using GT.Domain.Pagos;
 using System.Linq.Expressions;
 using GT.Application.Caja;
 using GT.Application.Choferes;
@@ -34,7 +36,9 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
         string Usuario,
         string? FacturaNumero,
         string? FacturaCliente,
-        int? OrdenDePagoNumero);
+        int? OrdenDePagoNumero,
+        int? OrdenPagoProveedorId,
+        int? OrdenPagoProveedorNumero);
 
     /// <summary>
     /// La proyección de un movimiento, <b>una sola vez</b> para el listado de la caja, el resumen de cierre y la
@@ -53,7 +57,9 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
             movimiento.Usuario!.Username,
             movimiento.Factura != null ? movimiento.Factura.NumeroComprobante : null,
             movimiento.Factura != null ? movimiento.Factura.ClienteRazonSocial : null,
-            movimiento.OrdenDePago != null ? (int?)movimiento.OrdenDePago.Numero : null);
+            movimiento.OrdenDePago != null ? (int?)movimiento.OrdenDePago.Numero : null,
+            movimiento.OrdenPagoProveedorId,
+            movimiento.OrdenPagoProveedor != null ? (int?)movimiento.OrdenPagoProveedor.Numero : null);
 
     /// <summary>El formato visible de la referencia vive acá y viaja armado (convención [009]).</summary>
     private static MovimientoListado ALista(FilaDeMovimiento fila) =>
@@ -65,11 +71,13 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
             fila.Importe,
             fila.Concepto,
             new UsuarioResumen(fila.UsuarioId, fila.Usuario),
-            fila.FacturaNumero is not null
+            fila.OrdenPagoProveedorNumero is { } numeroOpp ? NumeroVisiblePagoProveedor.Desde(numeroOpp) : fila.FacturaNumero is not null
                 ? $"Factura {fila.FacturaNumero} · {fila.FacturaCliente}"
                 : fila.OrdenDePagoNumero is { } numero
                     ? NumerosVisibles.OrdenDePago(numero)
-                    : null);
+                    : null,
+            fila.OrdenPagoProveedorId is { } oppId && fila.OrdenPagoProveedorNumero is { } oppNumero
+                ? new ReferenciaPago(oppId, NumeroVisiblePagoProveedor.Desde(oppNumero)) : null);
 
     // ── Consulta de cajas ───────────────────────────────────────────────────────────────────────
 
@@ -257,8 +265,7 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
             return new MovimientoRegistrado(null, FacturaNoPendiente: true);
         }
 
-        contexto.MovimientosDeCaja.Add(movimiento);
-        await contexto.SaveChangesAsync(cancelacion);
+        await new PrimitivasMovimientosCaja(contexto).InsertarAsync(movimiento, cancelacion);
         await transaccion.CommitAsync(cancelacion);
 
         return new MovimientoRegistrado(movimiento.Id);
@@ -434,17 +441,9 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
     /// El <c>UPDATE</c> que no cambia nada: toma el mismo lock de fila que uno real y verifica, en el mismo
     /// paso, que la caja siga abierta y sea del usuario (research §2, FR-035). <c>true</c> si afectó una fila.
     /// </summary>
-    private async Task<bool> TomarCajaAsync(int cajaId, int usuarioId, CancellationToken cancelacion)
-    {
-        var afectadas = await contexto.Cajas
-            .Where(caja =>
-                caja.Id == cajaId &&
-                caja.Estado == EstadoCaja.Abierta &&
-                caja.UsuarioResponsableId == usuarioId)
-            .ExecuteUpdateAsync(cambio => cambio.SetProperty(caja => caja.Estado, caja => caja.Estado), cancelacion);
+    private async Task<bool> TomarCajaAsync(int cajaId, int usuarioId, CancellationToken cancelacion) =>
+        await new PrimitivasMovimientosCaja(contexto).TomarAsync(cajaId, usuarioId, cancelacion) == 1;
 
-        return afectadas == 1;
-    }
 
     private Task<decimal> SumaAsync(int cajaId, TipoMovimientoCaja tipo, CancellationToken cancelacion) =>
         contexto.MovimientosDeCaja

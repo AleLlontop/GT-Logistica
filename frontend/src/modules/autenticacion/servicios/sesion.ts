@@ -24,6 +24,13 @@ export interface Sesion {
 
 /** Los permisos que este frontend consulta por nombre. */
 export const Permisos = {
+  pagosGenerar: 'pagos.generar',
+  pagosConsultar: 'pagos.consultar',
+  pagosAnular: 'pagos.anular',
+  pagosChequesConsultar: 'pagos.cheques.consultar',
+  pagosChequesCambiarEstado: 'pagos.cheques.cambiarEstado',
+  pagosBancosConsultar: 'pagos.bancos.consultar',
+  pagosBancosGestionar: 'pagos.bancos.gestionar',
   /**
    * Módulos 3 y 4. El frontend los consulta sólo para el *volver* de los dos paneles de vencimientos:
    * esos paneles van bajo `choferes.vencimientos.consultar` y `flota.vencimientos.consultar`, que

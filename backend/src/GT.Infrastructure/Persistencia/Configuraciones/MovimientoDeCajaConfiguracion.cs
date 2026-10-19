@@ -29,10 +29,14 @@ public class MovimientoDeCajaConfiguracion : IEntityTypeConfiguration<Movimiento
             // ⚠ 0 y 1 son `TipoMovimientoCaja` escrito a mano (research §6).
             constructor.HasCheckConstraint(
                 CheckReferencia,
-                "([Tipo] = 0 AND [OrdenDePagoId] IS NULL) OR ([Tipo] = 1 AND [FacturaId] IS NULL)");
+                "([OrdenPagoProveedorId] IS NULL AND (([Tipo] = 0 AND [OrdenDePagoId] IS NULL) OR ([Tipo] = 1 AND [FacturaId] IS NULL))) OR ([OrdenPagoProveedorId] IS NOT NULL AND [Tipo] IN(0,1) AND [OrdenDePagoId] IS NULL AND [FacturaId] IS NULL)");
         });
 
         tabla.HasKey(movimiento => movimiento.Id);
+        tabla.HasOne(movimiento => movimiento.OrdenPagoProveedor).WithMany()
+            .HasForeignKey(movimiento => movimiento.OrdenPagoProveedorId).OnDelete(DeleteBehavior.Restrict);
+        tabla.HasIndex(movimiento => new { movimiento.OrdenPagoProveedorId, movimiento.Tipo }).IsUnique()
+            .HasFilter("[OrdenPagoProveedorId] IS NOT NULL").HasDatabaseName("IX_Movimientos_OPP_Tipo");
 
         tabla.Property(movimiento => movimiento.Tipo).HasConversion<byte>().IsRequired();
         tabla.Property(movimiento => movimiento.Importe).HasColumnType("decimal(18,2)").IsRequired();

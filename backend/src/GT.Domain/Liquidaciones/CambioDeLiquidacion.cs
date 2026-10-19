@@ -15,6 +15,9 @@ public class CambioDeLiquidacion
 {
     public int Id { get; set; }
 
+    public int? OrdenDePagoId { get; set; }
+    public OrdenDePago? OrdenDePago { get; set; }
+
     public required int LiquidacionId { get; set; }
 
     public Liquidacion? Liquidacion { get; set; }
