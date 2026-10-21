@@ -1,3 +1,10 @@
+import { Dashboard } from './modules/reportes/paginas/Dashboard'
+import { ViajesReporte } from './modules/reportes/paginas/Viajes'
+import { FacturacionReporte } from './modules/reportes/paginas/Facturacion'
+import { LiquidacionesReporte } from './modules/reportes/paginas/Liquidaciones'
+import { CajaReporte } from './modules/reportes/paginas/Caja'
+import { UtilizacionFlota } from './modules/reportes/paginas/UtilizacionFlota'
+import { VencimientosReporte } from './modules/reportes/paginas/Vencimientos'
 import { ResultadoPagoProvider } from './modules/pagos/componentes/ResultadoPagoContexto'
 import { ConsultarOrdenes } from './modules/pagos/paginas/ConsultarOrdenes'
 import { ChequesPorVencer } from './modules/pagos/paginas/ChequesPorVencer'
@@ -1127,6 +1134,13 @@ export default function App() {
         />
 
         {[
+          { ruta: '/reportes', pantalla: <Dashboard key={sesion?.username} sesionClave={sesion?.username ?? null} permisos={sesion?.permisos ?? []} /> },
+          { ruta: '/reportes/viajes', pantalla: <ViajesReporte key={sesion?.username} sesionClave={sesion?.username ?? null} permisos={sesion?.permisos ?? []} /> },
+          { ruta: '/reportes/facturacion', pantalla: <FacturacionReporte key={sesion?.username} sesionClave={sesion?.username ?? null} permisos={sesion?.permisos ?? []} /> },
+          { ruta: '/reportes/liquidaciones', pantalla: <LiquidacionesReporte key={sesion?.username} sesionClave={sesion?.username ?? null} permisos={sesion?.permisos ?? []} /> },
+          { ruta: '/reportes/caja', pantalla: <CajaReporte key={sesion?.username} sesionClave={sesion?.username ?? null} permisos={sesion?.permisos ?? []} /> },
+          { ruta: '/reportes/flota', pantalla: <UtilizacionFlota key={sesion?.username} sesionClave={sesion?.username ?? null} permisos={sesion?.permisos ?? []} /> },
+          { ruta: '/reportes/vencimientos', pantalla: <VencimientosReporte key={sesion?.username} sesionClave={sesion?.username ?? null} permisos={sesion?.permisos ?? []} /> },
           { ruta: '/pagos/nueva', pantalla: <GenerarOrden puedeGenerar={tienePermiso(sesion, Permisos.pagosGenerar)} puedeConsultar={puedeConsultarPagos} puedeGestionarBancos={puedeGestionarBancos} /> },
           { ruta: '/pagos/bancos', pantalla: <Bancos puedeGestionar={puedeGestionarBancos} /> },
           { ruta: '/pagos/bancos/nuevo', pantalla: <FormularioBanco puedeGestionar={puedeGestionarBancos} /> },
@@ -1143,7 +1157,7 @@ export default function App() {
           { ruta: '/proveedores/facturas/nueva', pantalla: <CargarFacturaProveedor puedeCargar={sesion?.permisos.includes('proveedores.facturas.cargar') ?? false} /> },
           { ruta: '/proveedores/facturas', pantalla: <ConsultarFacturasProveedor /> },
           { ruta: '/proveedores/facturas/:id', pantalla: <DetalleFacturaProveedor puedeConsultar={sesion?.permisos.includes('proveedores.facturas.consultar') ?? false} puedeGestionarProveedores={sesion?.permisos.includes('proveedores.gestionar') ?? false} puedeConsultarLiquidaciones={sesion?.permisos.includes('liquidaciones.consultar') ?? false} /> },
-        ].map(({ ruta, pantalla }) => <Route key={ruta} path={ruta} element={<RutaProtegida sesion={sesion}>{sesion !== null && <Layout username={sesion.username} opcionesMenu={opcionesMenu} onCerrarSesion={alCerrarSesion}>{pantalla}</Layout>}</RutaProtegida>} />)}
+        ].map(({ ruta, pantalla }) => <Route key={ruta} path={ruta} element={<RutaProtegida sesion={sesion}>{sesion !== null && <Layout adaptable={ruta.startsWith('/reportes')} username={sesion.username} opcionesMenu={opcionesMenu} onCerrarSesion={alCerrarSesion}>{pantalla}</Layout>}</RutaProtegida>} />)}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes></ResultadoPagoProvider></ResultadoFacturaProvider>
     </BrowserRouter>

@@ -22,6 +22,7 @@ using GT.Application.Flota;
 using GT.Application.Flota.Documentacion;
 using GT.Application.Flota.TiposVehiculo;
 using GT.Application.Reportes;
+using GT.Application.Reportes.Analisis;
 using GT.Application.Reportes.Fuentes;
 using GT.Application.Usuarios;
 using GT.Application.Usuarios.Personas;
@@ -262,6 +263,19 @@ builder.Services.AddSingleton<IArmadorReporteExcel, ArmadorReporteExcelClosedXml
 // escrito una sola vez, en `OpcionesDeReporte.TopePorDefecto` (data-model §4).
 builder.Services.AddSingleton(OpcionesDeReporte.PorDefecto);
 builder.Services.AddScoped<ArmadoDeReporte>();
+builder.Services.AddScoped<DetectorSnapshotAnalisis>();
+builder.Services.AddScoped<ReadinessAnalisisReportes>();
+builder.Services.AddScoped<CoordinadorFotoAnalisis>();
+builder.Services.AddScoped<IConsultaViajesAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IConsultaFacturacionAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IConsultaLiquidacionesAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IConsultaCajaAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IConsultaFlotaAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IConsultaVencimientosAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IConsultaDashboardAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IExportacionAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<ConsultarDashboard>();
+builder.Services.AddScoped<EmitirAnalisisReporte>();
 
 builder.Services.AddScoped<FuenteReporteViajes>();
 builder.Services.AddScoped<FuenteReporteVencimientosChoferes>();
@@ -419,6 +433,8 @@ builder.Services.AddAuthorization(opciones =>
         CodigosPermiso.CajaConsultar, CodigosPermiso.ReportesEmitir);
 });
 
+builder.Services.AddAuthorization(opciones => opciones.AgregarPoliticasAnalisisReportes());
+
 builder.Services.Configure<JsonOptions>(opciones =>
     opciones.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
 
@@ -518,6 +534,7 @@ app.MapearCierreDeCaja();
 // (FR-001, research §6). Sus rutas son literales y conviven con las `{id:int}` de los grupos de
 // arriba, que ya llevan su restricción de tipo (convención [005]).
 app.MapearReportes();
+app.MapearAnalisisReportes();
 
 await AplicarMigracionesYSembrarAsync(app);
 

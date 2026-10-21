@@ -25,7 +25,7 @@ namespace GT.Infrastructure.Persistencia;
 public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
 {
     /// <summary>Lo que un listado de movimientos lee de SQL. La referencia se arma después, en memoria.</summary>
-    private sealed record FilaDeMovimiento(
+    internal sealed record FilaDeMovimiento(
         int Id,
         int CajaId,
         DateTime Fecha,
@@ -45,7 +45,7 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
     /// consulta global: las tres leen igual (convención [010]). Es una expresión y no un método, así que EF la
     /// traduce entera.
     /// </summary>
-    private static readonly Expression<Func<MovimientoDeCaja, FilaDeMovimiento>> ProyeccionDeMovimiento =
+    internal static readonly Expression<Func<MovimientoDeCaja, FilaDeMovimiento>> ProyeccionDeMovimiento =
         movimiento => new FilaDeMovimiento(
             movimiento.Id,
             movimiento.CajaId,
@@ -62,7 +62,7 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
             movimiento.OrdenPagoProveedor != null ? (int?)movimiento.OrdenPagoProveedor.Numero : null);
 
     /// <summary>El formato visible de la referencia vive acá y viaja armado (convención [009]).</summary>
-    private static MovimientoListado ALista(FilaDeMovimiento fila) =>
+    internal static MovimientoListado ALista(FilaDeMovimiento fila) =>
         new(
             fila.Id,
             fila.CajaId,
@@ -415,7 +415,13 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
         int? tamanioPagina = null,
         CancellationToken cancelacion = default)
     {
-        var consulta = contexto.MovimientosDeCaja.AsQueryable();
+        var consulta = FiltrarMovimientos(contexto.MovimientosDeCaja, desde, hastaExcluido, cajaId);
+        return PaginarAsync(consulta, pagina, cancelacion, tamanioPagina);
+    }
+
+    internal static IQueryable<MovimientoDeCaja> FiltrarMovimientos(IQueryable<MovimientoDeCaja> movimientos, DateTime? desde, DateTime? hastaExcluido, int? cajaId)
+    {
+        var consulta = movimientos;
 
         if (cajaId is { } caja)
         {
@@ -432,7 +438,7 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
             consulta = consulta.Where(movimiento => movimiento.Fecha < fin);
         }
 
-        return PaginarAsync(consulta, pagina, cancelacion, tamanioPagina);
+        return consulta;
     }
 
     // ── Piezas comunes ──────────────────────────────────────────────────────────────────────────

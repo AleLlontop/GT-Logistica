@@ -99,46 +99,7 @@ public class RepositorioViajes(GtDbContext contexto) : IRepositorioViajes
         var limiteDeDemora = momento.LimiteDeDemora;
         var hoy = momento.Hoy;
 
-        var consulta = contexto.Viajes.AsQueryable();
-
-        if (filtros.ClienteId is { } clienteId)
-        {
-            consulta = consulta.Where(viaje => viaje.ClienteId == clienteId);
-        }
-
-        if (filtros.TransportistaId is { } transportistaId)
-        {
-            consulta = consulta.Where(viaje => viaje.TransportistaId == transportistaId);
-        }
-
-        // **Predicado único**, no un filtrado posterior: sin filtro de estado los anulados no
-        // aparecen, y con el filtro `anulado` aparecen sólo ellos. Escrito así, la exclusión es una
-        // garantía de la consulta y no algo que alguien pueda olvidar más adelante (FR-044).
-        consulta = filtros.Estado is { } estado
-            ? consulta.Where(viaje => viaje.Estado == estado)
-            : consulta.Where(viaje => viaje.Estado != EstadoViaje.Anulado);
-
-        if (filtros.Desde is { } desde)
-        {
-            consulta = consulta.Where(viaje => viaje.Fecha >= desde);
-        }
-
-        if (filtros.Hasta is { } hasta)
-        {
-            consulta = consulta.Where(viaje => viaje.Fecha <= hasta);
-        }
-
-        if (!string.IsNullOrWhiteSpace(filtros.Busqueda))
-        {
-            var patron = $"%{filtros.Busqueda.Trim()}%";
-
-            consulta = consulta.Where(viaje =>
-                EF.Functions.Like(EF.Functions.Collate(viaje.Origen, ColacionSinAcentos), patron) ||
-                EF.Functions.Like(EF.Functions.Collate(viaje.Destino, ColacionSinAcentos), patron) ||
-                EF.Functions.Like(
-                    EF.Functions.Collate(viaje.Cliente!.RazonSocial, ColacionSinAcentos),
-                    patron));
-        }
+        var consulta = FiltrosViajesSql.Aplicar(contexto.Viajes.AsQueryable(), filtros);
 
         // El total cuenta las coincidencias completas con los filtros, no las de esta página (FR-043).
         var total = await consulta.CountAsync(cancelacion);

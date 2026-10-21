@@ -24,6 +24,9 @@ namespace GT.Api.Reportes;
 /// </summary>
 public static class RespuestasDeReporte
 {
+    public static IResult PrecisionMonetariaXlsx() => Results.Json(
+        new ErrorResponse(CodigosErrorReporte.PrecisionMonetariaXlsx, MensajesDeReporte.PrecisionMonetariaXlsx),
+        statusCode: StatusCodes.Status409Conflict);
     public static IResult FormatoInvalido() => Results.BadRequest(new ErrorResponse(
         CodigosErrorReporte.FormatoInvalido,
         MensajesDeReporte.FormatoInvalido));

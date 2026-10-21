@@ -169,6 +169,7 @@ export const CodigosErrorLiquidaciones = {
 
 // ── Cómo se nombra cada cosa en pantalla (`contracts/README.md`) ─────────────────────────────────
 
+// [015] FuenteAnalisisLiquidaciones.EstadoVisible copia estas palabras para PDF/XLSX; mantener ambas coherentes.
 export const NOMBRES_DE_ESTADO: Record<EstadoLiquidacion, string> = {
   pendiente: 'Pendiente',
   pagada: 'Pagada',

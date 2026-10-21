@@ -529,16 +529,14 @@ public class RepositorioFacturas(GtDbContext contexto, IAlmacenDeArchivos almace
     /// acota la ventana: si se calcularan al leer, la fila podría decir "vence en 8 días" habiendo
     /// entrado por una comparación contra otro instante.
     /// </summary>
-    public async Task<IReadOnlyList<FilaDeVencimiento>> ConsultarVencimientosAsync(
+    public Task<IReadOnlyList<FilaDeVencimiento>> ConsultarVencimientosAsync(
         DateOnly hoy,
-        CancellationToken cancelacion = default)
-    {
-        var limite = hoy.AddDays(7);
+        CancellationToken cancelacion = default) => ConsultarVencimientosDeAsync(contexto, hoy, cancelacion);
 
-        return await contexto.Facturas
-            .Where(factura =>
-                factura.Estado == EstadoFactura.Pendiente &&
-                factura.VencimientoPago <= limite)
+    internal static async Task<IReadOnlyList<FilaDeVencimiento>> ConsultarVencimientosDeAsync(
+        GtDbContext contexto, DateOnly hoy, CancellationToken cancelacion)
+    {
+        return await FacturasQueVencen(contexto, hoy)
             .OrderBy(factura => factura.VencimientoPago)
             .ThenBy(factura => factura.NumeroComprobante)
             .Select(factura => new FilaDeVencimiento(
@@ -550,6 +548,13 @@ public class RepositorioFacturas(GtDbContext contexto, IAlmacenDeArchivos almace
                 EF.Functions.DateDiffDay(hoy, factura.VencimientoPago)))
             .AsNoTracking()
             .ToListAsync(cancelacion);
+    }
+
+    internal static IQueryable<FacturaCliente> FacturasQueVencen(GtDbContext contexto, DateOnly hoy)
+    {
+        var limite = hoy.AddDays(7);
+        return contexto.Facturas.AsNoTracking().Where(factura =>
+            factura.Estado == EstadoFactura.Pendiente && factura.VencimientoPago <= limite);
     }
 
     /// <summary>

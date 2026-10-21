@@ -27,6 +27,7 @@ export const TEXTO_ESTADO_DOCUMENTACION: Record<EstadoDocumentacionVehiculo, str
   sinDocumentacion: 'Sin documentación',
 }
 
+// [015] FuenteAnalisisFlota.EstadoVisible copia estas palabras para PDF/XLSX.
 export const TEXTO_ESTADO_VEHICULO: Record<VehiculoEstado, string> = {
   disponible: 'Disponible',
   fueraDeServicio: 'Fuera de servicio',

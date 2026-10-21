@@ -22,7 +22,7 @@ public class FuenteReporteVencimientosChoferes(
 {
     public const string Titulo = "Reporte de vencimientos de choferes";
 
-    private static readonly IReadOnlyList<ColumnaDeReporte> Columnas =
+    internal static readonly IReadOnlyList<ColumnaDeReporte> Columnas =
     [
         ColumnaDeReporte.Texto("Chofer"),
         ColumnaDeReporte.Texto("Transportista"),
@@ -53,7 +53,7 @@ public class FuenteReporteVencimientosChoferes(
             [.. alertas.Select(Fila)]);
     }
 
-    private static IReadOnlyList<CeldaDeReporte> Fila(AlertaVencimiento alerta) =>
+    internal static IReadOnlyList<CeldaDeReporte> Fila(AlertaVencimiento alerta) =>
     [
         CeldaDeReporte.Texto($"{alerta.Apellido}, {alerta.Nombre}"),
         CeldaDeReporte.Texto(alerta.Transportista.Nombre),
