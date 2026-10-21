@@ -79,6 +79,8 @@ export const Permisos = {
    * deshabilitado — la acción no existe para ese usuario.
    */
   reportesEmitir: 'reportes.emitir',
+  reportesConsultar: 'reportes.consultar',
+  reportesFlotaConsultar: 'reportes.flota.consultar',
 } as const
 
 export function tienePermiso(sesion: Sesion | null, codigo: string): boolean {

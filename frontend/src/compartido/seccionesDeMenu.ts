@@ -64,6 +64,7 @@ const SECCION_POR_CODIGO: Record<string, NombreDeSeccion> = {
   'vencimientos-flota': 'Seguimiento',
   'vencimientos-facturas': 'Seguimiento',
   totales: 'Seguimiento',
+  reportes: 'Seguimiento',
   'totales-facturados': 'Seguimiento',
 
   // Los catálogos que se tocan de vez en cuando

@@ -42,7 +42,23 @@ public class ArmadoDeReporte(
         IReadOnlyList<IReadOnlyList<CeldaDeReporte>> filas,
         IReadOnlyList<TotalDeReporte>? totales = null)
     {
-        var generadoEn = reloj.GetUtcNow().UtcDateTime;
+        return Entregar(tipo, formato, generadoPor, titulo, filtros, columnas, filas,
+            reloj.GetUtcNow(), totales);
+    }
+
+    /// <summary>La foto analítica ya capturó el reloj antes de consultar; no volver a leerlo al renderizar.</summary>
+    public ResultadoReporte Entregar(
+        TipoDeReporte tipo,
+        FormatoDeReporte formato,
+        string generadoPor,
+        string titulo,
+        string filtros,
+        IReadOnlyList<ColumnaDeReporte> columnas,
+        IReadOnlyList<IReadOnlyList<CeldaDeReporte>> filas,
+        DateTimeOffset instanteCapturado,
+        IReadOnlyList<TotalDeReporte>? totales = null)
+    {
+        var generadoEn = instanteCapturado.UtcDateTime;
 
         var reporte = new ReporteTabular(
             new EncabezadoDeReporte(titulo, filtros, filas.Count, generadoEn, generadoPor),
@@ -50,13 +66,19 @@ public class ArmadoDeReporte(
             filas,
             totales ?? []);
 
+        return Entregar(tipo, formato, reporte);
+    }
+
+    /// <summary>Dibuja el modelo ya materializado; no abre transacciones ni consulta reloj o datos.</summary>
+    public ResultadoReporte Entregar(TipoDeReporte tipo, FormatoDeReporte formato, ReporteTabular reporte)
+    {
         var contenido = formato is FormatoDeReporte.Pdf
             ? pdf.Armar(reporte)
             : excel.Armar(reporte);
 
         return ResultadoReporte.Entregado(
             contenido,
-            NombreDeArchivoDeReporte.Para(tipo, formato, generadoEn),
+            NombreDeArchivoDeReporte.Para(tipo, formato, reporte.Encabezado.GeneradoEn),
             formato);
     }
 }

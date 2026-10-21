@@ -3,6 +3,8 @@ using GT.Application.Reportes;
 
 namespace GT.Infrastructure.Reportes;
 
+internal sealed record CeldaMonetariaXlsx(string Hoja, int Fila, int Columna, decimal Fuente);
+
 /// <summary>
 /// Arma el <c>.xlsx</c> de cualquiera de los cinco reportes. Es la <b>única clase del sistema que
 /// conoce ClosedXML</b>.
@@ -32,25 +34,51 @@ public class ArmadorReporteExcelClosedXml : IArmadorReporteExcel
     {
         try
         {
-            using var libro = new XLWorkbook();
-            var hoja = libro.AddWorksheet(NombreDeHoja(reporte.Encabezado.Titulo));
-
-            var fila = EscribirEncabezado(hoja, reporte);
-
-            fila = EscribirTabla(hoja, reporte, fila);
-
-            EscribirTotales(hoja, reporte, fila);
-
-            hoja.Columns().AdjustToContents();
+            var preparado = Preparar(reporte);
+            using var libro = preparado.Libro;
 
             using var memoria = new MemoryStream();
             libro.SaveAs(memoria);
 
-            return memoria.ToArray();
+            var contenido = memoria.ToArray();
+            VerificarGuardado(contenido, preparado.Manifest);
+            return contenido;
         }
-        catch (Exception excepcion)
+        catch (Exception excepcion) when (excepcion is not PrecisionMonetariaXlsxException)
         {
             throw new ReporteNoGeneradoException(excepcion);
+        }
+    }
+
+    private static void VerificarGuardado(byte[] contenido, IReadOnlyList<CeldaMonetariaXlsx> manifest)
+    {
+        using var memoria = new MemoryStream(contenido, writable: false);
+        using var leido = new XLWorkbook(memoria);
+        foreach (var entrada in manifest)
+        {
+            var celda = leido.Worksheet(entrada.Hoja).Cell(entrada.Fila, entrada.Columna);
+            if (celda.DataType != XLDataType.Number || !VerificadorMonetarioXlsx.Coincide(entrada.Fuente, celda.GetDouble()))
+                throw new PrecisionMonetariaXlsxException();
+        }
+    }
+
+    internal static (XLWorkbook Libro, IReadOnlyList<CeldaMonetariaXlsx> Manifest) Preparar(ReporteTabular reporte)
+    {
+        var libro = new XLWorkbook();
+        try
+        {
+            var manifest = new List<CeldaMonetariaXlsx>();
+            var hoja = libro.AddWorksheet(NombreDeHoja(reporte.Encabezado.Titulo));
+            var fila = EscribirEncabezado(hoja, reporte);
+            fila = EscribirTabla(hoja, reporte, fila, manifest);
+            EscribirTotales(hoja, reporte, fila, manifest);
+            hoja.Columns().AdjustToContents();
+            return (libro, manifest);
+        }
+        catch
+        {
+            libro.Dispose();
+            throw;
         }
     }
 
@@ -71,7 +99,7 @@ public class ArmadorReporteExcelClosedXml : IArmadorReporteExcel
         return 6;
     }
 
-    private static int EscribirTabla(IXLWorksheet hoja, ReporteTabular reporte, int filaInicial)
+    private static int EscribirTabla(IXLWorksheet hoja, ReporteTabular reporte, int filaInicial, List<CeldaMonetariaXlsx> manifest)
     {
         for (var columna = 0; columna < reporte.Columnas.Count; columna++)
         {
@@ -92,7 +120,7 @@ public class ArmadorReporteExcelClosedXml : IArmadorReporteExcel
                     ? filaDelReporte[columna]
                     : CeldaDeReporte.Texto(null);
 
-                Escribir(hoja.Cell(fila, columna + 1), valor);
+                Escribir(hoja.Cell(fila, columna + 1), valor, manifest);
             }
 
             fila++;
@@ -104,7 +132,7 @@ public class ArmadorReporteExcelClosedXml : IArmadorReporteExcel
     /// <summary>
     /// El pie: la etiqueta en la penúltima columna y el importe <b>como número</b> en la última.
     /// </summary>
-    private static void EscribirTotales(IXLWorksheet hoja, ReporteTabular reporte, int filaInicial)
+    private static void EscribirTotales(IXLWorksheet hoja, ReporteTabular reporte, int filaInicial, List<CeldaMonetariaXlsx> manifest)
     {
         if (reporte.Totales.Count == 0)
         {
@@ -122,8 +150,12 @@ public class ArmadorReporteExcelClosedXml : IArmadorReporteExcel
             etiqueta.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
             var importe = hoja.Cell(fila, ultima);
-            importe.Value = total.Importe;
-            importe.Style.NumberFormat.Format = FormatoDeImporte;
+            if (total.EsCantidad)
+            {
+                importe.Value = total.Importe;
+                importe.Style.NumberFormat.Format = "#,##0";
+            }
+            else EscribirImporte(importe, total.Importe, manifest);
             importe.Style.Font.Bold = true;
 
             fila++;
@@ -136,7 +168,7 @@ public class ArmadorReporteExcelClosedXml : IArmadorReporteExcel
     ///
     /// Una celda sin dato **se deja vacía**, no se rellena.
     /// </summary>
-    private static void Escribir(IXLCell celda, CeldaDeReporte valor)
+    private static void Escribir(IXLCell celda, CeldaDeReporte valor, List<CeldaMonetariaXlsx> manifest)
     {
         if (valor.EstaVacia)
         {
@@ -155,14 +187,20 @@ public class ArmadorReporteExcelClosedXml : IArmadorReporteExcel
                 break;
 
             case TipoDeColumna.Importe:
-                celda.Value = valor.ValorImporte!.Value;
-                celda.Style.NumberFormat.Format = FormatoDeImporte;
+                EscribirImporte(celda, valor.ValorImporte!.Value, manifest);
                 break;
 
             case TipoDeColumna.Entero:
                 celda.Value = valor.ValorEntero!.Value;
                 break;
         }
+    }
+
+    private static void EscribirImporte(IXLCell celda, decimal fuente, List<CeldaMonetariaXlsx> manifest)
+    {
+        celda.Value = fuente;
+        celda.Style.NumberFormat.Format = FormatoDeImporte;
+        manifest.Add(new(celda.Worksheet.Name, celda.Address.RowNumber, celda.Address.ColumnNumber, fuente));
     }
 
     private static string NombreDeHoja(string titulo) =>

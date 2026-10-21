@@ -1,5 +1,6 @@
 import { entregarArchivo, obtenerArchivo, type EntregaRealizada } from '../../../compartido/archivos'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
+import type { RecursoAnalisis } from './tiposAnalisis'
 
 /**
  * Los cinco reportes del sistema (contracts §Endpoints).
@@ -15,11 +16,21 @@ export type TipoDeReporte =
   | 'vencimientos-flota'
   | 'vencimientos-facturas'
   | 'movimientos-caja'
+  | 'analisis-viajes'
+  | 'analisis-facturacion'
+  | 'analisis-cobros'
+  | 'analisis-liquidaciones'
+  | 'analisis-pagos'
+  | 'analisis-caja'
+  | 'analisis-flota'
+  | 'analisis-vencimientos-choferes'
+  | 'analisis-vencimientos-flota'
+  | 'analisis-vencimientos-facturas'
 
 export type FormatoDeReporte = 'pdf' | 'excel'
 
 /** Los filtros aplicados en la pantalla, ya como pares para la query. */
-export type FiltrosDeReporte = Record<string, string | number>
+export type FiltrosDeReporte = Record<string, string | number | boolean | undefined | null>
 
 const RUTAS: Record<TipoDeReporte, string> = {
   viajes: '/viajes/reporte',
@@ -27,7 +38,24 @@ const RUTAS: Record<TipoDeReporte, string> = {
   'vencimientos-flota': '/flota/vencimientos/reporte',
   'vencimientos-facturas': '/facturas/vencimientos/reporte',
   'movimientos-caja': '/movimientos-caja/reporte',
+  'analisis-viajes': '/reportes/viajes/exportacion',
+  'analisis-facturacion': '/reportes/facturacion/exportacion',
+  'analisis-cobros': '/reportes/facturacion/cobros/exportacion',
+  'analisis-liquidaciones': '/reportes/liquidaciones/exportacion',
+  'analisis-pagos': '/reportes/liquidaciones/pagos/exportacion',
+  'analisis-caja': '/reportes/caja/exportacion',
+  'analisis-flota': '/reportes/flota/exportacion',
+  'analisis-vencimientos-choferes': '/reportes/vencimientos/choferes/exportacion',
+  'analisis-vencimientos-flota': '/reportes/vencimientos/flota/exportacion',
+  'analisis-vencimientos-facturas': '/reportes/vencimientos/facturas/exportacion',
 }
+
+const TIPOS_ANALISIS: Record<RecursoAnalisis, TipoDeReporte> = {
+  viajes: 'analisis-viajes', facturacion: 'analisis-facturacion', 'facturacion/cobros': 'analisis-cobros',
+  liquidaciones: 'analisis-liquidaciones', 'liquidaciones/pagos': 'analisis-pagos', caja: 'analisis-caja', flota: 'analisis-flota',
+  'vencimientos/choferes': 'analisis-vencimientos-choferes', 'vencimientos/flota': 'analisis-vencimientos-flota', 'vencimientos/facturas': 'analisis-vencimientos-facturas',
+}
+export function tipoDeReporteAnalisis(recurso: RecursoAnalisis): TipoDeReporte { return TIPOS_ANALISIS[recurso] }
 
 /**
  * Lo que devuelve generar un reporte.
@@ -41,6 +69,7 @@ const RUTAS: Record<TipoDeReporte, string> = {
 export type ResultadoDeReporte =
   | { estado: 'entregado'; entrega: EntregaRealizada }
   | { estado: 'tope_superado'; mensaje: string; filas: number; tope: number }
+  | { estado: 'precision_monetaria_xlsx'; mensaje: string }
 
 /** El cuerpo del `409`, que trae los dos números además del mensaje ya armado. */
 interface ErrorDeTope {
@@ -75,6 +104,9 @@ export async function generarReporte(
       entrega: entregarArchivo(archivo, formato === 'pdf' ? 'abrir' : 'descargar'),
     }
   } catch (fallo) {
+    if (fallo instanceof ErrorHttp && fallo.detalle.codigo === 'precision_monetaria_xlsx') {
+      return { estado: 'precision_monetaria_xlsx', mensaje: fallo.detalle.mensaje }
+    }
     if (fallo instanceof ErrorHttp && fallo.detalle.codigo === 'tope_de_filas_superado') {
       const detalle = fallo.detalle as unknown as ErrorDeTope
 
@@ -105,11 +137,11 @@ export function mensajeDelRechazo(fallo: unknown): string {
 }
 
 /** Arma la query descartando los parámetros vacíos, para no mandar `?clienteId=` sin valor. */
-function query(parametros: Record<string, string | number>) {
+function query(parametros: FiltrosDeReporte) {
   const partes = new URLSearchParams()
 
   for (const [nombre, valor] of Object.entries(parametros)) {
-    if (valor !== '') {
+    if (valor !== '' && valor !== undefined && valor !== null && nombre !== 'pagina' && nombre !== 'tamanioPagina') {
       partes.append(nombre, String(valor))
     }
   }

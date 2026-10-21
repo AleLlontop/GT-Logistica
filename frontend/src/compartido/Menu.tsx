@@ -16,6 +16,7 @@ interface Props {
   opciones: OpcionMenu[]
   username: string
   onCerrarSesion: () => void
+  adaptable?: boolean
 }
 
 const ICONO_DE_SECCION: Record<NombreDeSeccion, typeof IconoOperacion> = {
@@ -54,12 +55,12 @@ const ENTRADAS_PARA_MENU_LARGO = 15
  * dibuja navegación**. La isla sigue estando, porque abajo viven la marca y el bloque de cuenta, y
  * *Cerrar sesión* tiene que estar disponible desde cualquier lugar del sistema (FR-013 del Módulo 1).
  */
-export function Menu({ opciones, username, onCerrarSesion }: Props) {
+export function Menu({ opciones, username, onCerrarSesion, adaptable = false }: Props) {
   const secciones = agruparEnSecciones(opciones)
   const menuLargo = opciones.length > ENTRADAS_PARA_MENU_LARGO
 
   return (
-    <div className="flex w-[266px] shrink-0 flex-col rounded-island border border-line bg-surface shadow-island">
+    <div className={cn("flex shrink-0 flex-col rounded-island border border-line bg-surface shadow-island", adaptable ? "w-full md:w-[266px]" : "w-[266px]")}>
       <div className="border-b border-line px-5 py-[22px]">
         <Link
           to="/"

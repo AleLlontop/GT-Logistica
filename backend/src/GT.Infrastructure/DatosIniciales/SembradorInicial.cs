@@ -91,6 +91,8 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
         (CodigosPermiso.CajaConsultar, "Caja",
             "Consultar cajas, sus saldos y sus movimientos"),
 
+        (CodigosPermiso.ReportesConsultar, "Reportes", "Consultar dashboard y análisis de reportes con permisos de sección"),
+        (CodigosPermiso.ReportesFlotaConsultar, "Reportes", "Consultar utilización de flota sin gestionar unidades"),
         (CodigosPermiso.ReportesEmitir, "Reportes",
             "Emitir los reportes de viajes, vencimientos y movimientos de caja en PDF y Excel"),
     ];
@@ -172,6 +174,8 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.AdelantosConsultar,
             CodigosPermiso.CajaGestionar,
             CodigosPermiso.CajaConsultar,
+            CodigosPermiso.ReportesConsultar,
+            CodigosPermiso.ReportesFlotaConsultar,
             CodigosPermiso.ReportesEmitir,
         ],
 
@@ -217,6 +221,8 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.LiquidacionesConsultar,
             CodigosPermiso.AdelantosConsultar,
             CodigosPermiso.CajaConsultar,
+            CodigosPermiso.ReportesConsultar,
+            CodigosPermiso.ReportesFlotaConsultar,
             CodigosPermiso.ReportesEmitir,
         ],
     };

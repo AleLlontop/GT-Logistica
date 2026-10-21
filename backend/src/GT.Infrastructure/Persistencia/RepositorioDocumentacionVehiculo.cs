@@ -60,6 +60,9 @@ public class RepositorioDocumentacionVehiculo(GtDbContext contexto) : IRepositor
     /// </summary>
     public Task<List<DocumentacionVehiculo>> ConsultarVigentesDeVehiculosActivosAsync(
         CancellationToken cancelacion = default) =>
+        VigentesDeVehiculosActivos(contexto).ToListAsync(cancelacion);
+
+    internal static IQueryable<DocumentacionVehiculo> VigentesDeVehiculosActivos(GtDbContext contexto) =>
         contexto.DocumentacionesVehiculo
             .Include(documento => documento.Tipo)
             .Include(documento => documento.Vehiculo!).ThenInclude(vehiculo => vehiculo.Transportista)
@@ -72,6 +75,5 @@ public class RepositorioDocumentacionVehiculo(GtDbContext contexto) : IRepositor
                 otro.DocumentacionTipoId == documento.DocumentacionTipoId &&
                 (otro.FechaVencimiento > documento.FechaVencimiento ||
                  (otro.FechaVencimiento == documento.FechaVencimiento && otro.Id > documento.Id))))
-            .AsNoTracking()
-            .ToListAsync(cancelacion);
+            .AsNoTracking();
 }

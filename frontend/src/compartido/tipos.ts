@@ -17,6 +17,13 @@ export interface ErrorApi {
 }
 
 export type CodigoError =
+  // Módulo15: errores de lectura localizada; los detalles de campo conservan su contrato propio.
+  | 'analisis_no_disponible'
+  | 'analisis_no_generado'
+  | 'analisis_fuera_de_rango'
+  | 'rango_requerido'
+  | 'filtro_invalido'
+
   // Módulo 14: códigos del contrato de Pagos
   | 'banco_invalido'
   | 'banco_modificado'
@@ -196,6 +203,7 @@ export type CodigoError =
   // Módulo 12. `sin_permiso` ya estaba, desde el Módulo 1.
   | 'formato_invalido'
   | 'tope_de_filas_superado'
+  | 'precision_monetaria_xlsx'
   | 'reporte_no_generado'
 
 /** Estados posibles de una cuenta (FR-005). */

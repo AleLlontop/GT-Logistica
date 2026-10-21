@@ -118,7 +118,7 @@ public class ArmadorReportePdfQuestPdf : IArmadorReportePdf
                 {
                     // Las columnas de dato corto llevan ancho relativo menor; el texto se reparte el
                     // resto. Con cinco columnas sobra aire, que no es un problema (research §10).
-                    definicion.RelativeColumn(columna.Tipo == TipoDeColumna.Texto ? 2f : 1.2f);
+                    definicion.RelativeColumn(columna.AnchoRelativoPdf ?? (columna.Tipo == TipoDeColumna.Texto ? 2f : 1.2f));
                 }
             });
 
@@ -173,7 +173,9 @@ public class ArmadorReportePdfQuestPdf : IArmadorReportePdf
                     .BorderColor(GrisBorde)
                     .Padding(3)
                     .AlignRight()
-                    .Text(FormatoDeDocumento.Pesos(total.Importe))
+                    .Text(total.EsCantidad
+                        ? total.Importe.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("es-AR"))
+                        : FormatoDeDocumento.Pesos(total.Importe))
                     .Bold();
             }
         });

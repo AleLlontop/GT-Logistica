@@ -63,3 +63,8 @@ describe('agruparEnSecciones', () => {
     expect(agruparEnSecciones([])).toEqual([])
   })
 })
+
+
+it('Reportes va a Seguimiento sin inventar opciones', () => {
+  expect(agruparEnSecciones([opcion('reportes')])).toEqual([{ nombre: 'Seguimiento', opciones: [opcion('reportes')] }])
+})

@@ -21,7 +21,7 @@ public class FuenteReporteVencimientosFacturas(
 {
     public const string Titulo = "Reporte de vencimientos de facturas";
 
-    private static readonly IReadOnlyList<ColumnaDeReporte> Columnas =
+    internal static readonly IReadOnlyList<ColumnaDeReporte> Columnas =
     [
         ColumnaDeReporte.Texto("Cliente"),
         ColumnaDeReporte.Texto("Número"),
@@ -54,7 +54,7 @@ public class FuenteReporteVencimientosFacturas(
             [new TotalDeReporte("Total de importes", filas.Sum(fila => fila.Total))]);
     }
 
-    private static IReadOnlyList<CeldaDeReporte> Fila(FilaDeVencimiento fila) =>
+    internal static IReadOnlyList<CeldaDeReporte> Fila(FilaDeVencimiento fila) =>
     [
         CeldaDeReporte.Texto(fila.Cliente),
         CeldaDeReporte.Texto(fila.NumeroComprobante),

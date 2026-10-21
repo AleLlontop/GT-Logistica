@@ -179,6 +179,10 @@ public static class ReportesEndpoints
         {
             return RespuestasDeReporte.Traducir(contexto.Response, await pedir(elegido));
         }
+        catch (PrecisionMonetariaXlsxException)
+        {
+            return RespuestasDeReporte.PrecisionMonetariaXlsx();
+        }
         catch (ReporteNoGeneradoException)
         {
             return RespuestasDeReporte.NoGenerado();
