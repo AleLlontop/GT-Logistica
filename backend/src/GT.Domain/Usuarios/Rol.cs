@@ -188,4 +188,10 @@ public static class CodigosPermiso
     /// de pares permiso → pantalla.
     /// </summary>
     public const string ReportesEmitir = "reportes.emitir";
+
+    ///<summary>Administrar el padrón específico de empleados no choferes.</summary>
+    public const string EmpleadosGestionar = "empleados.gestionar";
+
+    ///<summary>Consultar el padrón y la ficha de empleados no choferes.</summary>
+    public const string EmpleadosConsultar = "empleados.consultar";
 }

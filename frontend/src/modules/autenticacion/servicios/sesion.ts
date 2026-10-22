@@ -72,6 +72,9 @@ export const Permisos = {
   cajaGestionar: 'caja.gestionar',
   cajaConsultar: 'caja.consultar',
 
+  empleadosGestionar: 'empleados.gestionar',
+  empleadosConsultar: 'empleados.consultar',
+
   /**
    * Módulo 12. **No alcanza solo**: cada reporte exige además el permiso de lectura de la pantalla de
    * la que sale, y eso lo decide el servidor (FR-013, FR-015). Acá se consulta para decidir si la

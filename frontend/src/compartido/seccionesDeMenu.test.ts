@@ -64,6 +64,14 @@ describe('agruparEnSecciones', () => {
   })
 })
 
+it('ubica Empleados dentro de Padrones', () => {
+  expect(agruparEnSecciones([opcion('empleados')])).toEqual([
+    {
+      nombre: 'Padrones',
+      opciones: [opcion('empleados')],
+    },
+  ])
+})
 
 it('Reportes va a Seguimiento sin inventar opciones', () => {
   expect(agruparEnSecciones([opcion('reportes')])).toEqual([{ nombre: 'Seguimiento', opciones: [opcion('reportes')] }])

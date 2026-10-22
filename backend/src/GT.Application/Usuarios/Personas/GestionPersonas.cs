@@ -37,15 +37,47 @@ public static class ValidadorPersona
     public const int LargoMinimoDni = 7;
     public const int LargoMaximoDni = 15;
 
+    private static bool NombreValido(string? valor)
+    {
+        if (string.IsNullOrWhiteSpace(valor))
+            return false;
+
+        var nombre = valor.Trim();
+
+        return nombre.Length <= 100
+            && nombre.Any(char.IsLetter)
+            && nombre.All(caracter =>
+                char.IsLetter(caracter)
+                || caracter is ' ' or '-' or '\'' or '’' or '.');
+    }
+
+    private static bool TelefonoValido(string? valor)
+    {
+        if (string.IsNullOrWhiteSpace(valor))
+            return false;
+
+        var telefono = valor.Trim();
+
+        if (telefono.Length > 30)
+            return false;
+
+        var cantidadDigitos = telefono.Count(char.IsAsciiDigit);
+
+        return cantidadDigitos is >= 6 and <= 20
+            && telefono.All(caracter =>
+                char.IsAsciiDigit(caracter)
+                || caracter is '+' or ' ' or '-' or '(' or ')' or '.');
+    }
+
     /// <returns>El nombre del campo que falla, o <c>null</c> si está todo bien.</returns>
     public static string? PrimerCampoInvalido(PersonaRequest peticion)
     {
-        if (string.IsNullOrWhiteSpace(peticion.Nombre))
+        if (!NombreValido(peticion.Nombre))
         {
             return "nombre";
         }
 
-        if (string.IsNullOrWhiteSpace(peticion.Apellido))
+        if (!NombreValido(peticion.Apellido))
         {
             return "apellido";
         }
@@ -64,7 +96,7 @@ public static class ValidadorPersona
             return "tipo";
         }
 
-        if (string.IsNullOrWhiteSpace(peticion.Telefono))
+        if (!TelefonoValido(peticion.Telefono))
         {
             return "telefono";
         }
@@ -96,10 +128,35 @@ public class CrearPersona(IRepositorioPersonas repositorio)
         }
 
         var dni = peticion.Dni!.Trim();
+        var tipo = TipoIntegranteTexto.Interpretar(peticion.Tipo)!.Value;
 
-        if (await repositorio.ExisteDniAsync(dni, null, cancelacion))
+        var existente = await repositorio.ObtenerPorDniAsync(dni, cancelacion);
+
+        if (existente is not null)
         {
-            return new ResultadoPersona(ErrorPersona.DniDuplicado, null, "dni");
+            // Si sigue activa, el DNI continúa siendo un duplicado.
+            if (existente.Activa || existente.Tipo != tipo)
+            {
+                return new ResultadoPersona(
+                    ErrorPersona.DniDuplicado,
+                    null,
+                    "dni");
+            }
+
+            // El mismo DNI pertenece a una persona inactiva del mismo tipo.
+            // Se recupera el registro existente en lugar de crear un duplicado.
+            existente.Nombre = peticion.Nombre!.Trim();
+            existente.Apellido = peticion.Apellido!.Trim();
+            existente.Telefono = peticion.Telefono!.Trim();
+            existente.Email = peticion.Email!.Trim();
+            existente.FechaNacimiento = peticion.FechaNacimiento!.Value;
+            existente.Activa = true;
+
+            await repositorio.GuardarCambiosAsync(cancelacion);
+
+            return new ResultadoPersona(
+                ErrorPersona.Ninguno,
+                PersonaDto.Desde(existente));
         }
 
         var persona = new Persona
@@ -107,7 +164,7 @@ public class CrearPersona(IRepositorioPersonas repositorio)
             Nombre = peticion.Nombre!.Trim(),
             Apellido = peticion.Apellido!.Trim(),
             Dni = dni,
-            Tipo = TipoIntegranteTexto.Interpretar(peticion.Tipo)!.Value,
+            Tipo = tipo,
             Telefono = peticion.Telefono!.Trim(),
             Email = peticion.Email!.Trim(),
             FechaNacimiento = peticion.FechaNacimiento!.Value,
