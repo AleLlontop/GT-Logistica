@@ -42,7 +42,7 @@ public static class EmpleadosEndpoints
         CancellationToken cancelacion)
     {
         var personas = await consultar.EjecutarAsync(texto, soloActivas ?? false, cancelacion);
-        return Results.Ok(personas.Where(persona => persona.Tipo == "empleado"));
+        return Results.Ok(personas.Where(persona => persona.Tipo == "empleado" && persona.Activa));
     }
 
     private static async Task<IResult> ObtenerAsync(
