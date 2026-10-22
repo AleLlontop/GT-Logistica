@@ -221,4 +221,18 @@ describe('DetalleLiquidacion', () => {
       await screen.findByText('Se anuló la liquidación LQ-12. Sus 3 viajes quedaron disponibles.'),
     ).toHaveAttribute('role', 'status')
   })
+  it('[014] conserva OP revertidas y muestra origen OPP y eventos sin contabilizarlas como vigentes', async () => {
+    obtenerLiquidacion.mockResolvedValue(detalle({ importePagado: 0, restaPagar: 355_000,
+      ordenesDePago: [{ id: 9, numero: 'OP-9', fechaPago: '2026-09-15', importe: 355_000, registradaPor: 'ana', registradaEn: '2026-09-15T12:00:00Z',
+        vigente: false, ordenPagoProveedor: { id: 20, numero: 'OPP-20' }, revertidaEn: '2026-09-16T12:00:00Z' }],
+      historial: [{ operacion: 'reversionPagoPorOPP', usuario: 'ana', ocurridoEn: '2026-09-16T12:00:00Z', viajesQuitados: [], viajesAgregados: [],
+        pago: { id: 9, numero: 'OP-9' }, ordenPagoProveedor: { id: 20, numero: 'OPP-20' } }],
+    }))
+    renderizar()
+    expect(await screen.findByText('Origen: OPP-20')).toBeVisible()
+    expect(screen.getByText('Pago revertido')).toBeVisible()
+    expect(screen.getByText('Pago de OPP revertido por ana')).toBeVisible()
+    expect(screen.getByText('OP-9 · OPP-20')).toBeVisible()
+  })
+
 })

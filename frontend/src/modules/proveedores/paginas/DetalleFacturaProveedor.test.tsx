@@ -54,3 +54,10 @@ it('con sólo cargar muestra el DTO recibido pero no ofrece abrir PDF ni referen
   expect(screen.queryByRole('link', { name: /Abrir PDF|Ver proveedor actual|Ver liquidación/ })).not.toBeInTheDocument()
   expect(api.obtenerFacturaProveedor).toHaveBeenCalledTimes(1); expect(screen.getByTestId('router-state')).toHaveTextContent('null')
 })
+
+it('[014] detalle muestra Pagada desde el estado real de factura', async () => {
+  vi.mocked(api.obtenerFacturaProveedor).mockResolvedValue({ ...d, estado: 'pagada' })
+  abrir()
+  expect(await screen.findByText('Pagada')).toBeVisible()
+  expect(screen.queryByText('Pendiente')).not.toBeInTheDocument()
+})

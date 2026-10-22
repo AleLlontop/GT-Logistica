@@ -8,6 +8,11 @@ public enum TipoDeReporte
     VencimientosFlota,
     VencimientosFacturas,
     MovimientosCaja,
+    Facturacion,
+    Cobros,
+    Liquidaciones,
+    Pagos,
+    UtilizacionFlota,
 }
 
 /// <summary>
@@ -35,6 +40,11 @@ public static class NombreDeArchivoDeReporte
         TipoDeReporte.VencimientosFlota => "vencimientos-flota",
         TipoDeReporte.VencimientosFacturas => "vencimientos-facturas",
         TipoDeReporte.MovimientosCaja => "movimientos-caja",
+        TipoDeReporte.Facturacion => "facturacion",
+        TipoDeReporte.Cobros => "facturacion-cobros",
+        TipoDeReporte.Liquidaciones => "liquidaciones",
+        TipoDeReporte.Pagos => "liquidaciones-pagos",
+        TipoDeReporte.UtilizacionFlota => "utilizacion-flota",
         _ => throw new ArgumentOutOfRangeException(nameof(reporte), reporte, null),
     };
 

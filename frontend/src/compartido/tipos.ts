@@ -17,8 +17,59 @@ export interface ErrorApi {
 }
 
 export type CodigoError =
-  // Módulo 14: Gestión de empleados
-  | 'empleado_con_caja_abierta'
+  // Módulo15: errores de lectura localizada; los detalles de campo conservan su contrato propio.
+  | 'analisis_no_disponible'
+  | 'analisis_no_generado'
+  | 'analisis_fuera_de_rango'
+  | 'rango_requerido'
+  | 'filtro_invalido'
+
+  // Módulo 14: códigos del contrato de Pagos
+  | 'banco_invalido'
+  | 'banco_modificado'
+  | 'banco_no_disponible'
+  | 'banco_no_encontrado'
+  | 'caja_no_disponible'
+  | 'cheque_no_disponible'
+  | 'cheque_no_encontrado'
+  | 'clave_invalida'
+  | 'clave_reutilizada'
+  | 'entrada_invalida'
+  | 'estado_invalido'
+  | 'facturas_invalidas'
+  | 'facturas_no_disponibles'
+  | 'fecha_invalida'
+  | 'fecha_pago_invalida'
+  | 'importe_invalido'
+  | 'intencion_invalida'
+  | 'longitud_excedida'
+  | 'medio_invalido'
+  | 'medios_invalidos'
+  | 'medios_no_admitidos'
+  | 'medios_requeridos'
+  | 'nombre_banco_duplicado'
+  | 'nombre_requerido'
+  | 'numero_cheque_duplicado'
+  | 'numero_cheque_invalido'
+  | 'operacion_transitoria'
+  | 'orden_no_anulable'
+  | 'orden_no_encontrada'
+  | 'pagina_invalida'
+  | 'pago_no_disponible'
+  | 'pago_no_reversible'
+  | 'parametro_invalido'
+  | 'proveedor_invalido'
+  | 'proveedores_distintos'
+  | 'renglones_repetidos'
+  | 'resultado_no_determinable'
+  | 'saldo_insuficiente'
+  | 'seleccion_modificada'
+  | 'sin_autorizacion'
+  | 'total_fuera_de_capacidad'
+  | 'total_medios_distinto'
+  // Módulo 14: conflictos reales del cheque
+  | 'estado_cheque_modificado'
+  | 'transicion_no_permitida'
   // Módulo 13
   | 'importe_distinto'
   | 'liquidacion_no_disponible'
@@ -152,6 +203,7 @@ export type CodigoError =
   // Módulo 12. `sin_permiso` ya estaba, desde el Módulo 1.
   | 'formato_invalido'
   | 'tope_de_filas_superado'
+  | 'precision_monetaria_xlsx'
   | 'reporte_no_generado'
 
 /** Estados posibles de una cuenta (FR-005). */

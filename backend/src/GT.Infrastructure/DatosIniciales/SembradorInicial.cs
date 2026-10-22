@@ -29,6 +29,13 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
     private static readonly (string Codigo, string Modulo, string Descripcion)[] PermisosDelSistema =
     [
+        (CodigosPermiso.PagosGenerar, "Pagos", "Generar orden"),
+        (CodigosPermiso.PagosConsultar, "Pagos", "Consultar órdenes"),
+        (CodigosPermiso.PagosAnular, "Pagos", "Anular OPP"),
+        (CodigosPermiso.PagosChequesConsultar, "Pagos", "Consultar cheques"),
+        (CodigosPermiso.PagosChequesCambiarEstado, "Pagos", "Cambiar estado de cheque"),
+        (CodigosPermiso.PagosBancosConsultar, "Pagos", "Consultar bancos"),
+        (CodigosPermiso.PagosBancosGestionar, "Pagos", "Gestionar bancos"),
         // 013: permisos independientes; las tres pantallas ya están implementadas.
         (CodigosPermiso.ProveedoresGestionar, "Proveedores", "Administrar el padrón de proveedores"),
         (CodigosPermiso.ProveedoresFacturasCargar, "Proveedores", "Cargar facturas recibidas de proveedores"),
@@ -84,6 +91,8 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
         (CodigosPermiso.CajaConsultar, "Caja",
             "Consultar cajas, sus saldos y sus movimientos"),
 
+        (CodigosPermiso.ReportesConsultar, "Reportes", "Consultar dashboard y análisis de reportes con permisos de sección"),
+        (CodigosPermiso.ReportesFlotaConsultar, "Reportes", "Consultar utilización de flota sin gestionar unidades"),
         (CodigosPermiso.ReportesEmitir, "Reportes",
             "Emitir los reportes de viajes, vencimientos y movimientos de caja en PDF y Excel"),
         (CodigosPermiso.EmpleadosGestionar, "Empleados",
@@ -142,6 +151,13 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
     {
         [CodigosRol.AdministradorSistema] =
         [
+            CodigosPermiso.PagosGenerar,
+            CodigosPermiso.PagosConsultar,
+            CodigosPermiso.PagosAnular,
+            CodigosPermiso.PagosChequesConsultar,
+            CodigosPermiso.PagosChequesCambiarEstado,
+            CodigosPermiso.PagosBancosConsultar,
+            CodigosPermiso.PagosBancosGestionar,
             CodigosPermiso.ProveedoresGestionar,
             CodigosPermiso.ProveedoresFacturasCargar,
             CodigosPermiso.ProveedoresFacturasConsultar,
@@ -162,6 +178,8 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.AdelantosConsultar,
             CodigosPermiso.CajaGestionar,
             CodigosPermiso.CajaConsultar,
+            CodigosPermiso.ReportesConsultar,
+            CodigosPermiso.ReportesFlotaConsultar,
             CodigosPermiso.ReportesEmitir,
             CodigosPermiso.EmpleadosGestionar,
             CodigosPermiso.EmpleadosConsultar,
@@ -179,6 +197,13 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
 
         [CodigosRol.Administracion] =
         [
+            CodigosPermiso.PagosGenerar,
+            CodigosPermiso.PagosConsultar,
+            CodigosPermiso.PagosAnular,
+            CodigosPermiso.PagosChequesConsultar,
+            CodigosPermiso.PagosChequesCambiarEstado,
+            CodigosPermiso.PagosBancosConsultar,
+            CodigosPermiso.PagosBancosGestionar,
             CodigosPermiso.ProveedoresGestionar,
             CodigosPermiso.ProveedoresFacturasCargar,
             CodigosPermiso.ProveedoresFacturasConsultar,
@@ -204,6 +229,8 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
             CodigosPermiso.LiquidacionesConsultar,
             CodigosPermiso.AdelantosConsultar,
             CodigosPermiso.CajaConsultar,
+            CodigosPermiso.ReportesConsultar,
+            CodigosPermiso.ReportesFlotaConsultar,
             CodigosPermiso.ReportesEmitir,
             CodigosPermiso.EmpleadosConsultar,
         ],

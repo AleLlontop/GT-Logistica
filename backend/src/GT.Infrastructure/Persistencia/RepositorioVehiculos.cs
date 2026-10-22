@@ -225,7 +225,7 @@ public class RepositorioVehiculos(GtDbContext contexto) : IRepositorioVehiculos
     /// los tres conteos que resolvió la consulta. Un test compara las dos sobre el mismo dato
     /// (convención [003]).
     /// </summary>
-    private static EstadoDocumentacionVehiculo EstadoDesde(int vigentes, int vencidos, int porVencer)
+    internal static EstadoDocumentacionVehiculo EstadoDesde(int vigentes, int vencidos, int porVencer)
     {
         if (vigentes == 0) return EstadoDocumentacionVehiculo.SinDocumentacion;
         if (vencidos > 0) return EstadoDocumentacionVehiculo.Vencida;

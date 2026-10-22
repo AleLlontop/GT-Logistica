@@ -29,7 +29,7 @@ public class FuenteReporteMovimientosCaja(
 {
     public const string Titulo = "Reporte de movimientos de caja";
 
-    private static readonly IReadOnlyList<ColumnaDeReporte> Columnas =
+    internal static readonly IReadOnlyList<ColumnaDeReporte> Columnas =
     [
         ColumnaDeReporte.Fecha("Fecha"),
         ColumnaDeReporte.Texto("Tipo"),

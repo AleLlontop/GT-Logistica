@@ -18,6 +18,7 @@ public class RepositorioFacturasProveedor(GtDbContext contexto) : IRepositorioFa
         if (filtros.Hasta is { } hasta) consulta = consulta.Where(f => f.Fecha <= hasta);
         if (filtros.ProveedorId is { } proveedor) consulta = consulta.Where(f => f.ProveedorId == proveedor);
         if (filtros.Estado == "pendiente") consulta = consulta.Where(f => f.Estado == EstadoFacturaProveedor.Pendiente);
+        if (filtros.Estado == "pagada") consulta = consulta.Where(f => f.Estado == EstadoFacturaProveedor.Pagada);
         var total = await consulta.CountAsync(cancelacion);
         const int tamanio = GT.Application.Choferes.PaginaDe<FacturaProveedorResumen>.TamanioPorDefecto;
         var salto = ((long)filtros.Pagina - 1) * tamanio;
@@ -25,7 +26,7 @@ public class RepositorioFacturasProveedor(GtDbContext contexto) : IRepositorioFa
         var filas = await consulta.OrderByDescending(f => f.Fecha).ThenByDescending(f => f.Id)
             .Skip((int)salto).Take(tamanio)
             .Select(f => new FacturaProveedorResumen(f.Id, f.Numero, f.Fecha, f.ProveedorId,
-                f.ProveedorRazonSocial, f.ProveedorCuit, f.ImporteTotal, "pendiente")).ToListAsync(cancelacion);
+                f.ProveedorRazonSocial, f.ProveedorCuit, f.ImporteTotal, f.Estado == EstadoFacturaProveedor.Pagada ? "pagada" : "pendiente")).ToListAsync(cancelacion);
         return new(filas, total, filtros.Pagina, tamanio);
     }
     public async Task<IReadOnlyList<LiquidacionDisponibleProveedor>> ConsultarLiquidacionesDisponiblesAsync(int proveedorId, CancellationToken cancelacion)
@@ -115,7 +116,7 @@ public class RepositorioFacturasProveedor(GtDbContext contexto) : IRepositorioFa
         if(f is null) return null;
         return new DetalleFacturaProveedor(
             f.Id,f.ProveedorId,f.ProveedorRazonSocial,f.ProveedorCuit,f.TipoProveedorAlRegistrar==TipoProveedor.Fletero?"fletero":"proveedorNormal",
-            f.Numero,f.Fecha,f.Detalle,f.Neto,f.Iva,f.ImporteTotal,f.Cae,f.FechaVencimientoCae,"pendiente",
+            f.Numero,f.Fecha,f.Detalle,f.Neto,f.Iva,f.ImporteTotal,f.Cae,f.FechaVencimientoCae,f.Estado == EstadoFacturaProveedor.Pagada ? "pagada" : "pendiente",
             f.ArchivoNombre==null?null:new ArchivoFacturaProveedor(f.ArchivoNombre,"/api/proveedores/facturas/"+f.Id+"/archivo"),
             f.Liquidacion is null?null:new LiquidacionFacturaProveedorDetalle(f.Liquidacion.Id,NumerosVisibles.Liquidacion(f.Liquidacion.Numero),
                 Periodo(f.Liquidacion.PeriodoMes,f.Liquidacion.PeriodoAnio),f.ImporteLiquidacionAlRegistrar!.Value,

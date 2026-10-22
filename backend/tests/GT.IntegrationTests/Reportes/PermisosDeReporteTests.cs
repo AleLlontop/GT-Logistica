@@ -140,9 +140,11 @@ public class PermisosDeReporteTests(AplicacionDePrueba app) : IClassFixture<Apli
     [Fact]
     public async Task ElPermisoNoAgregaNingunaEntradaAlMenu()
     {
-        var gerencia = await app.ConRolAsync(CodigosRol.Gerencia);
+        // [015] Gerencia ahora recibe también reportes.consultar: aislar emitir conserva
+        // exactamente la garantía original de 012, sin atribuirle el menú del permiso nuevo.
+        var soloEmitir = await app.SoloConEmitirAsync();
 
-        var sesion = await gerencia.GetFromJsonAsync<SesionConMenu>("/api/auth/sesion");
+        var sesion = await soloEmitir.GetFromJsonAsync<SesionConMenu>("/api/auth/sesion");
 
         Assert.Contains("reportes.emitir", sesion!.Permisos);
         Assert.DoesNotContain(sesion.OpcionesMenu, opcion => opcion.Codigo.Contains("reporte"));

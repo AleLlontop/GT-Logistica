@@ -20,6 +20,7 @@ public static class CodigosErrorReporte
 
     /// <summary>500: falló el motor de PDF o de planilla (FR-017).</summary>
     public const string ReporteNoGenerado = "reporte_no_generado";
+    public const string PrecisionMonetariaXlsx = "precision_monetaria_xlsx";
 }
 
 /// <summary>
@@ -31,6 +32,8 @@ public static class CodigosErrorReporte
 /// </summary>
 public static class MensajesDeReporte
 {
+    public const string PrecisionMonetariaXlsx =
+        "No podemos exportar este reporte a Excel sin perder centavos. Consultalo en pantalla o generá el PDF.";
     public const string FormatoInvalido = "El formato del reporte tiene que ser PDF o Excel.";
 
     public const string SinPermiso =

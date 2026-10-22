@@ -234,4 +234,15 @@ describe('GenerarReporte', () => {
     expect(generarReporte).toHaveBeenLastCalledWith('viajes', 'excel', filtros)
     expect(filtros).toEqual({ clienteId: 7, estado: 'enCurso' })
   })
+  it('precisión rechazada muestra texto del servidor y permite volver a generar', async () => {
+    const usuario = userEvent.setup()
+    generarReporte.mockResolvedValue({ estado: 'precision_monetaria_xlsx', mensaje: 'No se conservan los centavos. Usá PDF.' })
+    montar()
+    await usuario.click(screen.getByRole('button', { name: 'Generar reporte' }))
+    await usuario.click(screen.getByRole('button', { name: 'Excel' }))
+    expect(await screen.findByText('No se conservan los centavos. Usá PDF.')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Generar reporte' })).toBeEnabled()
+    expect(generarReporte).toHaveBeenCalledOnce()
+  })
+
 })

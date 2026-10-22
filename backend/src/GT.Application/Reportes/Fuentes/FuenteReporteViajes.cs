@@ -38,7 +38,7 @@ public class FuenteReporteViajes(
 {
     public const string Titulo = "Reporte de viajes";
 
-    private static readonly IReadOnlyList<ColumnaDeReporte> Columnas =
+    internal static readonly IReadOnlyList<ColumnaDeReporte> Columnas =
     [
         ColumnaDeReporte.Entero("Número"),
         ColumnaDeReporte.Fecha("Fecha"),

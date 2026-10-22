@@ -220,8 +220,9 @@ public class AsignarRolesTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
         // que este test protege: emitir un reporte no modifica nada del sistema.
         var reportes = gerencia.PermisosPorModulo.Single(modulo => modulo.Modulo == "Reportes");
 
+        // [015] FR-025 agrega dos lecturas explícitas; no implica gestión ni otros permisos.
         Assert.Equal(
-            [CodigosPermiso.ReportesEmitir],
+            [CodigosPermiso.ReportesConsultar, CodigosPermiso.ReportesEmitir, CodigosPermiso.ReportesFlotaConsultar],
             reportes.Permisos.Select(permiso => permiso.Codigo));
 
         // Ocho módulos y nada más: ningún permiso de gestión, ni de anulación.

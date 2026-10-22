@@ -1,3 +1,5 @@
+using GT.Application.Pagos;
+using GT.Domain.Pagos;
 using System.Linq.Expressions;
 using GT.Application.Caja;
 using GT.Application.Choferes;
@@ -23,7 +25,7 @@ namespace GT.Infrastructure.Persistencia;
 public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
 {
     /// <summary>Lo que un listado de movimientos lee de SQL. La referencia se arma después, en memoria.</summary>
-    private sealed record FilaDeMovimiento(
+    internal sealed record FilaDeMovimiento(
         int Id,
         int CajaId,
         DateTime Fecha,
@@ -34,14 +36,16 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
         string Usuario,
         string? FacturaNumero,
         string? FacturaCliente,
-        int? OrdenDePagoNumero);
+        int? OrdenDePagoNumero,
+        int? OrdenPagoProveedorId,
+        int? OrdenPagoProveedorNumero);
 
     /// <summary>
     /// La proyección de un movimiento, <b>una sola vez</b> para el listado de la caja, el resumen de cierre y la
     /// consulta global: las tres leen igual (convención [010]). Es una expresión y no un método, así que EF la
     /// traduce entera.
     /// </summary>
-    private static readonly Expression<Func<MovimientoDeCaja, FilaDeMovimiento>> ProyeccionDeMovimiento =
+    internal static readonly Expression<Func<MovimientoDeCaja, FilaDeMovimiento>> ProyeccionDeMovimiento =
         movimiento => new FilaDeMovimiento(
             movimiento.Id,
             movimiento.CajaId,
@@ -53,10 +57,12 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
             movimiento.Usuario!.Username,
             movimiento.Factura != null ? movimiento.Factura.NumeroComprobante : null,
             movimiento.Factura != null ? movimiento.Factura.ClienteRazonSocial : null,
-            movimiento.OrdenDePago != null ? (int?)movimiento.OrdenDePago.Numero : null);
+            movimiento.OrdenDePago != null ? (int?)movimiento.OrdenDePago.Numero : null,
+            movimiento.OrdenPagoProveedorId,
+            movimiento.OrdenPagoProveedor != null ? (int?)movimiento.OrdenPagoProveedor.Numero : null);
 
     /// <summary>El formato visible de la referencia vive acá y viaja armado (convención [009]).</summary>
-    private static MovimientoListado ALista(FilaDeMovimiento fila) =>
+    internal static MovimientoListado ALista(FilaDeMovimiento fila) =>
         new(
             fila.Id,
             fila.CajaId,
@@ -65,11 +71,13 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
             fila.Importe,
             fila.Concepto,
             new UsuarioResumen(fila.UsuarioId, fila.Usuario),
-            fila.FacturaNumero is not null
+            fila.OrdenPagoProveedorNumero is { } numeroOpp ? NumeroVisiblePagoProveedor.Desde(numeroOpp) : fila.FacturaNumero is not null
                 ? $"Factura {fila.FacturaNumero} · {fila.FacturaCliente}"
                 : fila.OrdenDePagoNumero is { } numero
                     ? NumerosVisibles.OrdenDePago(numero)
-                    : null);
+                    : null,
+            fila.OrdenPagoProveedorId is { } oppId && fila.OrdenPagoProveedorNumero is { } oppNumero
+                ? new ReferenciaPago(oppId, NumeroVisiblePagoProveedor.Desde(oppNumero)) : null);
 
     // ── Consulta de cajas ───────────────────────────────────────────────────────────────────────
 
@@ -257,8 +265,7 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
             return new MovimientoRegistrado(null, FacturaNoPendiente: true);
         }
 
-        contexto.MovimientosDeCaja.Add(movimiento);
-        await contexto.SaveChangesAsync(cancelacion);
+        await new PrimitivasMovimientosCaja(contexto).InsertarAsync(movimiento, cancelacion);
         await transaccion.CommitAsync(cancelacion);
 
         return new MovimientoRegistrado(movimiento.Id);
@@ -408,7 +415,13 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
         int? tamanioPagina = null,
         CancellationToken cancelacion = default)
     {
-        var consulta = contexto.MovimientosDeCaja.AsQueryable();
+        var consulta = FiltrarMovimientos(contexto.MovimientosDeCaja, desde, hastaExcluido, cajaId);
+        return PaginarAsync(consulta, pagina, cancelacion, tamanioPagina);
+    }
+
+    internal static IQueryable<MovimientoDeCaja> FiltrarMovimientos(IQueryable<MovimientoDeCaja> movimientos, DateTime? desde, DateTime? hastaExcluido, int? cajaId)
+    {
+        var consulta = movimientos;
 
         if (cajaId is { } caja)
         {
@@ -425,7 +438,7 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
             consulta = consulta.Where(movimiento => movimiento.Fecha < fin);
         }
 
-        return PaginarAsync(consulta, pagina, cancelacion, tamanioPagina);
+        return consulta;
     }
 
     // ── Piezas comunes ──────────────────────────────────────────────────────────────────────────
@@ -434,17 +447,9 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
     /// El <c>UPDATE</c> que no cambia nada: toma el mismo lock de fila que uno real y verifica, en el mismo
     /// paso, que la caja siga abierta y sea del usuario (research §2, FR-035). <c>true</c> si afectó una fila.
     /// </summary>
-    private async Task<bool> TomarCajaAsync(int cajaId, int usuarioId, CancellationToken cancelacion)
-    {
-        var afectadas = await contexto.Cajas
-            .Where(caja =>
-                caja.Id == cajaId &&
-                caja.Estado == EstadoCaja.Abierta &&
-                caja.UsuarioResponsableId == usuarioId)
-            .ExecuteUpdateAsync(cambio => cambio.SetProperty(caja => caja.Estado, caja => caja.Estado), cancelacion);
+    private async Task<bool> TomarCajaAsync(int cajaId, int usuarioId, CancellationToken cancelacion) =>
+        await new PrimitivasMovimientosCaja(contexto).TomarAsync(cajaId, usuarioId, cancelacion) == 1;
 
-        return afectadas == 1;
-    }
 
     private Task<decimal> SumaAsync(int cajaId, TipoMovimientoCaja tipo, CancellationToken cancelacion) =>
         contexto.MovimientosDeCaja

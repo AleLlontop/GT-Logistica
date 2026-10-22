@@ -12,7 +12,7 @@ import {
 } from '../servicios/servicioReportes'
 
 interface Props {
-  /** Cuál de los cinco. Decide la ruta que se pide. */
+  /** Reporte original012 o perspectiva015. Decide la ruta que se pide. */
   reporte: TipoDeReporte
   /** Los filtros aplicados en la pantalla. Vacío en los tres paneles, que no tienen. */
   filtros?: FiltrosDeReporte
@@ -82,7 +82,7 @@ export function GenerarReporte({ reporte, filtros = {}, cantidadDeFilas, puedeEm
     try {
       const resultado = await generarReporte(reporte, formato, filtros)
 
-      if (resultado.estado === 'tope_superado') {
+      if (resultado.estado === 'tope_superado' || resultado.estado === 'precision_monetaria_xlsx') {
         // El mensaje lo armó el servidor y se muestra tal cual llega: acá no se compone ninguno.
         setEstado(null)
         setRechazo(resultado.mensaje)

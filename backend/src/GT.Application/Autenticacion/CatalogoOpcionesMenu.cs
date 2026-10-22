@@ -111,6 +111,11 @@ public static class CatalogoOpcionesMenu
         (CodigosPermiso.CajaConsultar, new OpcionMenuDto("consultar-caja", "Caja", "/caja")),
         (CodigosPermiso.CajaConsultar,
             new OpcionMenuDto("consultar-movimientos-caja", "Movimientos de caja", "/movimientos-caja")),
+        (CodigosPermiso.PagosGenerar, new OpcionMenuDto("generar-orden-proveedor", "Generar orden", "/pagos/nueva")),
+        (CodigosPermiso.PagosConsultar, new OpcionMenuDto("consultar-ordenes-proveedor", "Consultar órdenes", "/pagos/ordenes")),
+        (CodigosPermiso.PagosChequesConsultar, new OpcionMenuDto("cheques-por-vencer", "Cheques por vencer", "/pagos/cheques")),
+        (CodigosPermiso.PagosBancosConsultar, new OpcionMenuDto("bancos-pagos", "Bancos", "/pagos/bancos")),
+        (CodigosPermiso.ReportesConsultar, new OpcionMenuDto("reportes", "Reportes", "/reportes")),
     ];
 
     /// <summary>

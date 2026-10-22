@@ -57,3 +57,14 @@ it('un error de carga permite reintentar sin mostrar el resultado anterior', asy
   expect(await screen.findByText('Sin conexión')).toBeInTheDocument(); const u = userEvent.setup(); await u.click(screen.getByRole('button', { name: 'Reintentar' }))
   expect(await screen.findByText('Razón histórica')).toBeInTheDocument()
 })
+
+it('[014] consulta Pagadas con filtro y estado real sin cambiar dinero histórico', async () => {
+  vi.mocked(api.consultarFacturasProveedor).mockResolvedValue({ items: [{ ...fila, estado: 'pagada' }] as never, total: 1, pagina: 1, tamanioPagina: 20 })
+  abrir(); await screen.findByText('Razón histórica')
+  const u = userEvent.setup()
+  await u.selectOptions(screen.getByLabelText('Estado'), 'pagada')
+  await u.click(screen.getByRole('button', { name: 'Aplicar filtros' }))
+  await waitFor(() => expect(api.consultarFacturasProveedor).toHaveBeenLastCalledWith({ estado: 'pagada' }, 1))
+  expect(screen.getByText(/Estado: Pagada/)).toBeVisible()
+  expect(screen.getByText('$ 100.000.000.000.000,01')).toBeVisible()
+})

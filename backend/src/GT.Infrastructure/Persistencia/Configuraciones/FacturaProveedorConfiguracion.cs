@@ -12,7 +12,7 @@ public class FacturaProveedorConfiguracion : IEntityTypeConfiguration<FacturaPro
         {
             t.HasCheckConstraint("CK_FacturasProveedor_Importes", "[Neto] > 0 AND [Iva] = ROUND([Neto] * 0.21, 2) AND [ImporteTotal] = [Neto] + [Iva]");
             t.HasCheckConstraint("CK_FacturasProveedor_Fechas", "[FechaVencimientoCae] >= [Fecha]");
-            t.HasCheckConstraint("CK_FacturasProveedor_Estado", "[Estado] = 0");
+            t.HasCheckConstraint("CK_FacturasProveedor_Estado", "[Estado] IN (0,1)");
             t.HasCheckConstraint("CK_FacturasProveedor_Textos", "LEN(LTRIM(RTRIM([Numero]))) > 0 AND LEN(LTRIM(RTRIM([Detalle]))) > 0 AND LEN(LTRIM(RTRIM([Cae]))) > 0");
             t.HasCheckConstraint("CK_FacturasProveedor_Liquidacion",
                 "([TipoProveedorAlRegistrar] = 0 AND [LiquidacionId] IS NOT NULL AND [ImporteLiquidacionAlRegistrar] IS NOT NULL AND [ImporteLiquidacionAlRegistrar] = [ImporteTotal]) OR " +

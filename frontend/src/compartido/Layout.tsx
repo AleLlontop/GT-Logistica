@@ -7,6 +7,7 @@ interface Props {
   opcionesMenu: OpcionMenu[]
   onCerrarSesion: () => void
   children: ReactNode
+  adaptable?: boolean
 }
 
 /**
@@ -28,12 +29,12 @@ interface Props {
  * (FR-007b). Los dos únicos textos que quedan directamente sobre él son el título de página y su
  * bajada, que `EncabezadoDePantalla` dibuja en esos dos tonos.
  */
-export function Layout({ username, opcionesMenu, onCerrarSesion, children }: Props) {
+export function Layout({ username, opcionesMenu, onCerrarSesion, children, adaptable = false }: Props) {
   return (
-    <div className="flex min-h-screen gap-[18px] p-[18px]">
-      <Menu opciones={opcionesMenu} username={username} onCerrarSesion={onCerrarSesion} />
+    <div className={adaptable ? "flex min-h-screen flex-col gap-[18px] p-3 md:flex-row md:p-[18px]" : "flex min-h-screen gap-[18px] p-[18px]"}>
+      <Menu adaptable={adaptable} opciones={opcionesMenu} username={username} onCerrarSesion={onCerrarSesion} />
 
-      <main className="min-w-0 flex-1 px-10 py-6">
+      <main className={adaptable ? "min-w-0 flex-1 px-1 py-4 md:px-10 md:py-6" : "min-w-0 flex-1 px-10 py-6"}>
         <div className="mx-auto max-w-lectura">{children}</div>
       </main>
     </div>

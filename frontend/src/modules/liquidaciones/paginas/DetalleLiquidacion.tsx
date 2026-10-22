@@ -292,6 +292,8 @@ export function DetalleLiquidacion({ puedeGestionar }: Props) {
                       <tr key={orden.id}>
                         <td>
                           <TokenDeIdentificador numero={orden.numero} sinNumeral />
+                          {orden.ordenPagoProveedor && <span className="block text-ink-soft">Origen: {orden.ordenPagoProveedor.numero}</span>}
+                          {orden.vigente === false && <span className="block text-ink-soft">Pago revertido</span>}
                         </td>
                         <td className="whitespace-nowrap">{formatearFecha(orden.fechaPago)}</td>
                         <td>
@@ -361,10 +363,15 @@ const VERBO: Record<CambioDeLiquidacion['operacion'], string> = {
   edicion: 'Editada',
   anulacion: 'Anulada',
   pagada: 'Pagada',
+  pagoPorOPP: 'Pagada mediante OPP',
+  reversionPagoPorOPP: 'Pago de OPP revertido',
 }
 
 /** `Quitó #13 · Agregó #21`, omitiendo la parte sin viajes; en la anulación, su motivo. */
 function detalleDeEntrada(entrada: CambioDeLiquidacion, motivoAnulacion: string | null): string | undefined {
+  if (entrada.operacion === 'pagoPorOPP' || entrada.operacion === 'reversionPagoPorOPP')
+    return [entrada.pago?.numero, entrada.ordenPagoProveedor?.numero].filter(Boolean).join(' · ') || undefined
+
   if (entrada.operacion === 'anulacion') {
     return motivoAnulacion === null ? undefined : `Motivo: ${motivoAnulacion}`
   }

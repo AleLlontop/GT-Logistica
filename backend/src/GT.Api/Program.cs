@@ -23,6 +23,7 @@ using GT.Application.Flota;
 using GT.Application.Flota.Documentacion;
 using GT.Application.Flota.TiposVehiculo;
 using GT.Application.Reportes;
+using GT.Application.Reportes.Analisis;
 using GT.Application.Reportes.Fuentes;
 using GT.Application.Usuarios;
 using GT.Application.Usuarios.Personas;
@@ -45,6 +46,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSingleton<GT.Application.Pagos.ISerializadorPagos, GT.Api.Pagos.SerializadorPagos>();
+builder.Services.AddScoped<GT.Application.Pagos.IRepositorioPagos, GT.Infrastructure.Persistencia.RepositorioPagos>();
+builder.Services.AddScoped<GT.Application.Pagos.GestionBancosPagos>();
+builder.Services.AddScoped<GT.Application.Pagos.GenerarOrdenProveedor>();
+builder.Services.AddScoped<GT.Application.Pagos.AnularOrdenProveedor>();
+builder.Services.AddScoped<GT.Application.Pagos.ConsultarOrdenesProveedor>();
+builder.Services.AddScoped<GT.Application.Pagos.ConsultarChequesPagos>();
+builder.Services.AddScoped<GT.Application.Pagos.CambiarEstadoChequePago>();
 
 // ── Persistencia ────────────────────────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<GtDbContext>(opciones =>
@@ -256,6 +265,19 @@ builder.Services.AddSingleton<IArmadorReporteExcel, ArmadorReporteExcelClosedXml
 // escrito una sola vez, en `OpcionesDeReporte.TopePorDefecto` (data-model §4).
 builder.Services.AddSingleton(OpcionesDeReporte.PorDefecto);
 builder.Services.AddScoped<ArmadoDeReporte>();
+builder.Services.AddScoped<DetectorSnapshotAnalisis>();
+builder.Services.AddScoped<ReadinessAnalisisReportes>();
+builder.Services.AddScoped<CoordinadorFotoAnalisis>();
+builder.Services.AddScoped<IConsultaViajesAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IConsultaFacturacionAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IConsultaLiquidacionesAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IConsultaCajaAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IConsultaFlotaAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IConsultaVencimientosAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IConsultaDashboardAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<IExportacionAnalisis, RepositorioAnalisisReportes>();
+builder.Services.AddScoped<ConsultarDashboard>();
+builder.Services.AddScoped<EmitirAnalisisReporte>();
 
 builder.Services.AddScoped<FuenteReporteViajes>();
 builder.Services.AddScoped<FuenteReporteVencimientosChoferes>();
@@ -352,6 +374,7 @@ builder.Services
 // opción estaba visible u oculta en el menú del cliente.
 builder.Services.AddSingleton<IAuthorizationHandler, PermisoHandler>();
 builder.Services.AddAuthorization(opciones => opciones.AgregarPoliticasDeProveedores());
+builder.Services.AddAuthorization(opciones => opciones.AgregarPoliticasDePagos());
 builder.Services.AddAuthorization(opciones =>
     opciones.AgregarPoliticasDePermisos(
         CodigosPermiso.UsuariosGestionar,
@@ -414,6 +437,8 @@ builder.Services.AddAuthorization(opciones =>
     opciones.AgregarPoliticaCombinada(
         CodigosPermiso.CajaConsultar, CodigosPermiso.ReportesEmitir);
 });
+
+builder.Services.AddAuthorization(opciones => opciones.AgregarPoliticasAnalisisReportes());
 
 builder.Services.Configure<JsonOptions>(opciones =>
     opciones.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
@@ -479,6 +504,10 @@ app.MapearMiCuenta();
 app.MapearPersonas();
 app.MapearEmpleados();
 app.MapearTransportistas();
+GT.Api.Pagos.BancosPagosEndpoints.MapearBancosPagos(app);
+GT.Api.Pagos.ReferenciasPagosEndpoints.MapearReferenciasPagos(app);
+GT.Api.Pagos.OrdenesPagosEndpoints.MapearOrdenesPagos(app);
+GT.Api.Pagos.ChequesPagosEndpoints.MapearChequesPagos(app);
 GT.Api.Proveedores.ProveedoresEndpoints.MapearProveedores(app);
 GT.Api.Proveedores.FacturasProveedorEndpoints.MapearFacturasProveedor(app);
 app.MapearChoferes();
@@ -523,6 +552,7 @@ app.MapearCierreDeCaja();
 // (FR-001, research §6). Sus rutas son literales y conviven con las `{id:int}` de los grupos de
 // arriba, que ya llevan su restricción de tipo (convención [005]).
 app.MapearReportes();
+app.MapearAnalisisReportes();
 
 await AplicarMigracionesYSembrarAsync(app);
 

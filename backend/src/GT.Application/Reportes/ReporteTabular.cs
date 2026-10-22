@@ -82,6 +82,8 @@ public enum TipoDeColumna
 /// <param name="Nombre">El encabezado, <b>idéntico al de la pantalla</b> (FR-008).</param>
 public record ColumnaDeReporte(string Nombre, TipoDeColumna Tipo)
 {
+    /// <summary>Peso visual opcional para tablas analíticas anchas; no cambia valor ni tipo de celda.</summary>
+    public float? AnchoRelativoPdf { get; init; }
     public static ColumnaDeReporte Texto(string nombre) => new(nombre, TipoDeColumna.Texto);
 
     public static ColumnaDeReporte Fecha(string nombre) => new(nombre, TipoDeColumna.Fecha);
@@ -145,4 +147,11 @@ public record CeldaDeReporte
 /// Una línea del pie de la tabla. **El Excel la escribe como número**, igual que las celdas de
 /// importe, para que SC-004 se pueda comprobar con la calculadora de la planilla.
 /// </summary>
-public record TotalDeReporte(string Etiqueta, decimal Importe);
+public record TotalDeReporte(string Etiqueta, decimal Importe)
+{
+    /// <summary>Una cantidad no lleva símbolo monetario ni formato de centavos.</summary>
+    public bool EsCantidad { get; private init; }
+
+    public static TotalDeReporte Cantidad(string etiqueta, long cantidad) =>
+        new(etiqueta, cantidad) { EsCantidad = true };
+}

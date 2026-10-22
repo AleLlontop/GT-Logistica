@@ -41,14 +41,16 @@ interface Props {
   /** Una acción para salir de la situación: *Emitir la primera factura*, *Limpiar los filtros*. */
   accion?: ReactNode
   className?: string
+  /** [015] La región viva puede situarse en el propio mensaje sin alterar los usos anteriores. */
+  anuncioEnMensaje?: boolean
 }
 
-export function EstadoVacio({ caso, children, accion, className }: Props) {
+export function EstadoVacio({ caso, children, accion, className, anuncioEnMensaje = false }: Props) {
   const Icono = ICONOS[caso]
 
   return (
     <div
-      role={caso === 'error' ? 'alert' : 'status'}
+      role={anuncioEnMensaje ? undefined : caso === 'error' ? 'alert' : 'status'}
       className={cn(
         'flex flex-col items-center gap-3.5 rounded-card border border-line',
         'bg-surface px-6 py-12 text-center',
@@ -63,7 +65,8 @@ export function EstadoVacio({ caso, children, accion, className }: Props) {
       >
         <Icono aria-hidden="true" className="size-4" />
       </span>
-      <p className={cn('m-0 max-w-prose text-[13px] leading-[19px]', TONOS[caso])}>{children}</p>
+      <p role={anuncioEnMensaje ? caso === 'error' ? 'alert' : 'status' : undefined}
+        className={cn('m-0 max-w-prose text-[13px] leading-[19px]', TONOS[caso])}>{children}</p>
       {accion}
     </div>
   )

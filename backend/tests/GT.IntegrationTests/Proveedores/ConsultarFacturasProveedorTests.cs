@@ -58,10 +58,21 @@ public static class EscenariosConsultaFacturasProveedor
         {
             using var pagina = await LeerAsync(cliente, $"/api/proveedores/facturas?proveedorId={proveedor}" + rango); Assert.Equal(total, pagina.RootElement.GetProperty("total").GetInt32());
         }
-        foreach (var invalido in new[] { "desde=2026-10-12&hasta=2026-10-10", "estado=pagada", "pagina=0", "proveedorId=0", "desde=no-fecha", "hasta=2026-02-30", "pagina=abc", "proveedorId=abc" })
+        foreach (var invalido in new[] { "desde=2026-10-12&hasta=2026-10-10", "estado=desconocido", "pagina=0", "proveedorId=0", "desde=no-fecha", "hasta=2026-02-30", "pagina=abc", "proveedorId=abc" })
             Assert.Equal(HttpStatusCode.BadRequest, (await cliente.GetAsync("/api/proveedores/facturas?" + invalido)).StatusCode);
         using var fueraDeRango = await LeerAsync(cliente, consulta + "&pagina=2147483647");
         Assert.Equal(0, fueraDeRango.RootElement.GetProperty("items").GetArrayLength());
+        // [014 FR-024/T057] Pagada ahora es un estado consultable; no se relaja validación de códigos desconocidos.
+        var pagadaId = esperados[0].Id;
+        await enBase(db => db.FacturasProveedor.Where(f => f.Id == pagadaId)
+            .ExecuteUpdateAsync(u => u.SetProperty(f => f.Estado, EstadoFacturaProveedor.Pagada)));
+        using var pagadas = await LeerAsync(cliente, $"/api/proveedores/facturas?proveedorId={proveedor}&estado=pagada");
+        Assert.Equal(1, pagadas.RootElement.GetProperty("total").GetInt32());
+        var pagada = Assert.Single(pagadas.RootElement.GetProperty("items").EnumerateArray());
+        Assert.Equal(pagadaId, pagada.GetProperty("id").GetInt32());
+        Assert.Equal("pagada", pagada.GetProperty("estado").GetString());
+        using var detallePagada = await LeerAsync(cliente, $"/api/proveedores/facturas/{pagadaId}");
+        Assert.Equal("pagada", detallePagada.RootElement.GetProperty("estado").GetString());
     }
 
     public static async Task VerificarDetalleAsync(HttpClient cliente, Func<Func<GtDbContext, Task>, Task> enBase)

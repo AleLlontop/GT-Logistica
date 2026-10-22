@@ -34,6 +34,16 @@ public class PermisoHandler : AuthorizationHandler<PermisoRequirement>
 
 public static class PoliticasAutorizacion
 {
+    public static void AgregarPoliticasDePagos(this AuthorizationOptions opciones) =>
+        opciones.AgregarPoliticasDePermisos(
+            GT.Domain.Usuarios.CodigosPermiso.PagosGenerar,
+            GT.Domain.Usuarios.CodigosPermiso.PagosConsultar,
+            GT.Domain.Usuarios.CodigosPermiso.PagosAnular,
+            GT.Domain.Usuarios.CodigosPermiso.PagosChequesConsultar,
+            GT.Domain.Usuarios.CodigosPermiso.PagosChequesCambiarEstado,
+            GT.Domain.Usuarios.CodigosPermiso.PagosBancosConsultar,
+            GT.Domain.Usuarios.CodigosPermiso.PagosBancosGestionar);
+
     public const string BuscarProveedores = "proveedores:busqueda";
 
     public static void AgregarPoliticasDeProveedores(this AuthorizationOptions opciones)

@@ -31,6 +31,17 @@ public static class CodigosRol
 /// <summary>Códigos de los permisos del sistema. Cada módulo agrega el suyo cuando se construye.</summary>
 public static class CodigosPermiso
 {
+    public const string ReportesConsultar = "reportes.consultar";
+    public const string ReportesFlotaConsultar = "reportes.flota.consultar";
+
+    public const string PagosGenerar = "pagos.generar";
+    public const string PagosConsultar = "pagos.consultar";
+    public const string PagosAnular = "pagos.anular";
+    public const string PagosChequesConsultar = "pagos.cheques.consultar";
+    public const string PagosChequesCambiarEstado = "pagos.cheques.cambiarEstado";
+    public const string PagosBancosConsultar = "pagos.bancos.consultar";
+    public const string PagosBancosGestionar = "pagos.bancos.gestionar";
+
     public const string ProveedoresGestionar = "proveedores.gestionar";
     public const string ProveedoresFacturasCargar = "proveedores.facturas.cargar";
     public const string ProveedoresFacturasConsultar = "proveedores.facturas.consultar";

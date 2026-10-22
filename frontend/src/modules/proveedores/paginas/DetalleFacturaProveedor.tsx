@@ -31,7 +31,7 @@ export function DetalleFacturaProveedor({ puedeConsultar = false, puedeGestionar
     <EncabezadoDePantalla titulo="Factura de proveedor" volverA={puedeConsultar ? { ruta: '/proveedores/facturas', etiqueta: 'Volver a facturas de proveedores' } : { ruta: '/', etiqueta: 'Volver al inicio' }} />
     {enMemoria && <p role="status">Factura registrada.</p>}{error && <p role="alert">{error}</p>}
     {cargando ? <p role="status">Cargando factura…</p> : detalle?.id === numero && <>
-      <FichaEncabezado identidad={detalle.numero} estado={<Estado forma="pastilla" valor="pendiente" texto="Pendiente" />} resumen={detalle.proveedorRazonSocial} />
+      <FichaEncabezado identidad={detalle.numero} estado={<Estado forma="pastilla" valor={detalle.estado} texto={detalle.estado === 'pagada' ? 'Pagada' : 'Pendiente'} />} resumen={detalle.proveedorRazonSocial} />
       <FichaCuerpo aside={<AsideDeFicha destacado={<CifraDestacada rotulo="Total" valor={formatearPesos(detalle.importeTotal)} />} />}>
         <FichaSeccion id="datos-factura" titulo="Datos de factura"><dl>
           <dt>Proveedor al registrar</dt><dd>{detalle.proveedorRazonSocial}</dd><dt>CUIT</dt><dd>{formatearCuit(detalle.proveedorCuit)}</dd>

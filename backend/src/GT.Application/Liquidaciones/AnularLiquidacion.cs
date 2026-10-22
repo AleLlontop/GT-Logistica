@@ -97,10 +97,10 @@ public class AnularLiquidacion(
             Mensaje: MensajesLiquidaciones.NoAnulable(
                 NumerosVisibles.Liquidacion(liquidacion.Numero),
                 motivo,
-                liquidacion.OrdenesDePago.Count,
+                liquidacion.OrdenesDePago.Count(orden => orden.Vigente),
                 liquidacion.ImportePagado),
             Motivo: motivo,
-            CantidadOrdenesDePago: conOrdenes ? liquidacion.OrdenesDePago.Count : null,
+            CantidadOrdenesDePago: conOrdenes ? liquidacion.OrdenesDePago.Count(orden => orden.Vigente) : null,
             ImportePagado: conOrdenes ? liquidacion.ImportePagado : null);
     }
 }
