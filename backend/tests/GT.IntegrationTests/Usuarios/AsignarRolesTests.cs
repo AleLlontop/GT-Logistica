@@ -201,11 +201,6 @@ public class AsignarRolesTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
             [CodigosPermiso.ChoferesVencimientosConsultar],
             choferes.Permisos.Select(permiso => permiso.Codigo));
 
-        var empleados = gerencia.PermisosPorModulo.Single(modulo => modulo.Modulo == "Empleados");
-
-        Assert.Equal(
-            [CodigosPermiso.EmpleadosConsultar],
-            empleados.Permisos.Select(permiso => permiso.Codigo));
         var flota = gerencia.PermisosPorModulo.Single(modulo => modulo.Modulo == "Flota");
 
         Assert.Equal(
@@ -224,6 +219,12 @@ public class AsignarRolesTests(AplicacionDePrueba app) : IClassFixture<Aplicacio
         Assert.Equal(
             [CodigosPermiso.ReportesConsultar, CodigosPermiso.ReportesEmitir, CodigosPermiso.ReportesFlotaConsultar],
             reportes.Permisos.Select(permiso => permiso.Codigo));
+
+        var empleados = gerencia.PermisosPorModulo.Single(modulo => modulo.Modulo == "Empleados");
+
+        Assert.Equal(
+            [CodigosPermiso.EmpleadosConsultar],
+            empleados.Permisos.Select(permiso => permiso.Codigo));
 
         // Ocho módulos y nada más: ningún permiso de gestión, ni de anulación.
         Assert.Equal(9, gerencia.PermisosPorModulo.Count);

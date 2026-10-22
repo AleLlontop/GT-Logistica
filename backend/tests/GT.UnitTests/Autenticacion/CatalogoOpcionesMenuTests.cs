@@ -117,4 +117,22 @@ public class CatalogoOpcionesMenuTests
     {
         Assert.Empty(CatalogoOpcionesMenu.Autorizadas([]));
     }
+
+    [Fact]
+    public void EmpleadosConsultar_AbreElMenuDeEmpleados()
+    {
+        var opcion = Assert.Single(
+            CatalogoOpcionesMenu.Autorizadas([CodigosPermiso.EmpleadosConsultar]));
+
+        Assert.Equal("empleados", opcion.Codigo);
+        Assert.Equal("/empleados", opcion.Ruta);
+    }
+
+    [Fact]
+    public void EmpleadosGestionarPorSiSolo_NoAbreElMenuDeEmpleados()
+    {
+        var opciones = CatalogoOpcionesMenu.Autorizadas([CodigosPermiso.EmpleadosGestionar]);
+
+        Assert.DoesNotContain(opciones, opcion => opcion.Ruta == "/empleados");
+    }
 }

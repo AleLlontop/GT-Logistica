@@ -95,6 +95,7 @@ public class SembradorInicial(GtDbContext contexto, IHasheadorPassword hasheador
         (CodigosPermiso.ReportesFlotaConsultar, "Reportes", "Consultar utilización de flota sin gestionar unidades"),
         (CodigosPermiso.ReportesEmitir, "Reportes",
             "Emitir los reportes de viajes, vencimientos y movimientos de caja en PDF y Excel"),
+
         (CodigosPermiso.EmpleadosGestionar, "Empleados",
             "Registrar, modificar y dar de baja empleados"),
         (CodigosPermiso.EmpleadosConsultar, "Empleados",
