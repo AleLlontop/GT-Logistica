@@ -58,6 +58,7 @@ const SECCION_POR_CODIGO: Record<string, NombreDeSeccion> = {
   flota: 'Padrones',
   transportistas: 'Padrones',
   personas: 'Padrones',
+  empleados: 'Padrones',
 
   // Lo que se mira para saber cómo viene la cosa
   'vencimientos-choferes': 'Seguimiento',
