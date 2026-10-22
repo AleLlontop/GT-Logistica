@@ -339,7 +339,9 @@ export default function App() {
         <Route path="/empleados/nuevo" element={
           <RutaProtegida sesion={sesion}>
             {sesion !== null && <Layout username={sesion.username} opcionesMenu={sesion.opcionesMenu} onCerrarSesion={alCerrarSesion}>
-              <FormularioEmpleado />
+              <FormularioEmpleado
+                puedeGestionar={puedeGestionarEmpleados}
+              />
             </Layout>}
           </RutaProtegida>
         } />
@@ -347,7 +349,9 @@ export default function App() {
         <Route path="/empleados/:id/editar" element={
           <RutaProtegida sesion={sesion}>
             {sesion !== null && <Layout username={sesion.username} opcionesMenu={sesion.opcionesMenu} onCerrarSesion={alCerrarSesion}>
-              <FormularioEmpleado />
+              <FormularioEmpleado
+                puedeGestionar={puedeGestionarEmpleados}
+              />
             </Layout>}
           </RutaProtegida>
         } />
@@ -355,7 +359,9 @@ export default function App() {
         <Route path="/empleados/:id" element={
           <RutaProtegida sesion={sesion}>
             {sesion !== null && <Layout username={sesion.username} opcionesMenu={sesion.opcionesMenu} onCerrarSesion={alCerrarSesion}>
-              <DetalleEmpleado />
+              <DetalleEmpleado
+                puedeGestionar={puedeGestionarEmpleados}
+              />
             </Layout>}
           </RutaProtegida>
         } />

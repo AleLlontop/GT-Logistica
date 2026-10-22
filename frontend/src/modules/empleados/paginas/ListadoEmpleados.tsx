@@ -1,82 +1,225 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Persona } from '../../../compartido/tipos'
-import { listarEmpleados, darDeBajaEmpleado } from '../servicios/servicioEmpleados'
+import { Aviso } from '../../../compartido/ui/Aviso'
+import { Boton } from '../../../compartido/ui/Boton'
+import { DialogoConfirmacion } from '../../../compartido/ui/DialogoConfirmacion'
+import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
+import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
+import { Filtros, FranjaDeBusqueda } from '../../../compartido/ui/Filtros'
+import { IconoNuevo } from '../../../compartido/ui/iconos'
+import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
+import {
+  clasesDeBoton,
+  clasesDeEtiquetaDeFiltro,
+  clasesDeFiltro,
+} from '../../../compartido/ui/clases'
+import { darDeBajaEmpleado, listarEmpleados } from '../servicios/servicioEmpleados'
 
 interface Props {
   puedeGestionar: boolean
 }
+
+const MENSAJE_ERROR_LISTADO =
+  'No pudimos consultar los empleados. Verificá tus permisos e intentá de nuevo.'
 
 export function ListadoEmpleados({ puedeGestionar }: Props) {
   const [texto, setTexto] = useState('')
   const [empleados, setEmpleados] = useState<Persona[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [cargando, setCargando] = useState(true)
+  const [empleadoPendienteDeBaja, setEmpleadoPendienteDeBaja] = useState<Persona | null>(null)
+  const [dandoDeBaja, setDandoDeBaja] = useState(false)
 
-  const cargar = useCallback(() => {
+  const cargar = useCallback(async () => {
     setCargando(true)
-    listarEmpleados({ texto })
-      .then((lista) => {
-        setEmpleados(lista)
-        setError(null)
-      })
-      .catch(() => setError('No pudimos consultar los empleados. Verificá tus permisos e intentá de nuevo.'))
-      .finally(() => setCargando(false))
+    setError(null)
+
+    try {
+      const resultado = await listarEmpleados({ texto: texto.trim() })
+      setEmpleados(resultado)
+    } catch {
+      setError(MENSAJE_ERROR_LISTADO)
+    } finally {
+      setCargando(false)
+    }
   }, [texto])
 
-  useEffect(() => { cargar() }, [cargar])
+  useEffect(() => {
+    void cargar()
+  }, [cargar])
 
-  async function darDeBaja(empleado: Persona) {
-    if (!puedeGestionar || !window.confirm(`¿Dar de baja a ${empleado.apellido}, ${empleado.nombre}?`)) return
+  async function confirmarBaja() {
+    if (!puedeGestionar || empleadoPendienteDeBaja === null || dandoDeBaja) return
+
+    setDandoDeBaja(true)
+    setError(null)
+
     try {
-      await darDeBajaEmpleado(empleado.id)
-      cargar()
+      await darDeBajaEmpleado(empleadoPendienteDeBaja.id)
+      setEmpleadoPendienteDeBaja(null)
+      await cargar()
     } catch (fallo) {
+      // ErrorHttp hereda de Error y preserva el mensaje de negocio del servidor (por ejemplo,
+      // empleado_con_caja_abierta). No convertir un 409 en una baja exitosa ni ocultarlo.
       setError(fallo instanceof Error ? fallo.message : 'No pudimos dar de baja al empleado.')
+      setEmpleadoPendienteDeBaja(null)
+    } finally {
+      setDandoDeBaja(false)
     }
   }
 
+  const filtrando = texto.trim().length > 0
+
   return (
-    <section className="space-y-5">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Empleados</h1>
-          <p className="text-sm text-ink-soft">Administrativos y operativos que no tienen ficha de chofer.</p>
-        </div>
-        {puedeGestionar && <Link className="rounded-md bg-primary px-4 py-2 text-white" to="/empleados/nuevo">Registrar empleado</Link>}
-      </header>
+    <section>
+      <EncabezadoDePantalla
+        titulo="Empleados"
+        resumen="Personal administrativo y operativo que no tiene ficha de chofer."
+        accionPrincipal={
+          puedeGestionar ? (
+            <Link to="/empleados/nuevo" className={clasesDeBoton('primario')}>
+              Registrar empleado
+              <span
+                aria-hidden="true"
+                className="flex size-8 shrink-0 items-center justify-center rounded-pastilla bg-white/[0.14] transition-transform duration-200 ease-gt group-hover:translate-x-0.5"
+              >
+                <IconoNuevo className="size-3" />
+              </span>
+            </Link>
+          ) : undefined
+        }
+      />
 
-      <div className="max-w-xl">
-        <label className="mb-1 block text-sm font-medium" htmlFor="buscar-empleados">Buscar por nombre, apellido o DNI</label>
-        <input id="buscar-empleados" className="w-full rounded-md border px-3 py-2" value={texto}
-          onChange={(event) => setTexto(event.target.value)} placeholder="Ej.: Pérez o 30123456" />
-      </div>
+      <Aviso tono="error" rol="alert" className="mb-[18px]">
+        {error}
+      </Aviso>
 
-      {error && <p className="rounded-md border border-red-300 p-3 text-red-700" role="alert">{error}</p>}
-      {cargando && <p role="status">Cargando empleados…</p>}
-      {!cargando && empleados?.length === 0 && <p role="status">No hay empleados que coincidan con la búsqueda.</p>}
+      <Listado>
+        <Filtros
+          resumen={
+            empleados !== null && error === null ? (
+              <>
+                <span>
+                  {empleados.length} {empleados.length === 1 ? 'empleado' : 'empleados'}
+                </span>
+                <span>Ordenados por apellido y nombre</span>
+              </>
+            ) : undefined
+          }
+        >
+          <FranjaDeBusqueda>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="buscar-empleados" className={clasesDeEtiquetaDeFiltro}>
+                Nombre, apellido o DNI
+              </label>
+              <input
+                id="buscar-empleados"
+                type="search"
+                placeholder="Gómez o 30123456"
+                value={texto}
+                onChange={(evento) => setTexto(evento.target.value)}
+                className={clasesDeFiltro(filtrando)}
+              />
+            </div>
+          </FranjaDeBusqueda>
+        </Filtros>
 
-      {!cargando && empleados && empleados.length > 0 && (
-        <div className="overflow-x-auto rounded-md border">
-          <table className="w-full text-left text-sm">
-            <thead><tr className="border-b bg-surface-secondary">
-              <th className="p-3">Empleado</th><th className="p-3">DNI</th><th className="p-3">Teléfono</th><th className="p-3">Email</th><th className="p-3">Estado</th><th className="p-3">Acciones</th>
-            </tr></thead>
-            <tbody>
-              {empleados.map((empleado) => (
-                <tr key={empleado.id} className="border-b last:border-0">
-                  <td className="p-3"><Link className="underline" to={`/empleados/${empleado.id}`}>{empleado.apellido}, {empleado.nombre}</Link></td>
-                  <td className="p-3">{empleado.dni}</td><td className="p-3">{empleado.telefono}</td><td className="p-3">{empleado.email}</td>
-                  <td className="p-3">{empleado.activa ? 'Activo' : 'Dado de baja'}</td>
-                  <td className="p-3"><div className="flex gap-3">
-                    {puedeGestionar && <Link className="underline" to={`/empleados/${empleado.id}/editar`}>Editar</Link>}
-                    {puedeGestionar && empleado.activa && <button className="underline" type="button" onClick={() => darDeBaja(empleado)}>Dar de baja</button>}
-                  </div></td>
+        {cargando && empleados === null && (
+          <EstadoVacio caso="cargando" className="border-0 shadow-none">
+            Cargando empleados…
+          </EstadoVacio>
+        )}
+
+        {!cargando && error === null && empleados !== null && empleados.length === 0 && (
+          <EstadoVacio
+            caso={filtrando ? 'sinCoincidencias' : 'vacio'}
+            className="border-0 shadow-none"
+          >
+            {filtrando
+              ? 'No hay empleados que coincidan con la búsqueda.'
+              : 'Todavía no hay empleados registrados.'}
+          </EstadoVacio>
+        )}
+
+        {empleados !== null && empleados.length > 0 && (
+          <TablaDesplazable>
+            <table>
+              <caption>Empleados registrados</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Empleado</th>
+                  <th scope="col">DNI</th>
+                  <th scope="col">Teléfono</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Estado</th>
+                  {puedeGestionar && <th scope="col">Acciones</th>}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {empleados.map((empleado) => (
+                  <tr key={empleado.id}>
+                    <td>
+                      <Link
+                        to={`/empleados/${empleado.id}`}
+                        className="font-semibold text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink"
+                      >
+                        {empleado.apellido}, {empleado.nombre}
+                      </Link>
+                    </td>
+                    <td className="whitespace-nowrap">{empleado.dni}</td>
+                    <td>{empleado.telefono}</td>
+                    <td className="max-w-[18rem] truncate">{empleado.email}</td>
+                    <td>
+                      <span
+                        className={
+                          empleado.activa
+                            ? 'inline-flex rounded-pastilla bg-estado-rendido-bg px-2.5 py-1 text-[11px] font-bold text-estado-rendido'
+                            : 'inline-flex rounded-pastilla bg-surface-mute px-2.5 py-1 text-[11px] font-bold text-ink-soft'
+                        }
+                      >
+                        {empleado.activa ? 'Activo' : 'Dado de baja'}
+                      </span>
+                    </td>
+                    {puedeGestionar && (
+                      <td>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Link
+                            to={`/empleados/${empleado.id}/editar`}
+                            className={clasesDeBoton('secundario', 'chico')}
+                          >
+                            Editar
+                          </Link>
+                          {empleado.activa && (
+                            <Boton
+                              variante="destructivo"
+                              tamanio="chico"
+                              onClick={() => setEmpleadoPendienteDeBaja(empleado)}
+                            >
+                              Dar de baja
+                            </Boton>
+                          )}
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TablaDesplazable>
+        )}
+      </Listado>
+
+      {empleadoPendienteDeBaja !== null && (
+        <DialogoConfirmacion
+          titulo="Dar de baja el empleado"
+          mensaje={`¿Confirmás la baja de ${empleadoPendienteDeBaja.apellido}, ${empleadoPendienteDeBaja.nombre}? El registro se conservará y quedará inactivo.`}
+          etiquetaConfirmar={dandoDeBaja ? 'Dando de baja…' : 'Dar de baja'}
+          onConfirmar={() => void confirmarBaja()}
+          onCancelar={() => {
+            if (!dandoDeBaja) setEmpleadoPendienteDeBaja(null)
+          }}
+        />
       )}
     </section>
   )
