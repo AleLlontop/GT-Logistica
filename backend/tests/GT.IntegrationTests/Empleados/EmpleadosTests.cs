@@ -171,7 +171,7 @@ public class EmpleadosTests(AplicacionDePrueba app) : IClassFixture<AplicacionDe
 
         var alta = await cliente.PostAsJsonAsync(
             "/api/empleados",
-            Alta("45871231", "empleado"));
+            Alta(NuevoDni(), "empleado"));
 
         var respuesta = await alta.Content.ReadAsStringAsync();
 
@@ -225,7 +225,7 @@ public class EmpleadosTests(AplicacionDePrueba app) : IClassFixture<AplicacionDe
 
         var alta = await cliente.PostAsJsonAsync(
             "/api/empleados",
-            Alta("45871234", "empleado"));
+            Alta(NuevoDni(), "empleado"));
 
         var respuesta = await alta.Content.ReadAsStringAsync();
 
@@ -265,6 +265,79 @@ public class EmpleadosTests(AplicacionDePrueba app) : IClassFixture<AplicacionDe
         Assert.Equal(HttpStatusCode.NotFound, ficha.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, adelantos.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, cajas.StatusCode);
+    }
+
+    [Fact]
+    public async Task VuelveARegistrarEmpleadoDadoDeBaja_ReutilizaElMismoRegistro()
+    {
+        var cliente = await app.CrearClienteAutenticadoAsync();
+        var dni = NuevoDni();
+
+        var alta = await cliente.PostAsJsonAsync(
+            "/api/empleados",
+            Alta(dni, "empleado"));
+
+        Assert.Equal(HttpStatusCode.Created, alta.StatusCode);
+
+        var original = await alta.Content.ReadFromJsonAsync<PersonaLeida>();
+        Assert.NotNull(original);
+
+        var baja = await cliente.DeleteAsync(
+            $"/api/empleados/{original.Id}");
+
+        Assert.Equal(HttpStatusCode.NoContent, baja.StatusCode);
+
+        var reingreso = await cliente.PostAsJsonAsync(
+            "/api/empleados",
+            new
+            {
+                nombre = "Laura",
+                apellido = "Pérez",
+                dni,
+                tipo = "empleado",
+                telefono = "221-555-0102",
+                email = $"reingreso-{dni}@gt.com.ar",
+                fechaNacimiento = "1992-06-12",
+            });
+
+        Assert.Equal(HttpStatusCode.Created, reingreso.StatusCode);
+
+        var reactivado =
+            await reingreso.Content.ReadFromJsonAsync<PersonaLeida>();
+
+        Assert.NotNull(reactivado);
+        Assert.Equal(original.Id, reactivado.Id);
+        Assert.True(reactivado.Activa);
+        Assert.Equal("Laura", reactivado.Nombre);
+        Assert.Equal("Pérez", reactivado.Apellido);
+    }
+
+    [Theory]
+    [InlineData("Juan3", "Gómez", "221-555-0101")]
+    [InlineData("Juan", "Gómez2", "221-555-0101")]
+    [InlineData("Juan", "Gómez", "221-ABC-0101")]
+    public async Task RechazaNombresConNumerosYTelefonosConLetras(
+        string nombre,
+        string apellido,
+        string telefono)
+    {
+        var cliente = await app.CrearClienteAutenticadoAsync();
+        var dni = NuevoDni();
+
+        var respuesta = await cliente.PostAsJsonAsync(
+            "/api/empleados",
+            new
+            {
+                nombre,
+                apellido,
+                dni,
+                tipo = "empleado",
+                telefono,
+                email = $"validacion-{dni}@gt.com.ar",
+                fechaNacimiento = "1990-05-17",
+            });
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
     }
 
     private record PersonaLeida(
