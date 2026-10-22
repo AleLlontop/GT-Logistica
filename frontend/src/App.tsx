@@ -66,6 +66,9 @@ import {
   tienePermiso,
   type Sesion,
 } from './modules/autenticacion/servicios/sesion'
+import { ListadoEmpleados } from './modules/empleados/paginas/ListadoEmpleados'
+import { FormularioEmpleado } from './modules/empleados/paginas/FormularioEmpleado'
+import { DetalleEmpleado } from './modules/empleados/paginas/DetalleEmpleado'
 
 export default function App() {
   const [sesion, setSesion] = useState<Sesion | null>(null)
@@ -117,6 +120,8 @@ export default function App() {
   // Módulo 10: se miran con `adelantos.consultar` y se registran, aprueban, rechazan y anulan con
   // `adelantos.gestionar` (FR-041, FR-042).
   const puedeGestionarAdelantos = tienePermiso(sesion, Permisos.adelantosGestionar)
+
+  const puedeGestionarEmpleados = tienePermiso(sesion, Permisos.empleadosGestionar)
 
   // Módulo 11: se miran con `caja.consultar` y se abren, operan y cierran con `caja.gestionar`. Que la
   // caja sea propia lo decide el servidor con `puedeOperar` (FR-031 a FR-035).
@@ -301,6 +306,39 @@ export default function App() {
             </RutaProtegida>
           }
         />
+
+        <Route path="/empleados" element={
+          <RutaProtegida sesion={sesion}>
+            {sesion !== null && <Layout username={sesion.username} opcionesMenu={sesion.opcionesMenu} onCerrarSesion={alCerrarSesion}>
+              <ListadoEmpleados puedeGestionar={puedeGestionarEmpleados} />
+            </Layout>}
+          </RutaProtegida>
+        } />
+
+        <Route path="/empleados/nuevo" element={
+          <RutaProtegida sesion={sesion}>
+            {sesion !== null && <Layout username={sesion.username} opcionesMenu={sesion.opcionesMenu} onCerrarSesion={alCerrarSesion}>
+              <FormularioEmpleado />
+            </Layout>}
+          </RutaProtegida>
+        } />
+
+        <Route path="/empleados/:id/editar" element={
+          <RutaProtegida sesion={sesion}>
+            {sesion !== null && <Layout username={sesion.username} opcionesMenu={sesion.opcionesMenu} onCerrarSesion={alCerrarSesion}>
+              <FormularioEmpleado />
+            </Layout>}
+          </RutaProtegida>
+        } />
+
+        <Route path="/empleados/:id" element={
+          <RutaProtegida sesion={sesion}>
+            {sesion !== null && <Layout username={sesion.username} opcionesMenu={sesion.opcionesMenu} onCerrarSesion={alCerrarSesion}>
+              <DetalleEmpleado />
+            </Layout>}
+          </RutaProtegida>
+        } />
+
 
         {/* Rutas del Módulo 3. `/choferes/vencimientos` y `/choferes/nuevo` van antes que
             `/choferes/:id` para que no las tome como si fueran un identificador. */}
