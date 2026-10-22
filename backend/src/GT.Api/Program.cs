@@ -42,6 +42,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -384,6 +385,9 @@ builder.Services.AddAuthorization(opciones =>
         // Módulo 11: el mismo reparto; que la caja sea propia lo decide cada escritura (FR-035).
         CodigosPermiso.CajaGestionar,
         CodigosPermiso.CajaConsultar,
+        // Módulo 14: gestión de empleados.
+        CodigosPermiso.EmpleadosGestionar,
+        CodigosPermiso.EmpleadosConsultar,
         // Módulo 12: `reportes.emitir` sólo para Gerencia y el administrador (FR-014). La política
         // simple queda registrada junto a las demás; lo que los cinco endpoints piden es la
         // **combinada** de abajo.
@@ -428,6 +432,18 @@ if (!app.Environment.IsDevelopment())
 // ── FR-015 y FR-018: errores sin detalles técnicos y sin rastro de la contraseña ───────────────
 app.UseExceptionHandler(rama => rama.Run(async contexto =>
 {
+    var excepcion =
+        contexto.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+    var logger = contexto.RequestServices
+        .GetRequiredService<ILoggerFactory>()
+        .CreateLogger("ErroresApi");
+
+    logger.LogError(
+        excepcion,
+        "Error inesperado al procesar {Metodo} {Ruta}",
+        contexto.Request.Method,
+        contexto.Request.Path);
     contexto.Response.StatusCode = StatusCodes.Status500InternalServerError;
     contexto.Response.ContentType = "application/json";
 
