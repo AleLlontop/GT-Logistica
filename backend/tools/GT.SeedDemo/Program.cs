@@ -15,7 +15,7 @@ public static class Program
     {
         try
         {
-            if(args.Contains("--self-test")) { Safety.Tests(); Console.WriteLine("Guardias locales: OK"); return 0; }
+            if(args.Contains("--self-test")) { Safety.Tests(); SeedTests.Run(); Console.WriteLine("Guardias locales: OK"); return 0; }
             var config=new ConfigurationBuilder().AddEnvironmentVariables().Build();
             var env=config["ASPNETCORE_ENVIRONMENT"];
             var enabled=config["GT_SEED_DEMO"];
@@ -28,7 +28,8 @@ public static class Program
             var clock=new DemoClock();
             var services=new ServiceCollection().AddLogging(x=>x.SetMinimumLevel(LogLevel.Error));
             services.AddSingleton<IConfiguration>(config).AddSingleton<TimeProvider>(clock);
-            services.AddDbContext<GtDbContext>(x=>x.UseSqlServer(cs));
+            services.AddScoped<Ownership>();
+            services.AddDbContext<GtDbContext>((sp,x)=>x.UseSqlServer(cs).AddInterceptors(sp.GetRequiredService<Ownership>()));
             // Registro exclusivo del ejecutable: no ejecuta Program de la API ni cambia su arranque.
             foreach(var assembly in new[]{typeof(GT.Application.Viajes.CrearViaje).Assembly,typeof(GtDbContext).Assembly,typeof(GT.Api.Pagos.SerializadorPagos).Assembly})
             foreach(var type in assembly.GetExportedTypes().Where(t=>t.IsClass&&!t.IsAbstract&&!t.ContainsGenericParameters&&t.GetConstructors().Length>0))
@@ -53,7 +54,11 @@ public static class Program
             // Exclusión del seeder entre procesos/Compose; no se usa para operaciones productivas.
             await db.Database.OpenConnectionAsync();
             await db.Database.ExecuteSqlRawAsync("DECLARE @r int; EXEC @r=sp_getapplock @Resource=N'GT.SeedDemo.DEMO015',@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=0; IF @r<0 THROW 51015,'Otro seeder está ejecutándose.',1;");
+            await scope.ServiceProvider.GetRequiredService<Ownership>().Read(db);
+            if(args.Contains("--self-test-sql")) { await scope.ServiceProvider.GetRequiredService<Ownership>().VerifySql(db); return 0; }
             var demo=new Dataset(scope.ServiceProvider,clock);
+            if(args.Contains("--self-test-reset")) { await demo.TestResetSafety(); return 0; }
+            if(args.Contains("--check-visible")) { await demo.CheckVisibleSql(); return 0; }
             if(args.Contains("--summary")) { await demo.Summary(); return 0; }
             if(!args.Contains("--seed")&&!args.Contains("--reset-demo")) throw new InvalidOperationException("Indicá --seed, --reset-demo o --summary.");
             await demo.CaptureBefore();

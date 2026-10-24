@@ -6,7 +6,7 @@ public sealed partial class Dataset
     static ArchivoCargado? Attachment(bool enabled)
     {
         if(!enabled)return null;
-        var bytes=Document.Create(c=>c.Page(p=>{p.Margin(30);p.Content().Text("DEMO015 · DOCUMENTO SINTÉTICO SIN VALIDEZ · Sólo desarrollo local");})).GeneratePdf();
-        return new("documento-sintetico-DEMO015.pdf",bytes.Length,()=>new MemoryStream(bytes,false));
+        var bytes=Document.Create(c=>c.Page(p=>{p.Margin(30);p.Content().Text("Constancia de documentación de transporte · Archivo de referencia sin validez legal");})).GeneratePdf();
+        return new("constancia-documentacion.pdf",bytes.Length,()=>new MemoryStream(bytes,false));
     }
 }

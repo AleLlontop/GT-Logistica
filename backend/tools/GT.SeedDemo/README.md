@@ -1,6 +1,6 @@
 # Base demo integral DEMO015 (sólo desarrollo)
 
-Herramienta explícita; no modifica el modelo ni SembradorInicial. Versión lógica1,
+Herramienta explícita; no modifica el modelo ni SembradorInicial. Versión lógica 2,
 Random(15015), fechas de negocio agosto–noviembre2026. Los IDs/secuencias, hashes de
 contraseña, claves físicas de archivos y tiempos internos no son una identidad binaria
 reproducible: lo reproducible es el conjunto y sus relaciones/escenarios de negocio.
@@ -10,8 +10,7 @@ reproducible: lo reproducible es el conjunto y sus relaciones/escenarios de nego
 Requiere `.env` externo según el README principal, incluido el password inicial de admin.
 Podés definir `GT_DEMO_PASSWORD` externo; si falta, Compose usa el password inicial externo
 para las cuentas DEMO. Nunca se imprime el password ni los hashes. Cuentas locales:
-`demo.DEMO015.v1.ready` (administración), `demo.DEMO015.gerencia`,
-`demo.DEMO015.operaciones`, `demo.DEMO015.caja`. No usarlas fuera de desarrollo.
+`administrador` (administración), `gerencia`, `operaciones`, `tesoreria`. No usarlas fuera de desarrollo.
 
 ```bash
 docker compose up -d --build
@@ -35,7 +34,7 @@ privilegio al runtime desde el tooling. No se cambia RCSI.
 Este Compose es de desarrollo: sus valores por defecto son `Development` y
 `GT_SEED_DEMO=true`. Para un despliegue de producción hay que configurar
 `ASPNETCORE_ENVIRONMENT=Production`; no se infiere el entorno por el servidor.
-La versión lógica está definida en `Dataset.Version = 1` y la marca en
+La versión lógica está definida en `Dataset.Version = 2` y la marca en
 `Dataset.Mark = "DEMO015"`; no existe una variable de entorno `DEMO015_VERSION`.
 
 Con configuración Docker el wrapper usa el contenedor y el volumen de adjuntos de la API:
@@ -71,16 +70,40 @@ preparar desde código. No se versionan MDF/LDF, backups ni volúmenes.
 
 ## Seguridad de generación y reset
 
-La cuenta `demo.DEMO015.seed.v1.incomplete` marca una ejecución incompleta; sólo pasa a
-`demo.DEMO015.v1.ready` después de validar. Misma versión válida: SKIP, sin duplicar.
-Versiones distintas/incompletas: error explícito; nunca regeneración destructiva automática.
-Un applock de sesión exclusivo evita dos seeders simultáneos. No afecta locks de negocio.
+La pertenencia de v2 se guarda en propiedades extendidas de la base SQL Server,
+con prefijo `GT.SeedDemo.DEMO015`. Contienen exclusivamente versión, completitud
+y PK exactas (incluidas claves compuestas), comprimidas y fragmentadas en bloques
+menores a 7500 bytes con hash de integridad. No son tablas/columnas/entidades nuevas;
+no necesitan migraciones, archivos locales ni cambios de modelo. Se conservan con
+el volumen SQL y jamás se exponen por los endpoints de negocio.
 
-Antes de aceptar una versión existente, se comprueban mínimos de filas DEMO por
-tabla, los 450 viajes y los escenarios del dashboard de octubre. La marca `ready`
-sola no alcanza. Estos controles detectan faltantes; no comparan cada campo contra
-una copia inmutable del dataset. `DEMO015` queda reservado para los datos del seed:
-el reset reconoce esa marca en campos propios y sigue los vínculos del modelo.
+El interceptor **exclusivo del tooling** registra cada INSERT y su metadata en la
+misma transacción. Si el caso de uso ya abrió una transacción, participa de ella;
+para un SaveChanges sin transacción exterior, el tooling abre y confirma una que
+incluye ambas escrituras. Un corte no puede confirmar filas sin su identificación.
+La API no registra este interceptor. La metadata inicial queda incompleta hasta
+validar todo el dataset. Misma versión completa: SKIP sin registros nuevos;
+versión distinta o incompleta: rechazo, nunca regeneración automática.
+
+Un applock de sesión exclusivo evita dos seeders simultáneos. Antes de aceptar una
+versión existente se comprueban las PK, mínimos por tabla, los 450 viajes, los
+textos visibles persistidos en SQL y el dashboard de octubre. Estos controles no
+prometen detectar cualquier edición manual de importes o reemplazar las reglas
+productivas de negocio.
+
+El reset de v2 utiliza únicamente las PK registradas, nunca nombres, emails, CUIT,
+DNI ni rangos de identidad. Corregir un nombre no cambia la pertenencia. Una fila
+ajena, aunque tenga el mismo nombre o refiera al dataset, no se adopta: si la FK
+impide eliminar, el reset se rechaza antes de borrar. La lectura y eliminación
+ocurren dentro de una transacción Serializable; la metadata se retira en ese mismo
+commit. No se reseedean identidades ni secuencias.
+
+Para migrar v1, `--reset-demo` conserva el clasificador legacy de `DEMO015`, habilitado
+sólo si existe su cuenta exacta de versión. Es el único camino que usa textos
+visibles para reconocer el dataset anterior. La configuración emisora se corrige
+sólo si coincide exactamente con los valores que creó v1; una empresa ajena se
+conserva. Luego se genera v2 y se deja de usar ese clasificador. Si falta/corrompe
+la metadata de v2, no se reconstruye pertenencia a partir de nombres comerciales.
 
 Las cuentas DEMO tienen alta en julio2026, anterior a sus operaciones agosto–noviembre.
 La empresa emisora es configuración compartida y se conserva incluso al resetear DEMO.
@@ -88,11 +111,11 @@ La empresa emisora es configuración compartida y se conserva incluso al resetea
 Las operaciones económicas conservan sus transacciones propias y compensación de archivos.
 No se envuelve todo en una transacción exterior que contradiga esos contratos. Ante error,
 los bloques confirmados siguen siendo estados válidos y quedan marcados incompletos;
-`--reset-demo` limpia/regenera explícitamente. El reset entero sí es transaccional, por PK
-filtrada y orden inverso de FK reales. No usa DROP, TRUNCATE ni DELETE sin WHERE.
+`--reset-demo` limpia/regenera explícitamente. El reset entero es transaccional, por PK
+registrada y orden inverso de FK reales. No usa DROP, TRUNCATE ni DELETE sin WHERE.
 Si una fila no DEMO referencia raíces DEMO y no puede clasificarse inequívocamente, aborta.
 Archivos de filas DEMO se borran sólo después del commit. Usuarios ajenos, permisos y roles
-estructurales se conservan. La empresa emisora existente no se sobrescribe.
+estructurales se conservan. La empresa emisora ajena no se sobrescribe.
 
 ## Inventario real de main
 
@@ -102,7 +125,7 @@ La salida `--summary` enumera también tipos EF y las dos uniones implícitas, s
 | Clase | Tablas/DbSet | Generación |
 |---|---|---|
 | Maestros | Roles, Permisos, DocumentacionTipos, TiposVehiculo, Bancos, EmpresaEmisora | Roles/permisos por SembradorInicial sin duplicar; catálogos DEMO; empresa sólo si ausente |
-| Personas/padrones | Usuarios, Personas, Transportistas, Choferes, Clientes, Proveedores | Raíces identificadas DEMO015, contactos `.invalid` |
+| Personas/padrones | Usuarios, Personas, Transportistas, Choferes, Clientes, Proveedores | PK en metadata interna, nombres naturales y contactos `.invalid` |
 | Documentación | Documentaciones, DocumentacionesVehiculo | Carga real, documento opcional sin adjunto; vencimientos derivados |
 | Operaciones | Viajes, Liquidaciones, Adelantos, Cajas | Casos de uso reales |
 | Financieros | Facturas, FacturasProveedor, OrdenesDePago, OrdenesPagoProveedor, MediosPagoProveedor, Cheques, Transferencias, Efectivos, MovimientosDeCaja | Emisión/cobro/pago/compensación reales; PDFs en volumen |
@@ -110,15 +133,15 @@ La salida `--summary` enumera también tipos EF y las dos uniones implícitas, s
 | Técnicas/autorización | ResultadosOperacionPago, UsuarioRoles, RolPermisos | Resultado real de comandos y relaciones de roles; sin filas falsas |
 | Framework | __EFMigrationsHistory | Sólo EF Migrate; nunca seed manual |
 
-No existe entidad Empleado de la rama de Juan. Persona.Tipo=Empleado sí existe y sirve al
-padrón/adelantos; no se inventa ABM ni se trae esa rama. No existen tablas Equipo, Tractor,
+Gestión de Empleados está integrada en main y usa Persona.Tipo=Empleado: se generan
+50 empleados y 50 personas choferes sin inventar una tabla Empleados. No existen tablas Equipo, Tractor,
 Semi, Rendición, Cobro, Asignación ni Vencimiento: flota es Vehiculo/TipoVehiculo,
 las asignaciones son actuales en Viaje, rendición/cobro son transiciones y vencimientos se
 calculan. No se inventan emparejamientos históricos tractor/semi ni métricas no almacenadas.
 CUIT/CUIL usan checksum real y unicidad local; sin conexión a padrón oficial no se puede
 garantizar que un número sintético jamás haya sido asignado. Datos explícitamente DEMO.
 
-La versión 1 genera 75 vehículos en siete categorías del catálogo real (15 tractores
+La versión 2 conserva 75 vehículos en siete categorías del catálogo real (15 tractores
 y 10 de cada categoría restante), por encima del objetivo orientativo inicial de
 40–60. No existe una entidad separada de cuentas bancarias: se usan Banco y medios
 de pago. Cantidades y distribución del resto del dataset en `validation.md`.
@@ -127,11 +150,16 @@ de pago. Cantidades y distribución del resto del dataset en `validation.md`.
 
 ```bash
 dotnet run --project backend/tools/GT.SeedDemo -- --self-test
+docker compose run --rm seed-demo --self-test-sql --confirm
+docker compose run --rm seed-demo --self-test-reset --confirm
+docker compose run --rm seed-demo --check-visible --confirm
 python3 backend/tools/GT.SeedDemo/smoke.py
 ```
 
-El smoke usa la contraseña externa, consulta 23 endpoints, exige los indicadores
-de octubre y varias unidades en el ranking, y verifica 14 exportaciones PDF/XLSX.
+El smoke usa la contraseña externa, recorre todas las páginas de los listados,
+exige los indicadores de octubre y varias unidades en el ranking, verifica 14
+exportaciones PDF/XLSX y cuatro comprobantes/adjuntos persistidos. Requiere
+`pdftotext` para inspeccionar el texto de los PDF.
 Guarda evidencia temporal en `/tmp/gt-demo015-smoke`, fuera del repositorio.
 Los vencimientos se calculan a la fecha de consulta: sus cantidades cambian con
 el calendario aunque las fechas del dataset sean fijas.
@@ -139,4 +167,17 @@ el calendario aunque las fechas del dataset sean fijas.
 Sólo guardias propias, compilación, SQL/HTTP/exportaciones y persistencia de Compose.
 No requiere repetir suites completas de015. El wrapper nativo y el smoke HTTP usan Python3
 (estándar, sin paquetes extra); el arranque automático con Compose sólo requiere Docker. Evidencia de ejecución y limitaciones reales
-se registran en `validation.md`; no confundir una intención de validación con un resultado.
+de v1 se conservan en `validation.md`; los resultados de v2 se documentan en
+`presentation-validation.md`. No confundir una intención de validación con un resultado.
+
+`--check-visible` sólo lee: inspecciona mediante SQL cada columna textual visible de
+las PK propias y sus referencias compartidas. Busca DEMO (incluye DEMO015), TEST,
+PRUEBA, FAKE y SAMPLE, sin distinguir mayúsculas; informa tabla/campo/PK, nunca el
+valor. Excepciones explícitas: PasswordHash, DocumentoRuta/ArchivoRuta físicos y
+la tabla técnica de idempotencia (canon y replay). Nombres originales de archivos,
+usuarios, emails, motivos y snapshots de facturas sí se inspeccionan. Los adjuntos
+y exportaciones se inspeccionan adicionalmente por su contenido en el smoke.
+`--self-test-sql` usa sólo escrituras revertidas para probar atomicidad; no regenera.
+`--self-test-reset` prueba cambios de nombre y referencias ajenas en memoria, sin
+escribir. El servidor local requiere permiso de administración de las propiedades
+extendidas para el tooling; no se agrega ningún privilegio al runtime productivo.

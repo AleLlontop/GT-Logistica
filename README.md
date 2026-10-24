@@ -39,9 +39,9 @@ migraciones, semillas estructurales, habilita Snapshot y carga el dataset integr
 de arrancar backend y frontend. Sólo actúa con Development y `GT_SEED_DEMO=true`; la API no
 ejecuta el generador. En arranques posteriores valida la versión y no duplica registros.
 
-El dataset permite recorrer todos los módulos integrados y Reportes de octubre2026. No agrega
-Gestión de Empleados: utiliza únicamente las entidades presentes en main. Cuenta administradora
-demo: `demo.DEMO015.v1.ready`. Su contraseña proviene de `GT_DEMO_PASSWORD` externa o, si no
+El dataset permite recorrer los módulos integrados y Reportes de octubre de 2026 con nombres y
+conceptos de presentación. Incluye 50 empleados del padrón integrado en main. Cuenta administradora
+de desarrollo: `administrador`. Su contraseña proviene de `GT_DEMO_PASSWORD` externa o, si no
 se define, de `GT_ADMIN_PASSWORD_INICIAL`; nunca se imprime ni se versiona.
 
 ```bash

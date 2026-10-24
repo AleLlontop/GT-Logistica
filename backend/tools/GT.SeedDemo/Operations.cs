@@ -33,9 +33,9 @@ public sealed partial class Dataset
                 bool course=month==10&&i>=165&&i<190;
                 bool annul=month==10&&i>=190;
                 if(pending||course)ci%=30; //Las cinco bajas sólo conservan viajes históricos terminales.
-                var created=Ok(await Get<CrearViaje>().EjecutarAsync(new(clients[ci],new(2026,month,day),$"{new[]{"Rosario","Córdoba","Buenos Aires","Mendoza","Santa Fe","Bahía Blanca"}[i%6]} DEMO015",$"{new[]{"Neuquén","Paraná","San Luis","Rafaela","Tucumán"}[i%5]} DEMO015",$"DEMO015-{serial:0000}",$"Carga sintética DEMO015 lote {serial}",amount),actor));
+                var created=Ok(await Get<CrearViaje>().EjecutarAsync(new(clients[ci],new(2026,month,day),Presentation.Routes[serial%Presentation.Routes.Length].Origin,Presentation.Routes[serial%Presentation.Routes.Length].Destination,$"0015-{150150+serial:00000000}",Presentation.Cargo[serial%Presentation.Cargo.Length],amount),actor));
                 int id=created.Viaje!.Id;
-                if(annul){Ok(await Get<AnularViaje>().EjecutarAsync(id,new("Cancelación comercial DEMO015"),actor));continue;}
+                if(annul){Ok(await Get<AnularViaje>().EjecutarAsync(id,new("Cancelación solicitada por el cliente"),actor));continue;}
                 // Inicios abiertos se ejecutan al final para no bloquear unidades de otras operaciones.
                 if(course){inCourse.Add((id,i-165));continue;}
                 if(pending)continue;
@@ -46,11 +46,11 @@ public sealed partial class Dataset
                 if(i<block.Item3)
                 {
                     clock.At(month,28);
-                    var f=Ok(await Get<EmitirFactura>().EjecutarAsync(new(clients[ci],"facturaA","original","cuentaCorriente",month,2026,new(2026,month,28),$"9015-{++invoice:00000000}","Servicios logísticos DEMO015","15015000000001",new(2026,month,28),new(2026,month,28),null,[id],true),actor));
+                    var f=Ok(await Get<EmitirFactura>().EjecutarAsync(new(clients[ci],"facturaA","original","cuentaCorriente",month,2026,new(2026,month,28),$"9015-{++invoice:00000000}","Servicios de transporte y distribución","15015000000001",new(2026,month,28),new(2026,month,28),null,[id],true),actor));
                     if((month==9&&i<15)||(month==10&&i<25)||(month!=9&&month!=10&&i%3==0))
                     {clock.At(month==9?10:month,29);Ok(await Get<RegistrarCobro>().EjecutarAsync(f.Factura!.Id,new(new DateOnly(2026,month==9?10:month,29)),actor));}
                     else if(i==block.Item3-1)
-                        Ok(await Get<AnularFactura>().EjecutarAsync(f.Factura!.Id,new("Rectificación DEMO015"),actor));
+                        Ok(await Get<AnularFactura>().EjecutarAsync(f.Factura!.Id,new("Rectificación del período facturado"),actor));
                 }
                 db.ChangeTracker.Clear();
             }
@@ -66,7 +66,7 @@ public sealed partial class Dataset
             clock.At(month,28);
             var l=Ok(await Get<GenerarLiquidacion>().EjecutarAsync(new(ca,month,2026,ids.Length>1?ids[..^1]:ids),actor));
             if(ids.Length>1)l=Ok(await Get<EditarLiquidacion>().EjecutarAsync(l.Liquidacion!.Id,new(ids,l.Liquidacion.Version),actor));
-            if(month==8&&ca==carriers[14]){Ok(await Get<AnularLiquidacion>().EjecutarAsync(l.Liquidacion!.Id,new("Anulación DEMO015",true),actor));continue;}
+            if(month==8&&ca==carriers[14]){Ok(await Get<AnularLiquidacion>().EjecutarAsync(l.Liquidacion!.Id,new("Reprogramación de servicios",true),actor));continue;}
             liquidations.Add((l.Liquidacion!.Id,ca,month,l.Liquidacion.ImporteTotal));
             db.ChangeTracker.Clear();
         }
@@ -80,14 +80,14 @@ public sealed partial class Dataset
             if(net+GT.Domain.Facturacion.CalculadorImportes.IvaSobre(net,GT.Domain.Facturacion.TipoComprobante.FacturaA)!=l.Amount)
             { Console.WriteLine($"LQ{l.Id}: sin factura fletero por escala; permanece liquidación operativa.");continue; }
             int pi=20+carriers.IndexOf(l.Carrier);clock.At(l.Month,29);
-            var f=await Get<CargarFacturaProveedor>().EjecutarAsync(new(providers[pi],$"DEMO015-F-{++fpNo:0000}",new(2026,l.Month,29),"Flete DEMO015",net,"15015000000002",new DateOnly(2026,l.Month,29).AddDays(10),l.Id),Attachment(true),new(2026,11,30));
+            var f=await Get<CargarFacturaProveedor>().EjecutarAsync(new(providers[pi],$"0018-{++fpNo:00000000}",new(2026,l.Month,29),"Servicios de transporte de cargas",net,"15015000000002",new DateOnly(2026,l.Month,29).AddDays(10),l.Id),Attachment(true),new(2026,11,30));
             fletes.Add((f.Id,providers[pi],f.ImporteTotal,l.Month));
         }
         var normal=new List<(int Factura,int Proveedor,decimal Total,int Month)>();
         for(int i=0;i<90;i++)
         {
             int month=8+i%4;clock.At(month,28);
-            var f=await Get<CargarFacturaProveedor>().EjecutarAsync(new(providers[i%20],$"DEMO015-N-{i:0000}",new(2026,month,15),$"Insumos y mantenimiento DEMO015 {i}",50000m+random.Next(500000)+i%99/100m,"15015000000003",new(2026,month,28)),Attachment(i%3==0),new(2026,11,30));
+            var f=await Get<CargarFacturaProveedor>().EjecutarAsync(new(providers[i%20],$"0024-{i+1:00000000}",new(2026,month,15),Presentation.Expenses[i%Presentation.Expenses.Length],50000m+random.Next(500000)+i%99/100m,"15015000000003",new(2026,month,28)),Attachment(i%3==0),new(2026,11,30));
             normal.Add((f.Id,providers[i%20],f.ImporteTotal,month));
         }
         //Manual fuera de las LQ reservadas para OPP, con saldo parcial y pagos septiembre en octubre.
@@ -100,10 +100,10 @@ public sealed partial class Dataset
         }
         //Caja real del actor demo; ningún usuario existente comparte este responsable.
         clock.At(8,1);int cash=Ok(await Get<AbrirCaja>().EjecutarAsync(new(90000000m),actor)).Caja!.Id;
-        int secondActor=await db.Usuarios.Where(u=>u.Username=="demo.DEMO015.caja").Select(u=>u.Id).SingleAsync();
+        int secondActor=await db.Usuarios.Where(u=>u.Username=="tesoreria").Select(u=>u.Id).SingleAsync();
         int secondCash=Ok(await Get<AbrirCaja>().EjecutarAsync(new(5000000m),secondActor)).Caja!.Id;
         for(int i=0;i<180;i++)
-        {int month=8+i%4;clock.At(month,1+i%28);Ok(await Get<RegistrarMovimiento>().EjecutarAsync(i%2==0?cash:secondCash,new(i%3==0?"egreso":"ingreso",20000m+random.Next(200000)+i%99/100m,$"Movimiento operativo DEMO015 {i:000}",null,null),i%2==0?actor:secondActor));}
+        {int month=8+i%4;clock.At(month,1+i%28);Ok(await Get<RegistrarMovimiento>().EjecutarAsync(i%2==0?cash:secondCash,new(i%3==0?"egreso":"ingreso",20000m+random.Next(200000)+i%99/100m,i%3==0?Presentation.Expenses[i%Presentation.Expenses.Length]:"Ingreso por servicios de transporte",null,null),i%2==0?actor:secondActor));}
         var targets=fletes.GroupBy(f=>f.Proveedor).Select(g=>new{Facturas=g.Select(f=>f.Factura).ToArray(),Proveedor=g.Key,Total=g.Sum(f=>f.Total),Month=10,Fletero=true})
             .Concat(normal.Take(20).Select(f=>new{Facturas=new[]{f.Factura},f.Proveedor,f.Total,f.Month,Fletero=false})).ToArray();
         for(int i=0;i<targets.Length;i++)
@@ -111,28 +111,29 @@ public sealed partial class Dataset
             var f=targets[i];int month=f.Month==9?10:f.Month;clock.At(month,30);
             MedioEntrada[] means;
             if(!f.Fletero&&i%5==0)means=[new EfectivoEntrada(Key(10000+i),f.Total)];
-            else if(!f.Fletero&&i%5==1)means=[new TransferenciaEntrada(Key(10000+i),f.Total,new DateOnly(2026,month,29),"0000000000000000000001","0000000000000000000002",$"DEMO015-TR-{i}","Transferencia sintética DEMO015")];
+            else if(!f.Fletero&&i%5==1)means=[new TransferenciaEntrada(Key(10000+i),f.Total,new DateOnly(2026,month,29),"0000000000000000000001","0000000000000000000002",$"TR-{150150+i:00000000}","Pago por transferencia bancaria")];
             else
             {
                 var expiry=new DateOnly(2026,month,30).AddDays(10+i%30);
-                if(f.Fletero||i%2==0)means=[new ChequeEntrada(Key(10000+i),f.Total,banks[i%6],$"DEMO015-C-{i}",new(2026,month,29),expiry,"Cheque DEMO015")];
+                if(f.Fletero||i%2==0)means=[new ChequeEntrada(Key(10000+i),f.Total,banks[i%6],$"{15015000+i*2:00000000}",new(2026,month,29),expiry,"Pago diferido a proveedor")];
                 else
                 {
                     var first=decimal.Round(f.Total/2,2);
-                    means=[new ChequeEntrada(Key(10000+i),first,banks[i%6],$"DEMO015-C-{i}-A",new(2026,month,29),expiry,"Cheque DEMO015"),new ChequeEntrada(Key(11000+i),f.Total-first,banks[(i+1)%6],$"DEMO015-C-{i}-B",new(2026,month,29),expiry,"Cheque DEMO015")];
+                    means=[new ChequeEntrada(Key(10000+i),first,banks[i%6],$"{15015000+i*2:00000000}",new(2026,month,29),expiry,"Pago diferido a proveedor"),new ChequeEntrada(Key(11000+i),f.Total-first,banks[(i+1)%6],$"{15015001+i*2:00000000}",new(2026,month,29),expiry,"Pago diferido a proveedor")];
                 }
             }
-            var result=await Get<GenerarOrdenProveedor>().EjecutarAsync(new(Key(20000+i),f.Proveedor,new(2026,month,29),$"Orden DEMO015 {i:000}",f.Facturas,means,f.Total,true),actor,true);
+            var result=await Get<GenerarOrdenProveedor>().EjecutarAsync(new(Key(20000+i),f.Proveedor,new(2026,month,29),"Pago de comprobantes del período",f.Facturas,means,f.Total,true),actor,true);
             if(result.EstadoHttp!=201)throw new InvalidOperationException("OPP no creada.");
             if((i%7==0||i==20) && (f.Fletero||i%5!=1))
             {
                 using var json=System.Text.Json.JsonDocument.Parse(result.Json);int id=json.RootElement.GetProperty("id").GetInt32();
                 clock.At(11,30);
-                await Get<AnularOrdenProveedor>().EjecutarAsync(id,new(Key(30000+i),"Compensación DEMO015",true),i==20?secondActor:actor,true);
+                await Get<AnularOrdenProveedor>().EjecutarAsync(id,new(Key(30000+i),"Reversión por reprogramación del pago",true),i==20?secondActor:actor,true);
             }
             db.ChangeTracker.Clear();
         }
-        var checks=await db.Cheques.Where(c=>c.NumeroCheque.StartsWith("DEMO015")&&c.EstadoCheque==EstadoCheque.Pendiente).OrderBy(c=>c.Id).Take(10).Select(c=>c.Id).ToListAsync();
+        var ownOrders=await db.ResultadosOperacionPago.Where(r=>r.UsuarioId==actor).Select(r=>r.OrdenPagoProveedorId).ToListAsync();
+        var checks=await db.Cheques.Where(c=>ownOrders.Contains(c.OrdenPagoProveedorId)&&c.EstadoCheque==EstadoCheque.Pendiente).OrderBy(c=>c.Id).Take(10).Select(c=>c.Id).ToListAsync();
         for(int i=0;i<checks.Count;i++)
         {
             clock.At(11,30);
@@ -148,25 +149,26 @@ public sealed partial class Dataset
         {
             int month=8+i%4;clock.At(month,20);
             int person=people[i%2==0?50+i%50:i%5];
-            var a=Ok(await Get<RegistrarAdelanto>().EjecutarAsync(new(i%2==0?"empleado":"chofer",person,new(2026,month,15),$"Adelanto sueldo DEMO015 {i:000}",20000m+random.Next(100000)+i/100m),actor));
+            var a=Ok(await Get<RegistrarAdelanto>().EjecutarAsync(new(i%2==0?"empleado":"chofer",person,new(2026,month,15),"Adelanto de haberes",20000m+random.Next(100000)+i/100m),actor));
             if(i%4==0)Ok(await Get<AprobarAdelanto>().EjecutarAsync(a.Adelanto!.Id,actor));
-            else if(i%4==1)Ok(await Get<RechazarAdelanto>().EjecutarAsync(a.Adelanto!.Id,new("Rechazo DEMO015",true),actor));
-            else if(i%4==2){Ok(await Get<AprobarAdelanto>().EjecutarAsync(a.Adelanto!.Id,actor));Ok(await Get<AnularAdelanto>().EjecutarAsync(a.Adelanto!.Id,new("Anulación DEMO015",true),actor));}
+            else if(i%4==1)Ok(await Get<RechazarAdelanto>().EjecutarAsync(a.Adelanto!.Id,new("Solicitud fuera de las condiciones acordadas",true),actor));
+            else if(i%4==2){Ok(await Get<AprobarAdelanto>().EjecutarAsync(a.Adelanto!.Id,actor));Ok(await Get<AnularAdelanto>().EjecutarAsync(a.Adelanto!.Id,new("Reprogramación de servicios",true),actor));}
         }
         //Doc completa sólo después de operar viajes; el estado actual puede estar vencido aunque
         //la unidad estuviera habilitada cuando se asignó. Archivo es opcional en el modelo real.
-        var docTypes=await db.DocumentacionTipos.Where(t=>t.Nombre.Contains(Mark)).ToListAsync();
+        var docNames=Presentation.DocumentTypes.Select(d=>d.Name).ToArray();
+        var docTypes=await db.DocumentacionTipos.Where(t=>docNames.Contains(t.Nombre)).ToListAsync();
         for(int i=0;i<drivers.Count;i++)
         {
             if(i%10==9)continue;
             string expiry=i<40?"2027-12-31":i%2==0?"2026-09-30":"2026-10-28";
-            Ok(await Get<CargarDocumento>().EjecutarAsync(drivers[i],new(docTypes.Single(t=>t.Ambito==GT.Domain.Choferes.DocumentacionAmbito.Chofer).Id,$"DEMO015-LIC-{i}","2025-01-01",expiry),Attachment(i%5==0)));
+            Ok(await Get<CargarDocumento>().EjecutarAsync(drivers[i],new(docTypes.Single(t=>t.Ambito==GT.Domain.Choferes.DocumentacionAmbito.Chofer).Id,$"LIC-{98000000+i}","2025-01-01",expiry),Attachment(i%5==0)));
         }
         for(int i=0;i<vehicles.Count;i++)
         foreach(var t in docTypes.Where(t=>t.Ambito==GT.Domain.Choferes.DocumentacionAmbito.Vehiculo))
         {
             string expiry=i<55?"2027-12-31":i%2==0?"2026-09-30":"2026-10-28";
-            Ok(await Get<GT.Application.Flota.Documentacion.CargarDocumentoVehiculo>().EjecutarAsync(vehicles[i],new(t.Id,$"DEMO015-{t.Id}-{i}","2025-01-01",expiry),Attachment(i%5==0)));
+            Ok(await Get<GT.Application.Flota.Documentacion.CargarDocumentoVehiculo>().EjecutarAsync(vehicles[i],new(t.Id,$"DOC-{Array.IndexOf(Presentation.DocumentTypes.Select(d=>d.Name).ToArray(),t.Nombre)+1}-{150150+i:000000}","2025-01-01",expiry),Attachment(i%5==0)));
         }
         //25viajes EnCurso requieren25pares únicos, todavía activos y sin documento vencido.
         //Se eligen unidades cuya documentación permite la asignación: no se fuerza estado.
