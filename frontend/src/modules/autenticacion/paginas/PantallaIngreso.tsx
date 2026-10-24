@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { Route, Truck } from 'lucide-react'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
 import { BarraDeAcciones, LEYENDA_DE_OBLIGATORIOS } from '../../../compartido/ui/BarraDeAcciones'
 import { Boton } from '../../../compartido/ui/Boton'
@@ -92,7 +93,14 @@ export function PantallaIngreso({ onIngreso }: Props) {
   const faltanDatos = username.trim() === '' || password === ''
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[380px] flex-col justify-center px-6 py-12">
+    <main className="grid min-h-dvh lg:grid-cols-2">
+      <section aria-hidden="true" className="gyt-sidebar relative hidden flex-col justify-between overflow-hidden p-12 lg:flex xl:p-16">
+        <div className="flex items-center gap-3"><span className="flex size-11 items-center justify-center rounded-chip bg-brand-fill text-on-brand"><Route className="size-7" /></span><span className="text-xl font-extrabold tracking-tight">G&amp;T <span className="ml-1 text-xs font-medium tracking-[0.2em] text-sidebar-muted">LOGÍSTICA</span></span></div>
+        <div className="relative z-10 max-w-lg"><span className="mb-7 block h-1 w-12 rounded-pastilla bg-brand-fill" /><p className="m-0 text-[clamp(2.5rem,4vw,4rem)] leading-[1.12] font-extrabold tracking-[-0.05em]">Cada viaje.<br />Todo conectado.</p><p className="mt-6 max-w-sm text-sm leading-7 text-sidebar-text">Operaciones, flota y administración.<br />La gestión de tu empresa, en un solo lugar.</p></div>
+        <div className="flex items-center gap-3 font-mono text-[10px] tracking-[0.16em] text-sidebar-muted uppercase"><Truck className="size-4 text-sidebar-selected" /> Gestión que mueve tu operación</div>
+        <Route className="pointer-events-none absolute right-[-90px] bottom-[100px] size-[400px] text-sidebar-border/60" strokeWidth={0.4} />
+      </section>
+      <div className="mx-auto flex w-full max-w-[440px] flex-col justify-center px-6 py-12 sm:px-8">
       {/*
         La pantalla sin sesión comparte el mismo lienzo, la misma tipografía y el mismo vocabulario
         de componentes que el resto del sistema (FR-014). Lo único que no tiene es navegación:
@@ -102,7 +110,8 @@ export function PantallaIngreso({ onIngreso }: Props) {
         `Routes`, así que ya cubre esta ruta. Montar uno acá dibujaba los orbes dos veces y duplicaba
         su alfa — FR-002 dice *una sola vez* y ésta es la razón.
       */}
-      <h1 className="m-0 text-[34px] leading-[1.15] font-extrabold tracking-[-0.04em] text-ink">
+      <span aria-hidden="true" className="mb-7 flex size-11 items-center justify-center rounded-chip bg-brand-soft text-brand"><Route className="size-6" /></span>
+      <h1 className="m-0 text-[30px] leading-[1.15] font-extrabold tracking-[-0.04em] text-ink">
         Sistema Integral de Gestión
       </h1>
       <p className="mt-1.5 mb-7 text-[13px] text-ink-soft">G&amp;T Logística</p>
@@ -171,6 +180,7 @@ export function PantallaIngreso({ onIngreso }: Props) {
           </Boton>
         </BarraDeAcciones>
       </form>
+      </div>
     </main>
   )
 }

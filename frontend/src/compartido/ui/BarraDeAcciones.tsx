@@ -42,7 +42,7 @@ export function BarraDeAcciones({ anclaje, leyenda, children }: Props) {
         anclaje === 'viewport'
           ? // Fija al pie de la ventana: la acción principal es alcanzable desde cualquier punto
             // del desplazamiento (FR-030, SC-003).
-            'sticky bottom-0 z-20 rounded-b-card border-t border-line bg-white/95 px-[30px] py-4 backdrop-blur-sm'
+            'sticky bottom-0 z-20 rounded-b-card border-t border-line bg-surface px-[30px] py-4 backdrop-blur-sm'
           : 'mt-2 border-t border-line pt-[18px]',
       )}
     >

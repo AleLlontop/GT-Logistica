@@ -28,7 +28,7 @@ export function FilaNavegable({ a, children, className }: Props) {
   const navegar = useNavigate()
 
   return (
-    <tr className={cn('group cursor-pointer', className)} onClick={() => navegar(a)}>
+    <tr className={cn('group cursor-pointer active:bg-brand-soft', className)} onClick={() => navegar(a)}>
       {children}
 
       <td aria-hidden="true" className="w-8 pr-4 text-right">

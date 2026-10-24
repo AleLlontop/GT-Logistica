@@ -2,210 +2,207 @@
 @import '@fontsource-variable/plus-jakarta-sans';
 @import '@fontsource/geist-mono';
 
-/*
- * Sistema de diseño del Sistema Integral de Gestión — los tokens de `gt-ui` (Módulo 8).
- *
- * Éste es el único archivo CSS del proyecto y la **única** fuente de tokens: no hay
- * `tailwind.config.js`, porque una segunda fuente es exactamente lo que FR-001 prohíbe. Las
- * primitivas de `compartido/ui/` llevan sus utilidades adentro; ninguna pantalla define color,
- * tamaño ni separación por su cuenta.
- *
- * Los nombres son los de `.claude/skills/gt-ui/references/tokens.md`, no los del Módulo 7, y
- * respetan los espacios de nombre de Tailwind v4 —`--color-*`, `--font-*`, `--radius-*`,
- * `--shadow-*`, `--ease-*`, `--container-*`—: un token fuera de ellos queda como variable suelta y
- * no genera ninguna utilidad.
- *
- * ── Las dos reglas que la medición volvió obligatorias (FR-007a, FR-007b) ──────────────────────
- *
- * 1. **`dim` no pinta texto.** Donde `tokens.md` se lo asignaba —placeholders, *"Sin asignar"*,
- *    metadata— manda `faint`, que es el único tono atenuado de texto del sistema. Recalibrar `dim`
- *    y `faint` a 4,5:1 los deja a 0,0001 de luminancia uno del otro: son el mismo gris, y un
- *    sistema con dos tokens indistinguibles es peor que uno con un tono bien definido.
- *
- * 2. **Sobre el lienzo (`canvas`) y sobre `surface-mute` sólo va texto en `ink` o `ink-soft`.**
- *    `muted` cumple 4,5:1 sobre blanco y sobre `surface-soft`, y **no** lo cumple sobre esos dos
- *    (4,13:1 sobre el lienzo). Como la columna principal es transparente (FR-011), el lienzo es un
- *    fondo de texto real y hay que tratarlo como tal. `muted` no se recalibra: FR-007 nombra cuatro
- *    valores y tocar un quinto sería alcance fantasma.
- *
- * Los valores marcados ⚠ están **recalibrados** respecto de `tokens.md`, y los cuatro volvieron a
- * la skill con su medición y su fondo de medición al lado (FR-008).
- */
-
+/* Identidad G&T Logística. Los colores viven acá: las primitivas y los gráficos consumen
+ * tokens semánticos. Los dos temas se diseñan por separado, sin filtros de color. */
 @theme {
-  /* ── Fondos y superficies ──────────────────────────────────────────────────────────────────── */
-  --color-canvas: #edeef1; /* fondo de la app */
-  --color-surface: rgb(255 255 255 / 0.94); /* tarjetas e islas */
-  --color-surface-soft: #f7f8fa; /* campos en reposo, encabezado y pie de tabla */
-  --color-surface-mute: #f1f2f6; /* botón secundario, chips neutros */
+  --color-bg: #f5f5f4;
+  --color-canvas: var(--color-bg);
+  --color-surface: #ffffff;
+  --color-surface-soft: #fafaf9;
+  --color-surface-mute: #eeeeed;
+  --color-surface-hover: #e6e6e4;
+  --color-text-primary: #18181b;
+  --color-text-secondary: #52525b;
+  --color-ink: var(--color-text-primary);
+  --color-ink-soft: #44444c;
+  --color-muted: #62626b;
+  --color-faint: #686870;
+  --color-dim: #b8b8bf;
+  --color-dim-texto: var(--color-faint);
+  --color-border: #e2e2e5;
+  --color-line: var(--color-border);
+  --color-line-strong: #85858f;
+  --color-encabezado: #62626b;
 
-  /* ── Texto ─────────────────────────────────────────────────────────────────────────────────── */
-  --color-ink: #101114; /* 16,27:1 sobre canvas — texto principal y relleno del primario */
-  --color-ink-soft: #3c4048; /*  8,96:1 sobre canvas — labels, texto del secundario */
-  --color-muted: #6e7280; /*  4,79:1 sobre blanco · 4,51:1 sobre surface-soft.
-                              *  NO sobre canvas (4,13:1) ni sobre surface-mute — ver regla 2 */
-  --color-faint: #6e7683; /* ⚠ 4,58:1 sobre blanco — metadata, ayudas, placeholders, TODO lo
-                              *  atenuado. Era #9AA0AA (2,58:1) */
-  --color-dim: #bfc4cd; /* decorativo — SÓLO no textual: separador `·`, relleno de ícono,
-                              *  el `#` del token de identificador. Ver regla 1 */
-  --color-dim-texto: #6b768a; /* ⚠ 4,58:1 sobre blanco — el valor de `dim` recalibrado, por si
-                              *  alguna vez hace falta como texto. Era #BFC4CD (1,90:1) */
+  /* brand es texto/foco; brand-fill es el naranja de marca con tinta oscura. */
+  --color-brand: #a63b0b;
+  --color-brand-deep: #87300a;
+  --color-brand-soft: #fff0e4;
+  --color-brand-fill: #f97316;
+  --color-brand-hover: #ea580c;
+  --color-on-brand: #171717;
+  --color-on-solid: #ffffff;
+  --color-accent: #b91c1c;
+  --color-danger: #dc2626;
+  --color-danger-text: #b91c1c;
+  --color-danger-bg: #fff1f2;
+  --color-danger-fill: #b91c1c;
+  --color-danger-hover: #991b1b;
+  --color-success: #166534;
+  --color-success-bg: #edf8f0;
+  --color-warning: #854d0e;
+  --color-warning-bg: #fff7e6;
+  --color-estado-rendido: var(--color-success);
+  --color-estado-rendido-bg: var(--color-success-bg);
+  --color-estado-pendiente: var(--color-warning);
+  --color-estado-pendiente-bg: var(--color-warning-bg);
+  --color-estado-facturado: var(--color-brand);
+  --color-estado-facturado-bg: var(--color-brand-soft);
+  --color-estado-anulado: #62626b;
+  --color-estado-anulado-bg: #efefef;
+  --color-disabled: #e4e4e7;
+  --color-disabled-text: #71717a;
+  --color-overlay: rgb(9 9 11 / 0.66);
+  --color-icon-overlay: rgb(255 255 255 / 0.18);
 
-  /* ── Bordes ────────────────────────────────────────────────────────────────────────────────── */
-  /* Nunca un gris sólido: el negro con alfa se integra con el fondo y con las sombras. */
-  --color-line: rgb(16 17 20 / 0.06); /* bordes de tarjeta y divisores */
-  --color-line-strong: rgb(16 17 20 / 0.09); /* bordes de campo y chips */
+  /* La navegación conserva el grafito industrial en ambos temas. */
+  --color-sidebar: #19191c;
+  --color-sidebar-border: #333337;
+  --color-sidebar-text: #c8c8d0;
+  --color-sidebar-muted: #a1a1ad;
+  --color-sidebar-hover: #3b1c24;
+  --color-sidebar-hover-text: #fca5a5;
+  --color-sidebar-active: #35271e;
+  --color-sidebar-selected: #ffb476;
+  --color-sidebar-ink: #fafafa;
+  --color-topbar-bg: #b91c1c;
+  --color-topbar-text: #ffffff;
+  --color-topbar-muted: #fee2e2;
+  --color-topbar-hover: #991b1b;
+  --color-topbar-border: #fca5a5;
+  --color-topbar-focus: #ffffff;
+  --color-chart-primary: #c2410c;
+  --color-chart-secondary: #52525b;
+  --color-chart-accent: #a16207;
 
-  /* ── Acento ────────────────────────────────────────────────────────────────────────────────── */
-  /* Índigo apagado. Sólo foco, enlaces de identificador y el punto del eyebrow: el relleno del
-   * botón primario es `ink`, deliberadamente, para no competir con las pastillas de estado. */
-  --color-brand: #4453a8; /* 7,66:1 sobre blanco */
-  --color-brand-deep: #333f84;
-  --color-brand-soft: #e9ecf7;
-
-  /* ── Estados ───────────────────────────────────────────────────────────────────────────────── */
-  --color-estado-rendido: #0b6350; /* 7,32:1 sobre su fondo */
-  --color-estado-rendido-bg: #e4f2ee;
-  --color-estado-pendiente: #8a5a0c; /* 5,29:1 sobre su fondo */
-  --color-estado-pendiente-bg: #fbf1e0;
-  --color-estado-facturado: #333f84; /* 8,04:1 sobre su fondo */
-  --color-estado-facturado-bg: #e9ecf7;
-  --color-estado-anulado: #6a6e7c; /* ⚠ 4,58:1 sobre #F2F3F6. Era #6E7280 (4,32:1) */
-  --color-estado-anulado-bg: #f2f3f6;
-
-  /* ── Feedback ──────────────────────────────────────────────────────────────────────────────── */
-  --color-danger: #e5484d; /* borde y punto de estado, NO relleno con texto encima:
-                                *  con blanco arriba mide 3,91:1 y el piso de texto es 4,5:1.
-                                *  Como borde sobre `danger-bg` mide 3,63:1, arriba del piso de 3:1 */
-  --color-danger-text: #c13a3e; /* 5,09:1 sobre `danger-bg` · 5,33:1 con blanco encima —
-                                *  es el relleno del botón destructivo (SC-009) */
-  --color-danger-bg: #fef4f4;
-
-  /* ── Encabezado de columna ─────────────────────────────────────────────────────────────────── */
-  --color-encabezado: #6b7181; /* ⚠ 4,59:1 sobre surface-soft. Era #8D93A1 (2,90:1) */
-
-  /* ── Tipografía ────────────────────────────────────────────────────────────────────────────── */
-  /* `system-ui` resuelve a Segoe UI en Windows y taparía la familia propia en silencio: la familia
-   * efectiva se verifica en el panel *Computed → Rendered Fonts*, no a ojo (FR-003). */
   --font-sans: 'Plus Jakarta Sans Variable', system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
-
-  /* ── Radios ────────────────────────────────────────────────────────────────────────────────── */
-  --radius-pastilla: 9999px; /* botones, pastillas, tags */
-  --radius-island: 26px; /* isla de navegación */
-  --radius-card: 20px; /* tarjeta */
-  --radius-field: 14px; /* campo, desplegable de filtro */
-  --radius-chip: 10px; /* chip numerado, avatar cuadrado */
-  --radius-token: 7px; /* token de identificador */
-
-  /* ── Sombras ───────────────────────────────────────────────────────────────────────────────── */
-  /* Siempre difusas, con spread negativo y alfa bajo. Nunca las duras de Tailwind. */
-  --shadow-card: 0 14px 34px -8px rgb(16 17 20 / 0.06);
-  --shadow-island: 0 16px 40px -8px rgb(16 17 20 / 0.06);
-  --shadow-pill: 0 4px 12px rgb(16 17 20 / 0.05);
-  --shadow-btn: 0 8px 18px -2px rgb(16 17 20 / 0.22);
-  --shadow-focus: 0 0 0 3px rgb(68 83 168 / 0.16);
-
-  /* ── Movimiento ────────────────────────────────────────────────────────────────────────────── */
-  /* Curva única. Nunca `linear` ni `ease-in-out`. Se anima sólo `transform` y `opacity`. */
-  --ease-gt: cubic-bezier(0.32, 0.72, 0, 1);
-
-  /* ── Anchos ────────────────────────────────────────────────────────────────────────────────── */
-  --container-lectura: 90rem; /* en un monitor ancho el texto no se estira */
-
-  /* El ancho de un campo acompaña al dato que recibe (FR-026): un CUIT, una patente o un importe
-   * no ocupan lo mismo que una razón social o un domicilio. */
-  --container-campo-corto: 12rem; /* DNI, CUIT, patente, fecha, importe, punto de venta */
-  --container-campo-medio: 20rem; /* nombre, apellido, teléfono, email, marca, modelo */
-  --container-campo-largo: 36rem; /* razón social, domicilio, origen, destino, los `select` */
+  --radius-pastilla: 9999px;
+  --radius-island: 16px;
+  --radius-card: 14px;
+  --radius-field: 8px;
+  --radius-chip: 8px;
+  --radius-token: 6px;
+  --shadow-card: 0 2px 5px rgb(24 24 27 / 0.025), 0 8px 24px -16px rgb(24 24 27 / 0.12);
+  --shadow-island: 0 18px 48px -16px rgb(9 9 11 / 0.25);
+  --shadow-pill: 0 1px 3px rgb(24 24 27 / 0.04);
+  --shadow-btn: 0 2px 4px rgb(154 52 18 / 0.12);
+  --shadow-focus: 0 0 0 3px rgb(249 115 22 / 0.22);
+  --ease-gt: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --container-lectura: 96rem;
+  --container-campo-corto: 12rem;
+  --container-campo-medio: 20rem;
+  --container-campo-largo: 36rem;
 }
 
-/*
- * `atenuada` / `atenuado` son las dos únicas clases con nombre propio del sistema, y existen porque
- * el concepto tiene nombre en las specs desde el Módulo 3: *"todo elemento atenuado lleva además la
- * palabra que lo explica"*. Se aplican a la fila de una factura o un viaje anulados, y a un registro
- * dado de baja.
- *
- * El color es `--color-faint`, el único tono atenuado de texto del sistema, medido a 4,58:1 sobre
- * blanco. Atenuado no es borroso (FR-060).
- */
-@utility atenuada {
-  color: var(--color-faint);
+:root {
+  color-scheme: light;
+  --gyt-ambient: rgb(249 115 22 / 0.045);
 }
 
-@utility atenuado {
-  color: var(--color-faint);
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #0e0e10;
+  --color-surface: #19191c;
+  --color-surface-soft: #1e1e22;
+  --color-surface-mute: #25252a;
+  --color-surface-hover: #303036;
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #b5b5bf;
+  --color-ink-soft: #c7c7cf;
+  --color-muted: #b0b0bc;
+  --color-faint: #aaaab6;
+  --color-dim: #62626e;
+  --color-border: #34343c;
+  --color-line-strong: #73737e;
+  --color-encabezado: #b5b5c0;
+  --color-brand: #fb923c;
+  --color-brand-deep: #fdba74;
+  --color-brand-soft: #34251a;
+  --color-brand-hover: #fb923c;
+  --color-accent: #f87171;
+  --color-danger: #f87171;
+  --color-danger-text: #fca5a5;
+  --color-danger-bg: #351b20;
+  --color-success: #86efac;
+  --color-success-bg: #142b20;
+  --color-warning: #fcd34d;
+  --color-warning-bg: #322813;
+  --color-estado-anulado: #b5b5c0;
+  --color-estado-anulado-bg: #29292f;
+  --color-disabled: #2d2d33;
+  --color-disabled-text: #9797a4;
+  --color-sidebar: #131315;
+  --color-sidebar-border: #2c2c31;
+  --color-sidebar-active: #34251a;
+  --color-topbar-bg: #a91b1b;
+  --color-topbar-hover: #871717;
+  --color-chart-primary: #fb923c;
+  --color-chart-secondary: #d4d4d8;
+  --color-chart-accent: #facc15;
+  --shadow-card: 0 4px 18px -10px rgb(0 0 0 / 0.35);
+  --shadow-island: 0 18px 48px -12px rgb(0 0 0 / 0.55);
+  --shadow-pill: 0 1px 3px rgb(0 0 0 / 0.16);
+  --shadow-btn: 0 2px 8px rgb(0 0 0 / 0.18);
+  --shadow-focus: 0 0 0 3px rgb(251 146 60 / 0.26);
+  --gyt-ambient: rgb(249 115 22 / 0.035);
 }
+
+@utility atenuada { color: var(--color-faint); }
+@utility atenuado { color: var(--color-faint); }
 
 @layer base {
-  html {
-    font-family: var(--font-sans);
-  }
+  html { font-family: var(--font-sans); scroll-padding-top: 6rem; }
+  body { margin: 0; min-height: 100vh; background: var(--color-bg); color: var(--color-ink); accent-color: var(--color-brand); }
+  ::selection { background: var(--color-brand-fill); color: var(--color-on-brand); }
+  :focus-visible { outline: 3px solid var(--color-brand); outline-offset: 3px; }
+  * { scrollbar-color: var(--color-line-strong) transparent; scrollbar-width: thin; }
+  table, dd, input[type='number'], .tabular { font-variant-numeric: tabular-nums; }
 
-  body {
-    margin: 0;
-    min-height: 100vh;
-    background-color: var(--color-canvas);
-    color: var(--color-ink);
-  }
-
-  /*
-   * El foco tiene que verse siempre: es la mitad de poder operar con teclado (FR-025). Va acá y no
-   * en cada primitiva para que alcance también a los controles nativos, que esta feature estila
-   * pero no reemplaza.
-   */
-  :focus-visible {
-    outline: 3px solid var(--color-brand);
-    outline-offset: 2px;
-  }
-
-  /*
-   * Ícono de alerta para los mensajes de error de campo.
-   * Se agrega como pseudo-elemento para que todos los formularios del sistema lo hereden
-   * automáticamente sin modificar su HTML.
-   */
-  .campo__error {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-top: 0.25rem;
-    font-size: 11.5px;
-    font-weight: 500; /* font-medium */
-    color: var(--color-danger-text);
-    white-space: nowrap; /* en un renglón */
-  }
-
+  .campo__error { display: flex; align-items: flex-start; gap: 6px; margin-top: 0.25rem; font-size: 12px; font-weight: 500; color: var(--color-danger-text); }
   .campo__error::before {
-    content: '';
-    display: inline-block;
-    width: 12.5px;
-    height: 12.5px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c13a3e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4'/%3E%3Cpath d='M12 16h.01'/%3E%3C/svg%3E");
-    background-size: contain;
-    background-repeat: no-repeat;
-    flex-shrink: 0;
+    content: ''; display: inline-block; width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0;
+    background: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4M12 16h.01'/%3E%3C/svg%3E") center / contain no-repeat;
   }
-
-  /*
-   * Cifras tabulares en todo el sistema. Es lo que sostiene FR-039: que los importes de una columna
-   * se comparen en vertical con los separadores de miles y decimales en la misma línea. No depende
-   * de que la fuente propia cargue.
-   */
-  table,
-  dd,
-  input[type='number'],
-  .tabular {
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* Si alguien pidió menos movimiento, no se lo damos (FR-006). */
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   }
+}
+
+/* Clases acotadas al shell. No se asignan jerarquías por selector button/a global. */
+@layer components {
+  .gyt-topbar { background: var(--color-topbar-bg); color: var(--color-topbar-text); border-color: var(--color-topbar-border); }
+  .gyt-topbar .gyt-icon-button { background: transparent; color: var(--color-topbar-text); border-color: var(--color-topbar-border); }
+  .gyt-topbar .gyt-icon-button:hover, .gyt-topbar-link:hover { background: var(--color-topbar-hover); color: var(--color-topbar-text); border-color: var(--color-topbar-text); }
+  .gyt-topbar .gyt-icon-button:active, .gyt-topbar-link:active { background: var(--color-topbar-hover); color: var(--color-topbar-text); }
+  .gyt-topbar-link { color: var(--color-topbar-muted); border-radius: 4px; }
+  .gyt-topbar :focus-visible { outline-color: var(--color-topbar-focus); }
+  .gyt-sidebar { background: var(--color-sidebar); color: var(--color-sidebar-text); border-color: var(--color-sidebar-border); }
+  .gyt-navlink { position: relative; display: flex; align-items: center; gap: 10px; border-radius: 7px; padding: 9px 12px; color: var(--color-sidebar-text); font-size: 12px; line-height: 1.5; font-weight: 500; text-decoration: none; transition: background-color 160ms, color 160ms; }
+  .gyt-navlink:hover { background: var(--color-sidebar-hover); color: var(--color-sidebar-hover-text); }
+  .gyt-navlink:active { background: var(--color-sidebar-border); }
+  .gyt-navlink[aria-current='page'] { background: var(--color-sidebar-active); color: var(--color-sidebar-selected); font-weight: 700; }
+  .gyt-navlink[aria-current='page']::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: var(--color-brand-fill); }
+  .gyt-navlink:focus-visible { outline-color: var(--color-sidebar-selected); outline-offset: 1px; }
+  .gyt-module-trigger { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 0; border-radius: 7px; background: transparent; color: var(--color-sidebar-text); font-size: 12px; font-weight: 600; cursor: pointer; transition: background-color 160ms, color 160ms; }
+  .gyt-module-trigger:hover { background: var(--color-sidebar-hover); color: var(--color-sidebar-hover-text); }
+  .gyt-module-trigger:active { background: var(--color-sidebar-border); }
+  .gyt-module-trigger[data-current] { color: var(--color-sidebar-selected); }
+  .gyt-module-trigger:focus-visible { outline-color: var(--color-sidebar-selected); outline-offset: 1px; }
+  .gyt-brand-lockup { transition: opacity 160ms; }
+  .gyt-brand-lockup:hover { opacity: 0.85; }
+  .gyt-brand-lockup:active { opacity: 0.7; }
+  .gyt-brand-rule { width: 24px; height: 3px; background: linear-gradient(to right, var(--color-brand-fill) 70%, var(--color-accent) 70%); }
+  .gyt-icon-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 36px; min-height: 36px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-ink-soft); cursor: pointer; transition: background-color 160ms, color 160ms, border-color 160ms; }
+  .gyt-icon-button:hover { background: var(--color-surface-mute); color: var(--color-brand); border-color: var(--color-brand); }
+  .gyt-icon-button:active { background: var(--color-brand-soft); }
+  .gyt-icon-button:disabled { cursor: not-allowed; background: var(--color-disabled); color: var(--color-disabled-text); }
+  .gyt-skip { position: fixed; left: 16px; top: 8px; z-index: 100; transform: translateY(-200%); border-radius: 8px; padding: 12px 18px; background: var(--color-brand-fill); color: var(--color-on-brand); font-weight: 700; }
+  .gyt-skip:focus { transform: translateY(0); }
+  .gyt-quick-card { display: block; height: 100%; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); padding: 20px; color: var(--color-ink); text-decoration: none; transition: border-color 160ms, background-color 160ms, box-shadow 160ms; }
+  .gyt-quick-card[data-featured] { border-top: 3px solid var(--color-brand-fill); padding-top: 18px; }
+  .gyt-quick-card:hover { border-color: var(--color-brand); background: var(--color-brand-soft); box-shadow: var(--shadow-card); }
+  .gyt-quick-card:active { background: var(--color-surface-mute); }
+  .gyt-ambient { background: radial-gradient(ellipse at 95% 0%, var(--gyt-ambient), transparent 48%); }
 }

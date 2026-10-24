@@ -6,34 +6,34 @@ type Tono = 'rendido' | 'pendiente' | 'facturado' | 'anulado' | 'danger'
 
 const TONOS: Record<Tono, { caja: string; chip: string; titulo: string; cuerpo: string }> = {
   rendido: {
-    caja: 'border-estado-rendido/20 bg-[#F4F7F6]',
+    caja: 'border-estado-rendido/20 bg-estado-rendido-bg',
     chip: 'bg-estado-rendido-bg text-estado-rendido',
     titulo: 'text-estado-rendido',
-    cuerpo: 'text-[#4A5A56]',
+    cuerpo: 'text-ink-soft',
   },
   pendiente: {
-    caja: 'border-estado-pendiente/20 bg-[#FAF7F1]',
+    caja: 'border-estado-pendiente/20 bg-estado-pendiente-bg',
     chip: 'bg-estado-pendiente-bg text-estado-pendiente',
     titulo: 'text-estado-pendiente',
-    cuerpo: 'text-[#5C5344]',
+    cuerpo: 'text-ink-soft',
   },
   facturado: {
-    caja: 'border-estado-facturado/20 bg-[#F4F5FA]',
+    caja: 'border-estado-facturado/20 bg-estado-facturado-bg',
     chip: 'bg-estado-facturado-bg text-estado-facturado',
     titulo: 'text-estado-facturado',
-    cuerpo: 'text-[#4A4E63]',
+    cuerpo: 'text-ink-soft',
   },
   anulado: {
     caja: 'border-line-strong bg-estado-anulado-bg',
-    chip: 'bg-white text-estado-anulado',
+    chip: 'bg-surface text-estado-anulado',
     titulo: 'text-estado-anulado',
     cuerpo: 'text-ink-soft',
   },
   danger: {
     caja: 'border-danger/20 bg-danger-bg',
-    chip: 'bg-white text-danger-text',
+    chip: 'bg-surface text-danger-text',
     titulo: 'text-danger-text',
-    cuerpo: 'text-[#6B4A4B]',
+    cuerpo: 'text-ink-soft',
   },
 }
 

@@ -305,7 +305,7 @@ function FormularioDeMovimiento({
                   key={opcion}
                   variante="secundario"
                   tamanio="chico"
-                  className={tipo === opcion ? 'bg-white text-ink ring-2 ring-brand' : undefined}
+                  className={tipo === opcion ? 'bg-surface text-ink ring-2 ring-brand' : undefined}
                   aria-pressed={tipo === opcion}
                   onClick={() => elegirTipo(opcion)}
                 >

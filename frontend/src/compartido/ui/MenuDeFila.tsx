@@ -147,7 +147,7 @@ export function MenuDeFila({ etiqueta, items }: Props) {
         onClick={alternar}
         className={cn(
           'flex size-7 items-center justify-center rounded-pastilla text-[15px] leading-none',
-          'transition-colors duration-200 ease-gt hover:bg-surface-mute hover:text-ink',
+          'transition-colors duration-200 ease-gt hover:bg-surface-mute hover:text-ink active:bg-brand-soft',
           // El glifo es lo que sostiene el contraste del control: `ink-soft` da 8,96:1 sobre el
           // lienzo y sobre la fila, contra los 4,13:1 de `muted` sobre `surface-mute` (regla 2 de
           // `index.css`). El borde agrega el límite que lo hace leer como botón antes del hover.
@@ -167,15 +167,15 @@ export function MenuDeFila({ etiqueta, items }: Props) {
            * Regla 7: no es un diálogo. No hay overlay, no hay `aria-modal` y el foco no queda
            * retenido — el fondo se sigue pudiendo usar, y salir del menú lo cierra.
            */
-          className="absolute z-[60] mt-1 flex min-w-[11rem] flex-col rounded-card border border-line bg-white/95 py-1.5 shadow-island"
+          className="absolute z-[60] mt-1 flex min-w-[11rem] flex-col rounded-card border border-line bg-surface py-1.5 shadow-island"
         >
           {items.map((item) => {
             const clases = cn(
               'flex w-full items-center px-3.5 py-2 text-left text-[12.5px] font-medium',
-              'no-underline transition-colors duration-200 ease-gt',
+              'rounded-token no-underline transition-colors duration-200 ease-gt focus-visible:outline-2 focus-visible:-outline-offset-2',
               item.destructivo
-                ? 'text-danger-text hover:bg-danger-bg'
-                : 'text-ink-soft hover:bg-surface-mute hover:text-ink',
+                ? 'text-danger-text hover:bg-danger-bg active:bg-danger-bg'
+                : 'text-ink-soft hover:bg-surface-mute hover:text-ink active:bg-brand-soft',
               item.disabled === true && 'cursor-not-allowed opacity-50',
             )
 

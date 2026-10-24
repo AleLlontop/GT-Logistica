@@ -38,7 +38,7 @@ const CHIPS: Record<Tono, string> = {
   exito: 'bg-estado-rendido/10',
   advertencia: 'bg-estado-pendiente/10',
   error: 'bg-danger/10',
-  nota: 'bg-white/70',
+  nota: 'bg-surface-mute',
 }
 
 const ICONOS: Record<Tono, typeof IconoEnRegla> = {

@@ -68,7 +68,7 @@ export function EncabezadoDePantalla({
       {volverA !== undefined && (
         <Link
           to={volverA.ruta}
-          className="inline-flex w-fit items-center gap-2.5 rounded-pastilla border border-line bg-white/90 py-1.5 pr-[18px] pl-1.5 text-[12.5px] font-semibold tracking-tight text-ink-soft no-underline shadow-pill transition-colors duration-200 ease-gt hover:bg-white"
+          className="inline-flex w-fit items-center gap-2.5 rounded-pastilla border border-line bg-surface py-1.5 pr-[18px] pl-1.5 text-[12.5px] font-semibold tracking-tight text-ink-soft no-underline shadow-pill transition-colors duration-200 ease-gt hover:bg-surface-hover active:bg-brand-soft"
         >
           <span className="flex size-7 items-center justify-center rounded-pastilla bg-surface-mute">
             <IconoVolver aria-hidden="true" className="size-3 text-muted" />

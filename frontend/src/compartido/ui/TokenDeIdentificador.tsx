@@ -29,10 +29,10 @@ interface Props {
  */
 export function TokenDeIdentificador({ a, numero, sinNumeral = false }: Props) {
   const clases = cn(
-    'inline-flex w-fit items-center gap-px rounded-token border border-line-strong',
+    'inline-flex w-fit items-center gap-px whitespace-nowrap rounded-token border border-line-strong',
     'bg-surface-mute px-2 py-1 font-mono no-underline',
     'transition-colors duration-200 ease-gt',
-    a !== undefined && 'hover:border-brand/40 hover:bg-brand-soft',
+    a !== undefined && 'hover:border-brand hover:bg-brand-soft active:bg-surface-hover',
   )
 
   const contenido = (
