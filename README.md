@@ -34,9 +34,25 @@ liquidaciones, adelantos de sueldo y flota.
    docker compose up -d --build
    ```
 
-¡Eso es todo! Docker instala las dependencias, crea la base y corre los tres servicios. La primera
-vez, el backend aplica las migraciones, siembra el catálogo de roles y permisos y crea el usuario
-`admin`.
+Docker instala las dependencias y prepara SQL Server. El servicio one-shot `seed-demo` aplica
+migraciones, semillas estructurales, habilita Snapshot y carga el dataset integral DEMO015 antes
+de arrancar backend y frontend. Sólo actúa con Development y `GT_SEED_DEMO=true`; la API no
+ejecuta el generador. En arranques posteriores valida la versión y no duplica registros.
+
+El dataset permite recorrer todos los módulos integrados y Reportes de octubre2026. No agrega
+Gestión de Empleados: utiliza únicamente las entidades presentes en main. Cuenta administradora
+demo: `demo.DEMO015.v1.ready`. Su contraseña proviene de `GT_DEMO_PASSWORD` externa o, si no
+se define, de `GT_ADMIN_PASSWORD_INICIAL`; nunca se imprime ni se versiona.
+
+```bash
+docker compose ps
+docker compose run --rm seed-demo --summary --confirm
+docker compose run --rm seed-demo --reset-demo --prepare --confirm
+```
+
+El reset identifica exclusivamente DEMO015, conserva datos ajenos y vuelve a generar la demo.
+Para arrancar sin generar DEMO: `GT_SEED_DEMO=false docker compose up -d --build`.
+Detalles, inventario y uso nativo en [GT.SeedDemo](backend/tools/GT.SeedDemo/README.md).
 
 - **Frontend:** http://localhost:5173
 - **API (backend):** http://localhost:8080
@@ -48,6 +64,8 @@ Para detener los contenedores: `docker compose down`. Si corre sin `-d`, alcanza
 |---|---|
 | `GT_ADMIN_PASSWORD_INICIAL` | Contraseña del administrador inicial. Obligatoria **sólo mientras el usuario `admin` no exista**: una vez creado podés borrarla, porque la contraseña ya vive hasheada en la base |
 | `GT_SQL_PASSWORD` | Contraseña de `sa` en el SQL Server de desarrollo |
+| `GT_SEED_DEMO` | Habilitación explícita del one-shot de desarrollo; `true` en Compose por defecto, `false` lo desactiva |
+| `GT_DEMO_PASSWORD` | Contraseña local de las cuentas DEMO; fallback al password inicial externo sólo si está definido |
 
 Los comandos del día a día:
 
@@ -60,8 +78,10 @@ Los comandos del día a día:
 | Bajar y borrar la base y los archivos subidos | `docker compose down -v` |
 
 `down -v` borra los volúmenes `datos-sqlserver` y `archivos-documentacion`: se pierden la base de
-desarrollo y los escaneos de documentación cargados, y la próxima vez el backend vuelve a crear el
-usuario `admin`, así que `GT_ADMIN_PASSWORD_INICIAL` tiene que estar definida otra vez.
+desarrollo y los escaneos de documentación cargados, incluidos datos no DEMO. No es el comando
+para resetear sólo DEMO015. Sin `-v`, stop/start/restart/down/rebuild conservan los datos. Con
+volúmenes vacíos, el one-shot reconstruye la base y DEMO desde código; las contraseñas externas
+deben volver a estar disponibles.
 
 Los puertos que quedan tomados son el `5173` (frontend), el `8080` (backend) y el `1433` (SQL
 Server). Si alguno está ocupado —por ejemplo un SQL Server instalado en la máquina—, el `up` falla

@@ -26,12 +26,31 @@ services:
       retries: 12
       start_period: 30s
 
+  # One-shot de desarrollo: software en imagen, datos en named volumes.
+  # La API no ejecuta ni conoce el generador DEMO.
+  seed-demo:
+    build:
+      context: .
+      dockerfile: backend/tools/GT.SeedDemo/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      GT_SEED_DEMO: ${GT_SEED_DEMO:-true}
+      ConnectionStrings__Gt: Server=sqlserver,1433;Database=GtLogistica;User Id=sa;Password=${GT_SQL_PASSWORD};TrustServerCertificate=True;Encrypt=True
+      GT_ADMIN_PASSWORD_INICIAL: ${GT_ADMIN_PASSWORD_INICIAL:-}
+      GT_DEMO_PASSWORD: ${GT_DEMO_PASSWORD:-${GT_ADMIN_PASSWORD_INICIAL:-}}
+      GT_ARCHIVOS_RUTA: /var/gt/archivos
+    volumes:
+      - archivos-documentacion:/var/gt/archivos
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__Gt: Server=sqlserver,1433;Database=GtLogistica;User Id=sa;Password=${GT_SQL_PASSWORD};TrustServerCertificate=True;Encrypt=True
       # Obligatoria sólo mientras el usuario `admin` no exista (FR-019).
@@ -52,6 +71,8 @@ services:
     volumes:
       - archivos-documentacion:/var/gt/archivos
     depends_on:
+      seed-demo:
+        condition: service_completed_successfully
       sqlserver:
         condition: service_healthy
 
