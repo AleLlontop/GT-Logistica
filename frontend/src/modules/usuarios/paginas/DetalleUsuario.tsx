@@ -148,7 +148,7 @@ export function DetalleUsuario() {
               Editar
               <span
                 aria-hidden="true"
-                className="flex size-8 shrink-0 items-center justify-center rounded-pastilla bg-white/[0.14] transition-transform duration-200 ease-gt group-hover:translate-x-0.5"
+                className="flex size-8 shrink-0 items-center justify-center rounded-pastilla bg-icon-overlay transition-transform duration-200 ease-gt group-hover:translate-x-0.5"
               >
                 <IconoEditar className="size-3" />
               </span>

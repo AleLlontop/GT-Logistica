@@ -33,17 +33,17 @@ export function ConsultarOrdenes() {
   function limpiar() { setDesde(''); setHasta(''); setProveedorId(undefined); setEstado(''); setRango(''); setClave(k => k + 1); setFiltros({ pagina: 1 }) }
   return <>
     <EncabezadoDePantalla titulo="Consultar órdenes de pago" />
-    <form onSubmit={filtrar} className="mb-5 space-y-4">
+    <form onSubmit={filtrar} className="mb-5 grid grid-cols-1 gap-4 rounded-card border border-line bg-surface p-5 sm:grid-cols-2 xl:grid-cols-4">
       <Campo id="orden-desde" etiqueta="Desde" error={rango}><input id="orden-desde" type="date" value={desde} onChange={e => setDesde(e.target.value)} className={clasesDeControl(!!rango)} aria-invalid={!!rango} aria-describedby={rango ? 'orden-desde-error' : undefined} /></Campo>
       <Campo id="orden-hasta" etiqueta="Hasta"><input id="orden-hasta" type="date" value={hasta} onChange={e => setHasta(e.target.value)} className={clasesDeControl()} /></Campo>
       <AutocompleteProveedorPago key={clave} historico onSeleccionar={p => setProveedorId(p?.id)} />
       <Campo id="orden-estado" etiqueta="Estado"><select id="orden-estado" value={estado} onChange={e => setEstado(e.target.value as EstadoOrden | '')} className={clasesDeControl()}><option value="">Todos</option><option value="pendiente">Pendiente</option><option value="anulada">Anulada</option></select></Campo>
-      <Boton type="submit" variante="secundario">Filtrar</Boton> <Boton variante="terciario" onClick={limpiar}>Limpiar filtros</Boton>
+      <div className="col-span-full flex flex-wrap gap-2.5"><Boton type="submit" variante="secundario">Filtrar</Boton><Boton variante="terciario" onClick={limpiar}>Limpiar filtros</Boton></div>
     </form>
     <Listado>{cargando ? <p role="status" className="p-5">Cargando órdenes…</p> : error ? <p role="alert" className="p-5">{error}</p>
       : resultado?.items.length === 0 ? <p role="status" className="p-5">No hay órdenes que coincidan con los filtros.</p>
-      : resultado && <TablaDesplazable><table><caption>Órdenes de pago de proveedores</caption><thead><tr><th scope="col">Número</th><th scope="col">Fecha</th><th scope="col">Proveedor</th><th scope="col">Total</th><th scope="col">Estado</th></tr></thead><tbody>
-        {resultado.items.map(o => <FilaNavegable key={o.id} a={`/pagos/ordenes/${o.id}`}><td><EnlaceDeFila a={`/pagos/ordenes/${o.id}`}>{o.numero}</EnlaceDeFila></td><td>{formatearFecha(o.fecha)}</td><td>{o.proveedor.razonSocial}{!o.proveedor.activoActual && ' — Inactivo'}</td><td>{formatearPesos(o.importeTotal)}</td><td>{o.estado === 'pendiente' ? 'Pendiente' : 'Anulada'}</td></FilaNavegable>)}
+      : resultado && <TablaDesplazable><table><caption>Órdenes de pago de proveedores</caption><thead><tr><th scope="col">Número</th><th scope="col">Fecha</th><th scope="col">Proveedor</th><th scope="col" className="text-right">Total</th><th scope="col">Estado</th></tr></thead><tbody>
+        {resultado.items.map(o => <FilaNavegable key={o.id} a={`/pagos/ordenes/${o.id}`}><td><EnlaceDeFila a={`/pagos/ordenes/${o.id}`}>{o.numero}</EnlaceDeFila></td><td>{formatearFecha(o.fecha)}</td><td>{o.proveedor.razonSocial}{!o.proveedor.activoActual && ' — Inactivo'}</td><td className="whitespace-nowrap text-right font-semibold tabular-nums">{formatearPesos(o.importeTotal)}</td><td>{o.estado === 'pendiente' ? 'Pendiente' : 'Anulada'}</td></FilaNavegable>)}
       </tbody></table></TablaDesplazable>}
       {!cargando && !error && resultado && <Paginacion {...resultado} nombrePlural="órdenes" onCambiarPagina={pagina => setFiltros(f => ({ ...f, pagina }))} />}
     </Listado>

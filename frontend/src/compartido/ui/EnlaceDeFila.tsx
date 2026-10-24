@@ -28,7 +28,7 @@ export function EnlaceDeFila({ a, children, identificador }: Props) {
     <span className="flex flex-col gap-0.5">
       <Link
         to={a}
-        className="w-fit text-[13px] font-semibold tracking-tight text-ink underline decoration-line-strong underline-offset-[3px] transition-colors duration-200 ease-gt hover:decoration-brand hover:text-brand"
+        className="w-fit text-[13px] font-semibold tracking-tight text-ink underline decoration-line-strong underline-offset-[3px] transition-colors duration-200 ease-gt hover:decoration-brand hover:text-brand active:text-brand-deep"
       >
         {children}
       </Link>

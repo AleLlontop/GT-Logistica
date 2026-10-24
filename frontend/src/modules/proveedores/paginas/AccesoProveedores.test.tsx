@@ -38,6 +38,7 @@ afterEach(() => vi.restoreAllMocks())
 function abrir(permisos: string[], ruta = '/') { vi.mocked(sesiones.obtenerSesion).mockResolvedValue(sesion(permisos)); window.history.replaceState(null, '', ruta); return render(<App />) }
 it.each([gestionar, cargar, consultar])('el menú recibe sólo la entrada del permiso %s', async permiso => {
   abrir([permiso]); const menu = await screen.findByRole('navigation', { name: /principal/i })
+  await userEvent.setup().click(within(menu).getByRole('button', { name: 'Proveedores' }))
   for (const opcion of opciones) {
     const enlace = within(menu).queryByRole('link', { name: opcion.etiqueta })
     if (permiso === opcion.permiso) expect(enlace).toBeInTheDocument()
@@ -47,8 +48,7 @@ it.each([gestionar, cargar, consultar])('el menú recibe sólo la entrada del pe
 it('agrupa padrón y facturas sin inventar opciones y conserva fallback desconocido', () => {
   const recibidas = opciones.map(({ codigo, etiqueta, ruta }) => ({ codigo, etiqueta, ruta }))
   const secciones = agruparEnSecciones([...recibidas, { codigo: 'futuro', etiqueta: 'Futuro', ruta: '/futuro' }])
-  expect(secciones.find(s => s.nombre === 'Operación')?.opciones.map(o => o.codigo)).toEqual(['cargar-factura-proveedor', 'consultar-facturas-proveedores'])
-  expect(secciones.find(s => s.nombre === 'Padrones')?.opciones.map(o => o.codigo)).toEqual(['proveedores'])
+  expect(secciones.find(s => s.nombre === 'Proveedores')?.opciones.map(o => o.codigo)).toEqual(['proveedores', 'cargar-factura-proveedor', 'consultar-facturas-proveedores'])
   expect(secciones.at(-1)?.opciones.map(o => o.codigo)).toContain('futuro')
 })
 it('la URI directa sin sesión exige ingreso', async () => {

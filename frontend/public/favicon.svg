@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="7" fill="#12507b" />
+  <rect width="32" height="32" rx="7" fill="#f97316" />
   <!--
     Un semirremolque visto de costado, reducido a lo mínimo que se sigue leyendo a 16 px:
     la caja, la cabina y las dos ruedas. G&T Logística mueve cargas; el ícono dice eso.
   -->
   <path
-    fill="#ffffff"
+    fill="#171717"
     d="M5 9h13a1 1 0 0 1 1 1v8H4v-8a1 1 0 0 1 1-1Zm15 3h4.1a1 1 0 0 1 .83.44l2.9 4.3a1 1 0 0 1 .17.56V18h-8v-6Z"
   />
-  <circle cx="9.5" cy="21.5" r="2.6" fill="#ffffff" />
-  <circle cx="23" cy="21.5" r="2.6" fill="#ffffff" />
-  <circle cx="9.5" cy="21.5" r="1" fill="#12507b" />
-  <circle cx="23" cy="21.5" r="1" fill="#12507b" />
+  <circle cx="9.5" cy="21.5" r="2.6" fill="#171717" />
+  <circle cx="23" cy="21.5" r="2.6" fill="#171717" />
+  <circle cx="9.5" cy="21.5" r="1" fill="#f97316" />
+  <circle cx="23" cy="21.5" r="1" fill="#f97316" />
 </svg>

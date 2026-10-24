@@ -41,7 +41,7 @@ export function Listado({ children, className }: Props) {
         // Encabezado en eyebrow, sobre `surface-soft` (FR-036).
         '[&_thead]:bg-surface-soft',
         '[&_th]:border-b [&_th]:border-line [&_th]:px-5 [&_th]:py-2.5',
-        '[&_th]:text-left [&_th]:text-[9.5px] [&_th]:font-bold',
+        '[&_th]:text-left [&_th]:text-[10px] [&_th]:font-bold',
         '[&_th]:tracking-[0.14em] [&_th]:text-encabezado [&_th]:uppercase',
         '[&_th]:whitespace-nowrap',
 
@@ -49,7 +49,7 @@ export function Listado({ children, className }: Props) {
         '[&_tbody_tr]:border-b [&_tbody_tr]:border-line',
         '[&_tbody_tr:last-child]:border-b-0',
         '[&_tbody_tr]:transition-colors [&_tbody_tr]:duration-200 [&_tbody_tr]:ease-gt',
-        '[&_tbody_tr:hover]:bg-surface-soft',
+        '[&_tbody_tr:hover]:bg-surface-soft [&_tbody_tr:focus-within]:bg-brand-soft',
         '[&_td]:px-5 [&_td]:py-[13px] [&_td]:align-middle [&_td]:text-ink',
 
         // Pie de tabla —totales—, con el mismo fondo que el encabezado.

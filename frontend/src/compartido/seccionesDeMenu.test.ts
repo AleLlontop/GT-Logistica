@@ -25,10 +25,9 @@ describe('agruparEnSecciones', () => {
     ])
 
     expect(secciones.map((s) => s.nombre)).toEqual([
-      'Operación',
-      'Padrones',
-      'Seguimiento',
-      'Configuración',
+      'Viajes',
+      'Personas',
+      'Flota',
       'Administración',
     ])
   })
@@ -37,7 +36,7 @@ describe('agruparEnSecciones', () => {
     // Un usuario de Tráfico sin permisos de facturación ni de administración.
     const secciones = agruparEnSecciones([opcion('viajes'), opcion('choferes'), opcion('flota')])
 
-    expect(secciones.map((s) => s.nombre)).toEqual(['Operación', 'Padrones'])
+    expect(secciones.map((s) => s.nombre)).toEqual(['Viajes', 'Personas', 'Flota'])
     expect(secciones.every((s) => s.opciones.length > 0)).toBe(true)
   })
 
@@ -64,15 +63,15 @@ describe('agruparEnSecciones', () => {
   })
 })
 
-it('ubica Empleados dentro de Padrones', () => {
+it('ubica Empleados dentro de Personas', () => {
   expect(agruparEnSecciones([opcion('empleados')])).toEqual([
     {
-      nombre: 'Padrones',
+      nombre: 'Personas',
       opciones: [opcion('empleados')],
     },
   ])
 })
 
-it('Reportes va a Seguimiento sin inventar opciones', () => {
-  expect(agruparEnSecciones([opcion('reportes')])).toEqual([{ nombre: 'Seguimiento', opciones: [opcion('reportes')] }])
+it('Reportes va a Reportes y seguimiento sin inventar opciones', () => {
+  expect(agruparEnSecciones([opcion('reportes')])).toEqual([{ nombre: 'Reportes y seguimiento', opciones: [opcion('reportes')] }])
 })

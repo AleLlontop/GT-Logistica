@@ -42,7 +42,7 @@ export function EntradaDeLineaDeTiempo({ cuando, que, quien, motivo, actual = fa
         /* -4,5px = medio punto (4px) menos medio borde (0,5px): lo centra sobre la línea. */
         className={cn(
           'absolute top-[18px] -left-[4.5px] size-2 rounded-pastilla border',
-          actual ? 'border-ink bg-ink' : 'border-line-strong bg-white',
+          actual ? 'border-ink bg-ink' : 'border-line-strong bg-surface',
         )}
       />
 

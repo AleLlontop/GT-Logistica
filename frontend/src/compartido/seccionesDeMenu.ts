@@ -1,98 +1,52 @@
 import type { OpcionMenu } from './tipos'
 
-/**
- * Cómo se agrupan las opciones de menú que manda el servidor.
- *
- * **El servidor sigue decidiendo qué existe; la pantalla decide dónde se dibuja.** La regla del
- * Módulo 2 —"el frontend dibuja lo que recibe y no tiene lógica propia de permisos"— protege que el
- * frontend no invente opciones, y este mapa no puede: no menciona ni un permiso, y una opción que no
- * llegó no se dibuja aunque figure acá (research §6).
- *
- * Un código que el mapa no conozca **se dibuja igual**, en la última sección. Es lo que permite que
- * un módulo futuro aparezca en el menú sin tocar el frontend, que es la propiedad que la regla
- * original buscaba conservar.
- */
-
-export type NombreDeSeccion =
-  | 'Operación'
-  | 'Gestión de pagos'
-  | 'Padrones'
-  | 'Seguimiento'
-  | 'Configuración'
-  | 'Administración'
-
-/** El orden de las secciones en pantalla. La última recibe los códigos desconocidos. */
-export const SECCIONES: NombreDeSeccion[] = [
-  'Operación',
-  'Gestión de pagos',
-  'Padrones',
-  'Seguimiento',
-  'Configuración',
-  'Administración',
-]
+/** Organización visual: el servidor decide qué opciones existen; acá sólo se agrupan.
+ * Los códigos desconocidos siguen visibles en Administración. */
+export const SECCIONES = [
+  'Proveedores', 'Viajes', 'Liquidaciones', 'Adelantos', 'Caja', 'Gestión de pagos',
+  'Personas', 'Transportistas', 'Flota', 'Clientes', 'Reportes y seguimiento',
+  'Configuración', 'Administración',
+] as const
+export type NombreDeSeccion = typeof SECCIONES[number]
 
 const SECCION_POR_CODIGO: Record<string, NombreDeSeccion> = {
+  proveedores: 'Proveedores',
+  'cargar-factura-proveedor': 'Proveedores',
+  'consultar-facturas-proveedores': 'Proveedores',
+  viajes: 'Viajes', facturas: 'Viajes', totales: 'Viajes',
+  'consultar-liquidacion': 'Liquidaciones', 'generar-liquidacion': 'Liquidaciones',
+  'consultar-adelanto': 'Adelantos', 'registrar-adelanto': 'Adelantos',
+  'consultar-caja': 'Caja', 'consultar-movimientos-caja': 'Caja',
   'generar-orden-proveedor': 'Gestión de pagos',
   'bancos-pagos': 'Gestión de pagos',
   'consultar-ordenes-proveedor': 'Gestión de pagos',
   'cheques-por-vencer': 'Gestión de pagos',
-  // Lo que se opera todos los días
-  viajes: 'Operación',
-  facturas: 'Operación',
-  'cargar-factura-proveedor': 'Operación',
-  'consultar-facturas-proveedores': 'Operación',
-  // Módulo 9. Los códigos no son `liquidaciones`: ése es el ejemplo de código desconocido del test.
-  'consultar-liquidacion': 'Operación',
-  'generar-liquidacion': 'Operación',
-  // Módulo 10.
-  'consultar-adelanto': 'Operación',
-  'registrar-adelanto': 'Operación',
-  // Módulo 11.
-  'consultar-caja': 'Operación',
-  'consultar-movimientos-caja': 'Operación',
-
-  // Los padrones sobre los que se opera
-  clientes: 'Padrones',
-  proveedores: 'Padrones',
-  choferes: 'Padrones',
-  flota: 'Padrones',
-  transportistas: 'Padrones',
-  personas: 'Padrones',
-  empleados: 'Padrones',
-
-  // Lo que se mira para saber cómo viene la cosa
-  'vencimientos-choferes': 'Seguimiento',
-  'vencimientos-flota': 'Seguimiento',
-  'vencimientos-facturas': 'Seguimiento',
-  totales: 'Seguimiento',
-  reportes: 'Seguimiento',
-  'totales-facturados': 'Seguimiento',
-
-  // Los catálogos que se tocan de vez en cuando
+  personas: 'Personas', empleados: 'Personas', choferes: 'Personas',
+  'vencimientos-choferes': 'Personas', transportistas: 'Transportistas',
+  flota: 'Flota', 'tipos-vehiculo': 'Flota', 'vencimientos-flota': 'Flota',
+  // Catálogo compartido por Choferes y Flota: no pertenece sólo a vehículos.
   'tipos-documentacion': 'Configuración',
-  'tipos-vehiculo': 'Configuración',
-  'empresa-emisora': 'Configuración',
-
-  // Quién entra al sistema
-  usuarios: 'Administración',
+  clientes: 'Clientes', reportes: 'Reportes y seguimiento',
+  'vencimientos-facturas': 'Reportes y seguimiento',
+  'totales-facturados': 'Reportes y seguimiento',
+  'empresa-emisora': 'Configuración', usuarios: 'Administración',
 }
+export interface SeccionConOpciones { nombre: NombreDeSeccion; opciones: OpcionMenu[] }
 
-export interface SeccionConOpciones {
-  nombre: NombreDeSeccion
-  opciones: OpcionMenu[]
-}
-
-/**
- * Reparte las opciones recibidas en sus secciones, **descartando las secciones que quedaron
- * vacías**: una sección sin ninguna opción autorizada no se muestra, ni siquiera vacía (FR-012).
- */
+/** Una única ubicación por opción, sin grupos vacíos ni cambios de permisos. */
 export function agruparEnSecciones(opciones: OpcionMenu[]): SeccionConOpciones[] {
-  const ultima = SECCIONES[SECCIONES.length - 1]
-
-  return SECCIONES.map((nombre) => ({
+  return SECCIONES.map(nombre => ({
     nombre,
-    opciones: opciones.filter(
-      (opcion) => (SECCION_POR_CODIGO[opcion.codigo] ?? ultima) === nombre,
-    ),
-  })).filter((seccion) => seccion.opciones.length > 0)
+    opciones: opciones.filter(o => (SECCION_POR_CODIGO[o.codigo] ?? 'Administración') === nombre),
+  })).filter(s => s.opciones.length > 0)
+}
+
+const PRIORIDADES = ['viajes', 'facturas', 'consultar-liquidacion', 'consultar-caja',
+  'consultar-ordenes-proveedor', 'reportes', 'flota', 'proveedores']
+
+/** Hasta ocho accesos autorizados. Si un rol sólo recibe otras opciones, también tiene entrada.
+ * La prioridad es editorial, no un registro de frecuencia ni una regla de autorización. */
+export function accesosPrioritarios(opciones: OpcionMenu[]): OpcionMenu[] {
+  const principales = PRIORIDADES.flatMap(codigo => opciones.filter(o => o.codigo === codigo))
+  return [...principales, ...opciones.filter(o => !PRIORIDADES.includes(o.codigo))].slice(0, 8)
 }

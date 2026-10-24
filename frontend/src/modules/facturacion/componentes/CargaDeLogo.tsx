@@ -117,7 +117,7 @@ export function CargaDeLogo({ empresa, configuracionCargada, onCambio }: Props) 
             aria-describedby="ayuda-logo"
             disabled={trabajando || !configuracionCargada}
             onChange={(evento) => elegido(evento.target.files?.[0])}
-            className="flex-1 cursor-pointer file:mr-4 file:cursor-pointer file:rounded-pastilla file:border-0 file:bg-surface-mute file:px-4 file:py-1.5 file:text-[12.5px] file:font-semibold file:text-ink-soft hover:file:bg-[#E9EAEF]"
+            className="flex-1 cursor-pointer file:mr-4 file:cursor-pointer file:rounded-pastilla file:border-0 file:bg-surface-mute file:px-4 file:py-1.5 file:text-[12.5px] file:font-semibold file:text-ink-soft hover:file:bg-surface-hover"
           />
           
           {logo !== null && (

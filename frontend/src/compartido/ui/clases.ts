@@ -2,50 +2,33 @@ import type { VariantProps } from 'class-variance-authority'
 import { cva } from 'class-variance-authority'
 import { cn } from './cn'
 
-/**
- * Los cuatro niveles de acción del sistema, con la forma de gt-ui (data-model §2).
- *
- * Cambia la **apariencia** de cada nivel; no cambia la garantía: `variante` sigue siendo obligatoria
- * y sin valor por defecto en `Boton`, y un botón que no declara su nivel no compila (FR-021).
- *
- * - `primario` — pastilla `ink` rellena, con el ícono anidado en su propio círculo interno. Una sola
- *   por pantalla.
- * - `secundario` — pastilla `surface-mute` **sin borde**, del mismo tamaño. Cancelar, y lo que
- *   acompaña al primario en un encabezado.
- * - `terciario` — pastilla blanca con hairline y la flecha en un círculo. *Volver*.
- * - `destructivo` — idéntico al primario, en `bg-danger-text`. **Único uso del rojo como relleno**
- *   (FR-020). El relleno es el rojo **oscuro** de la paleta y no el de borde: con la etiqueta en
- *   blanco encima, `danger` mide 3,91:1 y `danger-text` mide 5,33:1, y el piso es 4,5:1 (SC-009).
- *   No cambia ningún valor: elige, entre los dos rojos que el sistema ya tiene, el que la medición
- *   admite para este par.
- *
- * `texto` **no es un quinto nivel**: es un enlace, y se conserva para los enlaces contextuales de una
- * celda o de una ficha.
- */
+/** Jerarquía de acciones G&T Logística: naranja con tinta oscura para la primaria,
+ * neutros para acciones auxiliares y rojo sólo para la destructiva.
+ * La variante sigue siendo obligatoria y los controles siguen siendo nativos. */
 export const estilosDeBoton = cva(
-  'group inline-flex items-center justify-center rounded-pastilla tracking-tight ' +
+  'group inline-flex items-center justify-center rounded-field tracking-tight ' +
     // Se enumera **qué** se anima en vez de dejar `transition-all`: lo único que cambia en un
     // botón es su relleno, su sombra y su escala al apretarlo (FR-006).
     'transition-[background-color,box-shadow,transform] duration-200 ease-gt ' +
-    'disabled:cursor-not-allowed',
+    'disabled:cursor-not-allowed disabled:active:scale-100',
   {
     variants: {
       variante: {
         primario:
-          'gap-3 bg-ink font-bold text-white shadow-btn hover:bg-ink/90 active:scale-[0.98] ' +
-          'disabled:bg-dim disabled:text-white disabled:shadow-none disabled:hover:bg-dim',
+          'gap-3 bg-brand-fill font-bold text-on-brand shadow-btn hover:bg-brand-hover active:scale-[0.98] active:shadow-none ' +
+          'disabled:bg-disabled disabled:text-disabled-text disabled:shadow-none disabled:hover:bg-disabled',
         secundario:
-          'gap-2 bg-surface-mute font-semibold text-ink-soft hover:bg-[#E9EAEF] ' +
+          'gap-2 border border-transparent bg-surface-mute font-semibold text-ink-soft hover:bg-surface-hover aria-pressed:border-brand aria-pressed:bg-brand-soft aria-pressed:text-brand ' +
           'active:scale-[0.98] disabled:opacity-50 disabled:hover:bg-surface-mute',
         terciario:
-          'gap-2.5 border border-line bg-white/90 font-semibold text-ink-soft shadow-pill ' +
-          'hover:bg-white active:scale-[0.98] disabled:opacity-50',
+          'gap-2.5 border border-line bg-surface font-semibold text-ink-soft shadow-pill ' +
+          'hover:bg-surface-hover active:scale-[0.98] disabled:opacity-50',
         texto:
           'gap-1.5 font-medium text-brand underline underline-offset-2 hover:text-brand-deep ' +
-          'disabled:text-faint disabled:no-underline',
+          'active:text-brand-deep disabled:text-faint disabled:no-underline',
         destructivo:
-          'gap-3 bg-danger-text font-bold text-white shadow-btn hover:brightness-95 ' +
-          'active:scale-[0.98] disabled:bg-dim disabled:text-white disabled:shadow-none',
+          'gap-3 bg-danger-fill font-bold text-on-solid shadow-btn hover:bg-danger-hover ' +
+          'active:scale-[0.98] disabled:bg-disabled disabled:text-disabled-text disabled:shadow-none',
       },
       tamanio: {
         normal: 'px-5 py-3 text-[13px]',
@@ -91,7 +74,7 @@ export function clasesDeBoton(variante: Variante, tamanio?: Tamanio, className?:
  * como acción principal tiene que dibujar el mismo círculo que el botón.
  */
 export const clasesDeCirculoDeIcono = cn(
-  'flex size-8 shrink-0 items-center justify-center rounded-pastilla bg-white/[0.14]',
+  'flex size-8 shrink-0 items-center justify-center rounded-pastilla bg-icon-overlay',
   'transition-transform duration-200 ease-gt group-hover:translate-x-0.5',
 )
 
@@ -114,11 +97,11 @@ export const clasesDeCirculoDeVolver = cn(
 export function clasesDeControl(conError = false, className?: string) {
   return cn(
     'w-full rounded-field border px-[15px] py-[13px] text-[13.5px] text-ink',
-    'placeholder:text-faint transition-shadow duration-200 ease-gt',
-    'focus:border-brand focus:bg-white focus:shadow-focus focus:outline-none',
-    'disabled:cursor-not-allowed disabled:opacity-50',
+    'placeholder:text-faint transition-[background-color,border-color,box-shadow] duration-150 ease-gt hover:border-brand/60 disabled:hover:border-line-strong',
+    'focus:border-brand focus:bg-surface focus:shadow-focus focus:outline-none',
+    'disabled:cursor-not-allowed disabled:active:scale-100 disabled:opacity-50',
     conError
-      ? 'border-danger bg-danger-bg focus:shadow-none'
+      ? 'border-danger bg-danger-bg'
       : 'border-line-strong bg-surface-soft',
     className,
   )
@@ -138,8 +121,8 @@ export function clasesDeControl(conError = false, className?: string) {
 export function clasesDeFiltro(activo: boolean, className?: string) {
   return cn(
     'rounded-field border px-3.5 py-2 text-[12.5px] text-ink',
-    'placeholder:text-faint transition-shadow duration-200 ease-gt',
-    'focus:border-brand focus:bg-white focus:shadow-focus focus:outline-none',
+    'placeholder:text-faint transition-[background-color,border-color,box-shadow] duration-150 ease-gt hover:border-brand/60 disabled:hover:border-line-strong',
+    'focus:border-brand focus:bg-surface focus:shadow-focus focus:outline-none',
     activo ? 'border-brand/40 bg-brand-soft font-semibold' : 'border-line-strong bg-surface-soft',
     className,
   )
@@ -196,9 +179,9 @@ export const clasesDeFormulario = cn(
   '[&_input[type=checkbox]]:size-4 [&_input[type=checkbox]]:w-auto [&_input[type=checkbox]]:p-0',
 
   // El anillo de foco, visible por sí solo y no sólo como cambio de color de borde (FR-025).
-  '[&_input:focus]:border-brand [&_input:focus]:bg-white [&_input:focus]:shadow-focus',
-  '[&_select:focus]:border-brand [&_select:focus]:bg-white [&_select:focus]:shadow-focus',
-  '[&_textarea:focus]:border-brand [&_textarea:focus]:bg-white [&_textarea:focus]:shadow-focus',
+  '[&_input:focus]:border-brand [&_input:focus]:bg-surface [&_input:focus]:shadow-focus',
+  '[&_select:focus]:border-brand [&_select:focus]:bg-surface [&_select:focus]:shadow-focus',
+  '[&_textarea:focus]:border-brand [&_textarea:focus]:bg-surface [&_textarea:focus]:shadow-focus',
 
   // Deshabilitado: se ve deshabilitado y no se confunde con uno disponible.
   '[&_:disabled]:cursor-not-allowed [&_:disabled]:opacity-50',
