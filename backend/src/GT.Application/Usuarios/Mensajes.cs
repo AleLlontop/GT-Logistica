@@ -60,6 +60,14 @@ public static class MensajesUsuarios
         "Ese DNI es de una persona dada de baja. Reactivala desde el listado de personas en vez de " +
         "cargarla de nuevo.";
 
+    /// <summary>
+    /// La misma regla dicha desde la pantalla de Empleados, que tiene su propio <i>Reactivar</i>: quien
+    /// gestiona empleados puede no tener acceso al padrón de personas.
+    /// </summary>
+    public const string DniDeEmpleadoDadoDeBaja =
+        "Ese DNI es de un empleado dado de baja. Reactivalo desde el listado de empleados en vez de " +
+        "cargarlo de nuevo.";
+
     /// <summary>La pantalla ofrece <i>Reactivar</i> sólo sobre una dada de baja: la vista quedó vieja.</summary>
     public const string PersonaYaActiva = "Esa persona ya está activa. Actualizá la lista.";
 

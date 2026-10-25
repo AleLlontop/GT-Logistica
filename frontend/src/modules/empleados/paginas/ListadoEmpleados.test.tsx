@@ -7,6 +7,7 @@ import { ListadoEmpleados } from './ListadoEmpleados'
 
 const listarEmpleados = vi.fn()
 const darDeBajaEmpleado = vi.fn()
+const reactivarEmpleado = vi.fn()
 
 vi.mock('../servicios/servicioEmpleados', async () => {
   const real = await vi.importActual<typeof import('../servicios/servicioEmpleados')>(
@@ -16,6 +17,7 @@ vi.mock('../servicios/servicioEmpleados', async () => {
     ...real,
     listarEmpleados: (...args: unknown[]) => listarEmpleados(...args),
     darDeBajaEmpleado: (...args: unknown[]) => darDeBajaEmpleado(...args),
+    reactivarEmpleado: (...args: unknown[]) => reactivarEmpleado(...args),
   }
 })
 
@@ -46,6 +48,7 @@ describe('ListadoEmpleados', () => {
   beforeEach(() => {
     listarEmpleados.mockReset().mockResolvedValue([empleado()])
     darDeBajaEmpleado.mockReset().mockResolvedValue(undefined)
+    reactivarEmpleado.mockReset().mockResolvedValue(undefined)
   })
 
   it('muestra la ficha y no ofrece escritura a quien sólo consulta', async () => {
@@ -100,5 +103,51 @@ describe('ListadoEmpleados', () => {
     )
     expect(darDeBajaEmpleado).toHaveBeenCalledWith(17)
     await waitFor(() => expect(listarEmpleados).toHaveBeenCalledTimes(1))
+  })
+
+  it('ofrece Reactivar en lugar de Dar de baja a un empleado dado de baja', async () => {
+    listarEmpleados.mockResolvedValue([empleado({ activa: false })])
+    renderizar(true)
+
+    expect(await screen.findByRole('button', { name: 'Reactivar' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Dar de baja' })).not.toBeInTheDocument()
+  })
+
+  it('no ofrece Reactivar a quien sólo consulta', async () => {
+    listarEmpleados.mockResolvedValue([empleado({ activa: false })])
+    renderizar(false)
+
+    expect(await screen.findByText('Dado de baja')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Reactivar' })).not.toBeInTheDocument()
+  })
+
+  it('reactiva con confirmación, recarga y lo anuncia', async () => {
+    listarEmpleados.mockResolvedValue([empleado({ activa: false })])
+    const user = userEvent.setup()
+    renderizar(true)
+
+    await user.click(await screen.findByRole('button', { name: 'Reactivar' }))
+    const dialogo = screen.getByRole('dialog')
+    expect(within(dialogo).getByText('¿Confirmás la reactivación de Pérez, Ana?')).toBeInTheDocument()
+
+    listarEmpleados.mockResolvedValue([empleado()])
+    await user.click(within(dialogo).getByRole('button', { name: 'Reactivar' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('Pérez, Ana volvió a estar activo.'),
+    )
+    expect(reactivarEmpleado).toHaveBeenCalledWith(17)
+    expect(await screen.findByRole('button', { name: 'Dar de baja' })).toBeInTheDocument()
+  })
+
+  it('cancelar la reactivación no cambia nada', async () => {
+    listarEmpleados.mockResolvedValue([empleado({ activa: false })])
+    const user = userEvent.setup()
+    renderizar(true)
+
+    await user.click(await screen.findByRole('button', { name: 'Reactivar' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancelar' }))
+
+    expect(reactivarEmpleado).not.toHaveBeenCalled()
   })
 })

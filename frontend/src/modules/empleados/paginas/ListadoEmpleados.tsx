@@ -14,7 +14,11 @@ import {
   clasesDeEtiquetaDeFiltro,
   clasesDeFiltro,
 } from '../../../compartido/ui/clases'
-import { darDeBajaEmpleado, listarEmpleados } from '../servicios/servicioEmpleados'
+import {
+  darDeBajaEmpleado,
+  listarEmpleados,
+  reactivarEmpleado,
+} from '../servicios/servicioEmpleados'
 
 interface Props {
   puedeGestionar: boolean
@@ -30,6 +34,11 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
   const [cargando, setCargando] = useState(true)
   const [empleadoPendienteDeBaja, setEmpleadoPendienteDeBaja] = useState<Persona | null>(null)
   const [dandoDeBaja, setDandoDeBaja] = useState(false)
+  const [empleadoPendienteDeReactivar, setEmpleadoPendienteDeReactivar] = useState<Persona | null>(
+    null,
+  )
+  const [reactivando, setReactivando] = useState(false)
+  const [confirmacion, setConfirmacion] = useState<string | null>(null)
 
   const cargar = useCallback(async () => {
     setCargando(true)
@@ -54,6 +63,7 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
 
     setDandoDeBaja(true)
     setError(null)
+    setConfirmacion(null)
 
     try {
       await darDeBajaEmpleado(empleadoPendienteDeBaja.id)
@@ -66,6 +76,27 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
       setEmpleadoPendienteDeBaja(null)
     } finally {
       setDandoDeBaja(false)
+    }
+  }
+
+  // La confirmación la pide la pantalla porque se deshace con la baja ([005]).
+  async function confirmarReactivacion() {
+    if (!puedeGestionar || empleadoPendienteDeReactivar === null || reactivando) return
+
+    const aReactivar = empleadoPendienteDeReactivar
+    setReactivando(true)
+    setError(null)
+    setConfirmacion(null)
+
+    try {
+      await reactivarEmpleado(aReactivar.id)
+      setConfirmacion(`${aReactivar.apellido}, ${aReactivar.nombre} volvió a estar activo.`)
+      await cargar()
+    } catch (fallo) {
+      setError(fallo instanceof Error ? fallo.message : 'No pudimos reactivar al empleado.')
+    } finally {
+      setEmpleadoPendienteDeReactivar(null)
+      setReactivando(false)
     }
   }
 
@@ -93,6 +124,10 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
 
       <Aviso tono="error" rol="alert" className="mb-[18px]">
         {error}
+      </Aviso>
+
+      <Aviso tono="exito" rol="status" className="mb-[18px]">
+        {confirmacion}
       </Aviso>
 
       <Listado>
@@ -190,13 +225,22 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
                           >
                             Editar
                           </Link>
-                          {empleado.activa && (
+                          {/* Dar de baja y Reactivar no conviven. */}
+                          {empleado.activa ? (
                             <Boton
                               variante="destructivo"
                               tamanio="chico"
                               onClick={() => setEmpleadoPendienteDeBaja(empleado)}
                             >
                               Dar de baja
+                            </Boton>
+                          ) : (
+                            <Boton
+                              variante="secundario"
+                              tamanio="chico"
+                              onClick={() => setEmpleadoPendienteDeReactivar(empleado)}
+                            >
+                              Reactivar
                             </Boton>
                           )}
                         </div>
@@ -218,6 +262,18 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
           onConfirmar={() => void confirmarBaja()}
           onCancelar={() => {
             if (!dandoDeBaja) setEmpleadoPendienteDeBaja(null)
+          }}
+        />
+      )}
+
+      {empleadoPendienteDeReactivar !== null && (
+        <DialogoConfirmacion
+          titulo="Reactivar el empleado"
+          mensaje={`¿Confirmás la reactivación de ${empleadoPendienteDeReactivar.apellido}, ${empleadoPendienteDeReactivar.nombre}?`}
+          etiquetaConfirmar={reactivando ? 'Reactivando…' : 'Reactivar'}
+          onConfirmar={() => void confirmarReactivacion()}
+          onCancelar={() => {
+            if (!reactivando) setEmpleadoPendienteDeReactivar(null)
           }}
         />
       )}

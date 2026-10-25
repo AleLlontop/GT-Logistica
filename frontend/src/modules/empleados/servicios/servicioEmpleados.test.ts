@@ -7,6 +7,7 @@ import {
   listarEmpleados,
   modificarEmpleado,
   obtenerEmpleado,
+  reactivarEmpleado,
   type DatosEmpleado,
 } from './servicioEmpleados'
 
@@ -91,6 +92,17 @@ describe('servicioEmpleados', () => {
       '/api/empleados/17/adelantos',
       '/api/empleados/17/cajas',
     ])
+  })
+
+  it('reactiva con un POST al recurso propio', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }))
+
+    await reactivarEmpleado(17)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/empleados/17/reactivacion',
+      expect.objectContaining({ method: 'POST' }),
+    )
   })
 
   it('no convierte un conflicto de baja por caja abierta en una respuesta exitosa', async () => {

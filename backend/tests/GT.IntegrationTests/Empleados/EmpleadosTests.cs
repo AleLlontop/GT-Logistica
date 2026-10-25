@@ -209,14 +209,83 @@ public class EmpleadosTests(AplicacionDePrueba app) : IClassFixture<AplicacionDe
         Assert.NotNull(ficha);
         Assert.False(ficha.Activa);
 
-        // La persona dada de baja ya no debe aparecer en el listado.
+        // Sigue en el listado, marcado como dado de baja, para poder reactivarlo; sólo el filtro de
+        // activos lo deja afuera.
         var listado = await cliente.GetFromJsonAsync<List<PersonaLeida>>(
             "/api/empleados");
 
         Assert.NotNull(listado);
-        Assert.DoesNotContain(
+        Assert.Contains(
             listado,
+            empleado => empleado.Id == creado.Id && !empleado.Activa);
+
+        var activos = await cliente.GetFromJsonAsync<List<PersonaLeida>>(
+            "/api/empleados?soloActivas=true");
+
+        Assert.NotNull(activos);
+        Assert.DoesNotContain(
+            activos,
             empleado => empleado.Id == creado.Id);
+    }
+
+    [Fact]
+    public async Task ReactivaUnEmpleadoDadoDeBaja_ConLosDatosQueTenia()
+    {
+        var cliente = await app.CrearClienteAutenticadoAsync();
+
+        var alta = await cliente.PostAsJsonAsync("/api/empleados", Alta(NuevoDni(), "empleado"));
+        var creado = await alta.Content.ReadFromJsonAsync<PersonaLeida>();
+        Assert.NotNull(creado);
+
+        await cliente.DeleteAsync($"/api/empleados/{creado.Id}");
+
+        var reactivacion = await cliente.PostAsync(
+            $"/api/empleados/{creado.Id}/reactivacion", null);
+
+        Assert.Equal(HttpStatusCode.NoContent, reactivacion.StatusCode);
+
+        var ficha = await cliente.GetFromJsonAsync<PersonaLeida>($"/api/empleados/{creado.Id}");
+
+        Assert.NotNull(ficha);
+        Assert.True(ficha.Activa);
+        Assert.Equal(creado.Nombre, ficha.Nombre);
+    }
+
+    [Fact]
+    public async Task RechazaReactivarUnEmpleadoActivo_YNoReactivaChoferesDesdeEmpleados()
+    {
+        var cliente = await app.CrearClienteAutenticadoAsync();
+
+        var altaEmpleado = await cliente.PostAsJsonAsync("/api/empleados", Alta(NuevoDni(), "empleado"));
+        var empleado = await altaEmpleado.Content.ReadFromJsonAsync<PersonaLeida>();
+        Assert.NotNull(empleado);
+
+        var yaActivo = await cliente.PostAsync(
+            $"/api/empleados/{empleado.Id}/reactivacion", null);
+
+        Assert.Equal(HttpStatusCode.Conflict, yaActivo.StatusCode);
+
+        // Una persona de tipo chofer no existe para este módulo, ni siquiera para reactivarla.
+        var altaChofer = await cliente.PostAsJsonAsync("/api/personas", Alta(NuevoDni(), "chofer"));
+        var chofer = await altaChofer.Content.ReadFromJsonAsync<PersonaLeida>();
+        Assert.NotNull(chofer);
+
+        await cliente.DeleteAsync($"/api/personas/{chofer.Id}");
+
+        var comoEmpleado = await cliente.PostAsync(
+            $"/api/empleados/{chofer.Id}/reactivacion", null);
+
+        Assert.Equal(HttpStatusCode.NotFound, comoEmpleado.StatusCode);
+    }
+
+    [Fact]
+    public async Task SoloConsultar_NoPuedeReactivar()
+    {
+        var cliente = await app.CrearClienteComoAsync("gerencia.reactivar", CodigosRol.Gerencia);
+
+        var respuesta = await cliente.PostAsync("/api/empleados/1/reactivacion", null);
+
+        Assert.Equal(HttpStatusCode.Forbidden, respuesta.StatusCode);
     }
     [Fact]
     public async Task ConsultaHistoriales_DeEmpleadoSinMovimientos()
@@ -300,8 +369,14 @@ public class EmpleadosTests(AplicacionDePrueba app) : IClassFixture<AplicacionDe
                 fechaNacimiento = "1992-06-12",
             });
 
-        // FR-022b del Módulo 2: el alta nunca reactiva; la persona se reactiva desde el padrón.
+        // FR-022b del Módulo 2: el alta nunca reactiva, y el mensaje manda al Reactivar de Empleados.
         Assert.Equal(HttpStatusCode.BadRequest, reingreso.StatusCode);
+
+        var error = await reingreso.Content.ReadFromJsonAsync<RespuestaError>();
+
+        Assert.NotNull(error);
+        Assert.Equal("dni_de_persona_dada_de_baja", error.Codigo);
+        Assert.Contains("listado de empleados", error.Mensaje);
 
         var sinTocar = await cliente.GetFromJsonAsync<PersonaLeida>(
             $"/api/empleados/{original.Id}");
@@ -348,4 +423,6 @@ public class EmpleadosTests(AplicacionDePrueba app) : IClassFixture<AplicacionDe
         string Telefono,
         string Email,
         bool Activa);
+
+    private record RespuestaError(string Codigo, string Mensaje, string? Campo);
 }

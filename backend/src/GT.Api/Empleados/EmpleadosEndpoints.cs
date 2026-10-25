@@ -5,6 +5,7 @@ using GT.Application.Caja;
 using GT.Application.Choferes;
 using GT.Application.Usuarios;
 using GT.Application.Usuarios.Personas;
+using GT.Domain.Personas;
 using GT.Domain.Usuarios;
 
 namespace GT.Api.Empleados;
@@ -33,8 +34,14 @@ public static class EmpleadosEndpoints
         gestionar.MapPost("/", CrearAsync);
         gestionar.MapPut("/{id:int}", ModificarAsync);
         gestionar.MapDelete("/{id:int}", DarDeBajaAsync);
+        gestionar.MapPost("/{id:int}/reactivacion", ReactivarAsync);
     }
 
+    /// <summary>
+    /// Igual que el padrón de personas: sin <c>soloActivas</c> trae también a los dados de baja, que
+    /// el listado muestra como tales. Ocultarlos siempre dejaba sin forma de encontrarlos para
+    /// reactivarlos.
+    /// </summary>
     private static async Task<IResult> ListarAsync(
         string? texto,
         bool? soloActivas,
@@ -42,7 +49,7 @@ public static class EmpleadosEndpoints
         CancellationToken cancelacion)
     {
         var personas = await consultar.EjecutarAsync(texto, soloActivas ?? false, cancelacion);
-        return Results.Ok(personas.Where(persona => persona.Tipo == "empleado" && persona.Activa));
+        return Results.Ok(personas.Where(persona => persona.Tipo == "empleado"));
     }
 
     private static async Task<IResult> ObtenerAsync(
@@ -57,13 +64,57 @@ public static class EmpleadosEndpoints
     private static async Task<IResult> CrearAsync(
         PersonaRequest peticion,
         CrearPersona crear,
+        IRepositorioPersonas personas,
         CancellationToken cancelacion)
     {
         // El tipo no lo elige el usuario del módulo: siempre se crea como empleado.
         var resultado = await crear.EjecutarAsync(ComoEmpleado(peticion), cancelacion);
-        return resultado.Exitoso
-            ? Results.Created($"/api/empleados/{resultado.Persona!.Id}", resultado.Persona)
-            : Results.BadRequest(TraducirError(resultado));
+        if (resultado.Exitoso)
+        {
+            return Results.Created($"/api/empleados/{resultado.Persona!.Id}", resultado.Persona);
+        }
+
+        // Si el DNI es de un empleado dado de baja, se lo manda al Reactivar de esta misma pantalla;
+        // si es de otra clase de persona, sólo se la puede reactivar desde el padrón de personas.
+        if (resultado.Error is ErrorPersona.DniDePersonaDadaDeBaja &&
+            await personas.ObtenerPorDniAsync(peticion.Dni!.Trim(), cancelacion) is
+                { Tipo: TipoIntegrante.Empleado })
+        {
+            return Results.BadRequest(new ErrorResponse(
+                CodigosErrorUsuarios.DniDePersonaDadaDeBaja,
+                MensajesUsuarios.DniDeEmpleadoDadoDeBaja,
+                resultado.Campo));
+        }
+
+        return Results.BadRequest(TraducirError(resultado));
+    }
+
+    /// <summary>
+    /// Reactivación de un empleado dado de baja. Es la de FR-022b del Módulo 2 sobre la misma
+    /// persona, ofrecida acá porque quien gestiona empleados puede no tener acceso al padrón.
+    /// </summary>
+    private static async Task<IResult> ReactivarAsync(
+        int id,
+        ConsultarPersonas consultar,
+        ReactivarPersona reactivar,
+        CancellationToken cancelacion)
+    {
+        var actual = await consultar.ObtenerAsync(id, cancelacion);
+        if (actual is not { Tipo: "empleado" })
+        {
+            return NoEncontrado();
+        }
+
+        var resultado = await reactivar.EjecutarAsync(id, cancelacion);
+
+        return resultado.Error switch
+        {
+            ErrorPersona.Ninguno => Results.NoContent(),
+            ErrorPersona.NoEncontrada => NoEncontrado(),
+            _ => Results.Conflict(new ErrorResponse(
+                CodigosErrorUsuarios.PersonaYaActiva,
+                MensajesUsuarios.PersonaYaActiva)),
+        };
     }
 
     private static async Task<IResult> ModificarAsync(
