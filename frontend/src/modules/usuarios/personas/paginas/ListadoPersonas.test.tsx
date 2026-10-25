@@ -8,6 +8,7 @@ import { ListadoPersonas } from './ListadoPersonas'
 
 const listarPersonas = vi.fn()
 const darDeBajaPersona = vi.fn()
+const reactivarPersona = vi.fn()
 
 vi.mock('../servicios/personas', async () => {
   const real = await vi.importActual<typeof import('../servicios/personas')>('../servicios/personas')
@@ -16,6 +17,7 @@ vi.mock('../servicios/personas', async () => {
     ...real,
     listarPersonas: (...args: unknown[]) => listarPersonas(...args),
     darDeBajaPersona: (...args: unknown[]) => darDeBajaPersona(...args),
+    reactivarPersona: (...args: unknown[]) => reactivarPersona(...args),
   }
 })
 
@@ -45,6 +47,8 @@ describe('ListadoPersonas', () => {
     darDeBajaPersona.mockReset()
     listarPersonas.mockResolvedValue([marta])
     darDeBajaPersona.mockResolvedValue(undefined)
+    reactivarPersona.mockReset()
+    reactivarPersona.mockResolvedValue(undefined)
   })
 
   it('avisa que el padrón está vacío cuando todavía no se cargó ninguna persona (FR-025)', async () => {
@@ -127,5 +131,55 @@ describe('ListadoPersonas', () => {
         'No se puede dar de baja: está asociada al usuario jperez. Desvinculala primero.',
       ),
     ).toBeInTheDocument()
+  })
+
+  it('ofrece Reactivar en lugar de Dar de baja a una persona dada de baja (FR-022b)', async () => {
+    listarPersonas.mockResolvedValue([{ ...marta, activa: false }])
+
+    const usuario = userEvent.setup()
+    renderizar()
+
+    await usuario.click(await screen.findByRole('button', { name: 'Acciones de Gómez, Marta' }))
+
+    expect(screen.getByRole('button', { name: 'Reactivar' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Dar de baja' })).not.toBeInTheDocument()
+  })
+
+  it('reactiva con confirmación y lo anuncia (FR-022b)', async () => {
+    listarPersonas.mockResolvedValue([{ ...marta, activa: false }])
+
+    const usuario = userEvent.setup()
+    renderizar()
+
+    await usuario.click(await screen.findByRole('button', { name: 'Acciones de Gómez, Marta' }))
+    await usuario.click(screen.getByRole('button', { name: 'Reactivar' }))
+
+    expect(
+      await screen.findByText(
+        '¿Confirmás la reactivación de Marta Gómez? Va a volver a estar disponible para asociar a un usuario.',
+      ),
+    ).toBeInTheDocument()
+
+    listarPersonas.mockResolvedValue([marta])
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar' }))
+
+    await waitFor(() => expect(reactivarPersona).toHaveBeenCalledWith(marta.id))
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'Marta Gómez volvió a estar activa.',
+    )
+  })
+
+  it('cancelar la reactivación no cambia nada', async () => {
+    listarPersonas.mockResolvedValue([{ ...marta, activa: false }])
+
+    const usuario = userEvent.setup()
+    renderizar()
+
+    await usuario.click(await screen.findByRole('button', { name: 'Acciones de Gómez, Marta' }))
+    await usuario.click(screen.getByRole('button', { name: 'Reactivar' }))
+    await usuario.click(await screen.findByRole('button', { name: 'Cancelar' }))
+
+    expect(reactivarPersona).not.toHaveBeenCalled()
   })
 })

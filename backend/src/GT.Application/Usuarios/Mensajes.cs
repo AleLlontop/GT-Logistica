@@ -18,6 +18,8 @@ public static class CodigosErrorUsuarios
     public const string PersonaInexistente = "persona_inexistente";
     public const string UltimoAdministrador = "ultimo_administrador";
     public const string DniDuplicado = "dni_duplicado";
+    public const string DniDePersonaDadaDeBaja = "dni_de_persona_dada_de_baja";
+    public const string PersonaYaActiva = "persona_ya_activa";
     public const string PersonaVinculada = "persona_vinculada";
     public const string PersonaEsChofer = "persona_es_chofer";
     public const string PasswordActualIncorrecta = "password_actual_incorrecta";
@@ -49,6 +51,17 @@ public static class MensajesUsuarios
         "Administrador del sistema.";
 
     public const string DniDuplicado = "Ese DNI ya está registrado en el padrón.";
+
+    /// <summary>
+    /// El DNI es de una persona dada de baja (FR-022b). Se la manda a reactivarla, que es lo único
+    /// que la deja volver: el DNI es único y no admite una segunda alta.
+    /// </summary>
+    public const string DniDePersonaDadaDeBaja =
+        "Ese DNI es de una persona dada de baja. Reactivala desde el listado de personas en vez de " +
+        "cargarla de nuevo.";
+
+    /// <summary>La pantalla ofrece <i>Reactivar</i> sólo sobre una dada de baja: la vista quedó vieja.</summary>
+    public const string PersonaYaActiva = "Esa persona ya está activa. Actualizá la lista.";
 
     public const string PasswordActualIncorrecta = "Tu contraseña actual no es correcta.";
 

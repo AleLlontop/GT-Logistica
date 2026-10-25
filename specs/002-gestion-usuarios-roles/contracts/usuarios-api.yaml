@@ -335,7 +335,33 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Persona' }
         "400":
-          description: 'Códigos posibles: `datos_invalidos`, `dni_duplicado`.'
+          description: |
+            Códigos posibles: `datos_invalidos`, `dni_duplicado` y `dni_de_persona_dada_de_baja`
+            —el DNI es de una persona dada de baja, que se reactiva en vez de cargarse de nuevo
+            (FR-022b)—.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /personas/{id}/reactivacion:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+
+    post:
+      summary: Reactiva una persona dada de baja
+      description: |
+        Vuelve a dejarla `activa: true`, con los datos que tenía (FR-022b). La confirmación la pide
+        la pantalla: la operación se deshace con la baja.
+      responses:
+        "204":
+          description: Persona reactivada
+        "404":
+          description: No existe (`no_encontrado`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "409":
+          description: Ya estaba activa (`persona_ya_activa`); la vista quedó vieja.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Error' }

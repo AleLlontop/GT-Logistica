@@ -29,6 +29,7 @@ public static class PersonasEndpoints
         grupo.MapPost("/", CrearAsync);
         grupo.MapPut("/{id:int}", ModificarAsync);
         grupo.MapDelete("/{id:int}", DarDeBajaAsync);
+        grupo.MapPost("/{id:int}/reactivacion", ReactivarAsync);
     }
 
     private static async Task<IResult> CrearAsync(
@@ -82,6 +83,28 @@ public static class PersonasEndpoints
             : Results.BadRequest(TraducirError(resultado));
     }
 
+    /// <summary>
+    /// Reactivación (FR-022b). Recurso propio y no un campo de la edición ([004]); la confirmación la
+    /// pide la pantalla porque se deshace con la baja ([005]). Que ya esté activa es un problema de
+    /// estado y no de lo tipeado: <c>409</c>.
+    /// </summary>
+    private static async Task<IResult> ReactivarAsync(
+        int id,
+        ReactivarPersona reactivar,
+        CancellationToken cancelacion)
+    {
+        var resultado = await reactivar.EjecutarAsync(id, cancelacion);
+
+        return resultado.Error switch
+        {
+            ErrorPersona.Ninguno => Results.NoContent(),
+            ErrorPersona.NoEncontrada => NoEncontrada(),
+            _ => Results.Conflict(new ErrorResponse(
+                CodigosErrorUsuarios.PersonaYaActiva,
+                MensajesUsuarios.PersonaYaActiva)),
+        };
+    }
+
     private static IResult NoEncontrada() => Results.NotFound(new ErrorResponse(
         CodigosErrorUsuarios.NoEncontrado,
         MensajesUsuarios.NoEncontrado));
@@ -91,6 +114,11 @@ public static class PersonasEndpoints
         ErrorPersona.DniDuplicado => new ErrorResponse(
             CodigosErrorUsuarios.DniDuplicado,
             MensajesUsuarios.DniDuplicado,
+            resultado.Campo),
+
+        ErrorPersona.DniDePersonaDadaDeBaja => new ErrorResponse(
+            CodigosErrorUsuarios.DniDePersonaDadaDeBaja,
+            MensajesUsuarios.DniDePersonaDadaDeBaja,
             resultado.Campo),
 
         ErrorPersona.Vinculada => new ErrorResponse(

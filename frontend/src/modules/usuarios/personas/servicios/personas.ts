@@ -60,6 +60,11 @@ export function darDeBajaPersona(id: number): Promise<void> {
   return peticion<void>(`/personas/${id}`, { metodo: 'DELETE' })
 }
 
+/** Vuelve a dejar activa a una persona dada de baja, con los datos que tenía (FR-022b). */
+export function reactivarPersona(id: number): Promise<void> {
+  return peticion<void>(`/personas/${id}/reactivacion`, { metodo: 'POST' })
+}
+
 export const TIPOS_DE_PERSONA: ReadonlyArray<{ codigo: DatosPersona['tipo']; nombre: string }> = [
   { codigo: 'chofer', nombre: 'Chofer' },
   { codigo: 'empleado', nombre: 'Empleado' },

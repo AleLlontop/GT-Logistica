@@ -209,6 +209,10 @@ public static class EmpleadosEndpoints
             CodigosErrorUsuarios.DniDuplicado,
             MensajesUsuarios.DniDuplicado,
             resultado.Campo),
+        ErrorPersona.DniDePersonaDadaDeBaja => new ErrorResponse(
+            CodigosErrorUsuarios.DniDePersonaDadaDeBaja,
+            MensajesUsuarios.DniDePersonaDadaDeBaja,
+            resultado.Campo),
         ErrorPersona.Vinculada => new ErrorResponse(
             CodigosErrorUsuarios.PersonaVinculada,
             MensajesUsuarios.PersonaVinculada(resultado.UsernameQueLaTiene ?? "otro"),

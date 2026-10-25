@@ -268,7 +268,7 @@ public class EmpleadosTests(AplicacionDePrueba app) : IClassFixture<AplicacionDe
     }
 
     [Fact]
-    public async Task VuelveARegistrarEmpleadoDadoDeBaja_ReutilizaElMismoRegistro()
+    public async Task VuelveARegistrarEmpleadoDadoDeBaja_SeRechazaYNoLoReactiva()
     {
         var cliente = await app.CrearClienteAutenticadoAsync();
         var dni = NuevoDni();
@@ -300,16 +300,15 @@ public class EmpleadosTests(AplicacionDePrueba app) : IClassFixture<AplicacionDe
                 fechaNacimiento = "1992-06-12",
             });
 
-        Assert.Equal(HttpStatusCode.Created, reingreso.StatusCode);
+        // FR-022b del Módulo 2: el alta nunca reactiva; la persona se reactiva desde el padrón.
+        Assert.Equal(HttpStatusCode.BadRequest, reingreso.StatusCode);
 
-        var reactivado =
-            await reingreso.Content.ReadFromJsonAsync<PersonaLeida>();
+        var sinTocar = await cliente.GetFromJsonAsync<PersonaLeida>(
+            $"/api/empleados/{original.Id}");
 
-        Assert.NotNull(reactivado);
-        Assert.Equal(original.Id, reactivado.Id);
-        Assert.True(reactivado.Activa);
-        Assert.Equal("Laura", reactivado.Nombre);
-        Assert.Equal("Pérez", reactivado.Apellido);
+        Assert.NotNull(sinTocar);
+        Assert.False(sinTocar.Activa);
+        Assert.Equal(original.Nombre, sinTocar.Nombre);
     }
 
     [Theory]

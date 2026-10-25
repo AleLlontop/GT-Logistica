@@ -124,7 +124,7 @@ definitiva y deja de vencer a las 24 horas (FR-031). Es el circuito que cierra e
 | Columnas | Nombre, apellido, DNI, tipo, teléfono, email, fecha de nacimiento y estado |
 | Búsqueda | Un campo de texto que busca por nombre, apellido o DNI, parcial y sin distinguir mayúsculas |
 | Padrón vacío | Mensaje explícito de que todavía no hay personas cargadas (FR-025) |
-| Acciones por fila | *Editar* y *Dar de baja* |
+| Acciones por fila | *Editar*, y *Dar de baja* si está activa o *Reactivar* si está dada de baja (FR-022b): no conviven |
 | Botón *Nueva persona* | Lleva al formulario de alta |
 
 ### Formulario de persona — `/personas/nueva` y `/personas/{id}/editar`
@@ -143,6 +143,7 @@ modifica nada (FR-017).
 |---|---|
 | Dar de baja un usuario | `¿Confirmás la baja de {username}? La cuenta va a quedar inactiva y no va a poder ingresar al sistema.` |
 | Dar de baja una persona | `¿Confirmás la baja de {nombre} {apellido}? Va a dejar de estar disponible para asociar a un usuario.` |
+| Reactivar una persona | `¿Confirmás la reactivación de {nombre} {apellido}? Va a volver a estar disponible para asociar a un usuario.` |
 
 ---
 
@@ -163,6 +164,7 @@ Todos en español rioplatense, con voseo (Principio II). Los devuelve el backend
 | Persona registrada | `La persona se registró correctamente.` |
 | Persona modificada | `Los cambios se guardaron correctamente.` |
 | Persona dada de baja | `{nombre} {apellido} quedó dada de baja.` |
+| Persona reactivada | `{nombre} {apellido} volvió a estar activa.` |
 | Contraseña propia cambiada | `Tu contraseña se cambió correctamente.` |
 
 ### Errores
@@ -177,6 +179,8 @@ Todos en español rioplatense, con voseo (Principio II). Los devuelve el backend
 | `persona_inexistente` | La persona elegida no existe o está dada de baja | `La persona seleccionada ya no está disponible. Actualizá la lista y volvé a elegir.` |
 | `ultimo_administrador` | La operación dejaría al sistema sin administradores activos | `No se puede hacer: tiene que quedar siempre al menos un usuario activo con el rol Administrador del sistema.` |
 | `dni_duplicado` | El DNI ya está en el padrón | `Ese DNI ya está registrado en el padrón.` |
+| `dni_de_persona_dada_de_baja` | El DNI es de una persona dada de baja (FR-022b) | `Ese DNI es de una persona dada de baja. Reactivala desde el listado de personas en vez de cargarla de nuevo.` |
+| `persona_ya_activa` | Se pidió reactivar una persona que ya estaba activa | `Esa persona ya está activa. Actualizá la lista.` |
 | `persona_vinculada` | Se intentó dar de baja una persona asociada | `No se puede dar de baja: está asociada al usuario {username}. Desvinculala primero.` |
 | `password_actual_incorrecta` | La contraseña actual escrita no es la correcta | `Tu contraseña actual no es correcta.` |
 | `no_encontrado` | El registro ya no existe | `Ese registro ya no existe. Puede que lo hayan eliminado desde otra sesión.` |

@@ -134,7 +134,8 @@ Chofer o empleado de G&T Logística. El padrón **arranca vacío**: no se siembr
 ```
 
 La baja lógica sólo procede si la persona no está vinculada a ningún usuario (FR-028). El registro
-nunca se borra (FR-022).
+nunca se borra (FR-022). La reactivación es un recurso propio, no un campo de la edición ni un
+efecto del alta (FR-022b): un alta con el DNI de una persona dada de baja se rechaza.
 
 ---
 

@@ -17,7 +17,7 @@ import { ErrorHttp } from '../../../../compartido/clienteHttp'
 import type { Persona } from '../../../../compartido/tipos'
 import { DialogoConfirmacion } from '../../../../compartido/ui/DialogoConfirmacion'
 import { formatearFecha, NOMBRE_DE_TIPO_INTEGRANTE } from '../../servicios/formato'
-import { darDeBajaPersona, listarPersonas } from '../servicios/personas'
+import { darDeBajaPersona, listarPersonas, reactivarPersona } from '../servicios/personas'
 
 // Dos mensajes distintos a propósito (FR-025): "todavía no cargaste ninguna" y "tu búsqueda no
 // encontró nada" son situaciones distintas y llevan a acciones distintas.
@@ -36,6 +36,8 @@ export function ListadoPersonas() {
   const [personas, setPersonas] = useState<Persona[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [aBajar, setABajar] = useState<Persona | null>(null)
+  const [aReactivar, setAReactivar] = useState<Persona | null>(null)
+  const [confirmacion, setConfirmacion] = useState<string | null>(null)
 
   const traer = useCallback(() => {
     listarPersonas({ texto })
@@ -55,6 +57,8 @@ export function ListadoPersonas() {
       return
     }
 
+    setConfirmacion(null)
+
     try {
       await darDeBajaPersona(aBajar.id)
       setError(null)
@@ -69,6 +73,29 @@ export function ListadoPersonas() {
       )
     } finally {
       setABajar(null)
+    }
+  }
+
+  // FR-022b. La confirmación la pide la pantalla porque se deshace con la baja ([005]).
+  async function confirmarReactivacion() {
+    if (aReactivar === null) {
+      return
+    }
+
+    try {
+      await reactivarPersona(aReactivar.id)
+      setError(null)
+      setConfirmacion(`${aReactivar.nombre} ${aReactivar.apellido} volvió a estar activa.`)
+      traer()
+    } catch (fallo) {
+      setConfirmacion(null)
+      setError(
+        fallo instanceof ErrorHttp
+          ? fallo.detalle.mensaje
+          : 'Ocurrió un problema inesperado. Volvé a intentar en unos minutos.',
+      )
+    } finally {
+      setAReactivar(null)
     }
   }
 
@@ -96,6 +123,10 @@ export function ListadoPersonas() {
           {error}
         </Aviso>
       )}
+
+      <Aviso tono="exito" rol="status" className="mb-[18px]">
+        {confirmacion}
+      </Aviso>
 
       <Listado>
         {/* Su único buscador pasa a la franja de arriba, a todo el ancho (FR-033). */}
@@ -191,15 +222,17 @@ export function ListadoPersonas() {
                         etiqueta={`Acciones de ${persona.apellido}, ${persona.nombre}`}
                         items={[
                           { etiqueta: 'Editar', a: `/personas/${persona.id}/editar` },
-                          ...(persona.activa
-                            ? [
-                                {
-                                  etiqueta: 'Dar de baja',
-                                  onSeleccionar: () => setABajar(persona),
-                                  destructivo: true,
-                                },
-                              ]
-                            : []),
+                          // Dar de baja y Reactivar no conviven (FR-022b).
+                          persona.activa
+                            ? {
+                                etiqueta: 'Dar de baja',
+                                onSeleccionar: () => setABajar(persona),
+                                destructivo: true,
+                              }
+                            : {
+                                etiqueta: 'Reactivar',
+                                onSeleccionar: () => setAReactivar(persona),
+                              },
                         ]}
                       />
                     </td>
@@ -217,6 +250,15 @@ export function ListadoPersonas() {
           mensaje={`¿Confirmás la baja de ${aBajar.nombre} ${aBajar.apellido}? Va a dejar de estar disponible para asociar a un usuario.`}
           onConfirmar={confirmarBaja}
           onCancelar={() => setABajar(null)}
+        />
+      )}
+
+      {aReactivar !== null && (
+        <DialogoConfirmacion
+          titulo="Reactivar"
+          mensaje={`¿Confirmás la reactivación de ${aReactivar.nombre} ${aReactivar.apellido}? Va a volver a estar disponible para asociar a un usuario.`}
+          onConfirmar={confirmarReactivacion}
+          onCancelar={() => setAReactivar(null)}
         />
       )}
     </section>

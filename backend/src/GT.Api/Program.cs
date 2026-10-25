@@ -75,6 +75,7 @@ builder.Services.AddScoped<ConsultarPersonas>();
 builder.Services.AddScoped<CrearPersona>();
 builder.Services.AddScoped<ModificarPersona>();
 builder.Services.AddScoped<DarDeBajaPersona>();
+builder.Services.AddScoped<ReactivarPersona>();
 builder.Services.AddScoped<CrearUsuario>();
 builder.Services.AddScoped<ConsultarUsuarios>();
 builder.Services.AddScoped<ModificarUsuario>();

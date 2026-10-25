@@ -226,6 +226,79 @@ public class PersonasTests(AplicacionDePrueba app) : IClassFixture<AplicacionDeP
     }
 
     [Fact]
+    public async Task Reactiva_UnaPersonaDadaDeBaja_ConLosDatosQueTenia()
+    {
+        // FR-022b: vuelve con sus datos y otra vez se ofrece para asociar (FR-023).
+        var cliente = await app.CrearClienteAutenticadoAsync();
+        var persona = await app.CrearPersonaAsync("37777888", "Elena", "Suárez");
+        await cliente.DeleteAsync($"/api/personas/{persona.Id}");
+
+        var respuesta = await cliente.PostAsync($"/api/personas/{persona.Id}/reactivacion", null);
+
+        Assert.Equal(HttpStatusCode.NoContent, respuesta.StatusCode);
+
+        var recargada = await app.RecargarPersonaAsync(persona.Id);
+
+        Assert.True(recargada!.Activa);
+        Assert.Equal("Elena", recargada.Nombre);
+
+        var activas = await cliente.GetFromJsonAsync<List<PersonaLeida>>(
+            "/api/personas?soloActivas=true");
+
+        Assert.Contains(activas!, ofrecida => ofrecida.Id == persona.Id);
+    }
+
+    [Fact]
+    public async Task Rechaza_ReactivarUnaPersonaQueYaEstaActiva()
+    {
+        // La pantalla ofrece Reactivar sólo sobre una dada de baja: es una vista vieja, y un 409.
+        var cliente = await app.CrearClienteAutenticadoAsync();
+        var persona = await app.CrearPersonaAsync("37888999");
+
+        var respuesta = await cliente.PostAsync($"/api/personas/{persona.Id}/reactivacion", null);
+
+        Assert.Equal(HttpStatusCode.Conflict, respuesta.StatusCode);
+
+        var error = await respuesta.Content.ReadFromJsonAsync<RespuestaError>();
+        Assert.Equal("persona_ya_activa", error!.Codigo);
+    }
+
+    [Fact]
+    public async Task Devuelve_NoEncontrado_AlReactivarUnaPersonaQueNoExiste()
+    {
+        var cliente = await app.CrearClienteAutenticadoAsync();
+
+        var respuesta = await cliente.PostAsync("/api/personas/999999/reactivacion", null);
+
+        Assert.Equal(HttpStatusCode.NotFound, respuesta.StatusCode);
+    }
+
+    [Fact]
+    public async Task Rechaza_ElAlta_ConElDniDeUnaPersonaDadaDeBaja_YNoLaReactiva()
+    {
+        // FR-022b: el alta nunca reactiva ni pisa los datos de la persona existente.
+        var cliente = await app.CrearClienteAutenticadoAsync();
+        var persona = await app.CrearPersonaAsync("37999000", "Original", "Persona");
+        await cliente.DeleteAsync($"/api/personas/{persona.Id}");
+
+        var respuesta = await cliente.PostAsJsonAsync(
+            "/api/personas",
+            Alta("37999000", "Otro", "Nombre"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+
+        var error = await respuesta.Content.ReadFromJsonAsync<RespuestaError>();
+
+        Assert.Equal("dni_de_persona_dada_de_baja", error!.Codigo);
+        Assert.Equal("dni", error.Campo);
+
+        var recargada = await app.RecargarPersonaAsync(persona.Id);
+
+        Assert.False(recargada!.Activa);
+        Assert.Equal("Original", recargada.Nombre);
+    }
+
+    [Fact]
     public async Task Busca_PorNombreApellidoODni_ConCoincidenciaParcial()
     {
         var cliente = await app.CrearClienteAutenticadoAsync();
