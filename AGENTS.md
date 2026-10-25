@@ -37,6 +37,11 @@ Va como archivo aparte para no pisar el `99-podman-machine-provider.conf` que ya
 no alcanza**: el servicio del lado Windows carga la config al arrancar, así que hay que
 `podman machine stop && podman machine start`.
 
+### Si un cambio de backend no se ve en la app
+El frontend se monta en vivo desde `./frontend`, pero el backend se compila **dentro de la imagen**:
+`podman compose up -d` reusa la imagen vieja y la app sigue con el código anterior aunque los tests
+pasen. Después de tocar el backend: `podman compose up -d --build --no-deps backend`.
+
 ## Convenciones
 - Todo el producto (UI, mensajes, docs) en español argentino; moneda en pesos (ARS)
 - Frontend por módulo de negocio en `frontend/src/modules/<modulo>/`, no por tipo de archivo
@@ -47,6 +52,11 @@ no alcanza**: el servicio del lado Windows carga la config al arrancar, así que
 
 ## Decisiones transversales ya tomadas
 Cada línea nació en una feature pero rige para todo el sistema. Antes de resolver algo parecido, mirar acá.
+
+- [002] **El alta nunca reactiva**: un alta con el identificador único de un registro dado de baja se rechaza y **manda a reactivarlo**, que es su recurso propio ([004]). Reactivar adentro del alta pisaba los datos guardados con los tipeados y respondía `201` sobre algo que ya existía. Rige para Personas (FR-022b), Choferes (FR-006a del [003]) y Empleados ([016]); el mensaje nombra **la pantalla donde quien opera puede reactivarlo**, no otra a la que su rol no llega
+- [002] Una **regla de validación que la pantalla copia para avisar antes de enviar** vive en **una sola copia del frontend**, compartida por todas las pantallas que guardan la misma entidad, y lleva **los mismos casos de test en C# y en TypeScript** (`ValidadorPersonaTests.cs` y `validacion.test.ts`). Es [003] aplicado a la validación: Empleados tenía su propia expresión, que rechazaba `J.` mientras el servidor lo aceptaba
+- [016] Un **módulo que entró a `main` sin spec** se documenta con una **spec retroactiva** que describe lo vigente, y desde ahí rige el Principio III: lo que no está escrito no es alcance. El número sale del siguiente libre en `specs/`, no del que traía el código —Empleados decía "Módulo 14", que es Pagos—
+- [015] Un test **no lee rutas de un sistema operativo** —`/proc`, `/tmp`— sin comprobar que existen: la suite corre en Linux en CI y en Windows en desarrollo, y un rojo que significa "la máquina es otra" tapa los rojos de verdad. Los archivos temporales van a `Path.GetTempPath()`
 
 - [014] Una operación económica que coordina módulos usa **una única transacción del coordinador** y la misma instancia scoped de DbContext; los módulos aportan primitivas de escritura que exigen esa transacción y nunca ejecutan Begin/Commit propios. Todos los participantes respetan un orden común de locks, con Id ascendente dentro de cada tipo.
 - [014] La **idempotencia económica** se identifica por TipoOperacion + ClaveIdempotencia, independiente del usuario; se compara el comando canónico versionado completo además de su hash y se guarda el resultado original en el mismo commit económico. El replay precede a la elegibilidad, exige autorización vigente y, ante commit incierto, se recupera por lectura bloqueante sin repetir efectos.

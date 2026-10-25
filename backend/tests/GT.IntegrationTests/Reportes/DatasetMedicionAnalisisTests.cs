@@ -43,8 +43,8 @@ public class DatasetMedicionAnalisisTests
                 Conteos=new{viajes,facturas,liquidaciones,movimientos},PreparacionMs=cronometro.ElapsedMilliseconds,
                 SdkRequerido="10.0.302",Runtime=System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,SqlServer=sql,
                 Procesadores=Environment.ProcessorCount,MemoriaDisponibleBytes=GC.GetGCMemoryInfo().TotalAvailableMemoryBytes,
-                Cpu=File.ReadLines("/proc/cpuinfo").FirstOrDefault(l=>l.StartsWith("model name",StringComparison.Ordinal))?.Split(':',2).Last().Trim(),
-                Ram=File.ReadLines("/proc/meminfo").FirstOrDefault(l=>l.StartsWith("MemTotal:",StringComparison.Ordinal)),
+                Cpu=LineaDeProc("/proc/cpuinfo","model name")?.Split(':',2).Last().Trim(),
+                Ram=LineaDeProc("/proc/meminfo","MemTotal:"),
                 Snapshot=diagnostico.Descripcion,RcsiHeredado=previo.ReadCommittedSnapshot,RcsiConservado=previo.ReadCommittedSnapshot==diagnostico.ReadCommittedSnapshot,Consistencia="Snapshot explícito por respuesta",
             };
         }
@@ -60,10 +60,16 @@ public class DatasetMedicionAnalisisTests
                 Assert.Equal(0,Convert.ToInt32(await consulta.ExecuteScalarAsync()));
                 if(evidencia is not null)
                 {
-                    Directory.CreateDirectory("/tmp/gt015-medicion");
-                    await File.WriteAllTextAsync("/tmp/gt015-medicion/dataset.json",JsonSerializer.Serialize(new{Entorno=evidencia,BaseEfimeraEliminada=true},new JsonSerializerOptions{WriteIndented=true}));
+                    var carpeta=Path.Combine(Path.GetTempPath(),"gt015-medicion");
+                    Directory.CreateDirectory(carpeta);
+                    await File.WriteAllTextAsync(Path.Combine(carpeta,"dataset.json"),JsonSerializer.Serialize(new{Entorno=evidencia,BaseEfimeraEliminada=true},new JsonSerializerOptions{WriteIndented=true}));
                 }
             }
         }
     }
+
+    // `/proc` sólo existe en Linux (CI y contenedores). En Windows la evidencia va sin CPU ni RAM en vez
+    // de hacer fallar un test que mide el dataset, no la máquina.
+    private static string? LineaDeProc(string archivo,string prefijo)=>
+        File.Exists(archivo)?File.ReadLines(archivo).FirstOrDefault(l=>l.StartsWith(prefijo,StringComparison.Ordinal)):null;
 }
