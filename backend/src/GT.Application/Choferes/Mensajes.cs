@@ -10,6 +10,7 @@ public static class CodigosErrorChoferes
     public const string CuitDuplicado = "cuit_duplicado";
     public const string CuilDuplicado = "cuil_duplicado";
     public const string DniDuplicado = "dni_duplicado";
+    public const string PersonaDadaDeBaja = "persona_dada_de_baja";
     public const string TransportistaInexistente = "transportista_inexistente";
     public const string TransportistaConChoferes = "transportista_con_choferes";
     public const string MenorDeEdad = "menor_de_edad";
@@ -41,6 +42,14 @@ public static class MensajesChoferes
     public const string CuilDuplicado = "Ese CUIL ya está registrado para otro chofer.";
 
     public const string DniDuplicado = "Esa persona ya está registrada como chofer.";
+
+    /// <summary>
+    /// FR-006a. Reutilizarla dejaría un chofer activo apuntando a una persona inactiva, y reactivarla
+    /// acá sería un efecto lateral del alta: se reactiva en Personas, que es su recurso propio.
+    /// </summary>
+    public const string PersonaDadaDeBaja =
+        "Esa persona está dada de baja en el padrón. Hay que reactivarla desde Personas antes de " +
+        "registrarla como chofer.";
 
     public const string TransportistaInexistente =
         "El transportista seleccionado ya no está disponible. Actualizá la lista y volvé a elegir.";

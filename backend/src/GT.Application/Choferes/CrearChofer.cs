@@ -65,6 +65,12 @@ public class CrearChofer(
             {
                 return new ResultadoChofer(ErrorChofer.DniDuplicado, Campo: "dni");
             }
+
+            // FR-006a: no se reutiliza una persona dada de baja ni se la reactiva desde acá.
+            if (!persona.Activa)
+            {
+                return new ResultadoChofer(ErrorChofer.PersonaDadaDeBaja, Campo: "dni");
+            }
         }
         else
         {
