@@ -132,6 +132,16 @@ definitiva y deja de vencer a las 24 horas (FR-031). Es el circuito que cierra e
 Los siete datos de FR-026, todos obligatorios: *Nombre*, *Apellido*, *DNI*, *Tipo* (chofer o
 empleado), *Teléfono*, *Email* y *Fecha de nacimiento*. **No se pide ningún otro dato.**
 
+El formato de nombre, apellido y teléfono (FR-026a) se valida en la pantalla antes de enviar, con
+estos mensajes junto al campo:
+
+| Situación | Texto |
+|---|---|
+| Nombre con un carácter no admitido o sin letras | `El nombre sólo puede tener letras, espacios, guiones, apóstrofes y puntos.` |
+| Apellido con un carácter no admitido o sin letras | `El apellido sólo puede tener letras, espacios, guiones, apóstrofes y puntos.` |
+| Nombre o apellido de más de 100 caracteres | `Puede tener hasta 100 caracteres.` |
+| Teléfono con otro formato | `El teléfono tiene que tener entre 6 y 20 números, y sólo puede sumar +, espacios, guiones, paréntesis y puntos.` |
+
 ---
 
 ## Confirmaciones

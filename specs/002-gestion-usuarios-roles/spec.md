@@ -22,6 +22,7 @@
 
 ### Session 2026-10-24
 
+- Q: ¿Qué formato se exige al nombre, al apellido y al teléfono de una persona? Hasta ahora bastaba con que no estuvieran vacíos. → A: Nombre y apellido sólo con letras —acentuadas incluidas— y los separadores propios de un nombre; teléfono sólo con dígitos y separadores telefónicos, con una cantidad razonable de dígitos (FR-026a). Una persona cargada antes con otro formato se corrige al editarla.
 - Q: Una persona dada de baja que vuelve a la empresa, ¿cómo se maneja? El modelo de datos dibujaba la reactivación, pero ningún requisito la pedía, y como el DNI es único (FR-027) esa persona no se podía reactivar ni volver a cargar. → A: Se la reactiva desde el listado de personas, con confirmación, igual que a un chofer (FR-005b del Módulo 3). Vuelve a ofrecerse para asociar a un usuario, con los mismos datos que tenía. Registrarla de nuevo con su DNI se rechaza e indica que hay que reactivarla.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -365,6 +366,11 @@ anterior.
   persona registrada o ningún resultado, en vez de una tabla vacía sin explicación.
 - **FR-026**: El sistema DEBE registrar de cada persona el nombre, el apellido, el DNI, el tipo
   (chofer o empleado), el teléfono, el email y la fecha de nacimiento, y NO DEBE pedir otros datos.
+- **FR-026a**: El sistema DEBE rechazar, en el alta y en la edición de una persona, un nombre o un
+  apellido que tenga más de 100 caracteres, que no tenga ninguna letra o que use algo distinto de
+  letras, espacios, guiones, apóstrofes (`'` y `’`) y puntos; y un teléfono que tenga más de 30
+  caracteres, menos de 6 o más de 20 dígitos, o algo distinto de dígitos, `+`, espacios, guiones,
+  paréntesis y puntos. La pantalla DEBE aplicar la misma regla antes de enviar y decir qué está mal.
 - **FR-027**: El sistema DEBE exigir que el DNI sea único en todo el padrón de personas,
   garantizado con una restricción de unicidad en la base de datos; en una modificación, la
   comparación DEBE excluir a la propia persona. Ningún otro dato de la persona lleva restricción de
