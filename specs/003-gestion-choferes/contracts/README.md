@@ -211,6 +211,7 @@ frontend los muestra tal cual.
 | `cuit_duplicado` | El CUIT ya está en el padrón | `Ese CUIT ya está registrado para otro transportista.` |
 | `cuil_duplicado` | El CUIL ya está en el padrón | `Ese CUIL ya está registrado para otro chofer.` |
 | `dni_duplicado` | La persona de ese DNI ya es chofer | `Esa persona ya está registrada como chofer.` |
+| `persona_dada_de_baja` | La persona de ese DNI está dada de baja en el padrón (FR-006a) | `Esa persona está dada de baja en el padrón. Hay que reactivarla desde Personas antes de registrarla como chofer.` |
 | `transportista_inexistente` | El transportista elegido no existe o está inactivo | `El transportista seleccionado ya no está disponible. Actualizá la lista y volvé a elegir.` |
 | `transportista_con_choferes` | Se intentó dar de baja con choferes activos | `No se puede dar de baja: tiene {cantidad} chofer(es) activo(s). Reasignalos o dalos de baja primero.` |
 | `menor_de_edad` | Fecha de nacimiento de menos de 18 años | `Un chofer tiene que ser mayor de 18 años.` |

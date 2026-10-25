@@ -102,11 +102,11 @@ Chofer o empleado de G&T Logística. El padrón **arranca vacío**: no se siembr
 | Columna | Tipo | Reglas |
 |---|---|---|
 | `Id` | `int`, identidad | Clave primaria |
-| `Nombre` | `nvarchar(100)`, obligatorio | |
-| `Apellido` | `nvarchar(100)`, obligatorio | |
+| `Nombre` | `nvarchar(100)`, obligatorio | Letras, espacios, `-`, `'`, `’` y `.`; al menos una letra (FR-026a) |
+| `Apellido` | `nvarchar(100)`, obligatorio | Igual que `Nombre` (FR-026a) |
 | `Dni` | `nvarchar(15)`, obligatorio, **único** | Sólo dígitos. Es el único dato con restricción de unicidad (FR-027) |
 | `Tipo` | `tinyint`, obligatorio | `1` chofer, `2` empleado |
-| `Telefono` | `nvarchar(30)`, obligatorio | |
+| `Telefono` | `nvarchar(30)`, obligatorio | Entre 6 y 20 dígitos; además sólo `+`, espacios, `-`, `(`, `)` y `.` (FR-026a) |
 | `Email` | `nvarchar(254)`, obligatorio | Formato válido. **Sin** restricción de unicidad (FR-027) |
 | `FechaNacimiento` | `date`, obligatorio | |
 | `Activa` | `bit`, obligatorio | `true` al crear. La baja lógica lo pone en `false` (research §6) |
@@ -122,6 +122,7 @@ Chofer o empleado de G&T Logística. El padrón **arranca vacío**: no se siembr
 | Regla | Requisito |
 |---|---|
 | Los siete datos de FR-026 son obligatorios, y no se piden otros | FR-026 |
+| Formato de nombre, apellido y teléfono, igual en el servidor y en la pantalla | FR-026a |
 | `dni` único en todo el padrón; en edición, la comparación excluye a la propia persona | FR-027 |
 | No se puede dar de baja una persona vinculada a un usuario, sin importar el estado de ese usuario | FR-028 |
 | Sólo las personas `Activa = true` se ofrecen para asociar a un usuario | FR-023 |
@@ -134,7 +135,8 @@ Chofer o empleado de G&T Logística. El padrón **arranca vacío**: no se siembr
 ```
 
 La baja lógica sólo procede si la persona no está vinculada a ningún usuario (FR-028). El registro
-nunca se borra (FR-022).
+nunca se borra (FR-022). La reactivación es un recurso propio, no un campo de la edición ni un
+efecto del alta (FR-022b): un alta con el DNI de una persona dada de baja se rechaza.
 
 ---
 

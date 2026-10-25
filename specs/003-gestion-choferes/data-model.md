@@ -92,6 +92,7 @@ es la misma que ve el padrón del Módulo 2.
 | El DNI sigue siendo único en todo el padrón, choferes y empleados incluidos | FR-006 |
 | Menor de 18 años a la fecha del alta: se rechaza | FR-011 |
 | Si el DNI ya existe en el padrón, se reutiliza esa persona en vez de duplicarla | Caso límite, research §6 |
+| Salvo que esa persona esté dada de baja: el alta se rechaza y no la reactiva | FR-006a |
 | Si esa persona **ya es chofer**, se rechaza como duplicado | Research §6 |
 | La baja es lógica: `Activo = false`. El registro no se borra y se consulta filtrando por inactivo | FR-005, FR-022 |
 | La baja no toca la documentación: documentos y archivos quedan intactos | FR-005a |

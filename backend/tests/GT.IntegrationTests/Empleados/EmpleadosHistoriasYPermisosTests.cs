@@ -56,8 +56,10 @@ public class EmpleadosHistoriasYPermisosTests(AplicacionDePrueba app)
     }
 
     [Fact]
-    public async Task BajaConCajaAbierta_Devuelve409YConservaEmpleadoActivo()
+    public async Task BajaConCajaAbierta_LaRechazaElVinculoConElUsuario_YConservaEmpleadoActivo()
     {
+        // Una caja tiene siempre un usuario responsable, así que el empleado con caja abierta está
+        // vinculado a un usuario y la baja la rechaza FR-028 del Módulo 2, antes que la caja.
         var administrador = await app.CrearClienteAutenticadoAsync();
         var empleado = await CrearEmpleadoAsync(administrador);
 
@@ -72,8 +74,8 @@ public class EmpleadosHistoriasYPermisosTests(AplicacionDePrueba app)
         var error = await baja.Content.ReadFromJsonAsync<ErrorLeido>();
         var ficha = await administrador.GetFromJsonAsync<PersonaLeida>($"/api/empleados/{empleado.Id}");
 
-        Assert.Equal(HttpStatusCode.Conflict, baja.StatusCode);
-        Assert.Equal("empleado_con_caja_abierta", error?.Codigo);
+        Assert.Equal(HttpStatusCode.BadRequest, baja.StatusCode);
+        Assert.Equal("persona_vinculada", error?.Codigo);
         Assert.NotNull(ficha);
         Assert.True(ficha.Activa);
     }

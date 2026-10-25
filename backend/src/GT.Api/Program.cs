@@ -75,6 +75,7 @@ builder.Services.AddScoped<ConsultarPersonas>();
 builder.Services.AddScoped<CrearPersona>();
 builder.Services.AddScoped<ModificarPersona>();
 builder.Services.AddScoped<DarDeBajaPersona>();
+builder.Services.AddScoped<ReactivarPersona>();
 builder.Services.AddScoped<CrearUsuario>();
 builder.Services.AddScoped<ConsultarUsuarios>();
 builder.Services.AddScoped<ModificarUsuario>();
@@ -408,7 +409,7 @@ builder.Services.AddAuthorization(opciones =>
         // Módulo 11: el mismo reparto; que la caja sea propia lo decide cada escritura (FR-035).
         CodigosPermiso.CajaGestionar,
         CodigosPermiso.CajaConsultar,
-        // Módulo 14: gestión de empleados.
+        // Módulo 16: gestión de empleados (specs/016-gestion-empleados).
         CodigosPermiso.EmpleadosGestionar,
         CodigosPermiso.EmpleadosConsultar,
         // Módulo 12: `reportes.emitir` sólo para Gerencia y el administrador (FR-014). La política

@@ -20,6 +20,11 @@
 - Q: (decisión de planificación) La contraseña temporal vence a las 24 horas y no hay ninguna pantalla donde el usuario pueda cambiarla, así que quien no ingresa en ese plazo queda sin acceso. ¿Se agrega esa pantalla a este módulo? → A: Sí. Se agrega el cambio de contraseña propia, disponible para **cualquier** usuario autenticado, no sólo para el responsable de sistemas. Es la única pantalla del módulo que no exige el rol *Administrador del sistema*.
 - Q: Cuando el responsable de sistemas escribe algo en el filtro de username o de email del listado, ¿el sistema busca coincidencias parciales o exige el valor completo? → A: Coincidencia parcial en cualquier parte del texto y sin distinguir mayúsculas. Los filtros de rol y estado siguen siendo una selección exacta de una lista.
 
+### Session 2026-10-24
+
+- Q: ¿Qué formato se exige al nombre, al apellido y al teléfono de una persona? Hasta ahora bastaba con que no estuvieran vacíos. → A: Nombre y apellido sólo con letras —acentuadas incluidas— y los separadores propios de un nombre; teléfono sólo con dígitos y separadores telefónicos, con una cantidad razonable de dígitos (FR-026a). Una persona cargada antes con otro formato se corrige al editarla.
+- Q: Una persona dada de baja que vuelve a la empresa, ¿cómo se maneja? El modelo de datos dibujaba la reactivación, pero ningún requisito la pedía, y como el DNI es único (FR-027) esa persona no se podía reactivar ni volver a cargar. → A: Se la reactiva desde el listado de personas, con confirmación, igual que a un chofer (FR-005b del Módulo 3). Vuelve a ofrecerse para asociar a un usuario, con los mismos datos que tenía. Registrarla de nuevo con su DNI se rechaza e indica que hay que reactivarla.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Crear un usuario nuevo con al menos un rol (Priority: P1)
@@ -210,6 +215,11 @@ comprobando que deja de ofrecerse como opción al asociar una persona a un usuar
 6. **Given** una persona vinculada a un usuario, **When** el responsable de sistemas intenta darla
    de baja, **Then** el sistema lo rechaza e informa a qué usuario está vinculada, sin importar el
    estado de ese usuario.
+7. **Given** una persona dada de baja que vuelve a la empresa, **When** el responsable de sistemas
+   la reactiva desde el listado y confirma, **Then** vuelve a estar activa, con los datos que tenía,
+   y otra vez se ofrece para asociar a un usuario.
+8. **Given** el DNI de una persona dada de baja, **When** se intenta registrar una persona nueva con
+   ese DNI, **Then** el sistema lo rechaza e indica que hay que reactivar a la persona existente.
 
 ---
 
@@ -343,6 +353,10 @@ anterior.
   correo que emite este módulo es el del restablecimiento de contraseña.
 - **FR-022**: El sistema DEBE permitir registrar, consultar, modificar y dar de baja lógica personas
   (choferes y empleados) desde una pantalla propia de este módulo; NO DEBE borrarlas físicamente.
+- **FR-022b**: El sistema DEBE permitir reactivar a una persona dada de baja desde el listado de
+  personas, con confirmación explícita previa. Al reactivarla, DEBE volver a ofrecerse para asociar
+  a un usuario (FR-023) con los datos que tenía. NO DEBE ofrecerse registrar de nuevo a una persona
+  dada de baja: un alta con su DNI DEBE rechazarse indicando que hay que reactivarla.
 - **FR-023**: El formulario de usuario DEBE permitir elegir la persona a asociar únicamente entre
   las personas ya registradas y activas en el padrón, y NO DEBE permitir crear una persona nueva
   desde ese formulario.
@@ -352,6 +366,11 @@ anterior.
   persona registrada o ningún resultado, en vez de una tabla vacía sin explicación.
 - **FR-026**: El sistema DEBE registrar de cada persona el nombre, el apellido, el DNI, el tipo
   (chofer o empleado), el teléfono, el email y la fecha de nacimiento, y NO DEBE pedir otros datos.
+- **FR-026a**: El sistema DEBE rechazar, en el alta y en la edición de una persona, un nombre o un
+  apellido que tenga más de 100 caracteres, que no tenga ninguna letra o que use algo distinto de
+  letras, espacios, guiones, apóstrofes (`'` y `’`) y puntos; y un teléfono que tenga más de 30
+  caracteres, menos de 6 o más de 20 dígitos, o algo distinto de dígitos, `+`, espacios, guiones,
+  paréntesis y puntos. La pantalla DEBE aplicar la misma regla antes de enviar y decir qué está mal.
 - **FR-027**: El sistema DEBE exigir que el DNI sea único en todo el padrón de personas,
   garantizado con una restricción de unicidad en la base de datos; en una modificación, la
   comparación DEBE excluir a la propia persona. Ningún otro dato de la persona lleva restricción de

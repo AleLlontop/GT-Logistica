@@ -125,6 +125,37 @@ public class CrearChoferTests(AplicacionDePrueba app) : IClassFixture<Aplicacion
         Assert.Equal("42111222", creado.Dni);
     }
 
+    /// <summary>
+    /// FR-006a: reutilizarla dejaría un chofer activo apuntando a una persona inactiva, y el alta no
+    /// la reactiva por su cuenta.
+    /// </summary>
+    [Fact]
+    public async Task Rechaza_SiLaPersonaEstaDadaDeBaja_YNoLaReactiva()
+    {
+        var transportista = await app.CrearTransportistaAsync();
+        var personaInactiva = await app.CrearPersonaAsync(dni: "43111222", activa: false);
+
+        var cliente = await app.CrearClienteAutenticadoAsync();
+
+        var respuesta = await cliente.PostAsJsonAsync("/api/choferes", Alta(
+            dni: "43111222",
+            cuil: "20431112222",
+            transportistaId: transportista.Id));
+
+        Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+
+        var error = await respuesta.Content.ReadFromJsonAsync<RespuestaError>();
+        Assert.Equal("persona_dada_de_baja", error!.Codigo);
+        Assert.Equal("dni", error.Campo);
+
+        var sigueInactiva = await app.RecargarPersonaAsync(personaInactiva.Id);
+        Assert.False(sigueInactiva!.Activa);
+
+        var choferes = await app.ConAlcanceAsync(contexto =>
+            contexto.Choferes.CountAsync(chofer => chofer.PersonaId == personaInactiva.Id));
+        Assert.Equal(0, choferes);
+    }
+
     [Fact]
     public async Task Rechaza_SiLaPersona_YaEsChofer()
     {

@@ -148,11 +148,33 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
         var tamanio = PaginaDe<CajaListado>.TamanioPorDefecto;
 
         // `FechaApertura DESC, Id DESC` es orden total: el `Id` desempata (convención [003]).
-        var filas = await contexto.Cajas
-            .OrderByDescending(caja => caja.FechaApertura)
-            .ThenByDescending(caja => caja.Id)
-            .Skip((pagina - 1) * tamanio)
-            .Take(tamanio)
+        var items = await ListarAsync(
+            contexto.Cajas
+                .OrderByDescending(caja => caja.FechaApertura)
+                .ThenByDescending(caja => caja.Id)
+                .Skip((pagina - 1) * tamanio)
+                .Take(tamanio),
+            cancelacion);
+
+        return new PaginaDe<CajaListado>(items, total, pagina, tamanio);
+    }
+
+    public async Task<IReadOnlyList<CajaListado>> ConsultarCajasDeResponsableAsync(
+        int usuarioId,
+        CancellationToken cancelacion = default) =>
+        await ListarAsync(
+            contexto.Cajas
+                .Where(caja => caja.UsuarioResponsableId == usuarioId)
+                .OrderByDescending(caja => caja.FechaApertura)
+                .ThenByDescending(caja => caja.Id),
+            cancelacion);
+
+    /// <summary>La fila del listado de cajas, sobre una consulta ya filtrada, ordenada y paginada.</summary>
+    private static async Task<List<CajaListado>> ListarAsync(
+        IQueryable<GT.Domain.Caja.Caja> cajas,
+        CancellationToken cancelacion)
+    {
+        var filas = await cajas
             .Select(caja => new
             {
                 caja.Id,
@@ -166,7 +188,7 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
             .AsNoTracking()
             .ToListAsync(cancelacion);
 
-        var items = filas
+        return filas
             .Select(fila => new CajaListado(
                 fila.Id,
                 new UsuarioResumen(fila.UsuarioResponsableId, fila.Username),
@@ -175,8 +197,6 @@ public class RepositorioCaja(GtDbContext contexto) : IRepositorioCaja
                 fila.FechaCierre,
                 fila.SaldoFinal))
             .ToList();
-
-        return new PaginaDe<CajaListado>(items, total, pagina, tamanio);
     }
 
     /// <summary>

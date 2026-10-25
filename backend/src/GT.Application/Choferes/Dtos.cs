@@ -13,6 +13,9 @@ public enum ErrorChofer
     NoEncontrado,
     DatosInvalidos,
     DniDuplicado,
+
+    /// <summary>La persona del DNI está dada de baja en el padrón: se la reactiva antes (FR-006a).</summary>
+    PersonaDadaDeBaja,
     CuilDuplicado,
     TransportistaInexistente,
     MenorDeEdad,

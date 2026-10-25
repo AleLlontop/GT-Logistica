@@ -52,6 +52,11 @@ export function darDeBajaEmpleado(id: number): Promise<void> {
   return peticion<void>(`/empleados/${id}`, { metodo: 'DELETE' })
 }
 
+/** Vuelve a dejar activo a un empleado dado de baja, con los datos que tenía. */
+export function reactivarEmpleado(id: number): Promise<void> {
+  return peticion<void>(`/empleados/${id}/reactivacion`, { metodo: 'POST' })
+}
+
 export function historialDeAdelantos(id: number): Promise<AdelantoListado[]> {
   return peticion<AdelantoListado[]>(`/empleados/${id}/adelantos`)
 }

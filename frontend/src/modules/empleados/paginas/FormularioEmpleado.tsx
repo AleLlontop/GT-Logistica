@@ -14,6 +14,7 @@ import {
   obtenerEmpleado,
   type DatosEmpleado,
 } from '../servicios/servicioEmpleados'
+import { errorDeNombre, errorDeTelefono } from '../../usuarios/personas/servicios/validacion'
 
 const VACIO: DatosEmpleado = {
   nombre: '',
@@ -29,29 +30,6 @@ type ErroresDeCampo = Partial<Record<Campo, string>>
 
 interface Props {
   puedeGestionar: boolean
-}
-
-// Admite letras Unicode (incluidas letras acentuadas), espacios, guiones,
-// apóstrofes y puntos. Rechaza números y otros caracteres no propios del nombre.
-const NOMBRE_VALIDO = /^[\p{L}\p{M}]+(?:[ '\u2019.-][\p{L}\p{M}]+)*$/u
-
-// Acepta dígitos y separadores telefónicos habituales, con entre 6 y 20 dígitos.
-const TELEFONO_VALIDO = /^[0-9+(). -]+$/
-
-function nombreValido(valor: string): boolean {
-  const nombre = valor.trim()
-  return nombre.length > 0 && nombre.length <= 100 && NOMBRE_VALIDO.test(nombre)
-}
-
-function telefonoValido(valor: string): boolean {
-  const telefono = valor.trim()
-  const cantidadDigitos = telefono.replace(/\D/g, '').length
-
-  return telefono.length > 0
-    && telefono.length <= 30
-    && TELEFONO_VALIDO.test(telefono)
-    && cantidadDigitos >= 6
-    && cantidadDigitos <= 20
 }
 
 export function FormularioEmpleado({ puedeGestionar }: Props) {
@@ -159,17 +137,27 @@ export function FormularioEmpleado({ puedeGestionar }: Props) {
     setErrorGeneral(null)
 
     const encontrados: ErroresDeCampo = {}
-    if (!nombreValido(datos.nombre)) {
-      encontrados.nombre = 'Ingresá un nombre válido, usando letras, espacios, guiones o apóstrofes.'
+    // FR-026a del Módulo 2: la misma regla que el formulario de Personas y que el servidor.
+    const errorEnNombre = datos.nombre.trim()
+      ? errorDeNombre(datos.nombre, 'nombre')
+      : 'Completá el nombre.'
+    if (errorEnNombre !== undefined) {
+      encontrados.nombre = errorEnNombre
     }
-    if (!nombreValido(datos.apellido)) {
-      encontrados.apellido = 'Ingresá un apellido válido, usando letras, espacios, guiones o apóstrofes.'
+    const errorEnApellido = datos.apellido.trim()
+      ? errorDeNombre(datos.apellido, 'apellido')
+      : 'Completá el apellido.'
+    if (errorEnApellido !== undefined) {
+      encontrados.apellido = errorEnApellido
     }
     if (!/^\d{7,15}$/.test(datos.dni.trim())) {
       encontrados.dni = 'Ingresá un DNI de 7 a 15 dígitos, sin puntos ni espacios.'
     }
-    if (!telefonoValido(datos.telefono)) {
-      encontrados.telefono = 'Ingresá un teléfono válido, con números y sin letras.'
+    const errorEnTelefono = datos.telefono.trim()
+      ? errorDeTelefono(datos.telefono)
+      : 'Completá el teléfono.'
+    if (errorEnTelefono !== undefined) {
+      encontrados.telefono = errorEnTelefono
     }
     if (!datos.email.trim()) {
       encontrados.email = 'Completá el email.'

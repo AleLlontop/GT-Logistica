@@ -9,6 +9,10 @@ public enum ErrorPersona
     NoEncontrada,
     DatosInvalidos,
     DniDuplicado,
+    /// <summary>El DNI es de una persona dada de baja: se la reactiva, no se la carga de nuevo (FR-022b).</summary>
+    DniDePersonaDadaDeBaja,
+    /// <summary>Se pidió reactivar una persona que ya estaba activa (FR-022b).</summary>
+    YaEstaActiva,
     /// <summary>Está vinculada a un usuario, así que no se puede dar de baja (FR-028).</summary>
     Vinculada,
     /// <summary>
@@ -128,35 +132,15 @@ public class CrearPersona(IRepositorioPersonas repositorio)
         }
 
         var dni = peticion.Dni!.Trim();
-        var tipo = TipoIntegranteTexto.Interpretar(peticion.Tipo)!.Value;
 
-        var existente = await repositorio.ObtenerPorDniAsync(dni, cancelacion);
-
-        if (existente is not null)
+        // FR-022b: el alta nunca reactiva. Si el DNI es de una persona dada de baja, se la manda a
+        // reactivarla, que es un recurso propio y no un efecto lateral del alta ([004]).
+        if (await repositorio.ObtenerPorDniAsync(dni, cancelacion) is { } existente)
         {
-            // Si sigue activa, el DNI continúa siendo un duplicado.
-            if (existente.Activa || existente.Tipo != tipo)
-            {
-                return new ResultadoPersona(
-                    ErrorPersona.DniDuplicado,
-                    null,
-                    "dni");
-            }
-
-            // El mismo DNI pertenece a una persona inactiva del mismo tipo.
-            // Se recupera el registro existente en lugar de crear un duplicado.
-            existente.Nombre = peticion.Nombre!.Trim();
-            existente.Apellido = peticion.Apellido!.Trim();
-            existente.Telefono = peticion.Telefono!.Trim();
-            existente.Email = peticion.Email!.Trim();
-            existente.FechaNacimiento = peticion.FechaNacimiento!.Value;
-            existente.Activa = true;
-
-            await repositorio.GuardarCambiosAsync(cancelacion);
-
             return new ResultadoPersona(
-                ErrorPersona.Ninguno,
-                PersonaDto.Desde(existente));
+                existente.Activa ? ErrorPersona.DniDuplicado : ErrorPersona.DniDePersonaDadaDeBaja,
+                null,
+                "dni");
         }
 
         var persona = new Persona
@@ -164,7 +148,7 @@ public class CrearPersona(IRepositorioPersonas repositorio)
             Nombre = peticion.Nombre!.Trim(),
             Apellido = peticion.Apellido!.Trim(),
             Dni = dni,
-            Tipo = tipo,
+            Tipo = TipoIntegranteTexto.Interpretar(peticion.Tipo)!.Value,
             Telefono = peticion.Telefono!.Trim(),
             Email = peticion.Email!.Trim(),
             FechaNacimiento = peticion.FechaNacimiento!.Value,
@@ -281,6 +265,42 @@ public class DarDeBajaPersona(IRepositorioPersonas repositorio)
 
         // FR-022: baja lógica. El registro no se borra nunca.
         persona.Activa = false;
+
+        await repositorio.GuardarCambiosAsync(cancelacion);
+
+        return new ResultadoPersona(ErrorPersona.Ninguno, PersonaDto.Desde(persona));
+    }
+}
+
+/// <summary>
+/// Reactivación de una persona dada de baja (FR-022b).
+///
+/// Vuelve a ponerla activa con los datos que tenía; desde ese momento se ofrece otra vez para asociar
+/// a un usuario (FR-023). No hay otra regla que comprobar: lo que la baja protege —no dejar a un
+/// usuario o a un chofer apuntando a una persona inactiva— no puede romperse al reactivarla.
+///
+/// Pedirla sobre una persona activa se rechaza: la pantalla ofrece <i>Reactivar</i> sólo sobre una
+/// dada de baja, así que significa que la vista quedó vieja.
+/// </summary>
+public class ReactivarPersona(IRepositorioPersonas repositorio)
+{
+    public async Task<ResultadoPersona> EjecutarAsync(
+        int id,
+        CancellationToken cancelacion = default)
+    {
+        var persona = await repositorio.ObtenerPorIdAsync(id, cancelacion);
+
+        if (persona is null)
+        {
+            return new ResultadoPersona(ErrorPersona.NoEncontrada, null);
+        }
+
+        if (persona.Activa)
+        {
+            return new ResultadoPersona(ErrorPersona.YaEstaActiva, null);
+        }
+
+        persona.Activa = true;
 
         await repositorio.GuardarCambiosAsync(cancelacion);
 

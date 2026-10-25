@@ -21,6 +21,7 @@ su `tasks.md` es la fuente de verdad de qué está hecho y qué no.
 | [010 — Gestión de adelantos de sueldo](010-gestion-adelantos/) | Implementado y validado | 93 / 93 |
 | [011 — Gestión de caja](011-gestion-caja/) | Implementado y validado | 89 / 89 |
 | [012 — Emitir reportes](012-emitir-reportes/) | Implementado y validado | 78 / 78 |
+| [016 — Gestión de empleados](016-gestion-empleados/) | Implementado; spec retroactiva, sin plan ni tareas | — |
 
 ## Qué queda abierto
 

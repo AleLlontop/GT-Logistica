@@ -13,6 +13,7 @@ import {
   TIPOS_DE_PERSONA,
   type DatosPersona,
 } from '../servicios/personas'
+import { errorDeNombre, errorDeTelefono } from '../servicios/validacion'
 
 const CAMPOS: readonly (keyof DatosPersona)[] = [
   'nombre',
@@ -99,12 +100,18 @@ export function FormularioPersona() {
   function validarEnPantalla(): ErroresDeCampo {
     const encontrados: ErroresDeCampo = {}
 
-    if (datos.nombre.trim() === '') {
-      encontrados.nombre = 'Escribí el nombre.'
+    const errorEnNombre =
+      datos.nombre.trim() === '' ? 'Escribí el nombre.' : errorDeNombre(datos.nombre, 'nombre')
+    if (errorEnNombre !== undefined) {
+      encontrados.nombre = errorEnNombre
     }
 
-    if (datos.apellido.trim() === '') {
-      encontrados.apellido = 'Escribí el apellido.'
+    const errorEnApellido =
+      datos.apellido.trim() === ''
+        ? 'Escribí el apellido.'
+        : errorDeNombre(datos.apellido, 'apellido')
+    if (errorEnApellido !== undefined) {
+      encontrados.apellido = errorEnApellido
     }
 
     // Sólo dígitos: con puntos o letras, el mismo DNI se guardaría distinto según quién lo escriba
@@ -113,8 +120,11 @@ export function FormularioPersona() {
       encontrados.dni = 'El DNI tiene que ser sólo números, sin puntos.'
     }
 
-    if (datos.telefono.trim() === '') {
-      encontrados.telefono = 'Escribí un teléfono.'
+    // FR-026a: el mismo formato que exige el servidor, dicho antes de enviar.
+    const errorEnTelefono =
+      datos.telefono.trim() === '' ? 'Escribí un teléfono.' : errorDeTelefono(datos.telefono)
+    if (errorEnTelefono !== undefined) {
+      encontrados.telefono = errorEnTelefono
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.email.trim())) {

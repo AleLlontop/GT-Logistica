@@ -7,6 +7,7 @@ import {
   listarEmpleados,
   modificarEmpleado,
   obtenerEmpleado,
+  reactivarEmpleado,
   type DatosEmpleado,
 } from './servicioEmpleados'
 
@@ -93,20 +94,31 @@ describe('servicioEmpleados', () => {
     ])
   })
 
-  it('no convierte un conflicto de baja por caja abierta en una respuesta exitosa', async () => {
+  it('reactiva con un POST al recurso propio', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }))
+
+    await reactivarEmpleado(17)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/empleados/17/reactivacion',
+      expect.objectContaining({ method: 'POST' }),
+    )
+  })
+
+  it('no convierte un rechazo de baja en una respuesta exitosa', async () => {
     fetchMock.mockResolvedValue(
       respuestaJson(
         {
-          codigo: 'empleado_con_caja_abierta',
-          mensaje: 'Cerrá la caja antes de dar de baja al empleado.',
+          codigo: 'persona_vinculada',
+          mensaje: 'No se puede dar de baja: está asociada al usuario ana.perez. Desvinculala primero.',
         },
-        409,
+        400,
       ),
     )
 
     await expect(darDeBajaEmpleado(17)).rejects.toMatchObject({
-      estado: 409,
-      detalle: { codigo: 'empleado_con_caja_abierta' },
+      estado: 400,
+      detalle: { codigo: 'persona_vinculada' },
     })
   })
 })

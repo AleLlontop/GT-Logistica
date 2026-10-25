@@ -76,6 +76,10 @@
   su documento y se borra al eliminarlo (FR-015c). No hay depuración automática y queda fuera de
   alcance.
 
+### Session 2026-10-24
+
+- Q: El alta de un chofer reutiliza la persona del padrón con ese DNI, pero ¿y si esa persona está dada de baja en el padrón? Reutilizarla dejaría un chofer activo apuntando a una persona inactiva. → A: Se rechaza e indica que hay que reactivar a la persona desde la pantalla de Personas (FR-022b del Módulo 2) antes de registrarla como chofer. El alta del chofer no reactiva a la persona.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Registrar un transportista (Priority: P1)
@@ -347,6 +351,9 @@ sin filtros pero reaparece al filtrar por estado inactivo, con su registro intac
    vencimientos si corresponde, con toda su documentación y sus archivos intactos.
 9. **Given** una persona que ya es chofer pero está inactiva, **When** se intenta registrarla como
    chofer nuevo, **Then** el sistema lo rechaza e indica que hay que reactivar al chofer existente.
+10. **Given** una persona dada de baja en el padrón de personas que no es chofer, **When** se intenta
+    registrarla como chofer, **Then** el sistema lo rechaza e indica que hay que reactivarla desde la
+    pantalla de Personas.
 
 ---
 
@@ -420,6 +427,9 @@ sin filtros pero reaparece al filtrar por estado inactivo, con su registro intac
 - **FR-006**: El sistema DEBE tratar al chofer como una especialización de la Persona del padrón
   del Módulo 2: los datos personales viven en Persona y NO DEBEN duplicarse, y el DNI DEBE seguir
   siendo único en todo el padrón, incluyendo choferes y empleados.
+- **FR-006a**: Al registrar un chofer cuyo DNI pertenece a una persona dada de baja en el padrón, el
+  sistema DEBE rechazar el alta e indicar que hay que reactivarla desde la pantalla de Personas. NO
+  DEBE reutilizarla inactiva ni reactivarla como parte del alta.
 - **FR-007**: El sistema DEBE exigir que el CUIL de un chofer sea único en todo el padrón,
   garantizado con una restricción de unicidad en la base de datos; en una modificación, la
   comparación DEBE excluir al propio chofer.

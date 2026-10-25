@@ -274,6 +274,8 @@ internal sealed class RepositorioCajaDoble(PaginaDe<MovimientoListado> pagina, C
 
     public Task<PaginaDe<CajaListado>> ConsultarCajasAsync(int paginaPedida, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
 
+    public Task<IReadOnlyList<CajaListado>> ConsultarCajasDeResponsableAsync(int usuarioId, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
+
     public Task<MotivoNoOperable?> MotivoNoOperableAsync(int id, int usuarioId, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);
 
     public Task<bool> ExisteCajaAbiertaAsync(int usuarioId, CancellationToken cancelacion = default) => throw new NotSupportedException(Doble.Mensaje);

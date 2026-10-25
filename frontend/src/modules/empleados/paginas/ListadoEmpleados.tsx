@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ErrorHttp } from '../../../compartido/clienteHttp'
 import type { Persona } from '../../../compartido/tipos'
 import { Aviso } from '../../../compartido/ui/Aviso'
 import { Boton } from '../../../compartido/ui/Boton'
@@ -14,14 +15,22 @@ import {
   clasesDeEtiquetaDeFiltro,
   clasesDeFiltro,
 } from '../../../compartido/ui/clases'
-import { darDeBajaEmpleado, listarEmpleados } from '../servicios/servicioEmpleados'
+import {
+  darDeBajaEmpleado,
+  listarEmpleados,
+  reactivarEmpleado,
+} from '../servicios/servicioEmpleados'
 
 interface Props {
   puedeGestionar: boolean
 }
 
 const MENSAJE_ERROR_LISTADO =
-  'No pudimos consultar los empleados. Verificá tus permisos e intentá de nuevo.'
+  'No pudimos consultar los empleados. Volvé a intentar en unos minutos.'
+
+// [010]: un 403 dice que falta permiso y a quién pedírselo; "volvé a intentar" sería falso.
+const MENSAJE_SIN_PERMISO =
+  'No tenés permiso para ver los empleados. Si lo necesitás, pedíselo a quien administra los usuarios del sistema.'
 
 export function ListadoEmpleados({ puedeGestionar }: Props) {
   const [texto, setTexto] = useState('')
@@ -30,18 +39,34 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
   const [cargando, setCargando] = useState(true)
   const [empleadoPendienteDeBaja, setEmpleadoPendienteDeBaja] = useState<Persona | null>(null)
   const [dandoDeBaja, setDandoDeBaja] = useState(false)
+  const [empleadoPendienteDeReactivar, setEmpleadoPendienteDeReactivar] = useState<Persona | null>(
+    null,
+  )
+  const [reactivando, setReactivando] = useState(false)
+  const [confirmacion, setConfirmacion] = useState<string | null>(null)
+
+  // [015]: cada tecla lanza una consulta, y sólo la última puede mostrar su resultado o su error.
+  // Sin esto, una respuesta lenta de "Pé" pisaría la de "Pérez" que llegó antes.
+  const ultimaConsulta = useRef(0)
 
   const cargar = useCallback(async () => {
+    const consulta = ++ultimaConsulta.current
     setCargando(true)
     setError(null)
 
     try {
       const resultado = await listarEmpleados({ texto: texto.trim() })
+      if (consulta !== ultimaConsulta.current) return
       setEmpleados(resultado)
-    } catch {
-      setError(MENSAJE_ERROR_LISTADO)
+    } catch (fallo) {
+      if (consulta !== ultimaConsulta.current) return
+      setError(
+        fallo instanceof ErrorHttp && fallo.estado === 403
+          ? MENSAJE_SIN_PERMISO
+          : MENSAJE_ERROR_LISTADO,
+      )
     } finally {
-      setCargando(false)
+      if (consulta === ultimaConsulta.current) setCargando(false)
     }
   }, [texto])
 
@@ -54,6 +79,7 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
 
     setDandoDeBaja(true)
     setError(null)
+    setConfirmacion(null)
 
     try {
       await darDeBajaEmpleado(empleadoPendienteDeBaja.id)
@@ -61,11 +87,32 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
       await cargar()
     } catch (fallo) {
       // ErrorHttp hereda de Error y preserva el mensaje de negocio del servidor (por ejemplo,
-      // empleado_con_caja_abierta). No convertir un 409 en una baja exitosa ni ocultarlo.
+      // persona_vinculada). No convertir un rechazo en una baja exitosa ni ocultarlo.
       setError(fallo instanceof Error ? fallo.message : 'No pudimos dar de baja al empleado.')
       setEmpleadoPendienteDeBaja(null)
     } finally {
       setDandoDeBaja(false)
+    }
+  }
+
+  // La confirmación la pide la pantalla porque se deshace con la baja ([005]).
+  async function confirmarReactivacion() {
+    if (!puedeGestionar || empleadoPendienteDeReactivar === null || reactivando) return
+
+    const aReactivar = empleadoPendienteDeReactivar
+    setReactivando(true)
+    setError(null)
+    setConfirmacion(null)
+
+    try {
+      await reactivarEmpleado(aReactivar.id)
+      setConfirmacion(`${aReactivar.apellido}, ${aReactivar.nombre} volvió a estar activo.`)
+      await cargar()
+    } catch (fallo) {
+      setError(fallo instanceof Error ? fallo.message : 'No pudimos reactivar al empleado.')
+    } finally {
+      setEmpleadoPendienteDeReactivar(null)
+      setReactivando(false)
     }
   }
 
@@ -93,6 +140,10 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
 
       <Aviso tono="error" rol="alert" className="mb-[18px]">
         {error}
+      </Aviso>
+
+      <Aviso tono="exito" rol="status" className="mb-[18px]">
+        {confirmacion}
       </Aviso>
 
       <Listado>
@@ -190,13 +241,22 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
                           >
                             Editar
                           </Link>
-                          {empleado.activa && (
+                          {/* Dar de baja y Reactivar no conviven. */}
+                          {empleado.activa ? (
                             <Boton
                               variante="destructivo"
                               tamanio="chico"
                               onClick={() => setEmpleadoPendienteDeBaja(empleado)}
                             >
                               Dar de baja
+                            </Boton>
+                          ) : (
+                            <Boton
+                              variante="secundario"
+                              tamanio="chico"
+                              onClick={() => setEmpleadoPendienteDeReactivar(empleado)}
+                            >
+                              Reactivar
                             </Boton>
                           )}
                         </div>
@@ -218,6 +278,18 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
           onConfirmar={() => void confirmarBaja()}
           onCancelar={() => {
             if (!dandoDeBaja) setEmpleadoPendienteDeBaja(null)
+          }}
+        />
+      )}
+
+      {empleadoPendienteDeReactivar !== null && (
+        <DialogoConfirmacion
+          titulo="Reactivar el empleado"
+          mensaje={`¿Confirmás la reactivación de ${empleadoPendienteDeReactivar.apellido}, ${empleadoPendienteDeReactivar.nombre}?`}
+          etiquetaConfirmar={reactivando ? 'Reactivando…' : 'Reactivar'}
+          onConfirmar={() => void confirmarReactivacion()}
+          onCancelar={() => {
+            if (!reactivando) setEmpleadoPendienteDeReactivar(null)
           }}
         />
       )}

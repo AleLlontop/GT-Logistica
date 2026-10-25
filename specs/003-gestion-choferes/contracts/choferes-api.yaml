@@ -191,6 +191,7 @@ paths:
         "400":
           description: |
             Códigos posibles: `datos_invalidos`, `dni_duplicado` (la persona ya es chofer),
+            `persona_dada_de_baja` (la persona del DNI está dada de baja en el padrón, FR-006a),
             `cuil_duplicado`, `transportista_inexistente`, `menor_de_edad`.
           content:
             application/json:
@@ -814,6 +815,7 @@ components:
             - cuit_duplicado
             - cuil_duplicado
             - dni_duplicado
+            - persona_dada_de_baja
             - transportista_inexistente
             - transportista_con_choferes
             - menor_de_edad

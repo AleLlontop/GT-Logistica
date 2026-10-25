@@ -152,6 +152,11 @@ public static class ChoferesEndpoints
             MensajesChoferes.DniDuplicado,
             resultado.Campo),
 
+        ErrorChofer.PersonaDadaDeBaja => new ErrorResponse(
+            CodigosErrorChoferes.PersonaDadaDeBaja,
+            MensajesChoferes.PersonaDadaDeBaja,
+            resultado.Campo),
+
         ErrorChofer.CuilDuplicado => new ErrorResponse(
             CodigosErrorChoferes.CuilDuplicado,
             MensajesChoferes.CuilDuplicado,
