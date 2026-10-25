@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
 import App from '../../../App'
 import { obtenerSesion } from '../../autenticacion/servicios/sesion'
@@ -16,7 +17,11 @@ it.each(['/reportes', '/reportes/viajes', '/reportes/facturacion', '/reportes/li
 it('menú recibido conserva entrada Reportes y códigos desconocidos', async () => {
   window.history.replaceState(null, '', '/reportes')
   vi.mocked(obtenerSesion).mockResolvedValue({ username: 'lector', roles: [], permisos: [], opcionesMenu: [{ codigo: 'reportes', etiqueta: 'Reportes', ruta: '/reportes' }, { codigo: 'futuro', etiqueta: 'Futuro', ruta: '/futuro' }] })
+  const usuario = userEvent.setup()
   render(<App />)
   expect(await screen.findByRole('link', { name: 'Reportes' })).toHaveAttribute('href', '/reportes')
-  expect(screen.getByRole('link', { name: 'Futuro' })).toBeInTheDocument()
+  // Desde el rediseño del menú, cada sección se pliega y sólo abre la de la pantalla actual: el código
+  // desconocido sigue dibujándose ([007]), en "Administración", que hay que abrir para verlo.
+  await usuario.click(screen.getByRole('button', { name: 'Administración' }))
+  expect(screen.getByRole('link', { name: 'Futuro' })).toHaveAttribute('href', '/futuro')
 })
