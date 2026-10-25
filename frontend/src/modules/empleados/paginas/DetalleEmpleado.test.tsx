@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ErrorHttp } from '../../../compartido/clienteHttp'
 import { DetalleEmpleado } from './DetalleEmpleado'
 
 const obtenerEmpleado = vi.fn()
@@ -59,6 +60,24 @@ describe('DetalleEmpleado', () => {
     expect(screen.getByText('Viáticos')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Cajas a cargo' })).toBeInTheDocument()
     expect(screen.getByText('ana.perez')).toBeInTheDocument()
+  })
+
+  it('muestra el estado del adelanto con la palabra del módulo, no con el código', async () => {
+    renderizar()
+
+    expect(await screen.findByText('Aprobado')).toBeInTheDocument()
+    expect(screen.queryByText('aprobado')).not.toBeInTheDocument()
+  })
+
+  it('un 403 dice que falta permiso y a quién pedírselo', async () => {
+    historialDeCajas.mockRejectedValue(
+      new ErrorHttp(403, { codigo: 'sin_permiso', mensaje: 'Sin permiso.' }),
+    )
+    renderizar()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'No tenés permiso para ver este empleado o alguno de sus historiales. Si lo necesitás, pedíselo a quien administra los usuarios del sistema.',
+    )
   })
 
   it('oculta la acción de modificar para quien sólo consulta', async () => {

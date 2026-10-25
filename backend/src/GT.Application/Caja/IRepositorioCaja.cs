@@ -30,6 +30,14 @@ public interface IRepositorioCaja
     Task<PaginaDe<CajaListado>> ConsultarCajasAsync(int pagina, CancellationToken cancelacion = default);
 
     /// <summary>
+    /// Todas las cajas de un responsable, con el mismo orden y la misma fila que el listado, filtradas en
+    /// SQL. Es el historial de la ficha de empleado: sin paginar, porque la ficha lo muestra entero.
+    /// </summary>
+    Task<IReadOnlyList<CajaListado>> ConsultarCajasDeResponsableAsync(
+        int usuarioId,
+        CancellationToken cancelacion = default);
+
+    /// <summary>
     /// Por qué el usuario no puede operar la caja: no existe, está cerrada o es de otro. <c>null</c> si puede.
     /// Es la relectura de las dos escrituras cuando su <c>UPDATE</c> no afectó ninguna fila.
     /// </summary>

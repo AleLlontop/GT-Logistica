@@ -105,20 +105,20 @@ describe('servicioEmpleados', () => {
     )
   })
 
-  it('no convierte un conflicto de baja por caja abierta en una respuesta exitosa', async () => {
+  it('no convierte un rechazo de baja en una respuesta exitosa', async () => {
     fetchMock.mockResolvedValue(
       respuestaJson(
         {
-          codigo: 'empleado_con_caja_abierta',
-          mensaje: 'Cerrá la caja antes de dar de baja al empleado.',
+          codigo: 'persona_vinculada',
+          mensaje: 'No se puede dar de baja: está asociada al usuario ana.perez. Desvinculala primero.',
         },
-        409,
+        400,
       ),
     )
 
     await expect(darDeBajaEmpleado(17)).rejects.toMatchObject({
-      estado: 409,
-      detalle: { codigo: 'empleado_con_caja_abierta' },
+      estado: 400,
+      detalle: { codigo: 'persona_vinculada' },
     })
   })
 })

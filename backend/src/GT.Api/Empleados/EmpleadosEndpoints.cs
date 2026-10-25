@@ -141,8 +141,6 @@ public static class EmpleadosEndpoints
     private static async Task<IResult> DarDeBajaAsync(
         int id,
         ConsultarPersonas consultar,
-        IRepositorioPersonas personas,
-        IRepositorioCaja cajas,
         DarDeBajaPersona darDeBaja,
         CancellationToken cancelacion)
     {
@@ -152,17 +150,9 @@ public static class EmpleadosEndpoints
             return NoEncontrado();
         }
 
-        var usuarioId = await personas.IdUsuarioVinculadoAsync(id, cancelacion);
-        if (usuarioId is not null &&
-            await cajas.ExisteCajaAbiertaAsync(usuarioId.Value, cancelacion))
-        {
-            return Results.Conflict(new ErrorResponse(
-                "empleado_con_caja_abierta",
-                "No podés dar de baja a este empleado porque tiene una caja abierta. Cerrala primero."));
-        }
-
         // DarDeBajaPersona conserva las reglas del Módulo 2: una persona vinculada a cualquier usuario
-        // no se da de baja hasta desasociarla. Esta ruta no evade esa restricción.
+        // no se da de baja hasta desasociarla (FR-028). Eso cubre también la caja abierta: una caja
+        // tiene siempre un usuario responsable, así que su empleado nunca llega a darse de baja.
         var resultado = await darDeBaja.EjecutarAsync(id, cancelacion);
         if (resultado.Exitoso)
         {
@@ -202,6 +192,13 @@ public static class EmpleadosEndpoints
                     "datos_invalidos", "No pudimos consultar el historial de adelantos."));
             }
 
+            // Una página vacía corta aunque falten filas: si el total cambió entre dos páginas, la
+            // condición de abajo no se cumpliría nunca.
+            if (resultado.Pagina.Items.Count == 0)
+            {
+                break;
+            }
+
             items.AddRange(resultado.Pagina.Items);
             total = resultado.Pagina.Total;
             numeroPagina++;
@@ -229,16 +226,7 @@ public static class EmpleadosEndpoints
             return Results.Ok(Array.Empty<CajaListado>());
         }
 
-        var cajasDelEmpleado = new List<CajaListado>();
-        var pagina = 1;
-        PaginaDe<CajaListado> resultado;
-        do
-        {
-            resultado = await consultarCajas.EjecutarAsync(pagina++, cancelacion);
-            cajasDelEmpleado.AddRange(resultado.Items.Where(caja => caja.Responsable.Id == usuarioId.Value));
-        } while (resultado.Pagina * resultado.TamanioPagina < resultado.Total);
-
-        return Results.Ok(cajasDelEmpleado);
+        return Results.Ok(await consultarCajas.DeResponsableAsync(usuarioId.Value, cancelacion));
     }
 
     private static PersonaRequest ComoEmpleado(PersonaRequest peticion) => new(

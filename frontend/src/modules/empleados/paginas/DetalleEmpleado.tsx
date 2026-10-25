@@ -8,7 +8,10 @@ import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantall
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
 import { clasesDeAvisoDePantalla, clasesDeBoton } from '../../../compartido/ui/clases'
-import type { AdelantoListado } from '../../adelantos/servicios/servicioAdelantos'
+import {
+  NOMBRES_DE_ESTADO,
+  type AdelantoListado,
+} from '../../adelantos/servicios/servicioAdelantos'
 import type { CajaListado } from '../../caja/servicios/servicioCaja'
 import {
   historialDeAdelantos,
@@ -59,7 +62,7 @@ export function DetalleEmpleado({ puedeGestionar }: Props) {
         if (!vigente) return
         setError(
           fallo instanceof ErrorHttp && fallo.estado === 403
-            ? 'No tenés permiso para consultar este empleado o alguno de sus historiales.'
+            ? 'No tenés permiso para ver este empleado o alguno de sus historiales. Si lo necesitás, pedíselo a quien administra los usuarios del sistema.'
             : fallo instanceof ErrorHttp && fallo.estado === 404
               ? 'No encontramos ese empleado.'
               : 'No pudimos cargar la ficha y sus historiales. Volvé a intentar en unos minutos.',
@@ -138,7 +141,7 @@ export function DetalleEmpleado({ puedeGestionar }: Props) {
                     <td className="whitespace-nowrap">{formatearFecha(adelanto.fecha)}</td>
                     <td>{adelanto.motivo}</td>
                     <td className="whitespace-nowrap text-right font-bold">{formatearPesos(adelanto.importe)}</td>
-                    <td>{adelanto.estado}</td>
+                    <td>{NOMBRES_DE_ESTADO[adelanto.estado]}</td>
                   </tr>
                 ))}</tbody>
               </table>

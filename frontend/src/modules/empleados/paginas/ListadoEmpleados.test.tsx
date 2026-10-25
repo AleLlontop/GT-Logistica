@@ -2,6 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ErrorHttp } from '../../../compartido/clienteHttp'
 import type { Persona } from '../../../compartido/tipos'
 import { ListadoEmpleados } from './ListadoEmpleados'
 
@@ -103,6 +104,37 @@ describe('ListadoEmpleados', () => {
     )
     expect(darDeBajaEmpleado).toHaveBeenCalledWith(17)
     await waitFor(() => expect(listarEmpleados).toHaveBeenCalledTimes(1))
+  })
+
+  it('un 403 dice que falta permiso y a quién pedírselo', async () => {
+    listarEmpleados.mockRejectedValue(
+      new ErrorHttp(403, { codigo: 'sin_permiso', mensaje: 'Sin permiso.' }),
+    )
+    renderizar()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'No tenés permiso para ver los empleados. Si lo necesitás, pedíselo a quien administra los usuarios del sistema.',
+    )
+  })
+
+  it('una respuesta vieja que llega tarde no pisa a la de la búsqueda actual', async () => {
+    // La primera consulta (sin texto) queda colgada hasta después de la segunda.
+    let resolverPrimera: (lista: Persona[]) => void = () => {}
+    listarEmpleados
+      .mockReset()
+      .mockReturnValueOnce(new Promise<Persona[]>((resolver) => (resolverPrimera = resolver)))
+      .mockResolvedValue([empleado({ id: 18, nombre: 'Bruno', apellido: 'Gómez' })])
+
+    const user = userEvent.setup()
+    renderizar()
+
+    await user.type(screen.getByRole('searchbox', { name: 'Nombre, apellido o DNI' }), 'G')
+    expect(await screen.findByRole('link', { name: 'Gómez, Bruno' })).toBeInTheDocument()
+
+    resolverPrimera([empleado()])
+
+    await waitFor(() => expect(screen.getByRole('link', { name: 'Gómez, Bruno' })).toBeInTheDocument())
+    expect(screen.queryByRole('link', { name: 'Pérez, Ana' })).not.toBeInTheDocument()
   })
 
   it('ofrece Reactivar en lugar de Dar de baja a un empleado dado de baja', async () => {

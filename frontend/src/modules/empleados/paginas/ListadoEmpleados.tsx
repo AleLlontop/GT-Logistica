@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ErrorHttp } from '../../../compartido/clienteHttp'
 import type { Persona } from '../../../compartido/tipos'
 import { Aviso } from '../../../compartido/ui/Aviso'
 import { Boton } from '../../../compartido/ui/Boton'
@@ -25,7 +26,11 @@ interface Props {
 }
 
 const MENSAJE_ERROR_LISTADO =
-  'No pudimos consultar los empleados. Verificá tus permisos e intentá de nuevo.'
+  'No pudimos consultar los empleados. Volvé a intentar en unos minutos.'
+
+// [010]: un 403 dice que falta permiso y a quién pedírselo; "volvé a intentar" sería falso.
+const MENSAJE_SIN_PERMISO =
+  'No tenés permiso para ver los empleados. Si lo necesitás, pedíselo a quien administra los usuarios del sistema.'
 
 export function ListadoEmpleados({ puedeGestionar }: Props) {
   const [texto, setTexto] = useState('')
@@ -40,17 +45,28 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
   const [reactivando, setReactivando] = useState(false)
   const [confirmacion, setConfirmacion] = useState<string | null>(null)
 
+  // [015]: cada tecla lanza una consulta, y sólo la última puede mostrar su resultado o su error.
+  // Sin esto, una respuesta lenta de "Pé" pisaría la de "Pérez" que llegó antes.
+  const ultimaConsulta = useRef(0)
+
   const cargar = useCallback(async () => {
+    const consulta = ++ultimaConsulta.current
     setCargando(true)
     setError(null)
 
     try {
       const resultado = await listarEmpleados({ texto: texto.trim() })
+      if (consulta !== ultimaConsulta.current) return
       setEmpleados(resultado)
-    } catch {
-      setError(MENSAJE_ERROR_LISTADO)
+    } catch (fallo) {
+      if (consulta !== ultimaConsulta.current) return
+      setError(
+        fallo instanceof ErrorHttp && fallo.estado === 403
+          ? MENSAJE_SIN_PERMISO
+          : MENSAJE_ERROR_LISTADO,
+      )
     } finally {
-      setCargando(false)
+      if (consulta === ultimaConsulta.current) setCargando(false)
     }
   }, [texto])
 
@@ -71,7 +87,7 @@ export function ListadoEmpleados({ puedeGestionar }: Props) {
       await cargar()
     } catch (fallo) {
       // ErrorHttp hereda de Error y preserva el mensaje de negocio del servidor (por ejemplo,
-      // empleado_con_caja_abierta). No convertir un 409 en una baja exitosa ni ocultarlo.
+      // persona_vinculada). No convertir un rechazo en una baja exitosa ni ocultarlo.
       setError(fallo instanceof Error ? fallo.message : 'No pudimos dar de baja al empleado.')
       setEmpleadoPendienteDeBaja(null)
     } finally {
