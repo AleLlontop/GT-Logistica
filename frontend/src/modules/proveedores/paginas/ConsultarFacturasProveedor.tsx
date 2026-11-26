@@ -6,9 +6,10 @@ import { formatearPesos } from '../../../compartido/moneda'
 import { formatearCuit } from '../../../compartido/cuit'
 import { Boton } from '../../../compartido/ui/Boton'
 import { Campo } from '../../../compartido/ui/Campo'
-import { clasesDeControl } from '../../../compartido/ui/clases'
+import { clasesDeControl, clasesDeFiltro } from '../../../compartido/ui/clases'
+import { IconoCerrar } from '../../../compartido/ui/iconos'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
-import { Filtros, FranjaDeBusqueda, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
+import { Filtros, FranjaDeBusqueda } from '../../../compartido/ui/Filtros'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
 import { Estado } from '../../../compartido/ui/Estado'
 import { MensajeListado } from '../componentes/MensajeListado'
@@ -26,7 +27,9 @@ export function ConsultarFacturasProveedor() {
   const [pagina, setPagina] = useState(1); const [revision, setRevision] = useState(0)
   const [resultado, setResultado] = useState<Pagina<FacturaProveedorResumen> | null>(null)
   const [cargando, setCargando] = useState(true); const [error, setError] = useState(''); const [sinPermiso, setSinPermiso] = useState(false)
-  const [errorRango, setErrorRango] = useState('')
+  const [mostrarErrorRango, setMostrarErrorRango] = useState(false)
+  const rangoInvertido = Boolean(desde && hasta && desde > hasta)
+  const errorRango = mostrarErrorRango && rangoInvertido ? 'La fecha desde no puede ser posterior a la fecha hasta.' : ''
   useEffect(() => {
     let vigente = true; setCargando(true); setResultado(null); setError(''); setSinPermiso(false)
     consultarFacturasProveedor(aplicados.filtros, pagina).then(r => { if (vigente) setResultado(r) })
@@ -40,8 +43,8 @@ export function ConsultarFacturasProveedor() {
   }, [aplicados, pagina, revision])
   function aplicar(e: FormEvent) {
     e.preventDefault()
-    if (desde && hasta && desde > hasta) { setErrorRango('La fecha desde no puede ser posterior a la fecha hasta.'); return }
-    setErrorRango('')
+    setMostrarErrorRango(rangoInvertido)
+    if (rangoInvertido) return
     const filtros: FiltrosFacturaProveedor = {}
     if (desde) filtros.desde = desde
     if (hasta) filtros.hasta = hasta
@@ -51,7 +54,7 @@ export function ConsultarFacturasProveedor() {
   }
   function limpiar() {
     setDesde(''); setHasta(''); setEstado(''); setProveedor(null); setClaveProveedor(c => c + 1)
-    setErrorRango(''); setPagina(1); setAplicados({ filtros: {}, proveedor: null })
+    setMostrarErrorRango(false); setPagina(1); setAplicados({ filtros: {}, proveedor: null })
   }
   const filtrando = Object.keys(aplicados.filtros).length > 0
   const resumen = [aplicados.filtros.desde && `Desde: ${formatearFecha(aplicados.filtros.desde)}`, aplicados.filtros.hasta && `Hasta: ${formatearFecha(aplicados.filtros.hasta)}`,
@@ -62,15 +65,33 @@ export function ConsultarFacturasProveedor() {
     {error && !sinPermiso && <Boton variante="secundario" onClick={() => setRevision(r => r + 1)}>Reintentar</Boton>}
     <Listado>
       <form onSubmit={aplicar} noValidate>
-        <Filtros declaracion={<span role="status">{filtrando ? `Filtros aplicados: ${resumen}` : 'Sin restricciones de fecha, proveedor ni estado.'}</span>}
-          resumen={resultado && <><span role="status">{resultado.total} {resultado.total === 1 ? 'factura' : 'facturas'}</span><span>Ordenado por fecha de factura, de más reciente a más antigua</span></>}>
-          <FranjaDeBusqueda><AutocompleteProveedor key={claveProveedor} soloActivos={false} onSeleccionar={setProveedor} /></FranjaDeBusqueda>
-          <FranjaDeFiltros>
-            <Campo id="desde" etiqueta="Desde" ancho="corto" error={errorRango}><input id="desde" type="date" value={desde} className={clasesDeControl(Boolean(errorRango))} aria-invalid={Boolean(errorRango)} aria-describedby={errorRango ? 'desde-error' : undefined} onChange={e => setDesde(e.target.value)} /></Campo>
-            <Campo id="hasta" etiqueta="Hasta" ancho="corto"><input id="hasta" type="date" value={hasta} className={clasesDeControl(false)} onChange={e => setHasta(e.target.value)} /></Campo>
-            <Campo id="estado" etiqueta="Estado" ancho="corto"><select id="estado" value={estado} className={clasesDeControl(false)} onChange={e => setEstado(e.target.value)}><option value="">Sin restricción</option><option value="pendiente">Pendiente</option><option value="pagada">Pagada</option></select></Campo>
-            <Boton variante="secundario" type="submit">Aplicar filtros</Boton><Boton variante="terciario" onClick={limpiar}>Limpiar filtros</Boton>
-          </FranjaDeFiltros>
+        <Filtros declaracion={<span role="status">{filtrando ? `Filtros aplicados: ${resumen}` : 'Sin filtros aplicados.'}</span>}>
+          <FranjaDeBusqueda>
+            <AutocompleteProveedor key={claveProveedor} soloActivos={false} comoFiltro onSeleccionar={setProveedor} />
+          </FranjaDeBusqueda>
+          <div className="grid items-start gap-3.5 sm:grid-cols-3">
+            <Campo id="desde" etiqueta="Desde" ancho="completo" error={errorRango} className="min-w-0">
+              <input id="desde" type="date" value={desde}
+                className={errorRango ? clasesDeControl(true, 'h-10 min-w-0 py-0') : clasesDeFiltro(Boolean(desde), 'h-10 w-full min-w-0')}
+                aria-invalid={Boolean(errorRango)} aria-describedby={errorRango ? 'desde-error' : undefined} onChange={e => setDesde(e.target.value)} />
+            </Campo>
+            <Campo id="hasta" etiqueta="Hasta" ancho="completo" className="min-w-0">
+              <input id="hasta" type="date" value={hasta} className={clasesDeFiltro(Boolean(hasta), 'h-10 w-full min-w-0')} onChange={e => setHasta(e.target.value)} />
+            </Campo>
+            <Campo id="estado" etiqueta="Estado" ancho="completo" className="min-w-0">
+              <select id="estado" value={estado} className={clasesDeFiltro(Boolean(estado), 'h-10 w-full min-w-0')} onChange={e => setEstado(e.target.value)}>
+                <option value="">Todos</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="pagada">Pagada</option>
+              </select>
+            </Campo>
+          </div>
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:justify-end">
+            <Boton variante="secundario" tamanio="chico" type="submit" className="h-10 py-0">Aplicar filtros</Boton>
+            <Boton variante="texto" tamanio="chico" className="h-10 px-3 py-0 no-underline hover:bg-surface-hover hover:underline" onClick={limpiar}>
+              <IconoCerrar aria-hidden="true" className="size-4" />Limpiar filtros
+            </Boton>
+          </div>
           {errorRango && <p role="alert">Revisá el rango de fechas.</p>}
         </Filtros>
       </form>
@@ -79,14 +100,17 @@ export function ConsultarFacturasProveedor() {
         {filtrando ? 'Ninguna factura coincide con los filtros aplicados. Probá limpiarlos.' : 'Todavía no hay facturas de proveedores registradas.'}
       </MensajeListado> : <TablaDesplazable><table>
         <caption>Facturas de proveedores</caption>
-        <thead><tr><th scope="col">Número de factura</th><th scope="col">Fecha</th><th scope="col">Proveedor</th><th scope="col" className="text-right">Total</th><th scope="col">Estado</th><EncabezadoDeChevron /></tr></thead>
+        <thead><tr><th scope="col">Número de factura</th><th scope="col" aria-sort="descending">Fecha</th><th scope="col">Proveedor</th><th scope="col" className="text-right!">Total</th><th scope="col">Estado</th><EncabezadoDeChevron /></tr></thead>
         <tbody>{resultado.items.map(f => <FilaNavegable key={f.id} a={`/proveedores/facturas/${f.id}`}>
-          <td><Link className="font-mono font-semibold underline" to={`/proveedores/facturas/${f.id}`}>{f.numero}</Link></td><td>{formatearFecha(f.fecha)}</td>
+          <td><Link className="font-mono font-semibold whitespace-nowrap underline" to={`/proveedores/facturas/${f.id}`} onClick={e => e.stopPropagation()}>{f.numero}</Link></td><td className="whitespace-nowrap">{formatearFecha(f.fecha)}</td>
           <td><span className="block font-semibold">{f.proveedorRazonSocial}</span><span className="font-mono text-faint">{formatearCuit(f.proveedorCuit)}</span></td>
-          <td className="text-right font-bold whitespace-nowrap">{formatearPesos(f.importeTotal)}</td><td><Estado valor={f.estado} texto={f.estado === 'pagada' ? 'Pagada' : 'Pendiente'} forma="pastilla" /></td>
+          <td className="text-right font-bold tabular-nums whitespace-nowrap">{formatearPesos(f.importeTotal)}</td><td><Estado valor={f.estado} texto={f.estado === 'pagada' ? 'Pagada' : 'Pendiente'} forma="pastilla" /></td>
         </FilaNavegable>)}</tbody>
       </table></TablaDesplazable>)}
+      {!cargando && !error && resultado && (
+        <Paginacion pagina={resultado.pagina} total={resultado.total} tamanioPagina={resultado.tamanioPagina}
+          nombrePlural="facturas" nombreSingular="factura" compacta onCambiarPagina={setPagina} />
+      )}
     </Listado>
-    {!cargando && !error && resultado && <Paginacion pagina={resultado.pagina} total={resultado.total} tamanioPagina={resultado.tamanioPagina} nombrePlural="facturas" onCambiarPagina={setPagina} />}
   </>
 }

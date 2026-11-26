@@ -1,14 +1,14 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { Campo } from '../../../compartido/ui/Campo'
 import { Boton } from '../../../compartido/ui/Boton'
-import { clasesDeControl } from '../../../compartido/ui/clases'
+import { clasesDeControl, clasesDeFiltro } from '../../../compartido/ui/clases'
 import { formatearCuit } from '../../../compartido/cuit'
 import { mensajeProveedor } from '../servicios/proveedores'
 import { buscarProveedores } from '../servicios/facturasProveedor'
 import type { Pagina, ProveedorResumen } from '../servicios/tipos'
 
-export function AutocompleteProveedor({ soloActivos, onSeleccionar, error, disabled = false }: {
-  soloActivos: boolean; onSeleccionar: (proveedor: ProveedorResumen | null) => void; error?: string; disabled?: boolean
+export function AutocompleteProveedor({ soloActivos, onSeleccionar, error, disabled = false, comoFiltro = false }: {
+  soloActivos: boolean; onSeleccionar: (proveedor: ProveedorResumen | null) => void; error?: string; disabled?: boolean; comoFiltro?: boolean
 }) {
   const id = useId()
   const [texto, setTexto] = useState(''); const [consulta, setConsulta] = useState('')
@@ -29,11 +29,14 @@ export function AutocompleteProveedor({ soloActivos, onSeleccionar, error, disab
     return () => { vigente = false; clearTimeout(timer) }
   }, [consulta, pagina, soloActivos, abierto])
   function seleccionar(p: ProveedorResumen) { secuencia.current++; setTexto(p.razonSocial); setAbierto(false); onSeleccionar(p) }
+  const descripcion = [comoFiltro && `${id}-ayuda`, error && `${id}-error`].filter(Boolean).join(' ') || undefined
   return <div onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) { secuencia.current++; setAbierto(false) } }}>
-    <Campo id={id} etiqueta="Proveedor" obligatorio={soloActivos} error={error} ancho="largo">
-      <input id={id} role="combobox" autoComplete="off" className={clasesDeControl(Boolean(error))} disabled={disabled} required={soloActivos}
+    <Campo id={id} etiqueta="Proveedor" obligatorio={soloActivos} error={error} ancho={comoFiltro ? 'completo' : 'largo'}
+      ayuda={comoFiltro ? 'Elegí un proveedor de las coincidencias para filtrar.' : undefined}>
+      <input id={id} role="combobox" autoComplete="off" disabled={disabled} required={soloActivos}
+        className={comoFiltro && !error ? clasesDeFiltro(Boolean(texto), 'h-11 w-full min-w-0') : clasesDeControl(Boolean(error))}
         aria-expanded={abierto} aria-controls={`${id}-lista`} aria-autocomplete="list" aria-activedescendant={abierto && activo >= 0 ? `${id}-${activo}` : undefined}
-        aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined} value={texto}
+        aria-invalid={Boolean(error)} aria-describedby={descripcion} value={texto}
         onChange={e => { secuencia.current++; setTexto(e.target.value); setConsulta(e.target.value); setPagina(1); setResultados(null); setActivo(-1); setAbierto(true); onSeleccionar(null) }}
         onKeyDown={e => {
           if (e.key === 'Escape' || e.key === 'Tab') { secuencia.current++; setAbierto(false); return }

@@ -40,7 +40,7 @@ export function Paginacion({
   }
 
   const controles = (
-    <div className="flex items-center gap-2">
+    <div className={compacta ? 'flex flex-wrap items-center justify-end gap-2' : 'flex items-center gap-2'}>
       <Boton
         variante="secundario"
         tamanio="chico"
@@ -65,14 +65,14 @@ export function Paginacion({
 
   if (compacta) {
     return (
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-surface-soft px-5 py-3.5">
+      <div className="flex flex-wrap items-center gap-3 border-t border-line bg-surface-soft px-5 py-3.5">
         <p role="status" className="m-0 text-[12.5px] text-ink-soft">
           {total === 1 && nombreSingular ? `1 ${nombreSingular}` : `${desde}–${hasta} de ${total} ${nombrePlural}`}
         </p>
         {paginas > 1 && (
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-2">
             <span className="text-[12.5px] text-ink-soft">Página {pagina} de {paginas}</span>
-            <nav aria-label="Paginación">{controles}</nav>
+            <nav aria-label="Paginación" className="min-w-0">{controles}</nav>
           </div>
         )}
       </div>
