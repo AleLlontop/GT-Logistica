@@ -22,10 +22,13 @@ function renderizarFormulario() {
 }
 
 async function completarFormulario(usuario: ReturnType<typeof userEvent.setup>) {
-  await usuario.type(screen.getByLabelText('Razón social'), 'Distribuidora del Litoral')
+  await usuario.click(screen.getByLabelText('Razón social'))
+  await usuario.paste('Distribuidora del Litoral')
   await usuario.type(screen.getByLabelText('CUIT (con o sin guiones)'), '30-71234567-8')
-  await usuario.type(screen.getByLabelText('Teléfono'), '0341-555-5555')
-  await usuario.type(screen.getByLabelText('Email'), 'compras@litoral.com.ar')
+  await usuario.click(screen.getByLabelText('Teléfono'))
+  await usuario.paste('0341-555-5555')
+  await usuario.click(screen.getByLabelText('Email'))
+  await usuario.paste('compras@litoral.com.ar')
 }
 
 describe('FormularioCliente', () => {
@@ -54,7 +57,12 @@ describe('FormularioCliente', () => {
     await usuario.click(screen.getByRole('button', { name: 'Guardar cliente' }))
 
     expect(crearCliente).toHaveBeenCalledWith(
-      expect.objectContaining({ cuit: '30-71234567-8' }),
+      expect.objectContaining({
+        razonSocial: 'Distribuidora del Litoral',
+        cuit: '30-71234567-8',
+        telefono: '0341-555-5555',
+        email: 'compras@litoral.com.ar',
+      }),
     )
   })
 

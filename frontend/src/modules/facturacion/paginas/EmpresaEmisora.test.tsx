@@ -51,10 +51,13 @@ const CONFIGURADA: Configuracion = {
 }
 
 async function completar(usuario: ReturnType<typeof userEvent.setup>) {
-  await usuario.type(screen.getByLabelText('Razón social'), 'G&T Logística S.R.L.')
+  await usuario.click(screen.getByLabelText('Razón social'))
+  await usuario.paste('G&T Logística S.R.L.')
   await usuario.type(screen.getByLabelText('CUIT (con o sin guiones)'), '30-71234567-1')
-  await usuario.type(screen.getByLabelText('Domicilio'), 'Av. Pellegrini 1234, Rosario')
-  await usuario.type(screen.getByLabelText('Condición de IVA'), 'IVA Responsable Inscripto')
+  await usuario.click(screen.getByLabelText('Domicilio'))
+  await usuario.paste('Av. Pellegrini 1234, Rosario')
+  await usuario.click(screen.getByLabelText('Condición de IVA'))
+  await usuario.paste('IVA Responsable Inscripto')
 }
 
 describe('EmpresaEmisora', () => {
@@ -120,7 +123,10 @@ describe('EmpresaEmisora', () => {
 
     expect(guardarEmpresaEmisora).toHaveBeenCalledWith(
       expect.objectContaining({
+        razonSocial: 'G&T Logística S.R.L.',
         cuit: '30-71234567-1',
+        domicilio: 'Av. Pellegrini 1234, Rosario',
+        condicionIva: 'IVA Responsable Inscripto',
         cbu: null,
         telefono: null,
         email: null,
