@@ -8,7 +8,7 @@ import { Campo } from '../../../compartido/ui/Campo'
 import { Listado } from '../../../compartido/ui/Listado'
 import { Filtros, FranjaDeBusqueda } from '../../../compartido/ui/Filtros'
 import { TablaDesplazable } from '../../../compartido/ui/Listado'
-import { FilaNavegable } from '../../../compartido/ui/FilaNavegable'
+import { EncabezadoDeChevron, FilaNavegable } from '../../../compartido/ui/FilaNavegable'
 import { EnlaceDeFila } from '../../../compartido/ui/EnlaceDeFila'
 import { Estado } from '../../../compartido/ui/Estado'
 import { MensajeListado } from '../componentes/MensajeListado'
@@ -70,7 +70,7 @@ export function PadronProveedores({ puedeGestionar = true }: { puedeGestionar?: 
     </Filtros></form>
     {cargando ? <p role="status" className="p-5">Cargando proveedores…</p> : !error && resultado && (resultado.items.length === 0
       ? <MensajeListado caso={filtrado ? 'sinCoincidencias' : 'vacio'}>{filtrado ? 'No hay proveedores que coincidan con los filtros.' : 'Todavía no hay proveedores registrados.'}</MensajeListado>
-      : <TablaDesplazable><table><caption>Proveedores</caption><thead><tr>{['Razón social', 'Nombre comercial', 'CUIT', 'Tipo', 'Estado', 'Acciones'].map(t => <th key={t} scope="col">{t}</th>)}</tr></thead><tbody>{resultado.items.map(p => <FilaNavegable key={p.id} a={`/proveedores/${p.id}`}>
+      : <TablaDesplazable><table><caption>Proveedores</caption><thead><tr>{['Razón social', 'Nombre comercial', 'CUIT', 'Tipo', 'Estado', 'Acciones'].map(t => <th key={t} scope="col">{t}</th>)}<EncabezadoDeChevron /></tr></thead><tbody>{resultado.items.map(p => <FilaNavegable key={p.id} a={`/proveedores/${p.id}`}>
         <td><EnlaceDeFila a={`/proveedores/${p.id}`}>{p.razonSocial}</EnlaceDeFila></td><td>{p.nombreComercial ?? '—'}</td><td className="font-mono">{formatearCuit(p.cuit)}</td><td>{p.tipo === 'fletero' ? 'Fletero' : 'Proveedor normal'}</td><td><Estado forma="punto" valor={p.estado} texto={p.estado === 'activo' ? 'Activo' : 'Inactivo'} /></td>
         <td>{puedeGestionar && <div className="flex min-w-max items-center gap-1.5" onClick={e => e.stopPropagation()}>
           <Link className={clasesDeBoton('secundario', 'chico', 'h-8 px-2.5 py-1')} to={`/proveedores/${p.id}/editar`}>Editar</Link>

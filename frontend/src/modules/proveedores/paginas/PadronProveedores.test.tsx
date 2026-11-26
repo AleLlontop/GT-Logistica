@@ -46,6 +46,13 @@ describe('Administración de proveedores US1', () => {
     expect(await screen.findByText('No hay proveedores que coincidan con los filtros.')).toHaveAttribute('role', 'status')
   })
 
+  it('alinea las columnas del encabezado con las filas navegables', async () => {
+    abrir()
+    const tabla = await screen.findByRole('table', { name: 'Proveedores' })
+    expect(tabla.querySelectorAll('thead th')).toHaveLength(7)
+    expect(tabla.querySelectorAll('tbody tr:first-child td')).toHaveLength(7)
+  })
+
   it('recorre los filtros con teclado, aplica con Enter y limpia todos los campos', async () => {
     const u = userEvent.setup(); abrir()
     await screen.findByRole('link', { name: 'Acopio' })
