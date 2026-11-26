@@ -34,7 +34,7 @@ public class RepositorioClientes(GtDbContext contexto) : IRepositorioClientes
             var patron = $"%{filtros.Busqueda.Trim()}%";
 
             consulta = consulta.Where(cliente => EF.Functions.Like(
-                EF.Functions.Collate(cliente.RazonSocial, "Latin1_General_CI_AI"),
+                EF.Functions.Collate(cliente.RazonSocial, BusquedaTextoSql.Colacion),
                 patron));
         }
 

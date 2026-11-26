@@ -30,7 +30,7 @@ public partial class RepositorioPagos
         var consulta = contexto.Proveedores.AsNoTracking().Where(p => contexto.OrdenesPagoProveedor.Any(o => o.ProveedorId == p.Id))
             .Select(p => new { p.Id, RazonSocial = p.Tipo == TipoProveedor.Fletero ? p.Transportista!.Nombre : p.RazonSocial!,
                 Cuit = p.Tipo == TipoProveedor.Fletero ? p.Transportista!.Cuit : p.Cuit!, p.Tipo, p.Activo });
-        if (!string.IsNullOrWhiteSpace(q)) { var texto = q.Trim(); consulta = consulta.Where(p => p.RazonSocial.Contains(texto) || p.Cuit.Contains(texto)); }
+        if (!string.IsNullOrWhiteSpace(q)) { var texto = q.Trim(); consulta = consulta.Where(p => EF.Functions.Collate(p.RazonSocial, BusquedaTextoSql.Colacion).Contains(texto) || p.Cuit.Contains(texto)); }
         var total = await consulta.CountAsync(ct);
         var items = await consulta.OrderBy(p => p.RazonSocial).ThenBy(p => p.Id).Skip((pagina - 1) * 20).Take(20)
             .Select(p => new ProveedorOpcion(p.Id, p.RazonSocial, p.Cuit, p.Tipo, p.Activo)).ToListAsync(ct);

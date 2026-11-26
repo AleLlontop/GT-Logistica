@@ -113,7 +113,7 @@ public class RepositorioChoferes(GtDbContext contexto) : IRepositorioChoferes
         if (filtros.Apellido is { } apellido)
         {
             var patron = $"%{apellido}%";
-            consulta = consulta.Where(chofer => EF.Functions.Like(chofer.Persona!.Apellido, patron));
+            consulta = consulta.Where(chofer => EF.Functions.Like(EF.Functions.Collate(chofer.Persona!.Apellido, BusquedaTextoSql.Colacion), patron));
         }
 
         if (filtros.Dni is { } dni)

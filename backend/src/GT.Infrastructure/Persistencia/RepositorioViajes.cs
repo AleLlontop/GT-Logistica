@@ -9,16 +9,6 @@ namespace GT.Infrastructure.Persistencia;
 
 public class RepositorioViajes(GtDbContext contexto) : IRepositorioViajes
 {
-    /// <summary>
-    /// Colación insensible a mayúsculas <b>y a acentos</b>. Es lo que hace que <c>cordoba</c>
-    /// encuentre <c>Córdoba</c> y que <c>CÓRDOBA</c> encuentre <c>córdoba</c> (FR-042, research §8).
-    ///
-    /// La búsqueda con <c>LIKE '%texto%'</c> no usa índice, y está aceptado y anotado: sin la
-    /// colación tampoco lo usaría, y el volumen del sistema —decenas de viajes por semana— no lo
-    /// justifica (plan §Performance Goals).
-    /// </summary>
-    private const string ColacionSinAcentos = "Latin1_General_CI_AI";
-
     public Task AgregarAsync(Viaje viaje, CancellationToken cancelacion = default)
     {
         contexto.Viajes.Add(viaje);

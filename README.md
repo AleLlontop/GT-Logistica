@@ -113,6 +113,32 @@ detiene con un mensaje explicando qué falta.
 El estado completo está en [specs/README.md](specs/README.md), y el detalle tarea por tarea en el
 `tasks.md` de cada carpeta de `specs/`.
 
+## Búsquedas de texto
+
+Las búsquedas de nombres y texto de negocio ignoran mayúsculas y tildes en ambos sentidos,
+conservan la `ñ` como letra distinta y muestran los datos con su escritura original. La comparación
+vive en SQL Server (`BusquedaTextoSql.Colacion`), antes del conteo y la paginación. No hay filtros
+de texto de negocio implementados localmente en el frontend ni se filtra sólo la página visible.
+
+| Pantalla o circuito | API | Comparación efectiva en persistencia |
+|---|---|---|
+| Personas, Empleados y selección de persona | `/api/personas?texto`, `/api/empleados?texto` | `RepositorioPersonas`: nombre, apellido y nombre completo en ambos órdenes; DNI conserva su comparación |
+| Choferes | `/api/choferes?apellido` | `RepositorioChoferes`: apellido; DNI separado |
+| Transportistas | `/api/transportistas?texto` | `RepositorioTransportistas`: nombre; CUIT separado |
+| Clientes | `/api/clientes?busqueda` | `RepositorioClientes`: razón social |
+| Viajes y su análisis, grupos y exportación | `/api/viajes?busqueda`, `/api/reportes/viajes?busqueda` | `FiltrosViajesSql`: origen, destino y razón social del cliente |
+| Proveedores y filtros por razón social / nombre comercial | `/api/proveedores?q`, `razonSocial`, `nombreComercial` | `RepositorioProveedores`: nombres; CUIT separado |
+| Elegir proveedor al cargar o consultar facturas | `/api/proveedores/busqueda?q` | Misma consulta de `RepositorioProveedores`; respeta `soloActivos` |
+| Elegir transportista externo al crear fletero | `/api/proveedores/transportistas-externos?q` | `RepositorioProveedores`: nombre del transportista; CUIT separado |
+| Elegir proveedor al generar o consultar órdenes de pago | `/api/pagos/referencias/proveedores?q`, `/api/pagos/ordenes/proveedores?q` | `ElegibilidadPagosSql` y `RepositorioPagos.Ordenes`: razón social; CUIT separado |
+| Referencias de Clientes/Transportistas en Viajes, Facturación, Liquidaciones y Flota | `/api/reportes/*/referencias/*?busqueda` | `RepositorioAnalisisReportes.GruposViajes` y delegaciones: nombres |
+| Referencia de tipo de vehículo en Flota | `/api/reportes/flota/referencias/tipos?busqueda` | `RepositorioAnalisisReportes.GruposFlota`: nombre |
+
+Se mantienen los patrones y escapes propios de cada buscador. Los identificadores —DNI, CUIT,
+patentes, números de comprobante y usuarios/email— conservan su comparación, también en las
+referencias de vehículos y cajas de Reportes. El ingreso y las reglas de unicidad no cambian.
+Los selectores nativos sin buscador propio siguen seleccionando por ID.
+
 ## Probar
 
 ```bash

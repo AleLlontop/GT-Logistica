@@ -35,7 +35,14 @@ public partial class RepositorioAnalisisReportes
             var consulta = recurso == ReferenciaDeAnalisis.TiposVehiculo
                 ? db.TiposVehiculo.AsNoTracking().Select(t => new { t.Id, t.Nombre, t.Activo })
                 : db.Vehiculos.AsNoTracking().Select(v => new { v.Id, Nombre = v.Patente, v.Activo });
-            if (!string.IsNullOrWhiteSpace(busqueda)) consulta = consulta.Where(v => v.Nombre.Contains(busqueda.Trim()));
+            if (!string.IsNullOrWhiteSpace(busqueda))
+            {
+                var texto = busqueda.Trim();
+                // Patentes conserva su comparación; sólo los nombres de tipos usan búsqueda española.
+                consulta = recurso == ReferenciaDeAnalisis.TiposVehiculo
+                    ? consulta.Where(v => EF.Functions.Collate(v.Nombre, BusquedaTextoSql.Colacion).Contains(texto))
+                    : consulta.Where(v => v.Nombre.Contains(texto));
+            }
             var total = await consulta.CountAsync(token);
             var filas = await consulta.OrderBy(v => v.Nombre).ThenBy(v => v.Id).Skip((pagina.Pagina - 1) * pagina.TamanioPagina).Take(pagina.TamanioPagina)
                 .Select(v => new ReferenciaAnalisis(v.Id, v.Nombre, v.Activo)).ToArrayAsync(token);
