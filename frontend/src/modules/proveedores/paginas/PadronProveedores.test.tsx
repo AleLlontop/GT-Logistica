@@ -46,6 +46,41 @@ describe('Administración de proveedores US1', () => {
     expect(await screen.findByText('No hay proveedores que coincidan con los filtros.')).toHaveAttribute('role', 'status')
   })
 
+  it('recorre los filtros con teclado, aplica con Enter y limpia todos los campos', async () => {
+    const u = userEvent.setup(); abrir()
+    await screen.findByRole('link', { name: 'Acopio' })
+    const etiquetas = ['Buscar proveedores', 'Razón social', 'Nombre comercial', 'CUIT', 'Tipo', 'Estado']
+    screen.getByLabelText(etiquetas[0]).focus()
+    await u.paste('logistica')
+    for (const etiqueta of etiquetas.slice(1)) {
+      await u.tab()
+      expect(screen.getByLabelText(etiqueta)).toHaveFocus()
+    }
+    await u.tab()
+    expect(screen.getByRole('button', { name: 'Buscar' })).toHaveFocus()
+    await u.tab()
+    expect(screen.getByRole('button', { name: 'Limpiar filtros' })).toHaveFocus()
+
+    await u.click(screen.getByLabelText('Razón social')); await u.paste('Del Plata')
+    await u.click(screen.getByLabelText('Nombre comercial')); await u.paste('Transporte')
+    await u.click(screen.getByLabelText('CUIT')); await u.paste('30712345671')
+    await u.selectOptions(screen.getByLabelText('Tipo'), 'fletero')
+    await u.selectOptions(screen.getByLabelText('Estado'), 'inactivo')
+    expect(api.listarProveedores).toHaveBeenCalledTimes(1)
+
+    await u.click(screen.getByLabelText('CUIT')); await u.keyboard('{Enter}')
+    await waitFor(() => expect(api.listarProveedores).toHaveBeenLastCalledWith({
+      q: 'logistica', razonSocial: 'Del Plata', nombreComercial: 'Transporte', cuit: '30712345671',
+      tipo: 'fletero', estado: 'inactivo', pagina: 1,
+    }))
+    await u.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    await waitFor(() => expect(api.listarProveedores).toHaveBeenLastCalledWith({
+      q: '', razonSocial: '', nombreComercial: '', cuit: '', tipo: '', estado: '', pagina: 1,
+    }))
+    for (const etiqueta of etiquetas) expect(screen.getByLabelText(etiqueta)).toHaveValue('')
+    expect(screen.getByText('Estado: Todos. Sin filtros aplicados.')).toBeInTheDocument()
+  })
+
   it('sale del alta normal al detalle y conserva campos ante rechazo', async () => {
     const u = userEvent.setup(); abrir('/proveedores/nuevo')
     await u.type(screen.getByLabelText('Razón social'), 'Acopio')

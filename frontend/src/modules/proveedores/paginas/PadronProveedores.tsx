@@ -6,7 +6,7 @@ import { IconoNuevo } from '../../../compartido/ui/iconos'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { Campo } from '../../../compartido/ui/Campo'
 import { Listado } from '../../../compartido/ui/Listado'
-import { Filtros, FranjaDeBusqueda, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
+import { Filtros, FranjaDeBusqueda } from '../../../compartido/ui/Filtros'
 import { TablaDesplazable } from '../../../compartido/ui/Listado'
 import { FilaNavegable } from '../../../compartido/ui/FilaNavegable'
 import { EnlaceDeFila } from '../../../compartido/ui/EnlaceDeFila'
@@ -58,13 +58,16 @@ export function PadronProveedores({ puedeGestionar = true }: { puedeGestionar?: 
     <EncabezadoDePantalla titulo="Proveedores" accionPrincipal={puedeGestionar ? <Link className={clasesDeBoton('primario')} to="/proveedores/nuevo">Nuevo proveedor<span className={clasesDeCirculoDeIcono}><IconoNuevo aria-hidden="true" className="size-4" /></span></Link> : undefined} />
     {mensaje && <p role="status">{mensaje}</p>}{error && <p role="alert">{error}</p>}
     <Listado><form onSubmit={buscar}><Filtros declaracion={`Estado: ${filtros.estado || 'Todos'}. ${filtrado ? 'Filtros aplicados.' : 'Sin filtros aplicados.'}`} resumen={`${resultado?.total ?? 0} proveedores. Orden: razón social e identificador.`}>
-      <FranjaDeBusqueda><Campo id="buscar" etiqueta="Buscar proveedores" ancho="completo"><input id="buscar" className={clasesDeFiltro(Boolean(campos.q))} value={campos.q} onChange={e => setCampos({ ...campos, q: e.target.value })} /></Campo></FranjaDeBusqueda>
-      <FranjaDeFiltros>
-        {(['razonSocial', 'nombreComercial', 'cuit'] as const).map((nombre, i) => <Campo key={nombre} id={`f-${nombre}`} etiqueta={['Razón social', 'Nombre comercial', 'CUIT'][i]}><input id={`f-${nombre}`} className={clasesDeFiltro(Boolean(campos[nombre]))} value={campos[nombre]} onChange={e => setCampos({ ...campos, [nombre]: e.target.value })} /></Campo>)}
-        <Campo id="tipo" etiqueta="Tipo"><select id="tipo" className={clasesDeFiltro(Boolean(campos.tipo))} value={campos.tipo} onChange={e => setCampos({ ...campos, tipo: e.target.value })}><option value="">Todos</option><option value="proveedorNormal">Proveedor normal</option><option value="fletero">Fletero</option></select></Campo>
-        <Campo id="estado" etiqueta="Estado"><select id="estado" className={clasesDeFiltro(Boolean(campos.estado))} value={campos.estado} onChange={e => setCampos({ ...campos, estado: e.target.value })}><option value="">Todos</option><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select></Campo>
-        <Boton variante="secundario" type="submit">Buscar</Boton><Boton variante="terciario" onClick={() => { setCampos(INICIAL); setFiltros({ ...INICIAL }) }}>Limpiar filtros</Boton>
-      </FranjaDeFiltros>
+      <FranjaDeBusqueda><Campo id="buscar" etiqueta="Buscar proveedores" ancho="completo"><input id="buscar" className={clasesDeFiltro(Boolean(campos.q), 'h-11 w-full min-w-0')} value={campos.q} onChange={e => setCampos({ ...campos, q: e.target.value })} /></Campo></FranjaDeBusqueda>
+      <div className="grid grid-cols-1 items-end gap-3.5 sm:grid-cols-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(0,1.25fr)_minmax(0,1.5fr)_minmax(0,1fr)]">
+        {(['razonSocial', 'nombreComercial', 'cuit'] as const).map((nombre, i) => <Campo key={nombre} id={`f-${nombre}`} etiqueta={['Razón social', 'Nombre comercial', 'CUIT'][i]} ancho="completo" className={`min-w-0 ${nombre === 'cuit' ? 'sm:col-span-2' : 'sm:col-span-3'} xl:col-span-1`}><input id={`f-${nombre}`} className={clasesDeFiltro(Boolean(campos[nombre]), 'h-10 w-full min-w-0')} value={campos[nombre]} onChange={e => setCampos({ ...campos, [nombre]: e.target.value })} /></Campo>)}
+        <Campo id="tipo" etiqueta="Tipo" ancho="completo" className="min-w-0 sm:col-span-2 xl:col-span-1"><select id="tipo" className={clasesDeFiltro(Boolean(campos.tipo), 'h-10 w-full min-w-0')} value={campos.tipo} onChange={e => setCampos({ ...campos, tipo: e.target.value })}><option value="">Todos</option><option value="proveedorNormal">Proveedor normal</option><option value="fletero">Fletero</option></select></Campo>
+        <Campo id="estado" etiqueta="Estado" ancho="completo" className="min-w-0 sm:col-span-2 xl:col-span-1"><select id="estado" className={clasesDeFiltro(Boolean(campos.estado), 'h-10 w-full min-w-0')} value={campos.estado} onChange={e => setCampos({ ...campos, estado: e.target.value })}><option value="">Todos</option><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select></Campo>
+      </div>
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:justify-end">
+        <Boton variante="secundario" tamanio="chico" type="submit" className="h-10 py-0">Buscar</Boton>
+        <Boton variante="terciario" tamanio="chico" className="h-10 py-0" onClick={() => { setCampos(INICIAL); setFiltros({ ...INICIAL }) }}>Limpiar filtros</Boton>
+      </div>
     </Filtros></form>
     {cargando ? <p role="status" className="p-5">Cargando proveedores…</p> : !error && resultado && (resultado.items.length === 0
       ? <MensajeListado caso={filtrado ? 'sinCoincidencias' : 'vacio'}>{filtrado ? 'No hay proveedores que coincidan con los filtros.' : 'Todavía no hay proveedores registrados.'}</MensajeListado>
