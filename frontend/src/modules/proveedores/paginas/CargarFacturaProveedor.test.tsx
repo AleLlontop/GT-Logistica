@@ -80,6 +80,17 @@ it('propone hoy Argentina aun cuando UTC ya es mañana',()=>{
   vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date('2026-10-17T01:30:00Z'));abrir()
   expect(screen.getByLabelText('Fecha de factura')).toHaveValue('2026-10-16')
 })
+it('impide guardar una factura del día siguiente argentino aunque en UTC ya haya comenzado', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-17T01:30:00Z'))
+  abrir()
+  const usuario = await llenar()
+  fireEvent.change(screen.getByLabelText('Vencimiento del CAE'), { target: { value: '2026-10-20' } })
+  fireEvent.change(screen.getByLabelText('Fecha de factura'), { target: { value: '2026-10-17' } })
+  await usuario.click(screen.getByRole('button', { name: 'Guardar factura' }))
+  expect(screen.getByText(/La fecha no puede ser posterior/)).toBeInTheDocument()
+  expect(api.cargarFacturaProveedor).not.toHaveBeenCalled()
+})
 it('no muestra selector de liquidación para normal',async()=>{
   abrir();const u=userEvent.setup();await u.type(screen.getByRole('combobox'),'A');await u.click(await screen.findByRole('option'))
   expect(screen.queryByLabelText('Liquidación')).not.toBeInTheDocument()

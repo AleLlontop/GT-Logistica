@@ -52,6 +52,12 @@ export function hoyEnIso(): string {
   return enIso(new Date())
 }
 
+/** Día de negocio argentino (UTC−3), con el mismo corte que el servidor. */
+export function diaArgentinaEnIso(instante = new Date()): string {
+  const fechaArgentina = new Date(instante.getTime() - 3 * 60 * 60 * 1000)
+  return fechaArgentina.toISOString().slice(0, 10)
+}
+
 /** El primer año con viajes cargados en el sistema. */
 const PRIMER_ANIO = 2025
 

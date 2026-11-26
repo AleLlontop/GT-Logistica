@@ -1,11 +1,11 @@
+import { diaArgentinaEnIso } from '../../../compartido/fechas'
 import type { PeriodoAnalisis } from './tiposAnalisis'
 
 /** Mismo corte fijo −03 de servidor, aunque el navegador esté configurado en otra zona. */
 export function mesActualArgentina(instante = new Date()): PeriodoAnalisis {
-  const argentina = new Date(instante.getTime() - 3 * 60 * 60 * 1000)
-  const anio = argentina.getUTCFullYear(), mes = argentina.getUTCMonth()
-  const ultimo = new Date(Date.UTC(anio, mes + 1, 0)).getUTCDate()
-  const prefijo = `${anio}-${String(mes + 1).padStart(2, '0')}`
+  const prefijo = diaArgentinaEnIso(instante).slice(0, 7)
+  const [anio, mes] = prefijo.split('-').map(Number)
+  const ultimo = new Date(Date.UTC(anio, mes, 0)).getUTCDate()
   return { desde: `${prefijo}-01`, hasta: `${prefijo}-${String(ultimo).padStart(2, '0')}` }
 }
 export function fechaAnalisisValida(texto: string): boolean {

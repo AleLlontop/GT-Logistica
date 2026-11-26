@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
-import { hoyEnIso } from '../../../compartido/fechas'
+import { diaArgentinaEnIso } from '../../../compartido/fechas'
 import { formatearPesos } from '../../../compartido/moneda'
 import { Boton } from '../../../compartido/ui/Boton'
 import { Campo } from '../../../compartido/ui/Campo'
@@ -27,7 +27,7 @@ export function CargarFacturaProveedor({ puedeCargar = true }: { puedeCargar?: b
   const [conflicto, setConflicto] = useState<ConflictoImportes | null>(null)
   const secuenciaLiquidaciones = useRef(0)
   useEffect(() => () => { secuenciaLiquidaciones.current++ }, [])
-  const [datos, setDatos] = useState({ numero: '', fecha: hoyEnIso(), detalle: '', neto: '', cae: '', fechaVencimientoCae: '' })
+  const [datos, setDatos] = useState({ numero: '', fecha: diaArgentinaEnIso(), detalle: '', neto: '', cae: '', fechaVencimientoCae: '' })
   const [archivo, setArchivo] = useState<File | undefined>()
   const [errores, setErrores] = useState<Record<string, string>>({}); const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
@@ -64,7 +64,7 @@ export function CargarFacturaProveedor({ puedeCargar = true }: { puedeCargar?: b
     if (!datos.detalle.trim()) encontrados.detalle = 'Escribí el detalle.'
     if (!importes) encontrados.neto = 'Ingresá un neto mayor a cero, con hasta dos decimales y dentro de la capacidad de almacenamiento.'
     if (!datos.cae.trim()) encontrados.cae = 'Escribí el CAE.'
-    if (!datos.fecha || datos.fecha > hoyEnIso()) encontrados.fecha = 'La fecha no puede ser posterior a hoy en Argentina.'
+    if (!datos.fecha || datos.fecha > diaArgentinaEnIso()) encontrados.fecha = 'La fecha no puede ser posterior a hoy en Argentina.'
     if (!datos.fechaVencimientoCae || datos.fechaVencimientoCae < datos.fecha) encontrados.fechaVencimientoCae = 'El vencimiento debe ser igual o posterior a la fecha de factura.'
     if (archivo && (archivo.size === 0 || archivo.size > 10 * 1024 * 1024)) encontrados.archivo = 'El PDF debe tener contenido y pesar como máximo 10 MB.'
     setErrores(encontrados); setError(''); setConflicto(null)
