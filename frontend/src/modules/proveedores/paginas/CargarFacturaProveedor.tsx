@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ErrorHttp } from '../../../compartido/clienteHttp'
-import { hoyEnIso } from '../../../compartido/fechas'
+import { diaArgentinaEnIso } from '../../../compartido/fechas'
 import { formatearPesos } from '../../../compartido/moneda'
 import { Boton } from '../../../compartido/ui/Boton'
 import { Campo } from '../../../compartido/ui/Campo'
@@ -17,6 +17,8 @@ import { cargarFacturaProveedor, consultarLiquidacionesDisponibles } from '../se
 import { calcularImportes } from '../servicios/importesFactura'
 import type { ProveedorResumen, LiquidacionDisponible, ConflictoImportes } from '../servicios/tipos'
 
+const ETIQUETA_COMPROBANTE = 'Comprobante de la factura (opcional)'
+
 export function CargarFacturaProveedor({ puedeCargar = true }: { puedeCargar?: boolean }) {
   const navegar = useNavigate(); const { guardar } = useResultadoFactura()
   const [proveedor, setProveedor] = useState<ProveedorResumen | null>(null)
@@ -27,12 +29,15 @@ export function CargarFacturaProveedor({ puedeCargar = true }: { puedeCargar?: b
   const [conflicto, setConflicto] = useState<ConflictoImportes | null>(null)
   const secuenciaLiquidaciones = useRef(0)
   useEffect(() => () => { secuenciaLiquidaciones.current++ }, [])
-  const [datos, setDatos] = useState({ numero: '', fecha: hoyEnIso(), detalle: '', neto: '', cae: '', fechaVencimientoCae: '' })
+  const [datos, setDatos] = useState({ numero: '', fecha: diaArgentinaEnIso(), detalle: '', neto: '', cae: '', fechaVencimientoCae: '' })
   const [archivo, setArchivo] = useState<File | undefined>()
   const [errores, setErrores] = useState<Record<string, string>>({}); const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
   const entradaNeto = useRef('')
   const campoPdf = useRef<HTMLInputElement>(null)
+  const selectorPdf = useRef<HTMLButtonElement>(null)
+  const accionPdf = archivo ? 'Cambiar PDF' : 'Elegir PDF'
+  const descripcionPdf = `archivo-ayuda archivo-estado${errores.archivo ? ' archivo-error' : ''}`
   const importes = calcularImportes(datos.neto)
   const liquidacionValida = liquidaciones.some(l => String(l.id) === liquidacionId) && !cargandoLiquidaciones && !errorLiquidaciones
   async function cargarLiquidaciones(p: ProveedorResumen, conservarSeleccion = false) {
@@ -64,7 +69,7 @@ export function CargarFacturaProveedor({ puedeCargar = true }: { puedeCargar?: b
     if (!datos.detalle.trim()) encontrados.detalle = 'Escribí el detalle.'
     if (!importes) encontrados.neto = 'Ingresá un neto mayor a cero, con hasta dos decimales y dentro de la capacidad de almacenamiento.'
     if (!datos.cae.trim()) encontrados.cae = 'Escribí el CAE.'
-    if (!datos.fecha || datos.fecha > hoyEnIso()) encontrados.fecha = 'La fecha no puede ser posterior a hoy en Argentina.'
+    if (!datos.fecha || datos.fecha > diaArgentinaEnIso()) encontrados.fecha = 'La fecha no puede ser posterior a hoy.'
     if (!datos.fechaVencimientoCae || datos.fechaVencimientoCae < datos.fecha) encontrados.fechaVencimientoCae = 'El vencimiento debe ser igual o posterior a la fecha de factura.'
     if (archivo && (archivo.size === 0 || archivo.size > 10 * 1024 * 1024)) encontrados.archivo = 'El PDF debe tener contenido y pesar como máximo 10 MB.'
     setErrores(encontrados); setError(''); setConflicto(null)
@@ -85,8 +90,8 @@ export function CargarFacturaProveedor({ puedeCargar = true }: { puedeCargar?: b
     } finally { setGuardando(false) }
   }
   function campo(nombre: 'numero' | 'fecha' | 'cae' | 'fechaVencimientoCae', etiqueta: string, fecha = false) {
-    return <Campo id={nombre} etiqueta={etiqueta} obligatorio error={errores[nombre]} ancho={fecha ? 'corto' : 'medio'}><input id={nombre} type={fecha ? 'date' : 'text'} required value={datos[nombre]} disabled={guardando}
-      className={clasesDeControl(Boolean(errores[nombre]))} aria-invalid={Boolean(errores[nombre])} aria-describedby={errores[nombre] ? `${nombre}-error` : undefined} onChange={e => setDatos(d => ({ ...d, [nombre]: e.target.value }))} /></Campo>
+    return <Campo id={nombre} etiqueta={etiqueta} obligatorio error={errores[nombre]} ancho={fecha ? 'corto' : 'medio'} className="min-w-0"><input id={nombre} type={fecha ? 'date' : 'text'} required value={datos[nombre]} disabled={guardando}
+      className={clasesDeControl(Boolean(errores[nombre]), 'min-w-0')} aria-invalid={Boolean(errores[nombre])} aria-describedby={errores[nombre] ? `${nombre}-error` : undefined} onChange={e => setDatos(d => ({ ...d, [nombre]: e.target.value }))} /></Campo>
   }
   return <>
     <EncabezadoDePantalla titulo="Cargar factura de proveedor" volverA={{ ruta: '/', etiqueta: 'Volver al inicio' }} />
@@ -94,43 +99,90 @@ export function CargarFacturaProveedor({ puedeCargar = true }: { puedeCargar?: b
       {error && <p role="alert">{error}</p>}
       {conflicto && <dl aria-live="polite"><dt>Total de factura informado por el servidor</dt><dd>{formatearPesos(conflicto.importeTotalFactura)}</dd><dt>Total actual de liquidación informado por el servidor</dt><dd>{formatearPesos(conflicto.importeTotalLiquidacion)}</dd></dl>}
       {Object.values(errores).some(Boolean) && <p role="alert">Revisá los campos marcados.</p>}
-      <form onSubmit={enviar} noValidate className="overflow-hidden rounded-card border border-line bg-surface shadow-card">
-        <SeccionNumerada numero={1} titulo="Proveedor"><AutocompleteProveedor soloActivos disabled={guardando} error={errores.proveedorId} onSeleccionar={seleccionarProveedor} />
-          {proveedor?.tipo === 'fletero' && <>
-            {cargandoLiquidaciones && <p role="status">Cargando liquidaciones…</p>}
-            {errorLiquidaciones && <p role="alert">{errorLiquidaciones}</p>}
-            {errorLiquidaciones && !errorLiquidaciones.includes('permiso') && <Boton variante="secundario" onClick={() => void cargarLiquidaciones(proveedor)}>Reintentar liquidaciones</Boton>}
-            {!cargandoLiquidaciones && !errorLiquidaciones && liquidaciones.length === 0 && <p role="status">No hay liquidaciones Pendientes disponibles para este Fletero. No se puede guardar la factura.</p>}
-            <Campo id="liquidacionId" etiqueta="Liquidación" ancho="largo" obligatorio error={errores.liquidacionId}>
-              <select id="liquidacionId" required value={liquidacionId} disabled={guardando || cargandoLiquidaciones || liquidaciones.length === 0}
-                className={clasesDeControl(Boolean(errores.liquidacionId))} aria-invalid={Boolean(errores.liquidacionId)} aria-describedby={errores.liquidacionId ? 'liquidacionId-error' : undefined}
-                onChange={e => { setLiquidacionId(e.target.value); setConflicto(null); setErrores(actual => ({ ...actual, liquidacionId: '' })) }}>
-                <option value="">Elegí una liquidación</option>
-                {liquidaciones.map(l => <option key={l.id} value={l.id}>{l.numero} · {l.periodo} · {formatearPesos(l.importeTotal)}</option>)}
-              </select>
-            </Campo>
-          </>}
+      <form onSubmit={enviar} noValidate className="@container overflow-clip rounded-card border border-line bg-surface shadow-card">
+        <SeccionNumerada numero={1} titulo="Proveedor">
+          <div className={`grid items-start gap-4 ${proveedor?.tipo === 'fletero' ? '@min-[44rem]:grid-cols-2' : ''}`}>
+            <AutocompleteProveedor soloActivos disabled={guardando} error={errores.proveedorId} onSeleccionar={seleccionarProveedor} />
+            {proveedor?.tipo === 'fletero' && <div className="flex min-w-0 flex-col items-start gap-2">
+              <Campo id="liquidacionId" etiqueta="Liquidación" ancho="completo" obligatorio error={errores.liquidacionId}>
+                <select id="liquidacionId" required value={liquidacionId} disabled={guardando || cargandoLiquidaciones || liquidaciones.length === 0}
+                  className={clasesDeControl(Boolean(errores.liquidacionId), 'min-w-0')} aria-invalid={Boolean(errores.liquidacionId)} aria-describedby={errores.liquidacionId ? 'liquidacionId-error' : undefined}
+                  onChange={e => { setLiquidacionId(e.target.value); setConflicto(null); setErrores(actual => ({ ...actual, liquidacionId: '' })) }}>
+                  <option value="">Elegí una liquidación</option>
+                  {liquidaciones.map(l => <option key={l.id} value={l.id}>{l.numero} · {l.periodo} · {formatearPesos(l.importeTotal)}</option>)}
+                </select>
+              </Campo>
+              {cargandoLiquidaciones && <p role="status">Cargando liquidaciones…</p>}
+              {errorLiquidaciones && <p role="alert">{errorLiquidaciones}</p>}
+              {errorLiquidaciones && !errorLiquidaciones.includes('permiso') && <Boton variante="secundario" onClick={() => void cargarLiquidaciones(proveedor)}>Reintentar liquidaciones</Boton>}
+              {!cargandoLiquidaciones && !errorLiquidaciones && liquidaciones.length === 0 && <p role="status">No hay liquidaciones Pendientes disponibles para este Fletero. No se puede guardar la factura.</p>}
+            </div>}
+          </div>
         </SeccionNumerada>
-        <SeccionNumerada numero={2} titulo="Datos de factura">{campo('numero', 'Número de factura')}{campo('fecha', 'Fecha de factura', true)}
-          <Campo id="detalle" etiqueta="Detalle" ancho="completo" obligatorio error={errores.detalle}><textarea id="detalle" required disabled={guardando} value={datos.detalle} className={clasesDeControl(Boolean(errores.detalle))} aria-invalid={Boolean(errores.detalle)} aria-describedby={errores.detalle ? 'detalle-error' : undefined} onChange={e => setDatos(d => ({ ...d, detalle: e.target.value }))} /></Campo>
-          {campo('cae', 'CAE')}{campo('fechaVencimientoCae', 'Vencimiento del CAE', true)}
+        <SeccionNumerada numero={2} titulo="Datos de factura">
+          <div className="grid max-w-5xl items-start gap-x-5 gap-y-4 @min-[32rem]:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] @min-[52rem]:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1.25fr)_minmax(0,1fr)]">
+            {campo('numero', 'Número de factura')}
+            {campo('fecha', 'Fecha de factura', true)}
+            {campo('cae', 'CAE')}
+            {campo('fechaVencimientoCae', 'Vencimiento del CAE', true)}
+            <Campo id="detalle" etiqueta="Detalle" ancho="completo" obligatorio error={errores.detalle} className="col-span-full min-w-0">
+              <textarea id="detalle" rows={2} required disabled={guardando} value={datos.detalle}
+                className={clasesDeControl(Boolean(errores.detalle), 'min-h-16 resize-y py-2')} aria-invalid={Boolean(errores.detalle)}
+                aria-describedby={errores.detalle ? 'detalle-error' : undefined} onChange={e => setDatos(d => ({ ...d, detalle: e.target.value }))} />
+            </Campo>
+          </div>
         </SeccionNumerada>
         <SeccionNumerada numero={3} titulo="Importes y comprobante">
-          <Campo id="neto" etiqueta="Neto" ancho="corto" obligatorio error={errores.neto}>
-            <InputImporte id="neto" required disabled={guardando} value={datos.neto}
-              className={clasesDeControl(Boolean(errores.neto))} aria-invalid={Boolean(errores.neto)} aria-describedby={errores.neto ? 'neto-error' : undefined}
-              onChangeCapture={e => {
-                // Validar el signo antes de que el control compartido lo quite al formatear.
-                entradaNeto.current = e.currentTarget.value
-              }}
-              onChange={neto => {
-                const ingresado = entradaNeto.current
-                setDatos(d => ({ ...d, neto: ingresado.includes('-') ? ingresado : neto }))
-              }} />
-          </Campo>
-          <dl aria-live="polite"><dt>IVA (21%)</dt><dd>{importes ? formatearPesos(importes.iva) : '—'}</dd><dt>Total</dt><dd>{importes ? formatearPesos(importes.importeTotal) : '—'}</dd></dl>
-          <Campo id="archivo" etiqueta="PDF" ayuda="PDF opcional, hasta 10 MB." error={errores.archivo}><input ref={campoPdf} id="archivo" type="file" accept="application/pdf,.pdf" disabled={guardando} className={clasesDeControl(Boolean(errores.archivo))} aria-describedby={errores.archivo ? 'archivo-error' : 'archivo-ayuda'} onChange={e => setArchivo(e.target.files?.[0])} /></Campo>
-          {archivo && <Boton variante="terciario" disabled={guardando} onClick={() => { setArchivo(undefined); if (campoPdf.current) campoPdf.current.value = '' }}>Quitar PDF</Boton>}
+          <div className="grid items-start gap-5 @min-[62rem]:grid-cols-2">
+            <div className="grid min-w-0 items-start gap-3 @min-[38rem]:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+              <Campo id="neto" etiqueta="Neto" ancho="corto" obligatorio error={errores.neto} className="min-w-0">
+                <InputImporte id="neto" required disabled={guardando} value={datos.neto}
+                  className={clasesDeControl(Boolean(errores.neto), 'min-w-0')} aria-invalid={Boolean(errores.neto)} aria-describedby={errores.neto ? 'neto-error' : undefined}
+                  onChangeCapture={e => {
+                    // Validar el signo antes de que el control compartido lo quite al formatear.
+                    entradaNeto.current = e.currentTarget.value
+                  }}
+                  onChange={neto => {
+                    const ingresado = entradaNeto.current
+                    setDatos(d => ({ ...d, neto: ingresado.includes('-') ? ingresado : neto }))
+                  }} />
+              </Campo>
+              <dl aria-live="polite" className="m-0 grid min-w-0 grid-cols-2 gap-3">
+                <div className="flex min-w-0 flex-col gap-[7px]">
+                  <dt className="text-[12.5px] font-semibold tracking-[-0.01em] text-ink-soft">IVA (21%)</dt>
+                  <dd className="m-0 min-h-11 rounded-field bg-surface-soft px-3 py-3 text-[13.5px] tabular-nums text-ink-soft wrap-anywhere">{importes ? formatearPesos(importes.iva) : '—'}</dd>
+                </div>
+                <div className="flex min-w-0 flex-col gap-[7px]">
+                  <dt className="text-[12.5px] font-semibold tracking-[-0.01em] text-ink-soft">Total</dt>
+                  <dd className="m-0 min-h-11 rounded-field bg-surface-mute px-3 py-3 text-[13.5px] font-bold tabular-nums text-ink wrap-anywhere">{importes ? formatearPesos(importes.importeTotal) : '—'}</dd>
+                </div>
+              </dl>
+            </div>
+            <Campo id="archivo" etiqueta={ETIQUETA_COMPROBANTE} ayuda="Formato PDF, hasta 10 MB." ancho="completo" error={errores.archivo} className="min-w-0">
+              <input ref={campoPdf} id="archivo" type="file" accept="application/pdf,.pdf" hidden disabled={guardando}
+                aria-invalid={Boolean(errores.archivo)} aria-describedby={descripcionPdf}
+                onChange={e => {
+                  const elegido = e.target.files?.[0]
+                  // Cancelar el diálogo conserva el comprobante que ya se había elegido.
+                  if (!elegido) return
+                  setArchivo(elegido); setErrores(actual => ({ ...actual, archivo: '' }))
+                }} />
+              <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center">
+                <Boton ref={selectorPdf} variante="secundario" disabled={guardando} className="shrink-0"
+                  aria-label={`${accionPdf}: ${ETIQUETA_COMPROBANTE}`} aria-controls="archivo"
+                  aria-describedby={descripcionPdf} aria-invalid={Boolean(errores.archivo)}
+                  onClick={() => campoPdf.current?.click()}>{accionPdf}</Boton>
+                <p id="archivo-estado" role="status" className="m-0 min-w-0 text-[13px] text-ink-soft [overflow-wrap:anywhere] sm:flex-1">
+                  {archivo ? archivo.name : 'Sin archivo adjunto'}
+                </p>
+                {archivo && <Boton variante="texto" disabled={guardando} className="shrink-0" onClick={() => {
+                  setArchivo(undefined); setErrores(actual => ({ ...actual, archivo: '' }))
+                  if (campoPdf.current) campoPdf.current.value = ''
+                  selectorPdf.current?.focus()
+                }}>Quitar PDF</Boton>}
+              </div>
+            </Campo>
+          </div>
         </SeccionNumerada>
         <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}><Link to="/" className={clasesDeBoton('secundario')}>Cancelar</Link><Boton variante="primario" icono={<IconoEnRegla />} type="submit" disabled={guardando || (proveedor?.tipo === 'fletero' && !liquidacionValida)}>{guardando ? 'Guardando…' : 'Guardar factura'}</Boton></BarraDeAcciones>
       </form>

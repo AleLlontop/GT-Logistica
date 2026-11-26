@@ -31,18 +31,18 @@ public class RepositorioProveedores(GtDbContext contexto) : IRepositorioProveedo
         if (!string.IsNullOrWhiteSpace(filtros.Q))
         {
             var patron = Patron(filtros.Q);
-            consulta = consulta.Where(p => EF.Functions.Like(p.RazonSocial, patron, "\\") ||
-                EF.Functions.Like(p.NombreComercial!, patron, "\\") || EF.Functions.Like(p.Cuit, patron, "\\"));
+            consulta = consulta.Where(p => EF.Functions.Like(EF.Functions.Collate(p.RazonSocial, BusquedaTextoSql.Colacion), patron, "\\") ||
+                EF.Functions.Like(EF.Functions.Collate(p.NombreComercial!, BusquedaTextoSql.Colacion), patron, "\\") || EF.Functions.Like(p.Cuit, patron, "\\"));
         }
         if (!string.IsNullOrWhiteSpace(filtros.RazonSocial))
         {
             var patron = Patron(filtros.RazonSocial);
-            consulta = consulta.Where(p => EF.Functions.Like(p.RazonSocial, patron, "\\"));
+            consulta = consulta.Where(p => EF.Functions.Like(EF.Functions.Collate(p.RazonSocial, BusquedaTextoSql.Colacion), patron, "\\"));
         }
         if (!string.IsNullOrWhiteSpace(filtros.NombreComercial))
         {
             var patron = Patron(filtros.NombreComercial);
-            consulta = consulta.Where(p => EF.Functions.Like(p.NombreComercial!, patron, "\\"));
+            consulta = consulta.Where(p => EF.Functions.Like(EF.Functions.Collate(p.NombreComercial!, BusquedaTextoSql.Colacion), patron, "\\"));
         }
         if (!string.IsNullOrWhiteSpace(filtros.Cuit))
         {
@@ -68,7 +68,7 @@ public class RepositorioProveedores(GtDbContext contexto) : IRepositorioProveedo
         if (!string.IsNullOrWhiteSpace(q))
         {
             var patron = Patron(q);
-            consulta = consulta.Where(t => EF.Functions.Like(t.Nombre, patron, "\\") || EF.Functions.Like(t.Cuit, patron, "\\"));
+            consulta = consulta.Where(t => EF.Functions.Like(EF.Functions.Collate(t.Nombre, BusquedaTextoSql.Colacion), patron, "\\") || EF.Functions.Like(t.Cuit, patron, "\\"));
         }
         var total = await consulta.CountAsync(cancelacion);
         var items = await consulta.OrderBy(t => t.Nombre).ThenBy(t => t.Id).Skip((pagina - 1) * 20).Take(20)

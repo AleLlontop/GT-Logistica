@@ -86,7 +86,7 @@ public class RepositorioTransportistas(GtDbContext contexto) : IRepositorioTrans
             var porCuit = $"%{cuitNormalizado ?? textoBusqueda}%";
 
             consulta = consulta.Where(t =>
-                EF.Functions.Like(t.Nombre, porNombre) ||
+                EF.Functions.Like(EF.Functions.Collate(t.Nombre, BusquedaTextoSql.Colacion), porNombre) ||
                 EF.Functions.Like(t.Cuit, porCuit));
         }
 

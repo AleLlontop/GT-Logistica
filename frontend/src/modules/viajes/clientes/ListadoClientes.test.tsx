@@ -138,7 +138,8 @@ describe('ListadoClientes', () => {
     const paginacion = await screen.findByRole('navigation', { name: 'Paginación' })
 
     expect(within(paginacion).getByRole('status')).toHaveTextContent(
-      'Página 2 de 4, mostrando 21 a 40 de 73 clientes',
+      '21–40 de 73 clientes',
     )
+    expect(within(paginacion).getByText('Página 2 de 4')).toBeVisible()
   })
 })

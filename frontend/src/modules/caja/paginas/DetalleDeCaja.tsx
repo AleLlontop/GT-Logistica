@@ -225,18 +225,16 @@ export function DetalleDeCaja({ puedeGestionar }: Props) {
           ) : (
             <Listado className="rounded-none border-0 shadow-none">
               <TablaDeMovimientos titulo="Movimientos de la caja" movimientos={movimientos.items} />
-              <div className="px-[22px] pb-4">
-                <Paginacion
-                  pagina={movimientos.pagina}
-                  total={movimientos.total}
-                  tamanioPagina={movimientos.tamanioPagina}
-                  nombrePlural="movimientos"
-                  onCambiarPagina={setPagina}
-                />
-              </div>
+              <Paginacion
+                pagina={movimientos.pagina}
+                total={movimientos.total}
+                tamanioPagina={movimientos.tamanioPagina}
+                nombrePlural="movimientos"
+                onCambiarPagina={setPagina}
+              />
             </Listado>
           )}
-          <p className="m-0 px-[22px] pb-4 text-[12.5px]">
+          <p className="m-0 px-[22px] pt-3 pb-4 text-[12.5px]">
             <Link to={`/movimientos-caja?cajaId=${caja.id}`} className="text-brand underline underline-offset-2">
               Ver en movimientos de caja
             </Link>

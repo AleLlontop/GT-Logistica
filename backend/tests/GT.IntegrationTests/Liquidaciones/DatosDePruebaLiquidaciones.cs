@@ -94,7 +94,8 @@ public static class DatosDePruebaLiquidaciones
         string? motivoAnulacion = null,
         DateTime? generadaEn = null,
         int mes = Mes,
-        int anio = Anio) =>
+        int anio = Anio,
+        DateOnly? fechaPago = null) =>
         app.ConAlcanceAsync(async contexto =>
         {
             var administrador = await AdministradorAsync(contexto);
@@ -137,7 +138,7 @@ public static class DatosDePruebaLiquidaciones
                 liquidacion.OrdenesDePago.Add(new OrdenDePago
                 {
                     LiquidacionId = 0,
-                    FechaPago = FechaHoyArgentina.Hoy(),
+                    FechaPago = fechaPago ?? FechaHoyArgentina.Hoy(),
                     Importe = pagado,
                     UsuarioId = administrador.Id,
                     RegistradaEn = DateTime.UtcNow,

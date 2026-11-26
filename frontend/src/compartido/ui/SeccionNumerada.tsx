@@ -5,6 +5,8 @@ interface Props {
   titulo: string
   /** Una línea que explica qué se pide, cuando ayuda. */
   explicacion?: string
+  /** Para campos breves relacionados, con lectura por filas en escritorios. */
+  enColumnas?: boolean
   children: ReactNode
 }
 
@@ -21,10 +23,10 @@ interface Props {
  * secciones, poder saltar de una a otra con el navegador de encabezados es la diferencia entre
  * recorrerlo y perderse adentro.
  */
-export function SeccionNumerada({ numero, titulo, explicacion, children }: Props) {
+export function SeccionNumerada({ numero, titulo, explicacion, enColumnas = false, children }: Props) {
   return (
-    <section className="border-b border-line px-[30px] py-[26px] last:border-b-0">
-      <header className="mb-[18px] flex flex-col gap-1">
+    <section className="border-b border-line px-4 py-5 last-of-type:border-b-0 sm:px-[30px]">
+      <header className="mb-4 flex flex-col gap-1">
         <div className="flex items-center gap-2.5">
           <span
             aria-hidden="true"
@@ -40,7 +42,11 @@ export function SeccionNumerada({ numero, titulo, explicacion, children }: Props
         )}
       </header>
 
-      <div className="flex flex-col gap-[18px]">{children}</div>
+      <div className={enColumnas
+        ? 'grid items-start gap-4 sm:grid-cols-[repeat(2,minmax(0,24rem))] [&>*]:min-w-0'
+        : 'flex flex-col gap-4'}>
+        {children}
+      </div>
     </section>
   )
 }

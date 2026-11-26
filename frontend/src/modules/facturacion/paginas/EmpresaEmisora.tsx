@@ -179,6 +179,7 @@ export function EmpresaEmisora() {
         <SeccionNumerada
           numero={1}
           titulo="Identidad fiscal"
+          enColumnas
           explicacion="Encabeza todos los comprobantes que emitís."
         >
           <div className={`${classNameCampo('razonSocial')} max-w-campo-largo`}>
@@ -263,6 +264,7 @@ export function EmpresaEmisora() {
         <SeccionNumerada
           numero={2}
           titulo="Datos de facturación"
+          enColumnas
         >
           <div className={`${classNameCampo('ingresosBrutos')} max-w-campo-medio`}>
             <label htmlFor="ingresosBrutos">Número de ingresos brutos (opcional)</label>
@@ -310,6 +312,7 @@ export function EmpresaEmisora() {
         <SeccionNumerada
           numero={3}
           titulo="Contacto y cobro"
+          enColumnas
         >
           <div className={`${classNameCampo('cbu')} max-w-campo-medio`}>
             {/* Vacío ⇒ la banda de CBU no sale impresa en el documento (FR-031). */}

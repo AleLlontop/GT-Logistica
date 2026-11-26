@@ -6,7 +6,7 @@ import type { ContextoAnalisis, CriterioTemporal } from '../servicios/tiposAnali
 const CRITERIOS: Record<CriterioTemporal, string> = {
   fechaViaje: 'Fecha del viaje', fechaFactura: 'Fecha de factura', fechaCobro: 'Fecha efectiva de cobro',
   periodoLiquidado: 'Período liquidado (meses completos)', fechaPago: 'Fecha efectiva de pago',
-  fechaMovimientoArgentina: 'Fecha del movimiento en Argentina', situacionActual: 'Situación actual', perspectivasSeparadas: 'Documentos y flujos con criterios separados',
+  fechaMovimientoArgentina: 'Fecha del movimiento', situacionActual: 'Situación actual', perspectivasSeparadas: 'Documentos y flujos con criterios separados',
 }
 export function ResumenReporte({ contexto, children }: { contexto: ContextoAnalisis; children?: ReactNode }) {
   return <aside aria-label="Contexto de la consulta" className="rounded-card border border-line bg-surface p-4 text-sm text-ink-soft">
@@ -15,7 +15,7 @@ export function ResumenReporte({ contexto, children }: { contexto: ContextoAnali
       ? `Situación actual al ${formatearFecha(contexto.hoyArgentina)}. No es un corte histórico por el período.`
       : `Desde ${formatearFecha(contexto.desde!)} hasta ${formatearFecha(contexto.hasta!)} inclusive.`}</p>
     {contexto.criterioTemporal === 'periodoLiquidado' && <p className="mt-1 mb-0">Se incluyen completos los meses {contexto.periodoLiquidadoDesde} a {contexto.periodoLiquidadoHasta}, sin prorratear.</p>}
-    <p className="mt-1 mb-0">Actualizado el {instanteArgentina(contexto.consultadoEn)} (Argentina). La vigencia es la de esta consulta.</p>
+    <p className="mt-1 mb-0">Actualizado el {instanteArgentina(contexto.consultadoEn)}. La vigencia es la de esta consulta.</p>
     {children}
   </aside>
 }

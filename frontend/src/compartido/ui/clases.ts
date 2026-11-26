@@ -120,7 +120,7 @@ export function clasesDeControl(conError = false, className?: string) {
  */
 export function clasesDeFiltro(activo: boolean, className?: string) {
   return cn(
-    'rounded-field border px-3.5 py-2 text-[12.5px] text-ink',
+    'h-10 min-w-0 max-w-full rounded-field border px-3.5 py-2 text-[12.5px] text-ink',
     'placeholder:text-faint transition-[background-color,border-color,box-shadow] duration-150 ease-gt hover:border-brand/60 disabled:hover:border-line-strong',
     'focus:border-brand focus:bg-surface focus:shadow-focus focus:outline-none',
     activo ? 'border-brand/40 bg-brand-soft font-semibold' : 'border-line-strong bg-surface-soft',
@@ -220,7 +220,8 @@ export const clasesDeFormulario = cn(
  */
 export const clasesDeFormularioAgrupado = cn(
   clasesDeFormulario,
-  'gap-0 overflow-hidden rounded-card border border-line bg-surface shadow-card',
+  // Recorta las esquinas sin crear un contenedor de scroll que intercepte el pie sticky.
+  'gap-0 overflow-clip rounded-card border border-line bg-surface shadow-card',
   // Los avisos de nivel formulario son hijos directos del `<form>`, que no tiene relleno propio:
   // sin esto quedarían pegados al borde de la isla.
   '[&>p]:mx-[30px] [&>p]:mt-[26px] [&>p]:mb-0',

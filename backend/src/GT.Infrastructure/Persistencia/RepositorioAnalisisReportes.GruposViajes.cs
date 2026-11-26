@@ -50,7 +50,7 @@ public partial class RepositorioAnalisisReportes
             var consulta = transportistas
                 ? db.Transportistas.AsNoTracking().Select(t => new { t.Id, Nombre = t.Nombre, t.Activo })
                 : db.Clientes.AsNoTracking().Select(c => new { c.Id, Nombre = c.RazonSocial, c.Activo });
-            if (!string.IsNullOrWhiteSpace(busqueda)) consulta = consulta.Where(r => r.Nombre.Contains(busqueda.Trim()));
+            if (!string.IsNullOrWhiteSpace(busqueda)) consulta = consulta.Where(r => EF.Functions.Collate(r.Nombre, BusquedaTextoSql.Colacion).Contains(busqueda.Trim()));
             var total = await consulta.CountAsync(token);
             var filas = await consulta.OrderBy(r => r.Nombre).ThenBy(r => r.Id).Skip((pagina.Pagina - 1) * pagina.TamanioPagina).Take(pagina.TamanioPagina)
                 .Select(r => new ReferenciaAnalisis(r.Id, r.Nombre, r.Activo)).ToArrayAsync(token);

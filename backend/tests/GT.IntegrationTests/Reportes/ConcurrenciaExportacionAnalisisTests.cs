@@ -86,9 +86,17 @@ public sealed class BarreraRenderAnalisis
 public class AplicacionConBarreraRender : AplicacionAnalisisDePrueba
 {
     public BarreraRenderAnalisis Barrera { get; } = new();
+
+    // El reporte captura una factura aún vigente antes de registrar su cobro.
+    private sealed class RelojDeExportacion : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => new(2026, 10, 20, 15, 0, 0, TimeSpan.Zero);
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         base.ConfigureWebHost(builder);
+        builder.ConfigureServices(s => s.AddSingleton<TimeProvider>(new RelojDeExportacion()));
         builder.ConfigureServices(s => s.AddScoped<IArmadorReportePdf>(sp => new ArmadorObservado(sp.GetRequiredService<GtDbContext>(), Barrera)));
     }
     private sealed class ArmadorObservado(GtDbContext db, BarreraRenderAnalisis barrera) : IArmadorReportePdf

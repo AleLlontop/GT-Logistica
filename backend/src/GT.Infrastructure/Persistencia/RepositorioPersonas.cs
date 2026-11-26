@@ -21,20 +21,20 @@ public class RepositorioPersonas(GtDbContext contexto) : IRepositorioPersonas
 
         if (!string.IsNullOrWhiteSpace(texto))
         {
-            // Coincidencia parcial en cualquier posición, sin distinguir mayúsculas. Se compara
-            // sobre el texto ya pasado a minúsculas en vez de confiar en la *collation* del
-            // servidor, por el mismo motivo que el listado de usuarios (research §4).
-            var buscado = texto.Trim().ToLowerInvariant();
+            // Nombre y apellido admiten parciales y el nombre completo en ambos órdenes. La
+            // collation de búsqueda no modifica el dato guardado ni la comparación del DNI.
+            var buscado = texto.Trim();
 
             consulta = consulta.Where(persona =>
-                persona.Nombre.ToLower().Contains(buscado) ||
-                persona.Apellido.ToLower().Contains(buscado) ||
+                EF.Functions.Collate(persona.Nombre + " " + persona.Apellido, BusquedaTextoSql.Colacion).Contains(buscado) ||
+                EF.Functions.Collate(persona.Apellido + " " + persona.Nombre, BusquedaTextoSql.Colacion).Contains(buscado) ||
                 persona.Dni.Contains(buscado));
         }
 
         return await consulta
             .OrderBy(persona => persona.Apellido)
             .ThenBy(persona => persona.Nombre)
+            .ThenBy(persona => persona.Id)
             .ToListAsync(cancelacion);
     }
 

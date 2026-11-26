@@ -317,7 +317,7 @@ function FormularioDeAdelanto() {
           </CampoDeAdelanto>
         </SeccionNumerada>
 
-        <SeccionNumerada numero={2} titulo="Adelanto">
+        <SeccionNumerada numero={2} titulo="Adelanto" enColumnas>
           <CampoDeAdelanto
             id="fecha"
             etiqueta="Fecha"

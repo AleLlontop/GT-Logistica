@@ -43,7 +43,7 @@ public static class ElegibilidadPagosSql
         if (!string.IsNullOrWhiteSpace(q))
         {
             q = q.Trim();
-            consulta = consulta.Where(p => p.RazonSocial.Contains(q) || p.Cuit.Contains(q));
+            consulta = consulta.Where(p => EF.Functions.Collate(p.RazonSocial, BusquedaTextoSql.Colacion).Contains(q) || p.Cuit.Contains(q));
         }
         return new(await consulta.OrderBy(x => x.RazonSocial).ThenBy(x => x.Id).Skip((pagina - 1) * 20).Take(20)
             .Select(x => new ProveedorOpcion(x.Id, x.RazonSocial, x.Cuit, x.Tipo, x.Activo)).ToListAsync(ct),

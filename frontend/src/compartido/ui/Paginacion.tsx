@@ -6,17 +6,14 @@ interface Props {
   total: number
   tamanioPagina: number
   onCambiarPagina: (pagina: number) => void
-  /** Cómo se llaman las filas, para poder decir "20 de 73 choferes" y no "20 de 73 elementos". */
   nombrePlural: string
+  nombreSingular?: string
+  /** Para listados que sólo informan la cantidad de resultados en el pie. */
+  mostrarTotalEnUnaPagina?: boolean
 }
 
 /**
- * El control de paginación del sistema. Reemplaza a las cuatro copias que tenían choferes, flota,
- * viajes y facturación, que eran la misma de 41 a 49 líneas con distinto nombre de parámetro.
- *
- * **El texto no cambia ni una coma**: cuatro tests de la suite lo verifican palabra por palabra
- * (`'Página 2 de 4, mostrando 21 a 40 de 73 choferes'`). Lo mismo el `role="status"`, que es lo que
- * avisa a quien usa lector de pantalla que la lista cambió aunque la pantalla no.
+ * Pie del listado. El rango se anuncia cuando cambia y la página acompaña a los botones.
  */
 export function Paginacion({
   pagina,
@@ -24,45 +21,42 @@ export function Paginacion({
   tamanioPagina,
   onCambiarPagina,
   nombrePlural,
+  nombreSingular,
+  mostrarTotalEnUnaPagina = false,
 }: Props) {
   const paginas = Math.max(1, Math.ceil(total / tamanioPagina))
-  const desde = total === 0 ? 0 : (pagina - 1) * tamanioPagina + 1
+  const desde = (pagina - 1) * tamanioPagina + 1
   const hasta = Math.min(pagina * tamanioPagina, total)
 
-  if (total <= tamanioPagina) {
+  if (total === 0 || (!mostrarTotalEnUnaPagina && paginas === 1)) {
     return null
   }
 
+  const Contenedor = paginas > 1 ? 'nav' : 'div'
   return (
-    <nav
-      aria-label="Paginación"
-      className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-surface-soft px-5 py-3.5"
+    <Contenedor
+      aria-label={paginas > 1 ? 'Paginación' : undefined}
+      className="flex flex-wrap items-center gap-3 border-t border-line bg-surface-soft px-4 py-3.5 sm:px-5"
     >
       <p role="status" className="m-0 text-[12.5px] text-ink-soft">
-        Página {pagina} de {paginas}, mostrando {desde} a {hasta} de {total} {nombrePlural}
+        {total === 1 && nombreSingular ? `1 ${nombreSingular}` : `${desde}–${hasta} de ${total} ${nombrePlural}`}
       </p>
 
-      <div className="flex items-center gap-2">
-        <Boton
-          variante="secundario"
-          tamanio="chico"
-          onClick={() => onCambiarPagina(pagina - 1)}
-          disabled={pagina <= 1}
-        >
-          <IconoAnterior aria-hidden="true" className="size-4" />
-          Anterior
-        </Boton>
-
-        <Boton
-          variante="secundario"
-          tamanio="chico"
-          onClick={() => onCambiarPagina(pagina + 1)}
-          disabled={pagina >= paginas}
-        >
-          Siguiente
-          <IconoSiguiente aria-hidden="true" className="size-4" />
-        </Boton>
-      </div>
-    </nav>
+      {paginas > 1 && (
+        <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-2">
+          <span className="text-[12.5px] text-ink-soft">Página {pagina} de {paginas}</span>
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+            <Boton variante="secundario" tamanio="chico" onClick={() => onCambiarPagina(pagina - 1)} disabled={pagina <= 1}>
+              <IconoAnterior aria-hidden="true" className="size-4" />
+              Anterior
+            </Boton>
+            <Boton variante="secundario" tamanio="chico" onClick={() => onCambiarPagina(pagina + 1)} disabled={pagina >= paginas}>
+              Siguiente
+              <IconoSiguiente aria-hidden="true" className="size-4" />
+            </Boton>
+          </div>
+        </div>
+      )}
+    </Contenedor>
   )
 }

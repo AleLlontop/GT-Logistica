@@ -148,6 +148,7 @@ export function FormularioCliente() {
         <SeccionNumerada
           numero={1}
           titulo="Identidad fiscal"
+          enColumnas
           explicacion="Los dos salen impresos en el comprobante."
         >
           <div className={`${classNameCampo('razonSocial')} max-w-campo-largo`}>
@@ -193,6 +194,7 @@ export function FormularioCliente() {
         <SeccionNumerada
           numero={2}
           titulo="Contacto"
+          enColumnas
         >
           <div className={`${classNameCampo('telefono')} max-w-campo-medio`}>
             <label htmlFor="telefono">Teléfono</label>
@@ -232,7 +234,7 @@ export function FormularioCliente() {
             )}
           </div>
 
-          <div className={`${classNameCampo('direccion')} max-w-campo-largo`}>
+          <div className={`${classNameCampo('direccion')} max-w-campo-largo sm:col-span-2`}>
             {/* Opcional: el módulo no la usa para operar y no se pide por las dudas (Principio V). */}
             <label htmlFor="direccion">Dirección (opcional)</label>
             <input

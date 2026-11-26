@@ -294,17 +294,16 @@ export function ListadoClientes({ puedeGestionar }: Props) {
             </table>
           </TablaDesplazable>
         )}
+        {resultado !== null && (
+          <Paginacion
+            pagina={resultado.pagina}
+            total={resultado.total}
+            tamanioPagina={resultado.tamanioPagina}
+            nombrePlural="clientes"
+            onCambiarPagina={setPagina}
+          />
+        )}
       </Listado>
-
-      {resultado !== null && (
-        <Paginacion
-          pagina={resultado.pagina}
-          total={resultado.total}
-          tamanioPagina={resultado.tamanioPagina}
-          nombrePlural="clientes"
-          onCambiarPagina={setPagina}
-        />
-      )}
 
       {aBajar !== null && (
         <ConfirmacionBajaCliente

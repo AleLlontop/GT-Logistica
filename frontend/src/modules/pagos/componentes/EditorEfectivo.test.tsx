@@ -6,7 +6,7 @@ import type { ImporteDecimal } from '../servicios/tipos'
 it('fecha servida sólo informativa, sin selector de caja y con importe exacto temporal', async () => {
   const guardar = vi.fn(); const usuario = userEvent.setup()
   render(<EditorEfectivo hoy="2026-10-18" onGuardar={guardar} onCancelar={vi.fn()} />)
-  expect(screen.getByText('18/10/2026')).toBeVisible()
+  expect(screen.getByText('18/10/2026').closest('p')).toHaveTextContent('Fecha: 18/10/2026. El efectivo se registra con la fecha en que generás la orden.')
   expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
   await usuario.type(screen.getByLabelText('Importe'), '60,01')
   await usuario.click(screen.getByRole('button', { name: 'Agregar medio' }))

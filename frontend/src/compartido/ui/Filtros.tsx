@@ -1,15 +1,17 @@
 import type { ReactNode } from 'react'
 import { cn } from './cn'
+import { Boton } from './Boton'
+import { IconoCerrar } from './iconos'
 
 /**
  * El bloque de filtros de un listado: **el contenedor de las tres franjas** (FR-032).
  *
- * De arriba abajo: el buscador a todo el ancho, los filtros debajo como desplegables compactos, y el
+ * De arriba abajo: el buscador, los filtros debajo como desplegables compactos, y el
  * resumen al pie. La primitiva **da el lugar y el estilo; no decide el orden de sus hijos**: los
  * controles llegan como `children` y es cada superficie de filtro la que los ordena, porque cuáles
  * hay y cuál es el buscador lo sabe la pantalla y no el contenedor.
  *
- * Eso significa que *"el buscador primero y a todo el ancho"* (FR-033) y *"el que está filtrando se
+ * Eso significa que *"el buscador primero"* (FR-033) y *"el que está filtrando se
  * distingue"* (FR-034) se cumplen **archivo por archivo**, en las ocho superficies de filtro del
  * sistema. Reestilar este contenedor sin tocarlas dejaría las dos reglas sin cumplir en las ocho
  * pantallas que filtran.
@@ -34,16 +36,16 @@ interface Props {
 export function Filtros({ children, declaracion, resumen, className }: Props) {
   return (
     <div className={cn('border-b border-line', className)}>
-      <div className="flex flex-col gap-3.5 px-5 py-4">{children}</div>
+      <div className="flex flex-col gap-3.5 px-4 py-4 sm:px-5">{children}</div>
 
       {declaracion !== undefined && (
-        <p className="m-0 border-t border-line px-5 py-2.5 text-[12.5px] text-ink-soft">
+        <p className="m-0 border-t border-line px-4 py-2.5 text-[12.5px] text-ink-soft sm:px-5">
           {declaracion}
         </p>
       )}
 
       {resumen !== undefined && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line bg-surface-soft px-5 py-2.5 text-[11.5px] text-muted">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line bg-surface-soft px-4 py-2.5 text-[11.5px] text-muted sm:px-5">
           {resumen}
         </div>
       )}
@@ -52,17 +54,26 @@ export function Filtros({ children, declaracion, resumen, className }: Props) {
 }
 
 /**
- * La franja de arriba: el buscador, **a todo el ancho** (FR-033).
+ * La franja de arriba: el buscador, con un ancho máximo que deja legible la consulta.
  *
  * Cuando una pantalla no tiene búsqueda por texto —`FiltrosFacturas` y `FiltrosFlota` filtran sólo
  * con desplegables— esta franja simplemente no se dibuja. **No se inventa un buscador** que la
  * pantalla no tiene.
  */
 export function FranjaDeBusqueda({ children }: { children: ReactNode }) {
-  return <div className="flex flex-wrap items-end gap-3.5 [&>*]:min-w-0 [&>*]:flex-1">{children}</div>
+  return <div className="flex flex-wrap items-end gap-3.5 [&>*]:min-w-0 [&>*]:max-w-md [&>*]:flex-[1_1_12rem]">{children}</div>
 }
 
 /** La franja del medio: los filtros, como desplegables compactos que muestran su valor actual. */
 export function FranjaDeFiltros({ children }: { children: ReactNode }) {
-  return <div className="flex flex-wrap items-start gap-3.5">{children}</div>
+  return <div className="flex flex-wrap items-end gap-3.5 [&>*]:min-w-0 [&>*]:max-w-full [&>label]:min-h-10">{children}</div>
+}
+
+export function BotonLimpiarFiltros({ onClick, etiqueta = 'Limpiar filtros' }: { onClick: () => void; etiqueta?: string }) {
+  return (
+    <Boton variante="texto" tamanio="chico" className="h-10 px-3 py-0 no-underline hover:bg-surface-hover hover:underline" onClick={onClick}>
+      <IconoCerrar aria-hidden="true" className="size-4" />
+      {etiqueta}
+    </Boton>
+  )
 }

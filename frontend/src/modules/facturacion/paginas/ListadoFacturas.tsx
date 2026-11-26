@@ -230,17 +230,16 @@ export function ListadoFacturas({ puedeGestionar }: Props) {
             </table>
           </TablaDesplazable>
         )}
+        {resultado !== null && (
+          <Paginacion
+            pagina={resultado.pagina}
+            total={resultado.total}
+            tamanioPagina={resultado.tamanioPagina}
+            nombrePlural="facturas"
+            onCambiarPagina={setPagina}
+          />
+        )}
       </Listado>
-
-      {resultado !== null && (
-        <Paginacion
-          pagina={resultado.pagina}
-          total={resultado.total}
-          tamanioPagina={resultado.tamanioPagina}
-          nombrePlural="facturas"
-          onCambiarPagina={setPagina}
-        />
-      )}
     </section>
   )
 }

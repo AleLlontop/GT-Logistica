@@ -38,21 +38,19 @@ export function BarraDeAcciones({ anclaje, leyenda, children }: Props) {
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center justify-between gap-4',
+        'flex flex-wrap items-center gap-x-4 gap-y-2',
         anclaje === 'viewport'
           ? // Fija al pie de la ventana: la acción principal es alcanzable desde cualquier punto
             // del desplazamiento (FR-030, SC-003).
-            'sticky bottom-0 z-20 rounded-b-card border-t border-line bg-surface px-[30px] py-4 backdrop-blur-sm'
+            'sticky bottom-0 z-20 rounded-b-card border-t border-line bg-surface px-4 py-3.5 backdrop-blur-sm sm:px-[30px]'
           : 'mt-2 border-t border-line pt-[18px]',
       )}
     >
       {leyenda !== undefined ? (
         <p className="m-0 text-[11.5px] text-faint">{leyenda}</p>
-      ) : (
-        <span />
-      )}
+      ) : null}
 
-      <div className="flex flex-wrap items-center gap-2.5">{children}</div>
+      <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2.5">{children}</div>
     </div>
   )
 }

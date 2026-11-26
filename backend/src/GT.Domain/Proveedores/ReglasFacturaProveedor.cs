@@ -15,7 +15,7 @@ public static class ReglasFacturaProveedor
     {
         if(string.IsNullOrWhiteSpace(numero)) Fallo("numero","Escribí el número de factura.");
         if(numero!.Trim().Length>400) Fallo("numero","El número admite hasta 400 caracteres.");
-        if(fecha is null || fecha>hoy) Fallo("fecha","La fecha de factura no puede ser posterior a hoy en Argentina.");
+        if(fecha is null || fecha>hoy) Fallo("fecha","La fecha no puede ser posterior a hoy.");
         if(string.IsNullOrWhiteSpace(detalle)) Fallo("detalle","Escribí el detalle.");
         if(string.IsNullOrWhiteSpace(cae)) Fallo("cae","Escribí el CAE.");
         if(vencimiento is null || vencimiento<fecha) Fallo("fechaVencimientoCae","El vencimiento del CAE debe ser igual o posterior a la fecha de factura.");

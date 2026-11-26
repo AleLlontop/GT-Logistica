@@ -38,7 +38,7 @@ public static class FuenteAnalisisPagos
          ColumnaDeReporte.Texto("Origen") with { AnchoRelativoPdf = 0.8f },
          ColumnaDeReporte.Texto("OPP de origen") with { AnchoRelativoPdf = 1f },
          ColumnaDeReporte.Texto("Vigencia") with { AnchoRelativoPdf = 1f },
-         ColumnaDeReporte.Texto("Revertida el (Argentina)") with { AnchoRelativoPdf = 1.7f },
+         ColumnaDeReporte.Texto("Reversión") with { AnchoRelativoPdf = 1.7f },
          ColumnaDeReporte.Texto("Revertida por") with { AnchoRelativoPdf = 1.5f }],
         datos.Detalle.Items.Select(o => (IReadOnlyList<CeldaDeReporte>)[CeldaDeReporte.Texto(o.Numero), CeldaDeReporte.Texto(o.LiquidacionNumero),
             CeldaDeReporte.Texto(o.PeriodoLiquidado), CeldaDeReporte.Texto(o.Transportista.Nombre), CeldaDeReporte.Fecha(o.FechaPago),

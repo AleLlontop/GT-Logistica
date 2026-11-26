@@ -20,7 +20,7 @@ interface Props {
 /**
  * Los cuatro filtros del listado más la búsqueda (FR-041, FR-042 del Módulo 5).
  *
- * **El buscador sube a la primera franja y va a todo el ancho** (FR-033). Estaba **último**, después
+ * **El buscador va en la primera franja** (FR-033). Estaba **último**, después
  * de tres desplegables y dos fechas: el control con el que más se entra a la pantalla era el que
  * había que ir a buscar. Los demás quedan debajo como desplegables compactos, y **el que está
  * filtrando se distingue** por borde y fondo propios (FR-034).

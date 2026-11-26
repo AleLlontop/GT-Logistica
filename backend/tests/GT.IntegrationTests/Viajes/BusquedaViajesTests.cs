@@ -7,7 +7,7 @@ namespace GT.IntegrationTests.Viajes;
 /// La búsqueda por texto (FR-042, US5 esc. 3 y 4).
 ///
 /// <b>Sin distinguir mayúsculas ni acentos</b>, sobre origen, destino y razón social del cliente. Lo
-/// resuelve una colación explícita en la consulta —<c>Latin1_General_CI_AI</c>— y no un recorrido en
+/// resuelve una colación explícita española en la consulta —<c>Modern_Spanish_100_CI_AI</c>— y no un recorrido en
 /// memoria: quien busca "cordoba" en el teclado del galpón tiene que encontrar "Córdoba".
 /// </summary>
 public class BusquedaViajesTests(AplicacionDePrueba app) : IClassFixture<AplicacionDePrueba>

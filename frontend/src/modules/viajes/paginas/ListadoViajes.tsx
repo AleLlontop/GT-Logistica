@@ -261,6 +261,15 @@ export function ListadoViajes({ puedeGestionar, puedeEmitirReportes }: Props) {
             </table>
           </TablaDesplazable>
         )}
+        {resultado !== null && (
+          <Paginacion
+            pagina={resultado.pagina}
+            total={resultado.total}
+            tamanioPagina={resultado.tamanioPagina}
+            nombrePlural="viajes"
+            onCambiarPagina={setPagina}
+          />
+        )}
       </Listado>
 
       {/* Al filtrar por anulado, cada fila muestra su motivo (Módulo 5, US6 esc. 5). */}
@@ -283,17 +292,6 @@ export function ListadoViajes({ puedeGestionar, puedeEmitirReportes }: Props) {
             ))}
           </dl>
         </section>
-      )}
-
-      {resultado !== null && (
-        <Paginacion
-
-          pagina={resultado.pagina}
-          total={resultado.total}
-          tamanioPagina={resultado.tamanioPagina}
-          nombrePlural="viajes"
-          onCambiarPagina={setPagina}
-        />
       )}
     </section>
   )

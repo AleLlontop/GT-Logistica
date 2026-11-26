@@ -51,6 +51,7 @@ public class ExportacionActividadAnalisisTests(AplicacionAnalisisDePrueba app) :
         Assert.Equal(new[] { "Fecha", "Tipo", "Importe", "Concepto", "Responsable", "Referencia" }, reporte.Columnas.Select(c => c.Nombre));
         Assert.All(reporte.Filas, f => { Assert.Equal(new DateOnly(2026, 10, 31), f[0].ValorFecha); Assert.Equal("Egreso", f[1].ValorTexto); });
         Assert.Equal(-21.21m, reporte.Totales.Single(t => t.Etiqueta == "Movimiento neto").Importe);
+        Assert.StartsWith("Criterio temporal: Fecha del movimiento · Desde: 01/10/2026 · Hasta: 31/10/2026 · Caja:", reporte.Encabezado.Filtros);
         Assert.Contains("no saldo disponible", reporte.Encabezado.Filtros);
         Assert.Null(scope.ServiceProvider.GetRequiredService<GtDbContext>().Database.CurrentTransaction);
     }

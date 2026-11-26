@@ -226,6 +226,7 @@ export function FormularioUsuario() {
         <SeccionNumerada
           numero={1}
           titulo="Acceso"
+          enColumnas
           explicacion="Con qué entra al sistema. La contraseña inicial se cambia al primer ingreso."
         >
           <div className="campo max-w-campo-medio">

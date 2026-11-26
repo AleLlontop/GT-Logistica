@@ -48,7 +48,7 @@ public partial class RepositorioAnalisisReportes
             var caja = filtro.CajaId is { } cajaId
                 ? await db.Cajas.AsNoTracking().Where(c => c.Id == cajaId)
                     .Select(c => new { Nombre = c.UsuarioResponsable!.Username, c.FechaApertura }).SingleOrDefaultAsync(token) : null;
-            var filtros = PeriodoExportacion(filtro.Periodo, "Fecha del movimiento en Argentina")
+            var filtros = PeriodoExportacion(filtro.Periodo, "Fecha del movimiento")
                 .Con("Caja", caja is not null ? NombreCajaAnalisis.Desde(caja.Nombre, caja.FechaApertura)
                     : filtro.CajaId is { } id ? $"ID {id} (sin coincidencias)" : "Todas")
                 .Con("Neto", "Movimiento neto del período, no saldo disponible").ToString();

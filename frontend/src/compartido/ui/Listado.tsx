@@ -15,7 +15,7 @@ import { cn } from './cn'
  *   fila; las dos cosas juntas ensucian y hacen que la tabla pese más que su contenido.
  * - Los **encabezados van en eyebrow** —9,5 px Bold, mayúsculas, tracking ancho— sobre `surface-soft`
  *   y en `encabezado`, que es el gris recalibrado a 4,59:1 sobre ese fondo (FR-036).
- * - **La altura de fila es pareja**: `px-5 py-[13px]`, y el dato secundario que haría crecer una fila
+ * - **La altura de fila es pareja**: `py-3`, y el dato secundario que haría crecer una fila
  *   va como metadata de 11,5 px debajo del principal, no en su propia línea de tamaño completo.
  * - Los importes se alinean a la derecha, en negrita y **en una sola línea** (FR-039): alcanza con
  *   ponerle `text-right` al `th` y a los `td` de esa columna.
@@ -40,8 +40,8 @@ export function Listado({ children, className }: Props) {
 
         // Encabezado en eyebrow, sobre `surface-soft` (FR-036).
         '[&_thead]:bg-surface-soft',
-        '[&_th]:border-b [&_th]:border-line [&_th]:px-5 [&_th]:py-2.5',
-        '[&_th]:text-left [&_th]:text-[10px] [&_th]:font-bold',
+        '[&_th]:border-b [&_th]:border-line [&_th]:px-4 [&_th]:py-2.5 sm:[&_th]:px-5',
+        '[:where(&)_th]:text-left [&_th]:text-[10px] [&_th]:font-bold',
         '[&_th]:tracking-[0.14em] [&_th]:text-encabezado [&_th]:uppercase',
         '[&_th]:whitespace-nowrap',
 
@@ -50,7 +50,7 @@ export function Listado({ children, className }: Props) {
         '[&_tbody_tr:last-child]:border-b-0',
         '[&_tbody_tr]:transition-colors [&_tbody_tr]:duration-200 [&_tbody_tr]:ease-gt',
         '[&_tbody_tr:hover]:bg-surface-soft [&_tbody_tr:focus-within]:bg-brand-soft',
-        '[&_td]:px-5 [&_td]:py-[13px] [&_td]:align-middle [&_td]:text-ink',
+        '[&_td]:px-4 [&_td]:py-3 [&_td]:align-middle [&_td]:text-ink sm:[&_td]:px-5',
 
         // Pie de tabla —totales—, con el mismo fondo que el encabezado.
         '[&_tfoot]:bg-surface-soft [&_tfoot_td]:border-t [&_tfoot_td]:border-line',

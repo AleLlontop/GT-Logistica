@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { clasesDeBoton } from '../../../compartido/ui/clases'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
-import { FilaNavegable } from '../../../compartido/ui/FilaNavegable'
+import { EncabezadoDeChevron, FilaNavegable } from '../../../compartido/ui/FilaNavegable'
 import { EnlaceDeFila } from '../../../compartido/ui/EnlaceDeFila'
 import { Paginacion } from '../../../compartido/ui/Paginacion'
 import { listarBancos, mensajePago } from '../servicios/pagos'
@@ -27,7 +27,7 @@ export function Bancos({ puedeGestionar = false }: { puedeGestionar?: boolean })
     <Listado>
       {cargando ? <p role="status" className="p-5">Cargando bancos…</p> : error ? <p role="alert" className="p-5">{error}</p>
         : resultado?.items.length === 0 ? <p role="status" className="p-5">No hay bancos registrados.</p>
-        : resultado && <TablaDesplazable><table><caption>Bancos registrados</caption><thead><tr><th scope="col">Nombre</th><th scope="col">Estado</th></tr></thead>
+        : resultado && <TablaDesplazable><table><caption>Bancos registrados</caption><thead><tr><th scope="col">Nombre</th><th scope="col">Estado</th><EncabezadoDeChevron /></tr></thead>
           <tbody>{resultado.items.map(b => <FilaNavegable key={b.id} a={`/pagos/bancos/${b.id}`}>
             <td><EnlaceDeFila a={`/pagos/bancos/${b.id}`}>{b.nombre}</EnlaceDeFila></td><td>{b.activo ? 'Activo' : 'Inactivo'}</td>
           </FilaNavegable>)}</tbody></table></TablaDesplazable>}

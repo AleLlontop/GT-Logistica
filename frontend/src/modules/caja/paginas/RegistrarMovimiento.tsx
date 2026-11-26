@@ -282,7 +282,7 @@ function FormularioDeMovimiento({
       )}
 
       <form onSubmit={guardar} noValidate className={clasesDeFormularioAgrupado}>
-        <SeccionNumerada numero={1} titulo="Movimiento">
+        <SeccionNumerada numero={1} titulo="Movimiento" enColumnas>
           <div className={cn('campo', errorDeTipo !== null && 'con-error')}>
             {/* La misma etiqueta que `.campo>label`, con la marca de obligatorio generada como allí ([008]):
                 un grupo de botones no puede llevar `required`. */}
