@@ -17,6 +17,8 @@ import { cargarFacturaProveedor, consultarLiquidacionesDisponibles } from '../se
 import { calcularImportes } from '../servicios/importesFactura'
 import type { ProveedorResumen, LiquidacionDisponible, ConflictoImportes } from '../servicios/tipos'
 
+const ETIQUETA_COMPROBANTE = 'Comprobante de la factura (opcional)'
+
 export function CargarFacturaProveedor({ puedeCargar = true }: { puedeCargar?: boolean }) {
   const navegar = useNavigate(); const { guardar } = useResultadoFactura()
   const [proveedor, setProveedor] = useState<ProveedorResumen | null>(null)
@@ -33,6 +35,9 @@ export function CargarFacturaProveedor({ puedeCargar = true }: { puedeCargar?: b
   const [guardando, setGuardando] = useState(false)
   const entradaNeto = useRef('')
   const campoPdf = useRef<HTMLInputElement>(null)
+  const selectorPdf = useRef<HTMLButtonElement>(null)
+  const accionPdf = archivo ? 'Cambiar PDF' : 'Elegir PDF'
+  const descripcionPdf = `archivo-ayuda archivo-estado${errores.archivo ? ' archivo-error' : ''}`
   const importes = calcularImportes(datos.neto)
   const liquidacionValida = liquidaciones.some(l => String(l.id) === liquidacionId) && !cargandoLiquidaciones && !errorLiquidaciones
   async function cargarLiquidaciones(p: ProveedorResumen, conservarSeleccion = false) {
@@ -129,8 +134,30 @@ export function CargarFacturaProveedor({ puedeCargar = true }: { puedeCargar?: b
               }} />
           </Campo>
           <dl aria-live="polite"><dt>IVA (21%)</dt><dd>{importes ? formatearPesos(importes.iva) : '—'}</dd><dt>Total</dt><dd>{importes ? formatearPesos(importes.importeTotal) : '—'}</dd></dl>
-          <Campo id="archivo" etiqueta="PDF" ayuda="PDF opcional, hasta 10 MB." error={errores.archivo}><input ref={campoPdf} id="archivo" type="file" accept="application/pdf,.pdf" disabled={guardando} className={clasesDeControl(Boolean(errores.archivo))} aria-describedby={errores.archivo ? 'archivo-error' : 'archivo-ayuda'} onChange={e => setArchivo(e.target.files?.[0])} /></Campo>
-          {archivo && <Boton variante="terciario" disabled={guardando} onClick={() => { setArchivo(undefined); if (campoPdf.current) campoPdf.current.value = '' }}>Quitar PDF</Boton>}
+          <Campo id="archivo" etiqueta={ETIQUETA_COMPROBANTE} ayuda="Formato PDF, hasta 10 MB." ancho="completo" error={errores.archivo}>
+            <input ref={campoPdf} id="archivo" type="file" accept="application/pdf,.pdf" hidden disabled={guardando}
+              aria-invalid={Boolean(errores.archivo)} aria-describedby={descripcionPdf}
+              onChange={e => {
+                const elegido = e.target.files?.[0]
+                // Cancelar el diálogo conserva el comprobante que ya se había elegido.
+                if (!elegido) return
+                setArchivo(elegido); setErrores(actual => ({ ...actual, archivo: '' }))
+              }} />
+            <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center">
+              <Boton ref={selectorPdf} variante="secundario" disabled={guardando} className="shrink-0"
+                aria-label={`${accionPdf}: ${ETIQUETA_COMPROBANTE}`} aria-controls="archivo"
+                aria-describedby={descripcionPdf} aria-invalid={Boolean(errores.archivo)}
+                onClick={() => campoPdf.current?.click()}>{accionPdf}</Boton>
+              <p id="archivo-estado" role="status" className="m-0 min-w-0 text-[13px] text-ink-soft [overflow-wrap:anywhere] sm:flex-1">
+                {archivo ? archivo.name : 'Sin archivo adjunto'}
+              </p>
+              {archivo && <Boton variante="texto" disabled={guardando} className="shrink-0" onClick={() => {
+                setArchivo(undefined); setErrores(actual => ({ ...actual, archivo: '' }))
+                if (campoPdf.current) campoPdf.current.value = ''
+                selectorPdf.current?.focus()
+              }}>Quitar PDF</Boton>}
+            </div>
+          </Campo>
         </SeccionNumerada>
         <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}><Link to="/" className={clasesDeBoton('secundario')}>Cancelar</Link><Boton variante="primario" icono={<IconoEnRegla />} type="submit" disabled={guardando || (proveedor?.tipo === 'fletero' && !liquidacionValida)}>{guardando ? 'Guardando…' : 'Guardar factura'}</Boton></BarraDeAcciones>
       </form>
