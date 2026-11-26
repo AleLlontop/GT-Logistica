@@ -15,9 +15,9 @@ vi.mock('../servicios/proveedores', async importar => ({
 }))
 const normal = { id: 1, razonSocial: 'Acopio', cuit: '30712345671', nombreComercial: null, tipo: 'proveedorNormal' as const, estado: 'activo' as const, telefono: null, email: null, direccion: null, transportistaId: null, version: 1 }
 const pagina = <T,>(items: T[], total = items.length, numero = 1) => ({ items, total, pagina: numero, tamanioPagina: 20 })
-function abrir(ruta = '/proveedores') {
+function abrir(ruta = '/proveedores', puedeGestionar = true) {
   return render(<MemoryRouter initialEntries={[ruta]}><Routes>
-    <Route path="/proveedores" element={<PadronProveedores />} />
+    <Route path="/proveedores" element={<PadronProveedores puedeGestionar={puedeGestionar} />} />
     <Route path="/proveedores/nuevo" element={<FormularioProveedor />} />
     <Route path="/proveedores/:id/editar" element={<FormularioProveedor />} />
     <Route path="/proveedores/:id" element={<DetalleProveedor />} />
@@ -79,6 +79,64 @@ describe('Administración de proveedores US1', () => {
     }))
     for (const etiqueta of etiquetas) expect(screen.getByLabelText(etiqueta)).toHaveValue('')
     expect(screen.getByText('Estado: Todos. Sin filtros aplicados.')).toBeInTheDocument()
+  })
+
+  it('muestra acciones directas, accesibles con teclado, y confirma la baja sin salir del padrón', async () => {
+    const u = userEvent.setup(); abrir()
+    const editar = await screen.findByRole('link', { name: 'Editar' })
+    expect(editar).toHaveAttribute('href', '/proveedores/1/editar')
+    await u.click(editar)
+    expect(await screen.findByRole('heading', { name: 'Editar proveedor' })).toBeInTheDocument()
+    await u.click(screen.getByRole('link', { name: 'Volver a proveedores' }))
+    await screen.findByRole('link', { name: 'Acopio' })
+    screen.getByRole('link', { name: 'Acopio' }).focus()
+    await u.tab()
+    expect(screen.getByRole('link', { name: 'Editar' })).toHaveFocus()
+    await u.tab()
+    const darDeBaja = screen.getByRole('button', { name: 'Dar de baja' })
+    expect(darDeBaja).toHaveFocus()
+    await u.click(darDeBaja)
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    await u.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancelar' }))
+    expect(await screen.findByRole('link', { name: 'Acopio' })).toBeInTheDocument()
+    await u.click(screen.getByRole('button', { name: 'Dar de baja' }))
+    await u.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Confirmar baja' }))
+    await waitFor(() => expect(api.cambiarEstadoProveedor).toHaveBeenCalledWith(1, 1, false))
+  })
+
+  it('ofrece reactivar como acción directa y oculta las acciones sin permiso', async () => {
+    vi.mocked(api.listarProveedores).mockResolvedValue(pagina([{ ...normal, estado: 'inactivo' }]))
+    const u = userEvent.setup(); const vista = abrir()
+    await u.click(await screen.findByRole('button', { name: 'Reactivar' }))
+    await waitFor(() => expect(api.cambiarEstadoProveedor).toHaveBeenCalledWith(1, 1, true))
+
+    vista.unmount()
+    abrir('/proveedores', false)
+    await screen.findByRole('link', { name: 'Acopio' })
+    expect(screen.queryByRole('link', { name: 'Editar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Dar de baja' })).not.toBeInTheDocument()
+  })
+
+  it('separa el rango del número de página y muestra el total en una sola página', async () => {
+    vi.mocked(api.listarProveedores).mockImplementation(async filtros => {
+      const items = filtros.pagina === 1
+        ? Array.from({ length: 20 }, (_, i) => ({ ...normal, id: i + 1, razonSocial: `Proveedor ${i + 1}` }))
+        : Array.from({ length: 10 }, (_, i) => ({ ...normal, id: i + 21, razonSocial: `Proveedor ${i + 21}` }))
+      return pagina(items, 30, filtros.pagina)
+    })
+    const u = userEvent.setup(); const vista = abrir()
+    expect(await screen.findByText('1–20 de 30 proveedores')).toBeInTheDocument()
+    expect(screen.getByText('Página 1 de 2')).toBeInTheDocument()
+    expect(screen.queryByText(/Página 1 de 2,/)).not.toBeInTheDocument()
+    await u.click(screen.getByRole('button', { name: 'Siguiente' }))
+    expect(await screen.findByText('21–30 de 30 proveedores')).toBeInTheDocument()
+    expect(screen.getByText('Página 2 de 2')).toBeInTheDocument()
+
+    vista.unmount()
+    vi.mocked(api.listarProveedores).mockResolvedValue(pagina([normal], 1))
+    abrir()
+    expect(await screen.findByText('1 proveedor')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Siguiente' })).not.toBeInTheDocument()
   })
 
   it('sale del alta normal al detalle y conserva campos ante rechazo', async () => {
