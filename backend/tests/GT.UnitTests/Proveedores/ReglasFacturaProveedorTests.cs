@@ -39,7 +39,9 @@ public class ReglasFacturaProveedorTests
         Assert.Throws<ReglaFacturaProveedorException>(() => ReglasFacturaProveedor.Validar(new string('1',401), Hoy, "Detalle", 1m, "CAE", Hoy, Hoy));
         Assert.Throws<ReglaFacturaProveedorException>(() => ReglasFacturaProveedor.Validar("1", Hoy, "", 1m, "CAE", Hoy, Hoy));
         Assert.Throws<ReglaFacturaProveedorException>(() => ReglasFacturaProveedor.Validar("1", Hoy, "Detalle", 1m, "", Hoy, Hoy));
-        Assert.Throws<ReglaFacturaProveedorException>(() => ReglasFacturaProveedor.Validar("1", Hoy.AddDays(1), "Detalle", 1m, "CAE", Hoy.AddDays(1), Hoy));
+        var fechaFutura = Assert.Throws<ReglaFacturaProveedorException>(() => ReglasFacturaProveedor.Validar("1", Hoy.AddDays(1), "Detalle", 1m, "CAE", Hoy.AddDays(1), Hoy));
+        Assert.Equal("fecha", fechaFutura.Campo);
+        Assert.Equal("La fecha no puede ser posterior a hoy.", fechaFutura.Message);
         Assert.Throws<ReglaFacturaProveedorException>(() => ReglasFacturaProveedor.Validar("1", Hoy, "Detalle", 1m, "CAE", Hoy.AddDays(-1), Hoy));
     }
 

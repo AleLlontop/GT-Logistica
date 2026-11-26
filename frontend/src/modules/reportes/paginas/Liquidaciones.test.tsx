@@ -27,7 +27,8 @@ it('meses completos y pagos parciales documentales; pagos usan días exactos y p
   expect(consultarAnalisis).toHaveBeenLastCalledWith('liquidaciones/pagos', expect.objectContaining({ desde: '2026-09-15', hasta: '2026-10-10' }))
   expect(screen.getByRole('cell', { name: 'Manual' })).toBeInTheDocument(); expect(screen.getByRole('cell', { name: 'Revertido' })).toBeInTheDocument(); expect(screen.getByRole('cell', { name: 'Autora reversión' })).toBeInTheDocument()
   expect(screen.queryByRole('link', { name: 'OPP-8' })).not.toBeInTheDocument()
-  expect(screen.getByRole('cell', { name: /15\/10\/2026.*11:00/ })).toBeInTheDocument()
+  expect(screen.getByRole('columnheader', { name: 'Reversión' })).toBeInTheDocument()
+  expect(screen.getByRole('cell', { name: '15/10/2026, 11:00' })).toBeInTheDocument()
 })
 it('vigencia no se traslada a documentos y ambas exportaciones mantienen perspectiva', async () => {
   vi.mocked(generarReporte).mockResolvedValue({ caso: 'entregado', entrega: 'descargado' } as never); montar(); await screen.findByRole('link', { name: 'LQ-1' })

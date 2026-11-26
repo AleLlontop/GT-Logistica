@@ -18,7 +18,11 @@ function montar(permisos = ['reportes.consultar', 'caja.consultar', 'reportes.em
 afterEach(() => vi.clearAllMocks())
 it('neto negativo, corte argentino y referencias OP/OPP conservadas sin acceso lateral', async () => {
   montar(); expect(await screen.findByText('Movimiento neto')).toBeInTheDocument()
-  expect(screen.getByText(/-.*100,00/)).toBeInTheDocument(); expect(screen.getByRole('cell', { name: /01\/10\/2026.*23:30/ })).toBeInTheDocument()
+  expect(screen.getByText('Fecha del movimiento')).toBeInTheDocument()
+  expect(screen.getByText('Movimientos efectivamente registrados por día. Un egreso y su ingreso compensatorio se muestran por separado en sus fechas. Los cobros y pagos documentales no se agregan como efectivo.')).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Movimientos de caja por mes' })).toBeInTheDocument()
+  expect(screen.getByRole('columnheader', { name: 'Fecha y hora' })).toBeInTheDocument()
+  expect(screen.getByText(/-.*100,00/)).toBeInTheDocument(); expect(screen.getByRole('cell', { name: '01/10/2026, 23:30' })).toBeInTheDocument()
   expect(screen.getByRole('cell', { name: 'OPP-7' })).toBeInTheDocument(); expect(screen.getByRole('cell', { name: 'OP-4' })).toBeInTheDocument()
   expect(screen.queryByRole('link', { name: 'OPP-7' })).not.toBeInTheDocument(); expect(screen.queryByText(/saldo disponible/i)).not.toBeInTheDocument()
 })

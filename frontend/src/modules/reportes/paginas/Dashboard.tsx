@@ -68,7 +68,7 @@ function ContenidoDashboard({ datos, periodo }: { datos: DashboardAnalisis; peri
   if (s.caja.estado === 'disponible') {
     const d = s.caja.datos
     importe('Ingresos de Caja', d.resumen.ingresos); importe('Egresos de Caja', d.resumen.egresos); importe('Movimiento neto de Caja', d.resumen.neto)
-    graficos.push(<GraficoAccesible key="caja" titulo="Caja por mes argentino del movimiento" unidad="ARS" monetario tipo="lineas" datos={d.series.map(m => ({ etiqueta: m.periodo, valores: { ingresos: m.ingresos, egresos: m.egresos, neto: m.neto } }))} series={[{ clave: 'ingresos', nombre: 'Ingresos' }, { clave: 'egresos', nombre: 'Egresos' }, { clave: 'neto', nombre: 'Movimiento neto' }]} />)
+    graficos.push(<GraficoAccesible key="caja" titulo="Movimientos de caja por mes" unidad="ARS" monetario tipo="lineas" datos={d.series.map(m => ({ etiqueta: m.periodo, valores: { ingresos: m.ingresos, egresos: m.egresos, neto: m.neto } }))} series={[{ clave: 'ingresos', nombre: 'Ingresos' }, { clave: 'egresos', nombre: 'Egresos' }, { clave: 'neto', nombre: 'Movimiento neto' }]} />)
   } else denegado('Caja')
   if (s.flota.estado === 'disponible') {
     const d = s.flota.datos

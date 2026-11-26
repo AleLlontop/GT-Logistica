@@ -15,6 +15,7 @@ function detalle(cambiar = false, consultar = false) { render(<MemoryRouter init
 it('muestra estado y situación separados, banco histórico y seis estados en select nativo', async () => {
   render(<MemoryRouter><ChequesPorVencer /></MemoryRouter>)
   expect(await screen.findByRole('link', { name: '000-01' })).toBeVisible()
+  expect(screen.getByText('Incluye cheques vencidos y con vencimiento entre hoy y los próximos 30 días, inclusive. Los filtros restringen este período.')).toBeVisible()
   expect(screen.getByRole('cell', { name: 'Pendiente' })).toBeVisible(); expect(screen.getByRole('cell', { name: 'Vencido' })).toBeVisible()
   expect(await screen.findByRole('option', { name: 'Banco — Inactivo' })).toBeVisible()
   expect(within(screen.getByLabelText('Estado')).getAllByRole('option')).toHaveLength(7)

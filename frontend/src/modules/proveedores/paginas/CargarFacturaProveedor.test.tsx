@@ -79,7 +79,7 @@ it('rechaza neto cero y fechas inválidas antes del POST',async()=>{
   fireEvent.change(screen.getByLabelText('Fecha de factura'),{target:{value:'2999-01-01'}})
   await u.click(screen.getByRole('button',{name:'Guardar factura'}))
   expect(screen.getByText(/Ingresá un neto mayor a cero/)).toBeInTheDocument();expect(api.cargarFacturaProveedor).not.toHaveBeenCalled()
-  expect(screen.getByText(/La fecha no puede ser posterior/)).toBeInTheDocument()
+  expect(screen.getByText('La fecha no puede ser posterior a hoy.')).toBeInTheDocument()
 })
 it('rechaza un neto negativo sin convertirlo silenciosamente a positivo',async()=>{
   abrir();const u=await llenar();fireEvent.change(screen.getByLabelText('Neto'),{target:{value:'-100'}})
@@ -215,7 +215,7 @@ it('impide guardar una factura del día siguiente argentino aunque en UTC ya hay
   fireEvent.change(screen.getByLabelText('Vencimiento del CAE'), { target: { value: '2026-10-20' } })
   fireEvent.change(screen.getByLabelText('Fecha de factura'), { target: { value: '2026-10-17' } })
   await usuario.click(screen.getByRole('button', { name: 'Guardar factura' }))
-  expect(screen.getByText(/La fecha no puede ser posterior/)).toBeInTheDocument()
+  expect(screen.getByText('La fecha no puede ser posterior a hoy.')).toBeInTheDocument()
   expect(api.cargarFacturaProveedor).not.toHaveBeenCalled()
 })
 it('no muestra selector de liquidación para normal',async()=>{

@@ -23,7 +23,7 @@ export function EditorEfectivo({ inicial, hoy, onGuardar, onCancelar, erroresSer
   }
   return <Dialogo titulo={inicial ? 'Editar efectivo' : 'Agregar efectivo'} onCerrar={onCancelar}>
     <form noValidate onSubmit={enviar} className="mt-4 flex flex-col gap-4">
-      <p className="text-ink-soft">Fecha: <time dateTime={hoy}>{formatearFecha(hoy)}</time>. El efectivo se registra con el día argentino actual al Generar.</p>
+      <p className="text-ink-soft">Fecha: <time dateTime={hoy}>{formatearFecha(hoy)}</time>. El efectivo se registra con la fecha en que generás la orden.</p>
       <Campo id="efectivo-importe" etiqueta="Importe" obligatorio error={error}>
         <InputImporte id="efectivo-importe" required value={importe} className={clasesDeControl(!!error)}
           aria-invalid={!!error} aria-describedby={error ? 'efectivo-importe-error' : undefined}

@@ -27,6 +27,7 @@ public class FuentesLiquidacionesAnalisisTests
         Assert.Equal(121.01m, celdas[5].ValorImporte);
         Assert.Equal("OPP-4", celdas[7].ValorTexto);
         Assert.Equal("Revertida", celdas[8].ValorTexto);
+        Assert.Equal("Reversión", reporte.Columnas[9].Nombre);
         Assert.Equal("01/11/2026 09:00", celdas[9].ValorTexto);
         Assert.Equal("anulador", celdas[10].ValorTexto);
         Assert.Equal(0m, reporte.Totales.Single(t => t.Etiqueta == "Pagado vigente en el período").Importe);

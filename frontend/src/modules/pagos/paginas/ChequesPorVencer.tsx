@@ -38,7 +38,7 @@ export function ChequesPorVencer() {
   function limpiar() { setBancoId(''); setEstado(''); setDesde(''); setHasta(''); setRango(''); setFiltros({ pagina: 1 }) }
   return <>
     <EncabezadoDePantalla titulo="Cheques por vencer" />
-    <p>Incluye cheques vencidos y con vencimiento entre hoy y los próximos 30 días, inclusive, según la fecha argentina. Los filtros restringen este período.</p>
+    <p>Incluye cheques vencidos y con vencimiento entre hoy y los próximos 30 días, inclusive. Los filtros restringen este período.</p>
     <form onSubmit={filtrar} className="my-5 grid grid-cols-1 gap-4 rounded-card border border-line bg-surface p-5 sm:grid-cols-2 xl:grid-cols-4">
       <Campo id="cheques-banco" etiqueta="Banco"><select id="cheques-banco" value={bancoId} onChange={e => setBancoId(e.target.value)} className={clasesDeControl()}><option value="">Todos</option>{bancos.map(b => <option key={b.id} value={b.id}>{b.nombre}{!b.activo && ' — Inactivo'}</option>)}</select></Campo>
       {errorBancos && <p role="alert">{errorBancos}</p>}

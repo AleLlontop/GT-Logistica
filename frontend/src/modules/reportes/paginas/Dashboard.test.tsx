@@ -48,6 +48,7 @@ describe('Dashboard', () => {
     d.secciones.vencimientosChoferes = { estado: 'disponible', datos: { contexto: { ...d.contexto, desde: null, hasta: null, criterioTemporal: 'situacionActual' }, resumen: { cantidad: 3 } } }
     vi.mocked(consultarDashboard).mockResolvedValue(d); montar()
     expect(await screen.findByText('Movimiento neto de Caja')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Movimientos de caja por mes' })).toBeInTheDocument()
     expect(screen.getByText(/-.*9\.999\.999\.999\.999\.999,99/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Vencimientos' })).toHaveAttribute('href', '/reportes/vencimientos')
     expect(screen.getByText(/situación actual, sin corte por período/)).toBeInTheDocument()

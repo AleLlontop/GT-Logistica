@@ -14,7 +14,7 @@ export function SelectorPeriodo({ valor, onCambiar, mostrarErrores = false }: {
     {(['desde', 'hasta'] as const).map(campo => {
       const nombre = `${id}-${campo}`
       const error = mostrarErrores || tocados[campo] ? errores[campo] : undefined
-      return <Campo key={campo} id={nombre} etiqueta={campo === 'desde' ? 'Desde' : 'Hasta'} obligatorio ancho="corto" error={error} ayuda="Día completo de Argentina, inclusive.">
+      return <Campo key={campo} id={nombre} etiqueta={campo === 'desde' ? 'Desde' : 'Hasta'} obligatorio ancho="corto" error={error} ayuda="Día completo, inclusive.">
         <input id={nombre} type="date" required value={valor[campo]} className={clasesDeControl(Boolean(error))}
           aria-invalid={Boolean(error)} aria-describedby={`${nombre}-ayuda${error ? ` ${nombre}-error` : ''}`}
           onBlur={() => setTocados(actual => ({ ...actual, [campo]: true }))}

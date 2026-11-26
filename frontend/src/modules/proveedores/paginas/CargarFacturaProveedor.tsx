@@ -69,7 +69,7 @@ export function CargarFacturaProveedor({ puedeCargar = true }: { puedeCargar?: b
     if (!datos.detalle.trim()) encontrados.detalle = 'Escribí el detalle.'
     if (!importes) encontrados.neto = 'Ingresá un neto mayor a cero, con hasta dos decimales y dentro de la capacidad de almacenamiento.'
     if (!datos.cae.trim()) encontrados.cae = 'Escribí el CAE.'
-    if (!datos.fecha || datos.fecha > diaArgentinaEnIso()) encontrados.fecha = 'La fecha no puede ser posterior a hoy en Argentina.'
+    if (!datos.fecha || datos.fecha > diaArgentinaEnIso()) encontrados.fecha = 'La fecha no puede ser posterior a hoy.'
     if (!datos.fechaVencimientoCae || datos.fechaVencimientoCae < datos.fecha) encontrados.fechaVencimientoCae = 'El vencimiento debe ser igual o posterior a la fecha de factura.'
     if (archivo && (archivo.size === 0 || archivo.size > 10 * 1024 * 1024)) encontrados.archivo = 'El PDF debe tener contenido y pesar como máximo 10 MB.'
     setErrores(encontrados); setError(''); setConflicto(null)
