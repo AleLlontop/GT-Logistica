@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
-import { Boton } from '../../../compartido/ui/Boton'
-import { Filtros, FranjaDeBusqueda, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
+import { BotonLimpiarFiltros, Filtros, FranjaDeBusqueda, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
 import { clasesDeEtiquetaDeFiltro, clasesDeFiltro } from '../../../compartido/ui/clases'
 import type { FiltrosDeTransportistas } from '../servicios/formato'
 import { FILTROS_TRANSPORTISTAS_VACIOS } from '../servicios/formato'
@@ -65,13 +64,7 @@ export function FiltrosTransportistas({ valor, onCambio, resumen }: Props) {
           Sólo activos
         </label>
 
-        <Boton
-          variante="secundario"
-          tamanio="chico"
-          onClick={() => onCambio(FILTROS_TRANSPORTISTAS_VACIOS)}
-        >
-          Limpiar filtros
-        </Boton>
+        <BotonLimpiarFiltros onClick={() => onCambio(FILTROS_TRANSPORTISTAS_VACIOS)} />
       </FranjaDeFiltros>
     </Filtros>
   )

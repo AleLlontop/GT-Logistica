@@ -247,6 +247,7 @@ export function FormularioVehiculo() {
         <SeccionNumerada
           numero={1}
           titulo="Identificación"
+          enColumnas
           explicacion="La patente no se puede editar después de guardar."
         >
           <div className={`${classNameCampo('patente')} max-w-campo-corto`}>
@@ -338,6 +339,7 @@ export function FormularioVehiculo() {
         <SeccionNumerada
           numero={2}
           titulo="Dependencia y estado"
+          enColumnas
         >
           <div className={`${classNameCampo('transportistaId')} max-w-campo-largo`}>
             <label htmlFor="transportistaId">Transportista</label>

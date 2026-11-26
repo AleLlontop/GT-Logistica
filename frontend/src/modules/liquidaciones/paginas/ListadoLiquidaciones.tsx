@@ -212,17 +212,16 @@ export function ListadoLiquidaciones({ puedeGestionar }: Props) {
             </table>
           </TablaDesplazable>
         )}
+        {resultado !== null && (
+          <Paginacion
+            pagina={resultado.pagina}
+            total={resultado.total}
+            tamanioPagina={resultado.tamanioPagina}
+            nombrePlural="liquidaciones"
+            onCambiarPagina={setPagina}
+          />
+        )}
       </Listado>
-
-      {resultado !== null && (
-        <Paginacion
-          pagina={resultado.pagina}
-          total={resultado.total}
-          tamanioPagina={resultado.tamanioPagina}
-          nombrePlural="liquidaciones"
-          onCambiarPagina={setPagina}
-        />
-      )}
     </section>
   )
 }

@@ -138,6 +138,7 @@ export function FormularioTransportista() {
         <SeccionNumerada
           numero={1}
           titulo="Identidad fiscal"
+          enColumnas
         >
           <div className={`${classNameCampo('nombre')} max-w-campo-largo`}>
             <label htmlFor="nombre">Razón social o nombre completo</label>
@@ -188,6 +189,7 @@ export function FormularioTransportista() {
         <SeccionNumerada
           numero={2}
           titulo="Contacto"
+          enColumnas
         >
           <div className={`${classNameCampo('telefono')} max-w-campo-medio`}>
             <label htmlFor="telefono">Teléfono</label>

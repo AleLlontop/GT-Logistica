@@ -210,17 +210,16 @@ export function ListadoFlota() {
             </table>
           </TablaDesplazable>
         )}
+        {resultado !== null && resultado.items.length > 0 && (
+          <Paginacion
+            nombrePlural="vehículos"
+            pagina={resultado.pagina}
+            total={resultado.total}
+            tamanioPagina={resultado.tamanioPagina}
+            onCambiarPagina={setPagina}
+          />
+        )}
       </Listado>
-
-      {resultado !== null && resultado.items.length > 0 && (
-        <Paginacion
-          nombrePlural="vehículos"
-          pagina={resultado.pagina}
-          total={resultado.total}
-          tamanioPagina={resultado.tamanioPagina}
-          onCambiarPagina={setPagina}
-        />
-      )}
     </section>
   )
 }

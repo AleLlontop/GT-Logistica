@@ -7,9 +7,8 @@ import { formatearCuit } from '../../../compartido/cuit'
 import { Boton } from '../../../compartido/ui/Boton'
 import { Campo } from '../../../compartido/ui/Campo'
 import { clasesDeControl, clasesDeFiltro } from '../../../compartido/ui/clases'
-import { IconoCerrar } from '../../../compartido/ui/iconos'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
-import { Filtros } from '../../../compartido/ui/Filtros'
+import { BotonLimpiarFiltros, Filtros } from '../../../compartido/ui/Filtros'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
 import { Estado } from '../../../compartido/ui/Estado'
 import { MensajeListado } from '../componentes/MensajeListado'
@@ -91,9 +90,7 @@ export function ConsultarFacturasProveedor() {
             </Campo>
             <div className="flex flex-wrap items-center gap-2.5 @min-[22rem]:col-span-full @min-[54rem]:col-span-1 @min-[54rem]:col-start-4 @min-[54rem]:row-start-2">
               <Boton variante="secundario" tamanio="chico" type="submit" className="h-10 py-0">Aplicar filtros</Boton>
-              <Boton variante="texto" tamanio="chico" className="h-10 px-3 py-0 no-underline hover:bg-surface-hover hover:underline" onClick={limpiar}>
-                <IconoCerrar aria-hidden="true" className="size-4" />Limpiar filtros
-              </Boton>
+              <BotonLimpiarFiltros onClick={limpiar} />
             </div>
           </div>
           {errorRango && <p role="alert">Revisá el rango de fechas.</p>}
@@ -104,7 +101,7 @@ export function ConsultarFacturasProveedor() {
         {filtrando ? 'Ninguna factura coincide con los filtros aplicados. Probá limpiarlos.' : 'Todavía no hay facturas de proveedores registradas.'}
       </MensajeListado> : <TablaDesplazable><table>
         <caption>Facturas de proveedores</caption>
-        <thead><tr><th scope="col">Número de factura</th><th scope="col" aria-sort="descending">Fecha</th><th scope="col">Proveedor</th><th scope="col" className="text-right!">Total</th><th scope="col">Estado</th><EncabezadoDeChevron /></tr></thead>
+        <thead><tr><th scope="col">Número de factura</th><th scope="col" aria-sort="descending">Fecha</th><th scope="col">Proveedor</th><th scope="col" className="text-right">Total</th><th scope="col">Estado</th><EncabezadoDeChevron /></tr></thead>
         <tbody>{resultado.items.map(f => <FilaNavegable key={f.id} a={`/proveedores/facturas/${f.id}`}>
           <td><Link className="font-mono font-semibold whitespace-nowrap underline" to={`/proveedores/facturas/${f.id}`} onClick={e => e.stopPropagation()}>{f.numero}</Link></td><td className="whitespace-nowrap">{formatearFecha(f.fecha)}</td>
           <td><span className="block font-semibold">{f.proveedorRazonSocial}</span><span className="font-mono text-faint">{formatearCuit(f.proveedorCuit)}</span></td>
@@ -113,7 +110,7 @@ export function ConsultarFacturasProveedor() {
       </table></TablaDesplazable>)}
       {!cargando && !error && resultado && (
         <Paginacion pagina={resultado.pagina} total={resultado.total} tamanioPagina={resultado.tamanioPagina}
-          nombrePlural="facturas" nombreSingular="factura" compacta onCambiarPagina={setPagina} />
+          nombrePlural="facturas" nombreSingular="factura" mostrarTotalEnUnaPagina onCambiarPagina={setPagina} />
       )}
     </Listado>
   </>

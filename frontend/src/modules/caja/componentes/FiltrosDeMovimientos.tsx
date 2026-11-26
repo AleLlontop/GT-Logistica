@@ -1,8 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { formatearFecha } from '../../../compartido/fechas'
-import { Boton } from '../../../compartido/ui/Boton'
 import { clasesDeEtiquetaDeFiltro, clasesDeFiltro } from '../../../compartido/ui/clases'
-import { Filtros, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
+import { BotonLimpiarFiltros, Filtros, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
 import {
   FILTROS_MOVIMIENTOS_INICIALES,
   listarCajas,
@@ -106,14 +105,7 @@ export function FiltrosDeMovimientos({ valor, onCambio, declaracion, resumen }: 
           </select>
         </div>
 
-        <div className="ml-auto flex flex-col gap-1.5">
-          <label className={clasesDeEtiquetaDeFiltro + ' invisible'} aria-hidden="true">
-            Limpiar
-          </label>
-          <Boton variante="secundario" tamanio="chico" onClick={() => onCambio(FILTROS_MOVIMIENTOS_INICIALES)}>
-            Limpiar filtros
-          </Boton>
-        </div>
+        <BotonLimpiarFiltros onClick={() => onCambio(FILTROS_MOVIMIENTOS_INICIALES)} />
       </FranjaDeFiltros>
     </Filtros>
   )

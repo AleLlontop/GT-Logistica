@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
-import { Boton } from '../../../compartido/ui/Boton'
-import { Filtros as ContenedorDeFiltros, FranjaDeBusqueda, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
+import { BotonLimpiarFiltros, Filtros as ContenedorDeFiltros, FranjaDeBusqueda, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
 import { clasesDeEtiquetaDeFiltro, clasesDeFiltro } from '../../../compartido/ui/clases'
 import type { CodigoRol, EstadoUsuario } from '../../../compartido/tipos'
 import { FILTROS_VACIOS, type Filtros } from '../servicios/formato'
@@ -98,18 +97,7 @@ export function FiltrosUsuarios({ valor, onCambio, resumen }: Props) {
           </select>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label className={clasesDeEtiquetaDeFiltro + ' invisible'} aria-hidden="true">
-            Limpiar
-          </label>
-          <Boton
-            variante="secundario"
-            tamanio="chico"
-            onClick={() => onCambio(FILTROS_VACIOS)}
-          >
-            Limpiar filtros
-          </Boton>
-        </div>
+        <BotonLimpiarFiltros onClick={() => onCambio(FILTROS_VACIOS)} />
       </FranjaDeFiltros>
     </ContenedorDeFiltros>
   )

@@ -2,11 +2,11 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Boton } from '../../../compartido/ui/Boton'
 import { clasesDeBoton, clasesDeFiltro, clasesDeCirculoDeIcono } from '../../../compartido/ui/clases'
-import { IconoCerrar, IconoNuevo } from '../../../compartido/ui/iconos'
+import { IconoNuevo } from '../../../compartido/ui/iconos'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { Campo } from '../../../compartido/ui/Campo'
 import { Listado } from '../../../compartido/ui/Listado'
-import { Filtros, FranjaDeBusqueda } from '../../../compartido/ui/Filtros'
+import { BotonLimpiarFiltros, Filtros, FranjaDeBusqueda } from '../../../compartido/ui/Filtros'
 import { TablaDesplazable } from '../../../compartido/ui/Listado'
 import { EncabezadoDeChevron, FilaNavegable } from '../../../compartido/ui/FilaNavegable'
 import { EnlaceDeFila } from '../../../compartido/ui/EnlaceDeFila'
@@ -58,14 +58,14 @@ export function PadronProveedores({ puedeGestionar = true }: { puedeGestionar?: 
     {mensaje && <p role="status">{mensaje}</p>}{error && <p role="alert">{error}</p>}
     <Listado><form onSubmit={buscar}><Filtros declaracion={`Estado: ${filtros.estado || 'Todos'}. ${filtrado ? 'Filtros aplicados.' : 'Sin filtros aplicados.'}`}>
       <FranjaDeBusqueda><Campo id="buscar" etiqueta="Buscar proveedores" ancho="completo"><input id="buscar" className={clasesDeFiltro(Boolean(campos.q), 'h-11 w-full min-w-0')} value={campos.q} onChange={e => setCampos({ ...campos, q: e.target.value })} /></Campo></FranjaDeBusqueda>
-      <div className="grid grid-cols-1 items-end gap-3.5 sm:grid-cols-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(0,1.25fr)_minmax(0,1.5fr)_minmax(0,1fr)]">
+      <div className="grid max-w-5xl grid-cols-1 items-end gap-3.5 sm:grid-cols-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(0,1.25fr)_minmax(0,1.5fr)_minmax(0,1fr)]">
         {(['razonSocial', 'nombreComercial', 'cuit'] as const).map((nombre, i) => <Campo key={nombre} id={`f-${nombre}`} etiqueta={['Razón social', 'Nombre comercial', 'CUIT'][i]} ancho="completo" className={`min-w-0 ${nombre === 'cuit' ? 'sm:col-span-2' : 'sm:col-span-3'} xl:col-span-1`}><input id={`f-${nombre}`} className={clasesDeFiltro(Boolean(campos[nombre]), 'h-10 w-full min-w-0')} value={campos[nombre]} onChange={e => setCampos({ ...campos, [nombre]: e.target.value })} /></Campo>)}
         <Campo id="tipo" etiqueta="Tipo" ancho="completo" className="min-w-0 sm:col-span-2 xl:col-span-1"><select id="tipo" className={clasesDeFiltro(Boolean(campos.tipo), 'h-10 w-full min-w-0')} value={campos.tipo} onChange={e => setCampos({ ...campos, tipo: e.target.value })}><option value="">Todos</option><option value="proveedorNormal">Proveedor normal</option><option value="fletero">Fletero</option></select></Campo>
         <Campo id="estado" etiqueta="Estado" ancho="completo" className="min-w-0 sm:col-span-2 xl:col-span-1"><select id="estado" className={clasesDeFiltro(Boolean(campos.estado), 'h-10 w-full min-w-0')} value={campos.estado} onChange={e => setCampos({ ...campos, estado: e.target.value })}><option value="">Todos</option><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select></Campo>
       </div>
-      <div className="flex flex-col gap-2.5 sm:flex-row sm:justify-end">
+      <div className="flex max-w-5xl flex-wrap gap-2.5 sm:justify-end">
         <Boton variante="secundario" tamanio="chico" type="submit" className="h-10 py-0">Buscar</Boton>
-        <Boton variante="texto" tamanio="chico" className="h-10 rounded-field px-3 py-0 no-underline hover:bg-surface-hover hover:underline" onClick={() => { setCampos(INICIAL); setFiltros({ ...INICIAL }) }}><IconoCerrar aria-hidden="true" className="size-4" />Limpiar filtros</Boton>
+        <BotonLimpiarFiltros onClick={() => { setCampos(INICIAL); setFiltros({ ...INICIAL }) }} />
       </div>
     </Filtros></form>
     {cargando ? <p role="status" className="p-5">Cargando proveedores…</p> : !error && resultado && (resultado.items.length === 0
@@ -77,7 +77,7 @@ export function PadronProveedores({ puedeGestionar = true }: { puedeGestionar?: 
           <Boton variante="secundario" tamanio="chico" className="h-8 px-2.5 py-1 text-danger-text hover:bg-danger-bg" disabled={ocupado} onClick={() => void estado(p.id, p.estado !== 'activo')}>{p.estado === 'activo' ? 'Dar de baja' : 'Reactivar'}</Boton>
         </div>}</td>
       </FilaNavegable>)}</tbody></table></TablaDesplazable>)}
-    {!cargando && !error && resultado && <Paginacion {...resultado} nombrePlural="proveedores" nombreSingular="proveedor" compacta onCambiarPagina={pagina => setFiltros({ ...filtros, pagina })} />}
+    {!cargando && !error && resultado && <Paginacion {...resultado} nombrePlural="proveedores" nombreSingular="proveedor" mostrarTotalEnUnaPagina onCambiarPagina={pagina => setFiltros({ ...filtros, pagina })} />}
     </Listado>
     {baja && <DialogoConfirmacion titulo="Dar de baja proveedor" mensaje={`¿Querés dar de baja a ${baja.razonSocial}? Sus datos se conservan.`} etiquetaConfirmar="Confirmar baja" onCancelar={() => setBaja(null)} onConfirmar={() => void confirmarBaja()} />}
   </>

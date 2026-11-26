@@ -400,6 +400,7 @@ export function AltaFactura() {
           <SeccionNumerada
             numero={2}
             titulo="Período"
+            enColumnas
             explicacion="Qué mes se factura."
           >
             <div className={`${classNameCampo('mes')} max-w-campo-corto`}>
@@ -432,6 +433,7 @@ export function AltaFactura() {
           <SeccionNumerada
             numero={3}
             titulo="Datos del comprobante"
+            enColumnas
             explicacion="Los que devuelve AFIP al autorizarlo."
           >
             <div className={`${classNameCampo('fecha')} max-w-campo-corto`}>
@@ -527,7 +529,7 @@ export function AltaFactura() {
               )}
             </div>
 
-            <div className={`${classNameCampo('detalle')} w-full`}>
+            <div className={`${classNameCampo('detalle')} w-full sm:col-span-2`}>
               <label htmlFor="detalle">Detalle (opcional)</label>
               <textarea
                 id="detalle"

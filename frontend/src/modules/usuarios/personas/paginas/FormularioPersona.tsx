@@ -195,71 +195,73 @@ export function FormularioPersona() {
           </p>
         )}
 
-        <CampoTexto
-          id="nombre"
-          etiqueta="Nombre"
-          valor={datos.nombre}
-          error={errores.nombre}
-          onCambio={(valor) => actualizar('nombre', valor)}
-        />
+        <div className="grid max-w-3xl items-start gap-4 sm:grid-cols-2 [&>*]:min-w-0">
+          <CampoTexto
+            id="nombre"
+            etiqueta="Nombre"
+            valor={datos.nombre}
+            error={errores.nombre}
+            onCambio={(valor) => actualizar('nombre', valor)}
+          />
 
-        <CampoTexto
-          id="apellido"
-          etiqueta="Apellido"
-          valor={datos.apellido}
-          error={errores.apellido}
-          onCambio={(valor) => actualizar('apellido', valor)}
-        />
+          <CampoTexto
+            id="apellido"
+            etiqueta="Apellido"
+            valor={datos.apellido}
+            error={errores.apellido}
+            onCambio={(valor) => actualizar('apellido', valor)}
+          />
 
-        <CampoTexto
-          id="dni"
-          etiqueta="DNI"
-          valor={datos.dni}
-          error={errores.dni}
-          onCambio={(valor) => actualizar('dni', valor)}
-        />
+          <CampoTexto
+            id="dni"
+            etiqueta="DNI"
+            valor={datos.dni}
+            error={errores.dni}
+            onCambio={(valor) => actualizar('dni', valor)}
+          />
 
-        <div className="campo">
-          <label htmlFor="tipo">Tipo</label>
-          <select
-            id="tipo"
-            name="tipo"
-            value={datos.tipo}
-            onChange={(evento) => actualizar('tipo', evento.target.value as DatosPersona['tipo'])}
-          >
-            {TIPOS_DE_PERSONA.map((tipo) => (
-              <option key={tipo.codigo} value={tipo.codigo}>
-                {tipo.nombre}
-              </option>
-            ))}
-          </select>
+          <div className="campo">
+            <label htmlFor="tipo">Tipo</label>
+            <select
+              id="tipo"
+              name="tipo"
+              value={datos.tipo}
+              onChange={(evento) => actualizar('tipo', evento.target.value as DatosPersona['tipo'])}
+            >
+              {TIPOS_DE_PERSONA.map((tipo) => (
+                <option key={tipo.codigo} value={tipo.codigo}>
+                  {tipo.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <CampoTexto
+            id="telefono"
+            etiqueta="Teléfono"
+            valor={datos.telefono}
+            error={errores.telefono}
+            onCambio={(valor) => actualizar('telefono', valor)}
+          />
+
+          <CampoTexto
+            id="email"
+            etiqueta="Email"
+            tipo="email"
+            valor={datos.email}
+            error={errores.email}
+            onCambio={(valor) => actualizar('email', valor)}
+          />
+
+          <CampoTexto
+            id="fechaNacimiento"
+            etiqueta="Fecha de nacimiento"
+            tipo="date"
+            valor={datos.fechaNacimiento}
+            error={errores.fechaNacimiento}
+            onCambio={(valor) => actualizar('fechaNacimiento', valor)}
+          />
         </div>
-
-        <CampoTexto
-          id="telefono"
-          etiqueta="Teléfono"
-          valor={datos.telefono}
-          error={errores.telefono}
-          onCambio={(valor) => actualizar('telefono', valor)}
-        />
-
-        <CampoTexto
-          id="email"
-          etiqueta="Email"
-          tipo="email"
-          valor={datos.email}
-          error={errores.email}
-          onCambio={(valor) => actualizar('email', valor)}
-        />
-
-        <CampoTexto
-          id="fechaNacimiento"
-          etiqueta="Fecha de nacimiento"
-          tipo="date"
-          valor={datos.fechaNacimiento}
-          error={errores.fechaNacimiento}
-          onCambio={(valor) => actualizar('fechaNacimiento', valor)}
-        />
 
         <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}>
           <Boton

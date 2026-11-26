@@ -1,5 +1,4 @@
-import { Boton } from '../../../compartido/ui/Boton'
-import { Filtros, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
+import { BotonLimpiarFiltros, Filtros, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
 import { clasesDeEtiquetaDeFiltro, clasesDeFiltro } from '../../../compartido/ui/clases'
 import type { Transportista } from '../../choferes/transportistas/servicioTransportistas'
 import type { TipoVehiculo } from '../tiposVehiculo/servicioTiposVehiculo'
@@ -164,14 +163,7 @@ export function FiltrosFlota({
           )}
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label className={clasesDeEtiquetaDeFiltro + ' invisible'} aria-hidden="true">
-            Limpiar
-          </label>
-          <Boton variante="secundario" tamanio="chico" onClick={onLimpiar}>
-            Limpiar filtros
-          </Boton>
-        </div>
+        <BotonLimpiarFiltros onClick={onLimpiar} />
       </FranjaDeFiltros>
     </Filtros>
   )

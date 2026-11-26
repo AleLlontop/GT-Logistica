@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Boton } from '../../../compartido/ui/Boton'
+import { BotonLimpiarFiltros } from '../../../compartido/ui/Filtros'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import { tipoDeReporteAnalisis } from '../servicios/servicioReportes'
 import { useConsultaTemporal } from '../servicios/useConsultaTemporal'
@@ -16,7 +17,11 @@ export function ConsultaTemporal<R extends RecursoTemporal>({ titulo, consulta: 
     <EncabezadoDePantalla titulo={titulo} volverA={{ ruta: '/reportes', etiqueta: 'Reportes' }} accionSecundaria={c.solicitud.estado === 'listo' && <GenerarReporte reporte={tipoDeReporteAnalisis(c.recurso)} filtros={{ ...c.aplicados }} cantidadDeFilas={c.solicitud.datos.detalle.total} puedeEmitir={c.acceso.permisos.includes('reportes.emitir')} />} />
     {c.solicitud.estado !== 'inactivo' && <form noValidate className="mb-5 flex flex-wrap items-end gap-3 rounded-card border border-line bg-surface p-4" onSubmit={e => { e.preventDefault(); const invalido = Array.from(e.currentTarget.querySelectorAll<HTMLInputElement>('[role="combobox"]')).find(input => !input.checkValidity()); if (invalido) { invalido.reportValidity(); invalido.focus(); return }; c.aplicar() }}>
       <SelectorPeriodo valor={c.borrador} onCambiar={p => c.setBorrador(actual => ({ ...actual, ...p }))} mostrarErrores={c.intento} />
-      {filtros}<Boton variante="secundario" type="submit">Aplicar filtros</Boton><Boton variante="secundario" onClick={c.limpiar}>Limpiar</Boton>
+      {filtros}
+      <div className="flex flex-wrap items-center gap-2.5">
+        <Boton variante="secundario" tamanio="chico" type="submit" className="h-10 py-0">Aplicar filtros</Boton>
+        <BotonLimpiarFiltros onClick={c.limpiar} etiqueta="Limpiar" />
+      </div>
     </form>}
     <EstadoConsultaAnalisis solicitud={c.solicitud} />
     {c.solicitud.estado === 'listo' && <div className="space-y-5 text-ink"><ResumenReporte contexto={c.solicitud.datos.contexto}>

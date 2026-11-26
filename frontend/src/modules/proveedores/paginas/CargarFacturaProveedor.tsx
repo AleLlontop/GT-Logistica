@@ -99,7 +99,7 @@ export function CargarFacturaProveedor({ puedeCargar = true }: { puedeCargar?: b
       {error && <p role="alert">{error}</p>}
       {conflicto && <dl aria-live="polite"><dt>Total de factura informado por el servidor</dt><dd>{formatearPesos(conflicto.importeTotalFactura)}</dd><dt>Total actual de liquidación informado por el servidor</dt><dd>{formatearPesos(conflicto.importeTotalLiquidacion)}</dd></dl>}
       {Object.values(errores).some(Boolean) && <p role="alert">Revisá los campos marcados.</p>}
-      <form onSubmit={enviar} noValidate className="@container overflow-clip rounded-card border border-line bg-surface shadow-card [&>section]:py-5 [&>section:last-of-type]:border-b-0">
+      <form onSubmit={enviar} noValidate className="@container overflow-clip rounded-card border border-line bg-surface shadow-card">
         <SeccionNumerada numero={1} titulo="Proveedor">
           <div className={`grid items-start gap-4 ${proveedor?.tipo === 'fletero' ? '@min-[44rem]:grid-cols-2' : ''}`}>
             <AutocompleteProveedor soloActivos disabled={guardando} error={errores.proveedorId} onSeleccionar={seleccionarProveedor} />

@@ -79,7 +79,7 @@ export function FormularioProveedor({ puedeGestionar = true }: { puedeGestionar?
   const elegido = externos?.items.find(t => t.id === datos.transportistaId)
   const bloqueado = guardando || cargando
   function campo(nombre: 'razonSocial' | 'cuit' | 'telefono' | 'email' | 'nombreComercial' | 'direccion', etiqueta: string, obligatorio = false) {
-    return <Campo id={nombre} etiqueta={etiqueta} obligatorio={obligatorio} error={errores[nombre]} ancho={nombre === 'cuit' ? 'corto' : ['razonSocial', 'direccion'].includes(nombre) ? 'largo' : 'medio'}>
+    return <Campo id={nombre} etiqueta={etiqueta} obligatorio={obligatorio} error={errores[nombre]} className={nombre === 'direccion' ? 'sm:col-span-2' : undefined} ancho={nombre === 'cuit' ? 'corto' : ['razonSocial', 'direccion'].includes(nombre) ? 'largo' : 'medio'}>
       <input id={nombre} className={clasesDeControl(Boolean(errores[nombre]))} required={obligatorio} type={nombre === 'email' ? 'email' : 'text'} value={datos[nombre] ?? ''} onChange={e => actualizar(nombre, e.target.value)} disabled={bloqueado} aria-invalid={Boolean(errores[nombre])} aria-describedby={errores[nombre] ? `${nombre}-error` : undefined} />
     </Campo>
   }
@@ -88,21 +88,21 @@ export function FormularioProveedor({ puedeGestionar = true }: { puedeGestionar?
     {!puedeGestionar ? <p role="alert">{SIN_PERMISO}</p> : <>
     {error && <p role="alert">{error}</p>}
     {Object.values(errores).some(Boolean) && <p role="alert">Revisá los campos marcados.</p>}
-    {cargando ? <p role="status">Cargando proveedor…</p> : (id === undefined || origen) && <form onSubmit={enviar} noValidate className="overflow-hidden rounded-card border border-line bg-surface shadow-card">
-      <SeccionNumerada numero={1} titulo="Identificación">
+    {cargando ? <p role="status">Cargando proveedor…</p> : (id === undefined || origen) && <form onSubmit={enviar} noValidate className="overflow-clip rounded-card border border-line bg-surface shadow-card">
+      <SeccionNumerada numero={1} titulo="Identificación" enColumnas={datos.tipo === 'proveedorNormal'}>
         <Campo id="tipo" etiqueta="Tipo" obligatorio><select id="tipo" required disabled={bloqueado} className={clasesDeControl()} value={datos.tipo} onChange={e => { setSeleccionLista(false); setDatos(d => ({ ...d, tipo: e.target.value as ProveedorPeticion['tipo'], transportistaId: undefined })); setErrores({}) }}><option value="proveedorNormal">Proveedor normal</option><option value="fletero">Fletero</option></select></Campo>
         {datos.tipo === 'proveedorNormal' ? <>{campo('razonSocial', 'Razón social', true)}{campo('cuit', 'CUIT', true)}</> : <>
           <Campo id="buscar-transportista" etiqueta="Buscar transportista" ancho="largo"><input id="buscar-transportista" className={clasesDeControl()} disabled={bloqueado} value={q} onChange={e => buscar(e.target.value)} /></Campo>
           <Campo id="transportista" etiqueta="Transportista" obligatorio error={errores.transportistaId} ancho="largo"><select id="transportista" required className={clasesDeControl(Boolean(errores.transportistaId))} disabled={bloqueado || !seleccionLista} value={datos.transportistaId ?? ''} aria-invalid={Boolean(errores.transportistaId)} aria-describedby={errores.transportistaId ? 'transportista-error' : undefined} onChange={e => setDatos(d => ({ ...d, transportistaId: Number(e.target.value) || undefined }))}><option value="">Elegí un transportista</option>{(seleccionLista ? externos?.items : [])?.map(t => <option key={t.id} value={t.id}>{t.razonSocial} — {formatearCuit(t.cuit)}</option>)}</select></Campo>
           {errorExternos ? <><p role="alert">{errorExternos}</p>{!errorExternos.includes('Pedile acceso') && <Boton variante="secundario" onClick={() => setRevision(v => v + 1)}>Reintentar</Boton>}</> : !seleccionLista ? <p role="status">Cargando transportistas…</p> : externos?.items.length === 0 ? <p role="status">No hay transportistas externos que coincidan.</p> : <p role="status">Página {pagina}. {externos?.total} transportistas externos.</p>}
-          <nav aria-label="Páginas de transportistas" className="flex gap-3"><Boton variante="secundario" disabled={bloqueado || !seleccionLista || pagina <= 1} onClick={() => { setSeleccionLista(false); setPagina(p => p - 1) }}>Anterior</Boton><Boton variante="secundario" disabled={bloqueado || !seleccionLista || pagina * 20 >= (externos?.total ?? 0)} onClick={() => { setSeleccionLista(false); setPagina(p => p + 1) }}>Siguiente</Boton></nav>
+          <nav aria-label="Páginas de transportistas" className="flex flex-wrap gap-2.5"><Boton variante="secundario" disabled={bloqueado || !seleccionLista || pagina <= 1} onClick={() => { setSeleccionLista(false); setPagina(p => p - 1) }}>Anterior</Boton><Boton variante="secundario" disabled={bloqueado || !seleccionLista || pagina * 20 >= (externos?.total ?? 0)} onClick={() => { setSeleccionLista(false); setPagina(p => p + 1) }}>Siguiente</Boton></nav>
           {elegido && <p>{elegido.razonSocial} · {formatearCuit(elegido.cuit)}</p>}
           <p>La razón social, el CUIT, el teléfono y el email se mantienen en Transportistas.</p>
           {origen?.tipo === 'fletero' && origen.transportistaId === datos.transportistaId && <dl><dt>Teléfono de origen</dt><dd>{origen.telefono ?? 'Sin informar'}</dd><dt>Email de origen</dt><dd>{origen.email ?? 'Sin informar'}</dd></dl>}
         </>}
         {campo('nombreComercial', 'Nombre comercial')}
       </SeccionNumerada>
-      <SeccionNumerada numero={2} titulo="Contacto">{datos.tipo === 'proveedorNormal' && <>{campo('telefono', 'Teléfono')}{campo('email', 'Email')}</>}{campo('direccion', 'Dirección')}</SeccionNumerada>
+      <SeccionNumerada numero={2} titulo="Contacto" enColumnas>{datos.tipo === 'proveedorNormal' && <>{campo('telefono', 'Teléfono')}{campo('email', 'Email')}</>}{campo('direccion', 'Dirección')}</SeccionNumerada>
       <BarraDeAcciones anclaje="viewport" leyenda={LEYENDA_DE_OBLIGATORIOS}><Link className={clasesDeBoton('secundario')} to={id === undefined ? '/proveedores' : `/proveedores/${id}`}>Cancelar</Link><Boton variante="primario" icono={<IconoEnRegla />} type="submit" disabled={bloqueado || (datos.tipo === 'fletero' && !seleccionLista)}>{guardando ? 'Guardando…' : id === undefined ? 'Guardar proveedor' : 'Guardar cambios'}</Boton></BarraDeAcciones>
     </form>}
     </>}

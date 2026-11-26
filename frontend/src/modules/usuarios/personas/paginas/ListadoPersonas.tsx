@@ -129,7 +129,7 @@ export function ListadoPersonas() {
       </Aviso>
 
       <Listado>
-        {/* Su único buscador pasa a la franja de arriba, a todo el ancho (FR-033). */}
+        {/* El buscador va arriba de la tabla (FR-033). */}
         <Filtros
           resumen={
             personas !== null && (

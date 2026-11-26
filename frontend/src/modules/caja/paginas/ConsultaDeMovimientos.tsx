@@ -179,17 +179,16 @@ export function ConsultaDeMovimientos({ puedeEmitirReportes }: Props) {
         {visible !== null && visible.items.length > 0 && (
           <TablaDeMovimientos titulo={TITULO} movimientos={visible.items} />
         )}
+        {visible !== null && (
+          <Paginacion
+            pagina={visible.pagina}
+            total={visible.total}
+            tamanioPagina={visible.tamanioPagina}
+            nombrePlural="movimientos"
+            onCambiarPagina={setPagina}
+          />
+        )}
       </Listado>
-
-      {visible !== null && (
-        <Paginacion
-          pagina={visible.pagina}
-          total={visible.total}
-          tamanioPagina={visible.tamanioPagina}
-          nombrePlural="movimientos"
-          onCambiarPagina={setPagina}
-        />
-      )}
     </section>
   )
 }

@@ -6,21 +6,14 @@ interface Props {
   total: number
   tamanioPagina: number
   onCambiarPagina: (pagina: number) => void
-  /** Cómo se llaman las filas, para poder decir "20 de 73 choferes" y no "20 de 73 elementos". */
   nombrePlural: string
-  /** Nombre de una fila, para el resumen compacto cuando hay un solo resultado. */
   nombreSingular?: string
-  /** Presenta el rango y la página por separado. Por defecto conserva el texto histórico. */
-  compacta?: boolean
+  /** Para listados que sólo informan la cantidad de resultados en el pie. */
+  mostrarTotalEnUnaPagina?: boolean
 }
 
 /**
- * El control de paginación del sistema. Reemplaza a las cuatro copias que tenían choferes, flota,
- * viajes y facturación, que eran la misma de 41 a 49 líneas con distinto nombre de parámetro.
- *
- * El texto predeterminado conserva la frase histórica, fijada por cuatro tests. La variante compacta
- * separa el rango y la página; Proveedores la usa para no duplicar el total en el resumen de filtros.
- * En ambos casos, `role="status"` avisa que la lista cambió aunque la pantalla no.
+ * Pie del listado. El rango se anuncia cuando cambia y la página acompaña a los botones.
  */
 export function Paginacion({
   pagina,
@@ -29,66 +22,41 @@ export function Paginacion({
   onCambiarPagina,
   nombrePlural,
   nombreSingular,
-  compacta = false,
+  mostrarTotalEnUnaPagina = false,
 }: Props) {
   const paginas = Math.max(1, Math.ceil(total / tamanioPagina))
-  const desde = total === 0 ? 0 : (pagina - 1) * tamanioPagina + 1
+  const desde = (pagina - 1) * tamanioPagina + 1
   const hasta = Math.min(pagina * tamanioPagina, total)
 
-  if (total === 0 || (!compacta && total <= tamanioPagina)) {
+  if (total === 0 || (!mostrarTotalEnUnaPagina && paginas === 1)) {
     return null
   }
 
-  const controles = (
-    <div className={compacta ? 'flex flex-wrap items-center justify-end gap-2' : 'flex items-center gap-2'}>
-      <Boton
-        variante="secundario"
-        tamanio="chico"
-        onClick={() => onCambiarPagina(pagina - 1)}
-        disabled={pagina <= 1}
-      >
-        <IconoAnterior aria-hidden="true" className="size-4" />
-        Anterior
-      </Boton>
-
-      <Boton
-        variante="secundario"
-        tamanio="chico"
-        onClick={() => onCambiarPagina(pagina + 1)}
-        disabled={pagina >= paginas}
-      >
-        Siguiente
-        <IconoSiguiente aria-hidden="true" className="size-4" />
-      </Boton>
-    </div>
-  )
-
-  if (compacta) {
-    return (
-      <div className="flex flex-wrap items-center gap-3 border-t border-line bg-surface-soft px-5 py-3.5">
-        <p role="status" className="m-0 text-[12.5px] text-ink-soft">
-          {total === 1 && nombreSingular ? `1 ${nombreSingular}` : `${desde}–${hasta} de ${total} ${nombrePlural}`}
-        </p>
-        {paginas > 1 && (
-          <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-2">
-            <span className="text-[12.5px] text-ink-soft">Página {pagina} de {paginas}</span>
-            <nav aria-label="Paginación" className="min-w-0">{controles}</nav>
-          </div>
-        )}
-      </div>
-    )
-  }
-
+  const Contenedor = paginas > 1 ? 'nav' : 'div'
   return (
-    <nav
-      aria-label="Paginación"
-      className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-surface-soft px-5 py-3.5"
+    <Contenedor
+      aria-label={paginas > 1 ? 'Paginación' : undefined}
+      className="flex flex-wrap items-center gap-3 border-t border-line bg-surface-soft px-4 py-3.5 sm:px-5"
     >
       <p role="status" className="m-0 text-[12.5px] text-ink-soft">
-        Página {pagina} de {paginas}, mostrando {desde} a {hasta} de {total} {nombrePlural}
+        {total === 1 && nombreSingular ? `1 ${nombreSingular}` : `${desde}–${hasta} de ${total} ${nombrePlural}`}
       </p>
 
-      {controles}
-    </nav>
+      {paginas > 1 && (
+        <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-2">
+          <span className="text-[12.5px] text-ink-soft">Página {pagina} de {paginas}</span>
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+            <Boton variante="secundario" tamanio="chico" onClick={() => onCambiarPagina(pagina - 1)} disabled={pagina <= 1}>
+              <IconoAnterior aria-hidden="true" className="size-4" />
+              Anterior
+            </Boton>
+            <Boton variante="secundario" tamanio="chico" onClick={() => onCambiarPagina(pagina + 1)} disabled={pagina >= paginas}>
+              Siguiente
+              <IconoSiguiente aria-hidden="true" className="size-4" />
+            </Boton>
+          </div>
+        </div>
+      )}
+    </Contenedor>
   )
 }

@@ -198,6 +198,7 @@ export function FormularioViaje() {
         <SeccionNumerada
           numero={1}
           titulo="Cliente y fecha"
+          enColumnas
         >
           <div className={`${classNameCampo('clienteId')} max-w-campo-largo`}>
             <label htmlFor="clienteId">Cliente</label>
@@ -246,6 +247,7 @@ export function FormularioViaje() {
         <SeccionNumerada
           numero={2}
           titulo="Recorrido"
+          enColumnas
           explicacion="De dónde a dónde va la carga."
         >
           <div className={`${classNameCampo('origen')} max-w-campo-largo`}>
@@ -303,7 +305,7 @@ export function FormularioViaje() {
             )}
           </div>
 
-          <div className={`${classNameCampo('detalleCarga')} w-full`}>
+          <div className={`${classNameCampo('detalleCarga')} w-full sm:col-span-2`}>
             <label htmlFor="detalleCarga">Detalle de la carga (opcional)</label>
             <textarea
               id="detalleCarga"

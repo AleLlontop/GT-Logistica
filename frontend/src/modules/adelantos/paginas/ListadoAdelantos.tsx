@@ -230,17 +230,16 @@ export function ListadoAdelantos({ puedeGestionar }: Props) {
             </table>
           </TablaDesplazable>
         )}
+        {visible !== null && (
+          <Paginacion
+            pagina={visible.pagina}
+            total={visible.total}
+            tamanioPagina={visible.tamanioPagina}
+            nombrePlural="adelantos"
+            onCambiarPagina={setPagina}
+          />
+        )}
       </Listado>
-
-      {visible !== null && (
-        <Paginacion
-          pagina={visible.pagina}
-          total={visible.total}
-          tamanioPagina={visible.tamanioPagina}
-          nombrePlural="adelantos"
-          onCambiarPagina={setPagina}
-        />
-      )}
     </section>
   )
 }

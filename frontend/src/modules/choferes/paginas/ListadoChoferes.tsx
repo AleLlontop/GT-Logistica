@@ -1,10 +1,9 @@
 import { Estado } from '../../../compartido/ui/Estado'
 import { Aviso } from '../../../compartido/ui/Aviso'
-import { Boton } from '../../../compartido/ui/Boton'
 import { EnlaceDeFila } from '../../../compartido/ui/EnlaceDeFila'
 import { EstadoVacio } from '../../../compartido/ui/EstadoVacio'
 import { EncabezadoDeChevron, FilaNavegable } from '../../../compartido/ui/FilaNavegable'
-import { Filtros, FranjaDeBusqueda, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
+import { BotonLimpiarFiltros, Filtros, FranjaDeBusqueda, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
 import { Listado, TablaDesplazable } from '../../../compartido/ui/Listado'
 import { EncabezadoDePantalla } from '../../../compartido/ui/EncabezadoDePantalla'
 import {
@@ -139,7 +138,7 @@ export function ListadoChoferes() {
             )
           }
         >
-          {/* El buscador primero y a todo el ancho. Acá son dos: apellido y DNI (FR-033). */}
+          {/* La búsqueda por apellido y DNI va antes de los filtros de estado. */}
           <FranjaDeBusqueda>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="filtro-apellido" className={clasesDeEtiquetaDeFiltro}>
@@ -240,21 +239,10 @@ export function ListadoChoferes() {
               </select>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className={clasesDeEtiquetaDeFiltro + ' invisible'} aria-hidden="true">
-                Limpiar
-              </label>
-              <Boton
-                variante="secundario"
-                tamanio="chico"
-                onClick={() => {
-                  setFiltros(FILTROS_CHOFERES_INICIALES)
-                  setPagina(1)
-                }}
-              >
-                Limpiar filtros
-              </Boton>
-            </div>
+            <BotonLimpiarFiltros onClick={() => {
+              setFiltros(FILTROS_CHOFERES_INICIALES)
+              setPagina(1)
+            }} />
           </FranjaDeFiltros>
         </Filtros>
 
@@ -325,17 +313,16 @@ export function ListadoChoferes() {
             </table>
           </TablaDesplazable>
         )}
+        {resultado !== null && resultado.items.length > 0 && (
+          <Paginacion
+            pagina={resultado.pagina}
+            total={resultado.total}
+            tamanioPagina={resultado.tamanioPagina}
+            onCambiarPagina={setPagina}
+            nombrePlural="choferes"
+          />
+        )}
       </Listado>
-
-      {resultado !== null && resultado.items.length > 0 && (
-        <Paginacion
-          pagina={resultado.pagina}
-          total={resultado.total}
-          tamanioPagina={resultado.tamanioPagina}
-          onCambiarPagina={setPagina}
-          nombrePlural="choferes"
-        />
-      )}
     </section>
   )
 }

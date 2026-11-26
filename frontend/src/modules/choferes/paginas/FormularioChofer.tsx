@@ -307,6 +307,7 @@ export function FormularioChofer() {
         <SeccionNumerada
           numero={1}
           titulo="Identidad"
+          enColumnas
           explicacion="El CUIL tiene que coincidir con el DNI."
         >
           <div className={`${classNameCampo('dni')} max-w-campo-corto`}>
@@ -413,6 +414,7 @@ export function FormularioChofer() {
         <SeccionNumerada
           numero={2}
           titulo="Contacto"
+          enColumnas
         >
           <div className={`${classNameCampo('telefono')} max-w-campo-medio`}>
             <label htmlFor="telefono">Teléfono</label>

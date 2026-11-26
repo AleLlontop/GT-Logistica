@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Filtros, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
+import { BotonLimpiarFiltros, Filtros, FranjaDeFiltros } from '../../../compartido/ui/Filtros'
 import { clasesDeEtiquetaDeFiltro, clasesDeFiltro } from '../../../compartido/ui/clases'
 import {
   FILTROS_ADELANTOS_INICIALES,
@@ -11,7 +11,6 @@ import {
   type FiltrosAdelantos as ValorDeFiltros,
   type PersonaResumen,
 } from '../servicios/servicioAdelantos'
-import { Boton } from '../../../compartido/ui/Boton'
 
 /** Un filtro en error: el mismo control, con el borde y el fondo del error (FR-015). */
 const EN_ERROR = 'border-danger bg-danger-bg'
@@ -127,18 +126,7 @@ export function FiltrosAdelantos({ valor, onCambio, declaracion, resumen }: Prop
           </select>
         </div>
 
-        <div className="ml-auto flex flex-col gap-1.5">
-          <label className={clasesDeEtiquetaDeFiltro + ' invisible'} aria-hidden="true">
-            Limpiar
-          </label>
-          <Boton
-            variante="secundario"
-            tamanio="chico"
-            onClick={() => onCambio(FILTROS_ADELANTOS_INICIALES)}
-          >
-            Limpiar filtros
-          </Boton>
-        </div>
+        <BotonLimpiarFiltros onClick={() => onCambio(FILTROS_ADELANTOS_INICIALES)} />
       </FranjaDeFiltros>
     </Filtros>
   )

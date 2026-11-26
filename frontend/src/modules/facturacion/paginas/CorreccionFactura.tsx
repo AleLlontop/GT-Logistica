@@ -245,9 +245,10 @@ export function CorreccionFactura() {
         <SeccionNumerada
           numero={2}
           titulo="Datos corregibles"
+          enColumnas
           explicacion="Es lo único que una corrección puede tocar."
         >
-          <div className={`${classNameCampo('detalle')} w-full`}>
+          <div className={`${classNameCampo('detalle')} w-full sm:col-span-2`}>
             <label htmlFor="detalle-correccion">Detalle</label>
             <textarea
               id="detalle-correccion"
