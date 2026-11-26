@@ -73,7 +73,7 @@ public class DashboardAnalisisTests(AplicacionObservadaAnalisis app) : IClassFix
         await app.CrearFacturaAsync(cliente.Id,fecha:new(2026,10,18),neto:200m);
         var propietario=await app.TransportistaExternoAsync();
         var viajeAnterior=await app.ViajeDeAsync(cliente.Id,propietario.Id,importe:100m,fecha:new(2026,9,10));
-        await app.CrearLiquidacionAsync(propietario.Id,[viajeAnterior],importePagado:50m,mes:9);
+        await app.CrearLiquidacionAsync(propietario.Id,[viajeAnterior],importePagado:50m,mes:9,fechaPago:new(2026,10,10));
         await EscenarioAnulacion.CrearAsync(app,"fletero");
         var tipo=await app.CrearTipoVehiculoAsync();
         var vehiculo=await app.CrearVehiculoAsync(tipo.Id,propietario.Id);

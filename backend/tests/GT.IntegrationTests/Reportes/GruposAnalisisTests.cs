@@ -30,7 +30,7 @@ public class GruposAnalisisTests(AplicacionAnalisisDePrueba app) : IClassFixture
             var vehiculo = await app.CrearVehiculoAsync(tipo.Id,propietario.Id);
             var viaje = await app.CrearViajeAsync(cliente.Id,fecha,EstadoViaje.Rendido,importe:i,transportistaId:propietario.Id,vehiculoId:vehiculo.Id);
             await app.CrearFacturaAsync(cliente.Id,fecha:fecha,estado:EstadoFactura.Pagada,fechaCobro:fecha,neto:i);
-            await app.CrearLiquidacionAsync(propietario.Id,[viaje],estado:EstadoLiquidacion.Pagada,mes:10);
+            await app.CrearLiquidacionAsync(propietario.Id,[viaje],estado:EstadoLiquidacion.Pagada,mes:10,fechaPago:fecha);
         }
         await app.CrearViajeAsync(clientes[0],fecha,EstadoViaje.Rendido,importe:1000m);
         using var scope = app.Services.CreateScope();
