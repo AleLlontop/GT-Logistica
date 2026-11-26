@@ -24,26 +24,35 @@ beforeEach(()=>{
   vi.mocked(api.cargarFacturaProveedor).mockResolvedValue(detalle)
   vi.mocked(api.obtenerFacturaProveedor).mockRejectedValue(new ErrorHttp(403,{codigo:'sin_permiso',mensaje:'Sin permiso'}))
 })
-afterEach(()=>vi.useRealTimers())
-async function llenar(){
-  const u=userEvent.setup();await u.type(screen.getByRole('combobox'),'Acopio');await u.click(await screen.findByRole('option',{name:/Acopio/}))
-  await u.type(screen.getByLabelText('Número de factura'),'001');await u.type(screen.getByLabelText('Detalle'),'Servicio')
-  await u.type(screen.getByLabelText('Neto'),'100');await u.type(screen.getByLabelText('CAE'),'CAE')
-  fireEvent.change(screen.getByLabelText('Vencimiento del CAE'),{target:{value:'2026-10-16'}})
-  fireEvent.change(screen.getByLabelText('Fecha de factura'),{target:{value:'2026-10-16'}})
+afterEach(() => {
+  vi.useRealTimers()
+  vi.restoreAllMocks()
+})
+async function llenar(u = userEvent.setup()) {
+  const proveedor = screen.getByRole('combobox', { name: 'Proveedor' })
+  await u.click(proveedor)
+  await u.paste('Acopio')
+  await u.click(await screen.findByRole('option', { name: /Acopio/ }))
+
+  fireEvent.change(screen.getByLabelText('Número de factura'), { target: { value: '001' } })
+  fireEvent.change(screen.getByLabelText('Detalle'), { target: { value: 'Servicio' } })
+  fireEvent.change(screen.getByLabelText('Neto'), { target: { value: '100' } })
+  fireEvent.change(screen.getByLabelText('CAE'), { target: { value: 'CAE' } })
+  fireEvent.change(screen.getByLabelText('Vencimiento del CAE'), { target: { value: '2026-10-16' } })
+  fireEvent.change(screen.getByLabelText('Fecha de factura'), { target: { value: '2026-10-16' } })
   return u
 }
 it('requiere selección y neto positivo, conserva valores ante error y navega sin GET ni estado del router',async()=>{
   const storage=vi.spyOn(Storage.prototype,'setItem');abrir();const u=userEvent.setup()
   await u.click(screen.getByRole('button',{name:'Guardar factura'}));expect(api.cargarFacturaProveedor).not.toHaveBeenCalled()
-  await llenar()
+  await llenar(u)
   vi.mocked(api.cargarFacturaProveedor).mockRejectedValueOnce(new ErrorHttp(400,{codigo:'numero_duplicado',mensaje:'Número repetido',campo:'numero'}))
   await u.click(screen.getByRole('button',{name:'Guardar factura'}));expect(await screen.findByText('Número repetido')).toBeInTheDocument()
   expect(screen.getByLabelText('Detalle')).toHaveValue('Servicio')
   await u.click(screen.getByRole('button',{name:'Guardar factura'}))
   expect(await screen.findByText('Factura registrada.')).toBeInTheDocument()
   expect(screen.getByText('$ 121,00')).toBeInTheDocument();expect(api.obtenerFacturaProveedor).not.toHaveBeenCalled()
-  expect(screen.getByTestId('ruta')).toHaveTextContent('null');expect(storage).not.toHaveBeenCalled();storage.mockRestore()
+  expect(screen.getByTestId('ruta')).toHaveTextContent('null');expect(storage).not.toHaveBeenCalled()
 })
 it('un runtime nuevo sin resultado ejecuta GET y muestra falta de permiso',async()=>{
   abrir('/proveedores/facturas/12')
@@ -54,9 +63,15 @@ it('perder el runtime después de un POST obliga a GET y un Id diferente tampoco
   const primera=abrir();const u=await llenar();await u.click(screen.getByRole('button',{name:'Guardar factura'}))
   await screen.findByText('Factura registrada.');expect(api.obtenerFacturaProveedor).not.toHaveBeenCalled()
   await u.click(screen.getByRole('button',{name:'Abrir otra'}))
-  await screen.findByText(/Pedile acceso a un administrador/);expect(api.obtenerFacturaProveedor).toHaveBeenCalledWith(13)
-  primera.unmount();vi.mocked(api.obtenerFacturaProveedor).mockClear();abrir('/proveedores/facturas/12')
-  await screen.findByText(/Pedile acceso a un administrador/);expect(api.obtenerFacturaProveedor).toHaveBeenCalledWith(12)
+  await screen.findByRole('alert')
+  expect(vi.mocked(api.obtenerFacturaProveedor).mock.calls).toEqual([[13]])
+  expect(screen.getByRole('alert')).toHaveTextContent('Pedile acceso a un administrador')
+
+  primera.unmount()
+  abrir('/proveedores/facturas/12')
+  await screen.findByRole('alert')
+  expect(vi.mocked(api.obtenerFacturaProveedor).mock.calls).toEqual([[13], [12]])
+  expect(screen.getByRole('alert')).toHaveTextContent('Pedile acceso a un administrador')
 })
 it('rechaza neto cero y fechas inválidas antes del POST',async()=>{
   abrir();const u=await llenar();await u.clear(screen.getByLabelText('Neto'));await u.type(screen.getByLabelText('Neto'),'0')

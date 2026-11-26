@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
-import { beforeEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { CargarFacturaProveedor } from './CargarFacturaProveedor'
 import { DetalleFacturaProveedor } from './DetalleFacturaProveedor'
 import { ResultadoFacturaProvider } from '../componentes/ResultadoFacturaContexto'
@@ -17,16 +17,26 @@ beforeEach(() => {
   vi.mocked(api.buscarProveedores).mockResolvedValue({ items: [p], total: 1, pagina: 1, tamanioPagina: 20 })
   vi.mocked(api.consultarLiquidacionesDisponibles).mockResolvedValue([l])
 })
+afterEach(() => { vi.restoreAllMocks() })
 function abrir() { render(<MemoryRouter><ResultadoFacturaProvider><CargarFacturaProveedor /></ResultadoFacturaProvider></MemoryRouter>) }
 async function elegir() {
-  const u = userEvent.setup(); await u.type(screen.getByLabelText('Proveedor'), 'Díaz'); await u.click(await screen.findByRole('option', { name: /Fletero Díaz/ })); return u
+  const u = userEvent.setup()
+  const proveedor = screen.getByRole('combobox', { name: 'Proveedor' })
+  await u.click(proveedor)
+  await u.paste('Díaz')
+  await u.click(await screen.findByRole('option', { name: /Fletero Díaz/ }))
+  return u
 }
 async function llenar() {
-  const u = await elegir(); await screen.findByRole('option', { name: /LQ-37.*10\/2026.*121,00/ })
-  await u.type(screen.getByLabelText('Número de factura'), '001'); await u.type(screen.getByLabelText('Detalle'), 'Servicio')
-  await u.type(screen.getByLabelText('Neto'), '100'); await u.type(screen.getByLabelText('CAE'), 'CAE')
+  const u = await elegir()
+  await screen.findByRole('option', { name: /LQ-37.*10\/2026.*121,00/ })
+  fireEvent.change(screen.getByLabelText('Número de factura'), { target: { value: '001' } })
+  fireEvent.change(screen.getByLabelText('Detalle'), { target: { value: 'Servicio' } })
+  fireEvent.change(screen.getByLabelText('Neto'), { target: { value: '100' } })
+  fireEvent.change(screen.getByLabelText('CAE'), { target: { value: 'CAE' } })
   fireEvent.change(screen.getByLabelText('Fecha de factura'), { target: { value: '2026-10-16' } })
-  fireEvent.change(screen.getByLabelText('Vencimiento del CAE'), { target: { value: '2026-10-16' } }); return u
+  fireEvent.change(screen.getByLabelText('Vencimiento del CAE'), { target: { value: '2026-10-16' } })
+  return u
 }
 it('requiere selección nativa y bloquea guardar hasta tener una liquidación válida', async () => {
   abrir(); const u = await llenar(); expect(screen.getByLabelText('Liquidación')).toBeRequired()
@@ -102,5 +112,5 @@ it('muestra la asociación del POST desde memoria sin GET ni DTO en storage o ro
   expect(screen.getByText('LQ-37 · 10/2026')).toBeInTheDocument()
   expect(screen.getByText('Importe de liquidación al registrar')).toBeInTheDocument()
   expect(api.obtenerFacturaProveedor).not.toHaveBeenCalled(); expect(screen.getByTestId('estado-router')).toHaveTextContent('null')
-  expect(persistir).not.toHaveBeenCalled(); persistir.mockRestore()
+  expect(persistir).not.toHaveBeenCalled()
 })
